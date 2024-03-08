@@ -50,3 +50,9 @@ coll = COLLECT(
     upx_exclude=[],
     name='BitCapIPR',
 )
+
+app = BUNDLE(coll,
+             name='BitCapIPR.app',
+             icon=os.path.join(icons, 'BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.icns'),
+             bundle_identifier=None
+)
