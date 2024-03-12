@@ -3,8 +3,8 @@ click==8.1.7
 colorama==0.4.6
 packaging==23.2
 pefile==2023.2.7
-pyinstaller==6.3.0
-pyinstaller-hooks-contrib==2024.0
+pyinstaller==6.5.0
+pyinstaller-hooks-contrib==2024.3
 PyQt6==6.4.2
 pyqt6-plugins==6.4.2.2.3
 PyQt6-Qt6==6.4.3
