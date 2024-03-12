@@ -95,6 +95,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for listener in self.thread.listeners:
             listener.close()
             listener.terminate()
+        self.thread.listeners = []
         self.thread.terminate()
 
     def open_dashboard(self, ip):
@@ -120,6 +121,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for listener in self.thread.listeners:
             listener.close()
             listener.terminate()
+        self.thread.listeners = []
         self.thread.terminate()
         self.close()
         self = None
