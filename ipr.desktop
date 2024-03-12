@@ -2,6 +2,6 @@
 Type=Application
 Name=BitCap IPReporter
 Comment=Internal BitCap IP reporter tool
-Path=/opt/ipr
-Exec=/opt/ipr/ipr
-Icon=BitCapLngLogo_IPR_Full_BLK-02x256.png
+Path=/opt/BitCapIPR
+Exec=/opt/BitCapIPR/BitCapIPR
+Icon=BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png
