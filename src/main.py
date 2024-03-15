@@ -76,6 +76,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        if os.path.exists('config.json'):
+            with open('config.json', 'r') as f:
+                config = json.load(f)
+            self.actionAutoOpenIPInBrowser.setChecked(config['options']['autoOpenIPInBrowser'])
+            self.actionDisableInactiveTimer.setChecked(config['options']['disableInactiveTimer'])
+
         self.label_2.setPixmap(QPixmap(os.path.join(scalable, 'BitCapIPRCenterLogo.svg')))
         self.show()
 
@@ -97,7 +103,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def start_listen(self):
         self.inactive.start()
         self.actionIPRStart.setEnabled(False)
-        # self.instance
+        instance = {
+            "options": {
+                "autoOpenIPInBrowser": self.actionAutoOpenIPInBrowser.isChecked(),
+                "disableInactiveTimer": self.actionDisableInactiveTimer.isChecked()
+            }
+        }
+        self.instance_json = json.dumps(instance, indent=4)
+        with open('config.json', 'w') as f:
+            f.write(self.instance_json)
         QMessageBox.warning(self, "BitCapIPR.exe", "UDP listening on 0.0.0.0[:8888,11503,14235]...\nPress the 'IP Report' button on miner after this dialog.")
         self.thread.start()
 
