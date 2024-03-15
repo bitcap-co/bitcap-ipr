@@ -87,16 +87,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.inactive.timeout.connect(self.stop_listen)
 
         self.confirm = IPRConfirmation()
-        self.confirm.openChrome.clicked.connect(self.open_dashboard)
+        self.confirm.actionOpenBrowser.clicked.connect(self.open_dashboard)
         self.confirm.accept.clicked.connect(self.hide_confirm)
 
-        self.IPRButtonStart.clicked.connect(self.start_listen)
-        self.IPRButtonStop.clicked.connect(self.stop_listen)
+        self.actionIPRStart.clicked.connect(self.start_listen)
+        self.actionIPRStop.clicked.connect(self.stop_listen)
         self.actionQuit.triggered.connect(self.quit)
 
     def start_listen(self):
         self.inactive.start()
-        self.IPRButtonStart.setEnabled(False)
+        self.actionIPRStart.setEnabled(False)
         # self.instance
         QMessageBox.warning(self, "BitCapIPR.exe", "UDP listening on 0.0.0.0[:8888,11503,14235]...\nPress the 'IP Report' button on miner after this dialog.")
         self.thread.start()
@@ -105,23 +105,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # if inactive timer is enabled
         # QMessageBox.warning(self, "BitCapIPR.exe", "Stopped or Idle Timeout exceeded! Stopping listeners...")
         self.inactive.stop()
-        self.IPRButtonStart.setEnabled(True)
+        self.actionIPRStart.setEnabled(True)
         self.thread.stop_listeners()
 
     def open_dashboard(self, ip):
         self.hide_confirm()
         if not ip:
-            ip = self.confirm.ipField.text()
+            ip = self.confirm.lineIPField.text()
         webbrowser.open('http://{0}'.format(ip), new=2)
 
     def show_confirm(self):
         self.inactive.start()
         ip, mac = self.thread.data.split(',')
-        if (self.actionAutoOpenIP.isChecked()):
+        if (self.actionAutoOpenIPInBrowser.isChecked()):
             self.open_dashboard(ip)
             return
-        self.confirm.ipField.setText(ip)
-        self.confirm.macField.setText(mac)
+        self.confirm.lineIPField.setText(ip)
+        self.confirm.lineMACField.setText(mac)
         self.confirm.show()
 
     def hide_confirm(self):

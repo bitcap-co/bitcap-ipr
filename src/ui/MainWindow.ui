@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>BitCap IPReporter</string>
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget[StyleClass=&quot;setText&quot;] {
@@ -26,7 +26,7 @@
    </property>
    <layout class="QGridLayout" name="gridLayout">
     <item row="3" column="3">
-     <widget class="QPushButton" name="IPRButtonStop">
+     <widget class="QPushButton" name="actionIPRStop">
       <property name="font">
        <font>
         <pointsize>14</pointsize>
@@ -39,7 +39,7 @@
      </widget>
     </item>
     <item row="3" column="1">
-     <widget class="QPushButton" name="IPRButtonStart">
+     <widget class="QPushButton" name="actionIPRStart">
       <property name="font">
        <font>
         <pointsize>14</pointsize>
@@ -48,6 +48,9 @@
       </property>
       <property name="text">
        <string>Start</string>
+      </property>
+      <property name="default">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
@@ -139,9 +142,6 @@
       <property name="text">
        <string/>
       </property>
-      <property name="pixmap">
-       <pixmap>test.svg</pixmap>
-      </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
       </property>
@@ -172,7 +172,8 @@
     <property name="title">
      <string>Options</string>
     </property>
-    <addaction name="actionAutoOpenIP"/>
+    <addaction name="actionAutoOpenIPInBrowser"/>
+    <addaction name="actionDisableInactiveTimer"/>
    </widget>
    <widget class="QMenu" name="menuQuit">
     <property name="title">
@@ -197,17 +198,22 @@
     <string>Version</string>
    </property>
   </action>
-  <action name="actionAutoOpenIP">
+  <action name="actionAutoOpenIPInBrowser">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Auto Open IP in Chrome</string>
+    <string>Auto Open IP in Browser</string>
    </property>
   </action>
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionDisableInactiveTimer">
+   <property name="text">
+    <string>Disable Inactive Timer</string>
    </property>
   </action>
  </widget>

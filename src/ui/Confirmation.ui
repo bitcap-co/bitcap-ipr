@@ -67,7 +67,7 @@ QLineEdit {
     </widget>
    </item>
    <item row="4" column="0">
-    <widget class="QLineEdit" name="macField">
+    <widget class="QLineEdit" name="lineMACField">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -78,7 +78,7 @@ QLineEdit {
       </font>
      </property>
      <property name="text">
-      <string>Test</string>
+      <string/>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -86,7 +86,7 @@ QLineEdit {
     </widget>
    </item>
    <item row="1" column="0">
-    <widget class="QLineEdit" name="ipField">
+    <widget class="QLineEdit" name="lineIPField">
      <property name="enabled">
       <bool>false</bool>
      </property>
@@ -96,7 +96,7 @@ QLineEdit {
       </font>
      </property>
      <property name="text">
-      <string>192.168.2.15</string>
+      <string/>
      </property>
      <property name="frame">
       <bool>true</bool>
@@ -132,7 +132,7 @@ QLineEdit {
     </widget>
    </item>
    <item row="2" column="0" alignment="Qt::AlignHCenter">
-    <widget class="QPushButton" name="openChrome">
+    <widget class="QPushButton" name="actionOpenBrowser">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -146,7 +146,7 @@ QLineEdit {
       </font>
      </property>
      <property name="text">
-      <string>Open Chrome</string>
+      <string>Open Browser</string>
      </property>
     </widget>
    </item>
