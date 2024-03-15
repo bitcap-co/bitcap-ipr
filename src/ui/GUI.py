@@ -87,6 +87,7 @@ class Ui_MainWindow(object):
         self.actionQuit = QtGui.QAction(parent=MainWindow)
         self.actionQuit.setObjectName("actionQuit")
         self.actionDisableInactiveTimer = QtGui.QAction(parent=MainWindow)
+        self.actionDisableInactiveTimer.setCheckable(True)
         self.actionDisableInactiveTimer.setObjectName("actionDisableInactiveTimer")
         self.menuAbout.addAction(self.actionHelp)
         self.menuAbout.addAction(self.actionVersion)

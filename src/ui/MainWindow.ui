@@ -212,6 +212,9 @@
    </property>
   </action>
   <action name="actionDisableInactiveTimer">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Disable Inactive Timer</string>
    </property>
