@@ -101,8 +101,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionQuit.triggered.connect(self.quit)
 
     def start_listen(self):
-        self.inactive.start()
         self.actionIPRStart.setEnabled(False)
+        if not self.actionDisableInactiveTimer.isChecked():
+            self.inactive.start()
         instance = {
             "options": {
                 "autoOpenIPInBrowser": self.actionAutoOpenIPInBrowser.isChecked(),
@@ -117,10 +118,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def stop_listen(self):
         # if inactive timer is enabled
-        # QMessageBox.warning(self, "BitCapIPR.exe", "Stopped or Idle Timeout exceeded! Stopping listeners...")
-        self.inactive.stop()
-        self.actionIPRStart.setEnabled(True)
+        if not self.actionDisableInactiveTimer.isChecked():
+            QMessageBox.warning(self, "BitCapIPR.exe", "Stopped or Idle Timeout exceeded! Stopping listeners...")
+            self.inactive.stop()
         self.thread.stop_listeners()
+        self.actionIPRStart.setEnabled(True)
 
     def open_dashboard(self, ip):
         self.hide_confirm()
