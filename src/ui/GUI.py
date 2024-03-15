@@ -24,6 +24,7 @@ class Ui_MainWindow(object):
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName("gridLayout")
         self.actionIPRStop = QtWidgets.QPushButton(parent=self.centralwidget)
+        self.actionIPRStop.setEnabled(False)
         font = QtGui.QFont()
         font.setPointSize(14)
         font.setBold(True)

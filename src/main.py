@@ -102,6 +102,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def start_listen(self):
         self.actionIPRStart.setEnabled(False)
+        self.actionIPRStop.setEnabled(True)
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
         instance = {
@@ -123,6 +124,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.inactive.stop()
         self.thread.stop_listeners()
         self.actionIPRStart.setEnabled(True)
+        self.actionIPRStop.setEnabled(False)
 
     def open_dashboard(self, ip):
         self.hide_confirm()

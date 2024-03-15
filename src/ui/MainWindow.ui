@@ -27,6 +27,9 @@
    <layout class="QGridLayout" name="gridLayout">
     <item row="3" column="3">
      <widget class="QPushButton" name="actionIPRStop">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="font">
        <font>
         <pointsize>14</pointsize>
