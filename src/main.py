@@ -90,7 +90,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.inactive = QTimer()
         self.inactive.setInterval(900000)
-        self.inactive.timeout.connect(self.stop_listen)
+        self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
 
         self.confirm = IPRConfirmation()
         self.confirm.actionOpenBrowser.clicked.connect(self.open_dashboard)
@@ -117,11 +117,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QMessageBox.warning(self, "BitCapIPR.exe", "UDP listening on 0.0.0.0[:8888,11503,14235]...\nPress the 'IP Report' button on miner after this dialog.")
         self.thread.start()
 
-    def stop_listen(self):
-        # if inactive timer is enabled
-        if not self.actionDisableInactiveTimer.isChecked():
-            QMessageBox.warning(self, "BitCapIPR.exe", "Stopped or Idle Timeout exceeded! Stopping listeners...")
-            self.inactive.stop()
+    def stop_listen(self, timeout):
+        if not self.actionDisableInactiveTimer.isChecked() and timeout:
+            QMessageBox.warning(self, "BitCapIPR.exe", "Inactive Timeout exceeded! Stopping listeners...")
+        self.inactive.stop()
         self.thread.stop_listeners()
         self.actionIPRStart.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
