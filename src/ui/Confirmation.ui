@@ -41,6 +41,30 @@ QLineEdit {
    <property name="spacing">
     <number>0</number>
    </property>
+   <item row="1" column="0">
+    <widget class="QLineEdit" name="lineIPField">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="frame">
+      <bool>true</bool>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
    <item row="3" column="0">
     <widget class="QLabel" name="label_2">
      <property name="sizePolicy">
@@ -66,43 +90,22 @@ QLineEdit {
      </property>
     </widget>
    </item>
-   <item row="4" column="0">
-    <widget class="QLineEdit" name="lineMACField">
-     <property name="enabled">
-      <bool>false</bool>
+   <item row="2" column="0" alignment="Qt::AlignHCenter">
+    <widget class="QPushButton" name="actionOpenBrowser">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
      <property name="font">
       <font>
-       <pointsize>12</pointsize>
-       <bold>false</bold>
+       <pointsize>10</pointsize>
+       <bold>true</bold>
       </font>
      </property>
      <property name="text">
-      <string/>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLineEdit" name="lineIPField">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>12</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="frame">
-      <bool>true</bool>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
+      <string>Open Browser</string>
      </property>
     </widget>
    </item>
@@ -131,22 +134,25 @@ QLineEdit {
      </property>
     </widget>
    </item>
-   <item row="2" column="0" alignment="Qt::AlignHCenter">
-    <widget class="QPushButton" name="actionOpenBrowser">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
+   <item row="4" column="0">
+    <widget class="QLineEdit" name="lineMACField">
+     <property name="enabled">
+      <bool>true</bool>
      </property>
      <property name="font">
       <font>
-       <pointsize>10</pointsize>
-       <bold>true</bold>
+       <pointsize>12</pointsize>
+       <bold>false</bold>
       </font>
      </property>
      <property name="text">
-      <string>Open Browser</string>
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
      </property>
     </widget>
    </item>

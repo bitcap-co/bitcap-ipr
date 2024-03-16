@@ -9,7 +9,9 @@ from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
     QMessageBox,
-    QWidget
+    QWidget,
+    QLineEdit,
+    QStyle
 )
 from PyQt6.QtGui import QIcon, QPixmap
 
@@ -95,10 +97,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.confirm = IPRConfirmation()
         self.confirm.actionOpenBrowser.clicked.connect(self.open_dashboard)
         self.confirm.accept.clicked.connect(self.hide_confirm)
+        self.confirm.lineIPField.actionCopy = self.confirm.lineIPField.addAction(app.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon), QLineEdit.ActionPosition.TrailingPosition)
+        self.confirm.lineIPField.actionCopy.triggered.connect(lambda: self.copyText(self.confirm.lineIPField))
+        self.confirm.lineMACField.actionCopy = self.confirm.lineMACField.addAction(app.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon), QLineEdit.ActionPosition.TrailingPosition)
+        self.confirm.lineMACField.actionCopy.triggered.connect(lambda: self.copyText(self.confirm.lineMACField))
 
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
         self.actionQuit.triggered.connect(self.quit)
+
+    def copyText(self, lineEdit):
+        lineEdit.selectAll()
+        lineEdit.copy()
 
     def start_listen(self):
         self.actionIPRStart.setEnabled(False)
