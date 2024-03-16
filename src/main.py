@@ -21,6 +21,13 @@ basedir = os.path.dirname(__file__)
 icons = os.path.join(basedir, 'resources/icons/app')
 scalable = os.path.join(basedir, 'resources/scalable')
 
+app_info = {
+    "name": "BitCap IPReporter",
+    "version": "0.2.0",
+    "author": "MatthewWertman",
+    "company": "BitCap"
+}
+
 # windows taskbar
 try:
     from ctypes import windll
@@ -78,6 +85,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+
+        self.actionVersion.setText(f"Version {app_info['version']}")
+
+        # MainWindow Signals
+        self.actionHelp.triggered.connect(self.help)
         if os.path.exists('config.json'):
             with open('config.json', 'r') as f:
                 config = json.load(f)
@@ -153,6 +165,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def hide_confirm(self):
         self.confirm.hide()
+
+
+    def help(self):
+        QMessageBox.information(self, "BitCapIPR", f"{app_info['name']}\nVersion {app_info['version']}\n{app_info['author']}\nPowered by {app_info['company']}\n")
 
     def quit(self):
         self.thread.stop_listeners()
