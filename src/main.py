@@ -87,17 +87,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
 
         self.actionVersion.setText(f"Version {app_info['version']}")
+        self.label_2.setPixmap(QPixmap(os.path.join(scalable, 'BitCapIPRCenterLogo.svg')))
 
         # MainWindow Signals
         self.actionHelp.triggered.connect(self.help)
+        self.actionQuit.triggered.connect(self.quit)
+
+        self.actionIPRStart.clicked.connect(self.start_listen)
+        self.actionIPRStop.clicked.connect(self.stop_listen)
+
         if os.path.exists('config.json'):
             with open('config.json', 'r') as f:
                 config = json.load(f)
             self.actionAutoOpenIPInBrowser.setChecked(config['options']['autoOpenIPInBrowser'])
             self.actionDisableInactiveTimer.setChecked(config['options']['disableInactiveTimer'])
-
-        self.label_2.setPixmap(QPixmap(os.path.join(scalable, 'BitCapIPRCenterLogo.svg')))
         self.show()
+
+        self.confirm = IPRConfirmation()
+        # IPRConfirmation Signals
+        self.confirm.actionOpenBrowser.clicked.connect(self.open_dashboard)
+        self.confirm.accept.clicked.connect(self.hide_confirm)
+        # copy action
+        self.confirm.lineIPField.actionCopy = self.confirm.lineIPField.addAction(app.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon), QLineEdit.ActionPosition.TrailingPosition)
+        self.confirm.lineIPField.actionCopy.triggered.connect(lambda: self.copy_text(self.confirm.lineIPField))
+        self.confirm.lineMACField.actionCopy = self.confirm.lineMACField.addAction(app.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon), QLineEdit.ActionPosition.TrailingPosition)
+        self.confirm.lineMACField.actionCopy.triggered.connect(lambda: self.copy_text(self.confirm.lineMACField))
 
         self.thread = ListenerManager()
         self.thread.completed.connect(self.show_confirm)
@@ -105,22 +119,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.inactive = QTimer()
         self.inactive.setInterval(900000)
         self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
-
-        self.confirm = IPRConfirmation()
-        self.confirm.actionOpenBrowser.clicked.connect(self.open_dashboard)
-        self.confirm.accept.clicked.connect(self.hide_confirm)
-        self.confirm.lineIPField.actionCopy = self.confirm.lineIPField.addAction(app.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon), QLineEdit.ActionPosition.TrailingPosition)
-        self.confirm.lineIPField.actionCopy.triggered.connect(lambda: self.copyText(self.confirm.lineIPField))
-        self.confirm.lineMACField.actionCopy = self.confirm.lineMACField.addAction(app.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon), QLineEdit.ActionPosition.TrailingPosition)
-        self.confirm.lineMACField.actionCopy.triggered.connect(lambda: self.copyText(self.confirm.lineMACField))
-
-        self.actionIPRStart.clicked.connect(self.start_listen)
-        self.actionIPRStop.clicked.connect(self.stop_listen)
-        self.actionQuit.triggered.connect(self.quit)
-
-    def copyText(self, lineEdit):
-        lineEdit.selectAll()
-        lineEdit.copy()
 
     def start_listen(self):
         self.actionIPRStart.setEnabled(False)
@@ -136,12 +134,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.instance_json = json.dumps(instance, indent=4)
         with open('config.json', 'w') as f:
             f.write(self.instance_json)
-        QMessageBox.warning(self, "BitCapIPR.exe", "UDP listening on 0.0.0.0[:8888,11503,14235]...\nPress the 'IP Report' button on miner after this dialog.")
+        QMessageBox.warning(self, "BitCapIPR", "UDP listening on 0.0.0.0[:8888,11503,14235]...\nPress the 'IP Report' button on miner after this dialog.")
         self.thread.start()
 
     def stop_listen(self, timeout):
         if not self.actionDisableInactiveTimer.isChecked() and timeout:
-            QMessageBox.warning(self, "BitCapIPR.exe", "Inactive Timeout exceeded! Stopping listeners...")
+            QMessageBox.warning(self, "BitCapIPR", "Inactive Timeout exceeded! Stopping listeners...")
         self.inactive.stop()
         self.thread.stop_listeners()
         self.actionIPRStart.setEnabled(True)
@@ -166,6 +164,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def hide_confirm(self):
         self.confirm.hide()
 
+    def copy_text(self, lineEdit):
+        lineEdit.selectAll()
+        lineEdit.copy()
 
     def help(self):
         QMessageBox.information(self, "BitCapIPR", f"{app_info['name']}\nVersion {app_info['version']}\n{app_info['author']}\nPowered by {app_info['company']}\n")
