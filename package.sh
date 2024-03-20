@@ -1,7 +1,8 @@
 #!/bin/bash
 ## build ipr linux package with fpm
 
-PNAME="bitcapipr-linux-x86_64"
+PNAME="bitcapipr"
+PLATFORM="linux-x86_64"
 
 # create dirs
 [ -e package ] && rm -r package
@@ -18,4 +19,4 @@ find package/opt/BitCapIPR -type d -exec chmod 755 -- {} +
 find package/usr/share -type f -exec chmod 644 -- {} +
 chmod +x package/opt/BitCapIPR/BitCapIPR
 
-fpm -C package -s dir -t deb -n "$PNAME" -v "$1" -p "dist/$PNAME-$1.deb"
+fpm -C package -s dir -t deb -n "$PNAME" -v "$1" -p "dist/$PNAME-$1-$PLATFORM.deb"
