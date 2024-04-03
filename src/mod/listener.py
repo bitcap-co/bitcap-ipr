@@ -24,14 +24,17 @@ class Listener(QThread):
             self.d = self.sock.recv(self.bufsize)
             if not (self.prev.decode('ascii') == self.d.decode('ascii')):
                 self.d_str = self.d.decode('ascii')
-                ip, mac = self.d_str.split(",")
-                if (self.port == 11503):
-                    ip = self.d_str.split(":")[1]
-                    mac = 'ice-river'
-                if (self.port == 8888):
-                    ip, mac = self.d_str.split("M")
-                    ip = ip[3:]
-                    mac = mac[3:]
+                match self.port:
+                    case 11503:  # IceRiver
+                        ip = self.d_str.split(":")[1]
+                        mac = 'ice-river'
+                    case 8888:  #Whatsminer
+                        ip, mac = self.d_str.split("M")
+                        ip = ip[3:]
+                        mac = mac[3:]
+                    case 14235:  #AntMiner
+                        ip, mac = self.d_str.split(",")
+
                 self.d_str = ','.join([ip, mac])
                 self.prev = self.d
                 # signal that we received a buffer
