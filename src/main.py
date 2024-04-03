@@ -25,7 +25,8 @@ app_info = {
     "name": "BitCap IPReporter",
     "version": "0.2.0",
     "author": "MatthewWertman",
-    "company": "BitCap"
+    "company": "BitCap",
+    "desc": "cross-platform IP Reporter\nthat listens for AntMiners, IceRivers, and Whatsminers."
 }
 
 # windows taskbar
@@ -169,7 +170,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         lineEdit.copy()
 
     def help(self):
-        QMessageBox.information(self, "BitCapIPR", f"{app_info['name']}\nVersion {app_info['version']}\n{app_info['author']}\nPowered by {app_info['company']}\n")
+        QMessageBox.information(self, "BitCapIPR", f"{app_info['name']} is a {app_info['desc']}\nVersion {app_info['version']}\n{app_info['author']}\nPowered by {app_info['company']}\n")
 
     def quit(self):
         self.thread.stop_listeners()
