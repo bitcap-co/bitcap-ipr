@@ -89,6 +89,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actionVersion.setText(f"Version {app_info['version']}")
         self.label_2.setPixmap(QPixmap(os.path.join(scalable, 'BitCapIPRCenterLogo.svg')))
+        self.children = []
 
         # MainWindow Signals
         self.actionHelp.triggered.connect(self.help)
@@ -159,6 +160,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         confirm.lineIPField.setText(ip)
         confirm.lineMACField.setText(mac)
         confirm.show()
+        self.children.append(confirm)
 
     def hide_confirm(self):
         self.confirm.hide()
@@ -173,6 +175,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def quit(self):
         self.thread.stop_listeners()
         self.thread.terminate()
+        for c in self.children:
+            c.close()
         self.close()
         self = None
 
