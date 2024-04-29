@@ -162,8 +162,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         confirm.show()
         self.children.append(confirm)
 
-    def hide_confirm(self):
-        self.confirm.hide()
+    def hide_confirm(self, confirm):
+        confirm.close()
 
     def copy_text(self, lineEdit):
         lineEdit.selectAll()
