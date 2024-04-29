@@ -102,7 +102,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 config = json.load(f)
             self.actionAutoOpenIPInBrowser.setChecked(config['options']['autoOpenIPInBrowser'])
             self.actionDisableInactiveTimer.setChecked(config['options']['disableInactiveTimer'])
-        self.show()
 
         self.confirm = IPRConfirmation()
         # IPRConfirmation Signals
@@ -184,4 +183,5 @@ app.setWindowIcon(QIcon(os.path.join(icons, 'BitCapLngLogo_IPR_Full_ORG_BLK-02_S
 app.setStyle('Fusion')
 
 w = MainWindow()
+w.show()
 app.exec()
