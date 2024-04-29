@@ -103,16 +103,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionAutoOpenIPInBrowser.setChecked(config['options']['autoOpenIPInBrowser'])
             self.actionDisableInactiveTimer.setChecked(config['options']['disableInactiveTimer'])
 
-        self.confirm = IPRConfirmation()
-        # IPRConfirmation Signals
-        self.confirm.actionOpenBrowser.clicked.connect(self.open_dashboard)
-        self.confirm.accept.clicked.connect(self.hide_confirm)
-        # copy action
-        self.confirm.lineIPField.actionCopy = self.confirm.lineIPField.addAction(app.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon), QLineEdit.ActionPosition.TrailingPosition)
-        self.confirm.lineIPField.actionCopy.triggered.connect(lambda: self.copy_text(self.confirm.lineIPField))
-        self.confirm.lineMACField.actionCopy = self.confirm.lineMACField.addAction(app.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon), QLineEdit.ActionPosition.TrailingPosition)
-        self.confirm.lineMACField.actionCopy.triggered.connect(lambda: self.copy_text(self.confirm.lineMACField))
-
         self.thread = ListenerManager()
         self.thread.completed.connect(self.show_confirm)
 
@@ -157,9 +147,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if (self.actionAutoOpenIPInBrowser.isChecked()):
             self.open_dashboard(ip)
             return
-        self.confirm.lineIPField.setText(ip)
-        self.confirm.lineMACField.setText(mac)
-        self.confirm.show()
+        confirm = IPRConfirmation()
+        # IPRConfirmation Signals
+        confirm.actionOpenBrowser.clicked.connect(lambda: self.open_dashboard(ip))
+        confirm.accept.clicked.connect(lambda: self.hide_confirm(confirm))
+        # copy action
+        confirm.lineIPField.actionCopy = confirm.lineIPField.addAction(app.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon), QLineEdit.ActionPosition.TrailingPosition)
+        confirm.lineIPField.actionCopy.triggered.connect(lambda: self.copy_text(confirm.lineIPField))
+        confirm.lineMACField.actionCopy = confirm.lineMACField.addAction(app.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon), QLineEdit.ActionPosition.TrailingPosition)
+        confirm.lineMACField.actionCopy.triggered.connect(lambda: self.copy_text(confirm.lineMACField))
+        confirm.lineIPField.setText(ip)
+        confirm.lineMACField.setText(mac)
+        confirm.show()
 
     def hide_confirm(self):
         self.confirm.hide()
