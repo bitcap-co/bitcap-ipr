@@ -137,9 +137,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionIPRStop.setEnabled(False)
 
     def open_dashboard(self, ip):
-        self.hide_confirm()
-        if not ip:
-            ip = self.confirm.lineIPField.text()
         webbrowser.open('http://{0}'.format(ip), new=2)
 
     def show_confirm(self):
