@@ -129,9 +129,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.thread.start()
 
     def stop_listen(self, timeout):
-        if not self.actionDisableInactiveTimer.isChecked() and timeout:
+        if timeout:
             QMessageBox.warning(self, "BitCapIPR", "Inactive Timeout exceeded! Stopping listeners...")
-        self.inactive.stop()
+            self.inactive.stop()
         self.thread.stop_listeners()
         self.actionIPRStart.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
@@ -140,7 +140,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         webbrowser.open('http://{0}'.format(ip), new=2)
 
     def show_confirm(self):
-        self.inactive.start()
+        if not self.actionDisableInactiveTimer.isChecked():
+            self.inactive.start()
         ip, mac = self.thread.data.split(',')
         if (self.actionAutoOpenIPInBrowser.isChecked()):
             self.open_dashboard(ip)
