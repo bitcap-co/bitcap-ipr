@@ -94,6 +94,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # MainWindow Signals
         self.actionHelp.triggered.connect(self.help)
         self.actionQuit.triggered.connect(self.quit)
+        self.menuOptions.triggered.connect(self.update_settings)
 
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
@@ -116,15 +117,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionIPRStop.setEnabled(True)
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
-        instance = {
-            "options": {
-                "autoOpenIPInBrowser": self.actionAutoOpenIPInBrowser.isChecked(),
-                "disableInactiveTimer": self.actionDisableInactiveTimer.isChecked()
-            }
-        }
-        self.instance_json = json.dumps(instance, indent=4)
-        with open('config.json', 'w') as f:
-            f.write(self.instance_json)
         QMessageBox.warning(self, "BitCapIPR", "UDP listening on 0.0.0.0[:8888,11503,14235]...\nPress the 'IP Report' button on miner after this dialog.")
         self.thread.start()
 
@@ -166,6 +158,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def copy_text(self, lineEdit):
         lineEdit.selectAll()
         lineEdit.copy()
+
+    def update_settings(self):
+        instance = {
+            "options": {
+                "autoOpenIPInBrowser": self.actionAutoOpenIPInBrowser.isChecked(),
+                "disableInactiveTimer": self.actionDisableInactiveTimer.isChecked()
+            }
+        }
+        self.instance_json = json.dumps(instance, indent=4)
+        with open('config.json', 'w') as f:
+            f.write(self.instance_json)
 
     def help(self):
         QMessageBox.information(self, "BitCapIPR", f"{app_info['name']} is a {app_info['desc']}\nVersion {app_info['version']}\n{app_info['author']}\nPowered by {app_info['company']}\n")
