@@ -135,7 +135,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
         ip, mac = self.thread.data.split(',')
-        if (self.actionAutoOpenIPInBrowser.isChecked()):
+        if self.actionAutoOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
             return
         confirm = IPRConfirmation()
