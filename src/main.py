@@ -104,6 +104,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 config = json.load(f)
             self.actionAutoOpenIPInBrowser.setChecked(config['options']['autoOpenIPInBrowser'])
             self.actionDisableInactiveTimer.setChecked(config['options']['disableInactiveTimer'])
+            self.actionDisableWarningDialog.setChecked(config['options']['disableWarningDialog'])
 
         self.thread = ListenerManager()
         self.thread.completed.connect(self.show_confirm)
@@ -117,7 +118,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionIPRStop.setEnabled(True)
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
-        QMessageBox.warning(self, "BitCapIPR", "UDP listening on 0.0.0.0[:8888,11503,14235]...\nPress the 'IP Report' button on miner after this dialog.")
+        if not self.actionDisableWarningDialog.isChecked():
+            QMessageBox.warning(self, "BitCapIPR", "UDP listening on 0.0.0.0[:8888,11503,14235]...\nPress the 'IP Report' button on miner after this dialog.")
         self.thread.start()
 
     def stop_listen(self, timeout):
@@ -163,7 +165,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         instance = {
             "options": {
                 "autoOpenIPInBrowser": self.actionAutoOpenIPInBrowser.isChecked(),
-                "disableInactiveTimer": self.actionDisableInactiveTimer.isChecked()
+                "disableInactiveTimer": self.actionDisableInactiveTimer.isChecked(),
+                "disableWarningDialog": self.actionDisableWarningDialog.isChecked()
             }
         }
         self.instance_json = json.dumps(instance, indent=4)

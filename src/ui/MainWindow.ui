@@ -177,6 +177,7 @@
     </property>
     <addaction name="actionAutoOpenIPInBrowser"/>
     <addaction name="actionDisableInactiveTimer"/>
+    <addaction name="actionDisableWarningDialog"/>
    </widget>
    <widget class="QMenu" name="menuQuit">
     <property name="title">
@@ -220,6 +221,14 @@
    </property>
    <property name="text">
     <string>Disable Inactive Timer</string>
+   </property>
+  </action>
+  <action name="actionDisableWarningDialog">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Disable Warning Dialog</string>
    </property>
   </action>
  </widget>
