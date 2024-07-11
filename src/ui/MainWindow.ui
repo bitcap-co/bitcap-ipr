@@ -178,6 +178,7 @@
     <addaction name="actionAutoOpenIPInBrowser"/>
     <addaction name="actionDisableInactiveTimer"/>
     <addaction name="actionDisableWarningDialog"/>
+    <addaction name="actionAutoStart"/>
    </widget>
    <widget class="QMenu" name="menuQuit">
     <property name="title">
@@ -229,6 +230,17 @@
    </property>
    <property name="text">
     <string>Disable Warning Dialog</string>
+   </property>
+  </action>
+  <action name="actionAutoStart">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Auto-Start</string>
+   </property>
+   <property name="toolTip">
+    <string>Automatically Start Listeners</string>
    </property>
   </action>
  </widget>

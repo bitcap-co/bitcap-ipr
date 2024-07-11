@@ -93,11 +93,15 @@ class Ui_MainWindow(object):
         self.actionDisableWarningDialog = QtGui.QAction(parent=MainWindow)
         self.actionDisableWarningDialog.setCheckable(True)
         self.actionDisableWarningDialog.setObjectName("actionDisableWarningDialog")
+        self.actionAutoStart = QtGui.QAction(parent=MainWindow)
+        self.actionAutoStart.setCheckable(True)
+        self.actionAutoStart.setObjectName("actionAutoStart")
         self.menuAbout.addAction(self.actionHelp)
         self.menuAbout.addAction(self.actionVersion)
         self.menuOptions.addAction(self.actionAutoOpenIPInBrowser)
         self.menuOptions.addAction(self.actionDisableInactiveTimer)
         self.menuOptions.addAction(self.actionDisableWarningDialog)
+        self.menuOptions.addAction(self.actionAutoStart)
         self.menuQuit.addAction(self.actionQuit)
         self.menubar.addAction(self.menuAbout.menuAction())
         self.menubar.addAction(self.menuOptions.menuAction())
@@ -123,6 +127,8 @@ class Ui_MainWindow(object):
         self.actionQuit.setText(_translate("MainWindow", "Quit"))
         self.actionDisableInactiveTimer.setText(_translate("MainWindow", "Disable Inactive Timer"))
         self.actionDisableWarningDialog.setText(_translate("MainWindow", "Disable Warning Dialog"))
+        self.actionAutoStart.setText(_translate("MainWindow", "Auto-Start"))
+        self.actionAutoStart.setToolTip(_translate("MainWindow", "Automatically Start Listeners"))
 
 
 class Ui_IPRConfirmation(object):
