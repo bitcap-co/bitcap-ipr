@@ -17,7 +17,6 @@ class Listener(QThread):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind(('0.0.0.0', self.port))
 
-
     @pyqtSlot()
     def run(self):
         while True:
@@ -28,18 +27,17 @@ class Listener(QThread):
                     case 11503:  # IceRiver
                         ip = self.d_str.split(":")[1]
                         mac = 'ice-river'
-                    case 8888:  #Whatsminer
+                    case 8888:  # Whatsminer
                         ip, mac = self.d_str.split("M")
                         ip = ip[3:]
                         mac = mac[3:]
-                    case 14235:  #AntMiner
+                    case 14235:  # AntMiner
                         ip, mac = self.d_str.split(",")
 
                 self.d_str = ','.join([ip, mac])
                 self.prev = self.d
                 # signal that we received a buffer
                 self.signals.result.emit()
-
 
     def close(self):
         self.sock.close()
