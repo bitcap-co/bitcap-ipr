@@ -184,6 +184,7 @@
     <property name="title">
      <string>Quit</string>
     </property>
+    <addaction name="actionKillAllConfirmations"/>
     <addaction name="actionQuit"/>
    </widget>
    <addaction name="menuAbout"/>
@@ -241,6 +242,11 @@
    </property>
    <property name="toolTip">
     <string>Automatically Start Listeners</string>
+   </property>
+  </action>
+  <action name="actionKillAllConfirmations">
+   <property name="text">
+    <string>Kill All Confirmations</string>
    </property>
   </action>
  </widget>

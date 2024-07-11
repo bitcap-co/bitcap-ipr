@@ -96,12 +96,15 @@ class Ui_MainWindow(object):
         self.actionAutoStart = QtGui.QAction(parent=MainWindow)
         self.actionAutoStart.setCheckable(True)
         self.actionAutoStart.setObjectName("actionAutoStart")
+        self.actionKillAllConfirmations = QtGui.QAction(parent=MainWindow)
+        self.actionKillAllConfirmations.setObjectName("actionKillAllConfirmations")
         self.menuAbout.addAction(self.actionHelp)
         self.menuAbout.addAction(self.actionVersion)
         self.menuOptions.addAction(self.actionAutoOpenIPInBrowser)
         self.menuOptions.addAction(self.actionDisableInactiveTimer)
         self.menuOptions.addAction(self.actionDisableWarningDialog)
         self.menuOptions.addAction(self.actionAutoStart)
+        self.menuQuit.addAction(self.actionKillAllConfirmations)
         self.menuQuit.addAction(self.actionQuit)
         self.menubar.addAction(self.menuAbout.menuAction())
         self.menubar.addAction(self.menuOptions.menuAction())
@@ -129,6 +132,7 @@ class Ui_MainWindow(object):
         self.actionDisableWarningDialog.setText(_translate("MainWindow", "Disable Warning Dialog"))
         self.actionAutoStart.setText(_translate("MainWindow", "Auto-Start"))
         self.actionAutoStart.setToolTip(_translate("MainWindow", "Automatically Start Listeners"))
+        self.actionKillAllConfirmations.setText(_translate("MainWindow", "Kill All Confirmations"))
 
 
 class Ui_IPRConfirmation(object):
