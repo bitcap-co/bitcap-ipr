@@ -93,6 +93,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # MainWindow Signals
         self.actionHelp.triggered.connect(self.help)
+        self.actionKillAllConfirmations.triggered.connect(self.killall)
         self.actionQuit.triggered.connect(self.quit)
         self.menuOptions.triggered.connect(self.update_settings)
 
@@ -175,6 +176,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def help(self):
         QMessageBox.information(self, "BitCapIPR", f"{app_info['name']} is a {app_info['desc']}\nVersion {app_info['version']}\n{app_info['author']}\nPowered by {app_info['company']}\n")
+
+    def killall(self):
+        for c in self.children:
+            c.close()
 
     def quit(self):
         self.thread.stop_listeners()
