@@ -103,10 +103,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if os.path.exists('config.json'):
             with open('config.json', 'r') as f:
                 config = json.load(f)
-            self.actionAutoOpenIPInBrowser.setChecked(config['options']['autoOpenIPInBrowser'])
+            self.actionAlwaysOpenIPInBrowser.setChecked(config['options']['alwaysOpenIPInBrowser'])
             self.actionDisableInactiveTimer.setChecked(config['options']['disableInactiveTimer'])
             self.actionDisableWarningDialog.setChecked(config['options']['disableWarningDialog'])
-            self.actionAutoStart.setChecked(config['options']['autoStart'])
+            self.actionAutoStartOnLaunch.setChecked(config['options']['autoStartOnLaunch'])
 
         self.thread = ListenerManager()
         self.thread.completed.connect(self.show_confirm)
@@ -115,7 +115,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.inactive.setInterval(900000)
         self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
 
-        if self.actionAutoStart.isChecked():
+        if self.actionAutoStartOnLaunch.isChecked():
             self.start_listen()
 
     def start_listen(self):
@@ -123,7 +123,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionIPRStop.setEnabled(True)
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
-        if not self.actionDisableWarningDialog.isChecked() and not self.actionAutoStart.isChecked():
+        if not self.actionDisableWarningDialog.isChecked() and not self.actionAutoStartOnLaunch.isChecked():
             QMessageBox.warning(self, "BitCapIPR", "UDP listening on 0.0.0.0[:8888,11503,14235]...\nPress the 'IP Report' button on miner after this dialog.")
         self.thread.start()
 
@@ -142,7 +142,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
         ip, mac = self.thread.data.split(',')
-        if self.actionAutoOpenIPInBrowser.isChecked():
+        if self.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
             return
         confirm = IPRConfirmation()
@@ -169,10 +169,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def update_settings(self):
         instance = {
             "options": {
-                "autoOpenIPInBrowser": self.actionAutoOpenIPInBrowser.isChecked(),
+                "alwaysOpenIPInBrowser": self.actionAlwaysOpenIPInBrowser.isChecked(),
                 "disableInactiveTimer": self.actionDisableInactiveTimer.isChecked(),
                 "disableWarningDialog": self.actionDisableWarningDialog.isChecked(),
-                "autoStart": self.actionAutoStart.isChecked()
+                "autoStartOnLaunch": self.actionAutoStartOnLaunch.isChecked()
             }
         }
         self.instance_json = json.dumps(instance, indent=4)
