@@ -175,14 +175,20 @@
     <property name="title">
      <string>Options</string>
     </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
+    <addaction name="actionAlwaysOpenIPInBrowser"/>
     <addaction name="actionDisableInactiveTimer"/>
     <addaction name="actionDisableWarningDialog"/>
-    <addaction name="actionAutoOpenIPInBrowser"/>
-    <addaction name="actionAutoStart"/>
+    <addaction name="actionAutoStartOnLaunch"/>
    </widget>
    <widget class="QMenu" name="menuQuit">
     <property name="title">
      <string>Quit</string>
+    </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
     </property>
     <addaction name="actionKillAllConfirmations"/>
     <addaction name="actionQuit"/>
@@ -204,17 +210,23 @@
     <string>Version</string>
    </property>
   </action>
-  <action name="actionAutoOpenIPInBrowser">
+  <action name="actionAlwaysOpenIPInBrowser">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Auto Open IP in Browser</string>
+    <string>Always Open IP in Browser</string>
+   </property>
+   <property name="toolTip">
+    <string>Always opens IPs in browser (No IP confirmation)</string>
    </property>
   </action>
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>
+   </property>
+   <property name="toolTip">
+    <string>Quits app</string>
    </property>
   </action>
   <action name="actionDisableInactiveTimer">
@@ -224,6 +236,9 @@
    <property name="text">
     <string>Disable Inactive Timer</string>
    </property>
+   <property name="toolTip">
+    <string>Disables inactive timer of 15 minutes (Listens until stopped)</string>
+   </property>
   </action>
   <action name="actionDisableWarningDialog">
    <property name="checkable">
@@ -232,21 +247,27 @@
    <property name="text">
     <string>Disable Warning Dialog</string>
    </property>
+   <property name="toolTip">
+    <string>Disables warning dialog when starting listeners</string>
+   </property>
   </action>
-  <action name="actionAutoStart">
+  <action name="actionAutoStartOnLaunch">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Auto Start</string>
+    <string>Auto Start on Launch</string>
    </property>
    <property name="toolTip">
-    <string>Automatically Start Listeners</string>
+    <string>Automatically start listeners on launch</string>
    </property>
   </action>
   <action name="actionKillAllConfirmations">
    <property name="text">
     <string>Kill All Confirmations</string>
+   </property>
+   <property name="toolTip">
+    <string>Kills all IP confirmation windows</string>
    </property>
   </action>
  </widget>

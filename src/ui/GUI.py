@@ -73,8 +73,10 @@ class Ui_MainWindow(object):
         self.menuAbout = QtWidgets.QMenu(parent=self.menubar)
         self.menuAbout.setObjectName("menuAbout")
         self.menuOptions = QtWidgets.QMenu(parent=self.menubar)
+        self.menuOptions.setToolTipsVisible(True)
         self.menuOptions.setObjectName("menuOptions")
         self.menuQuit = QtWidgets.QMenu(parent=self.menubar)
+        self.menuQuit.setToolTipsVisible(True)
         self.menuQuit.setObjectName("menuQuit")
         MainWindow.setMenuBar(self.menubar)
         self.actionHelp = QtGui.QAction(parent=MainWindow)
@@ -127,11 +129,17 @@ class Ui_MainWindow(object):
         self.actionHelp.setText(_translate("MainWindow", "Help"))
         self.actionVersion.setText(_translate("MainWindow", "Version"))
         self.actionAlwaysOpenIPInBrowser.setText(_translate("MainWindow", "Always Open IP in Browser"))
+        self.actionAlwaysOpenIPInBrowser.setToolTip(_translate("MainWindow", "Always opens IPs in browser (No IP confirmation)"))
         self.actionQuit.setText(_translate("MainWindow", "Quit"))
+        self.actionQuit.setToolTip(_translate("MainWindow", "Quits app"))
         self.actionDisableInactiveTimer.setText(_translate("MainWindow", "Disable Inactive Timer"))
+        self.actionDisableInactiveTimer.setToolTip(_translate("MainWindow", "Disables inactive timer of 15 minutes (Listens until stopped)"))
         self.actionDisableWarningDialog.setText(_translate("MainWindow", "Disable Warning Dialog"))
+        self.actionDisableWarningDialog.setToolTip(_translate("MainWindow", "Disables warning dialog when starting listeners"))
         self.actionAutoStartOnLaunch.setText(_translate("MainWindow", "Auto Start on Launch"))
+        self.actionAutoStartOnLaunch.setToolTip(_translate("MainWindow", "Automatically start listeners on launch"))
         self.actionKillAllConfirmations.setText(_translate("MainWindow", "Kill All Confirmations"))
+        self.actionKillAllConfirmations.setToolTip(_translate("MainWindow", "Kills all IP confirmation windows"))
 
 
 class Ui_IPRConfirmation(object):
