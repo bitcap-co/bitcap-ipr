@@ -158,14 +158,17 @@
         <property name="showGrid">
          <bool>false</bool>
         </property>
+        <property name="cornerButtonEnabled">
+         <bool>false</bool>
+        </property>
         <property name="columnCount">
          <number>3</number>
         </property>
         <attribute name="horizontalHeaderDefaultSectionSize">
-         <number>112</number>
+         <number>105</number>
         </attribute>
         <attribute name="horizontalHeaderStretchLastSection">
-         <bool>true</bool>
+         <bool>false</bool>
         </attribute>
         <column/>
         <column/>
