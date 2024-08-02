@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QWidget,
+    QTableWidgetItem,
     QLineEdit,
     QStyle
 )
@@ -89,6 +90,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actionVersion.setText(f"Version {app_info['version']}")
         self.label_2.setPixmap(QPixmap(os.path.join(scalable, 'BitCapIPRCenterLogo.svg')))
+        self.tableWidget.setHorizontalHeaderLabels(["IP", "MAC", "TYPE"])
         self.children = []
 
         # MainWindow Signals
@@ -168,6 +170,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         confirm.lineMACField.setText(mac)
         confirm.show()
         self.children.append(confirm)
+        if self.actionEnableIDTable.isChecked():
+            rowPosition = self.tableWidget.rowCount()
+            self.tableWidget.insertRow(rowPosition)
+            self.tableWidget.setItem(rowPosition, 0, QTableWidgetItem(ip))
+            self.tableWidget.setItem(rowPosition, 1, QTableWidgetItem(mac))
+            # ASIC TYPE
+            #self.tableWidget.setItem(rowPosition, 2, QTableWidgetItem())
 
     def hide_confirm(self, confirm):
         confirm.close()
