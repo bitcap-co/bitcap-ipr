@@ -137,6 +137,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if timeout:
             QMessageBox.warning(self, "BitCapIPR", "Inactive Timeout exceeded! Stopping listeners...")
             self.inactive.stop()
+        if self.actionEnableIDTable.isChecked():
+            self.tableWidget.setRowCount(0)
         self.thread.stop_listeners()
         self.actionIPRStart.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
