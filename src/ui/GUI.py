@@ -165,6 +165,7 @@ class Ui_MainWindow(object):
         self.actionKillAllConfirmations.setText(_translate("MainWindow", "Kill All Confirmations"))
         self.actionKillAllConfirmations.setToolTip(_translate("MainWindow", "Kills all IP confirmation windows"))
         self.actionEnableIDTable.setText(_translate("MainWindow", "Enable ID Table"))
+        self.actionEnableIDTable.setToolTip(_translate("MainWindow", "Stores IP, MAC, TYPE in a table on confirmation"))
 
 
 class Ui_IPRConfirmation(object):

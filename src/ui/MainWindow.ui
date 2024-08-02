@@ -332,6 +332,9 @@
    <property name="text">
     <string>Enable ID Table</string>
    </property>
+   <property name="toolTip">
+    <string>Stores IP, MAC, TYPE in a table on confirmation</string>
+   </property>
   </action>
  </widget>
  <resources/>
