@@ -153,7 +153,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def show_confirm(self):
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
-        ip, mac = self.thread.data.split(',')
+        ip, mac, type = self.thread.data.split(',')
         if self.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
             return
@@ -176,7 +176,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tableWidget.setItem(rowPosition, 0, QTableWidgetItem(ip))
             self.tableWidget.setItem(rowPosition, 1, QTableWidgetItem(mac))
             # ASIC TYPE
-            #self.tableWidget.setItem(rowPosition, 2, QTableWidgetItem())
+            self.tableWidget.setItem(rowPosition, 2, QTableWidgetItem(type))
 
     def hide_confirm(self, confirm):
         confirm.close()
