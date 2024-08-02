@@ -117,6 +117,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.inactive.setInterval(900000)
         self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
 
+        self.updateStackedWidget()
+
         if self.actionAutoStartOnLaunch.isChecked():
             self.start_listen()
 
@@ -139,6 +141,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def open_dashboard(self, ip):
         webbrowser.open('http://{0}'.format(ip), new=2)
+
+    def updateStackedWidget(self):
+        if self.actionEnableIDTable.isChecked():
+            self.stackedWidget.setCurrentIndex(0)
+        else:
+            self.stackedWidget.setCurrentIndex(1)
 
     def show_confirm(self):
         if not self.actionDisableInactiveTimer.isChecked():
