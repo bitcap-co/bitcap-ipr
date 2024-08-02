@@ -96,6 +96,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionKillAllConfirmations.triggered.connect(self.killall)
         self.actionQuit.triggered.connect(self.quit)
         self.menuOptions.triggered.connect(self.update_settings)
+        self.actionEnableIDTable.triggered.connect(self.updateStackedWidget)
 
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
@@ -107,6 +108,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionDisableInactiveTimer.setChecked(config['options']['disableInactiveTimer'])
             self.actionDisableWarningDialog.setChecked(config['options']['disableWarningDialog'])
             self.actionAutoStartOnLaunch.setChecked(config['options']['autoStartOnLaunch'])
+            self.actionEnableIDTable.setChecked(config['options']['enableIDTable'])
 
         self.thread = ListenerManager()
         self.thread.completed.connect(self.show_confirm)
@@ -172,7 +174,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "alwaysOpenIPInBrowser": self.actionAlwaysOpenIPInBrowser.isChecked(),
                 "disableInactiveTimer": self.actionDisableInactiveTimer.isChecked(),
                 "disableWarningDialog": self.actionDisableWarningDialog.isChecked(),
-                "autoStartOnLaunch": self.actionAutoStartOnLaunch.isChecked()
+                "autoStartOnLaunch": self.actionAutoStartOnLaunch.isChecked(),
+                "enableIDTable": self.actionEnableIDTable.isChecked()
             }
         }
         self.instance_json = json.dumps(instance, indent=4)
