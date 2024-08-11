@@ -98,6 +98,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionKillAllConfirmations.triggered.connect(self.killall)
         self.actionQuit.triggered.connect(self.quit)
         self.menuOptions.triggered.connect(self.update_settings)
+        self.menuTable.triggered.connect(self.update_settings)
         self.actionEnableIDTable.triggered.connect(self.updateStackedWidget)
 
         self.actionIPRStart.clicked.connect(self.start_listen)
@@ -110,7 +111,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionDisableInactiveTimer.setChecked(config['options']['disableInactiveTimer'])
             self.actionDisableWarningDialog.setChecked(config['options']['disableWarningDialog'])
             self.actionAutoStartOnLaunch.setChecked(config['options']['autoStartOnLaunch'])
-            self.actionEnableIDTable.setChecked(config['options']['enableIDTable'])
+            self.actionEnableIDTable.setChecked(config['table']['enableIDTable'])
 
         self.thread = ListenerManager()
         self.thread.completed.connect(self.show_confirm)
@@ -194,6 +195,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "disableInactiveTimer": self.actionDisableInactiveTimer.isChecked(),
                 "disableWarningDialog": self.actionDisableWarningDialog.isChecked(),
                 "autoStartOnLaunch": self.actionAutoStartOnLaunch.isChecked(),
+            },
+            "table": {
                 "enableIDTable": self.actionEnableIDTable.isChecked()
             }
         }
