@@ -236,7 +236,6 @@
     <addaction name="actionDisableInactiveTimer"/>
     <addaction name="actionDisableWarningDialog"/>
     <addaction name="actionAutoStartOnLaunch"/>
-    <addaction name="actionEnableIDTable"/>
    </widget>
    <widget class="QMenu" name="menuQuit">
     <property name="title">
@@ -248,8 +247,16 @@
     <addaction name="actionKillAllConfirmations"/>
     <addaction name="actionQuit"/>
    </widget>
+   <widget class="QMenu" name="menuTable">
+    <property name="title">
+     <string>Table</string>
+    </property>
+    <addaction name="actionEnableIDTable"/>
+    <addaction name="actionExport"/>
+   </widget>
    <addaction name="menuAbout"/>
    <addaction name="menuOptions"/>
+   <addaction name="menuTable"/>
    <addaction name="menuQuit"/>
   </widget>
   <action name="actionHelp">
@@ -334,6 +341,11 @@
    </property>
    <property name="toolTip">
     <string>Stores IP, MAC, TYPE in a table on confirmation</string>
+   </property>
+  </action>
+  <action name="actionExport">
+   <property name="text">
+    <string>Export</string>
    </property>
   </action>
  </widget>
