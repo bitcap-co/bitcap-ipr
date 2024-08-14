@@ -4,7 +4,15 @@ import json
 import webbrowser
 from mod.listener import Listener
 
-from PyQt6.QtCore import QTimer, QThread, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import (
+    QTimer,
+    QThread,
+    pyqtSignal,
+    pyqtSlot,
+    QFile,
+    QIODevice,
+    QTextStream
+)
 from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -15,7 +23,6 @@ from PyQt6.QtWidgets import (
     QStyle
 )
 from PyQt6.QtGui import QIcon, QPixmap
-
 from ui.GUI import Ui_MainWindow, Ui_IPRConfirmation
 
 basedir = os.path.dirname(__file__)
@@ -100,6 +107,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.menuOptions.triggered.connect(self.update_settings)
         self.menuTable.triggered.connect(self.update_settings)
         self.actionEnableIDTable.triggered.connect(self.updateStackedWidget)
+        self.actionExport.triggered.connect(self.export_table)
 
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
@@ -180,6 +188,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tableWidget.setItem(rowPosition, 1, QTableWidgetItem(mac))
             # ASIC TYPE
             self.tableWidget.setItem(rowPosition, 2, QTableWidgetItem(type))
+
+    def export_table(self):
+        rows = self.tableWidget.rowCount()
+        cols = self.tableWidget.columnCount()
+        out = "IP, MAC, TYPE, \n"
+        for i in range(rows):
+            for j in range(cols):
+                out += self.tableWidget.item(i, j).text()
+                out += ','
+            out += "\n"
+
+        # .csv
+        file = QFile("test.csv")
+        if not file.open(QIODevice.OpenModeFlag.WriteOnly | QIODevice.OpenModeFlag.Truncate):
+            return
+        outfile = QTextStream(file)
+        outfile << out << "\n"
 
     def hide_confirm(self, confirm):
         confirm.close()
