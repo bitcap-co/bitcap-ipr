@@ -9,6 +9,7 @@ build/
 dist/
 package/
 MANIFEST
+*-setup.exe
 *.zip
 
 # PyInstaller
