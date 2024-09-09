@@ -97,7 +97,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actionVersion.setText(f"Version {app_info['version']}")
         self.label_2.setPixmap(QPixmap(os.path.join(scalable, 'BitCapIPRCenterLogo.svg')))
-        self.tableWidget.setHorizontalHeaderLabels(["IP", "MAC", "TYPE"])
+        self.tableWidget.setHorizontalHeaderLabels(["IP", "MAC", "SERIAL", "TYPE"])
         self.children = []
 
         # MainWindow Signals
@@ -206,7 +206,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def export_table(self):
         rows = self.tableWidget.rowCount()
         cols = self.tableWidget.columnCount()
-        out = "IP, MAC, TYPE, \n"
+        out = "IP, MAC, SERIAL, TYPE, \n"
         for i in range(rows):
             for j in range(cols):
                 out += self.tableWidget.item(i, j).text()
