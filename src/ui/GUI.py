@@ -64,7 +64,7 @@ class Ui_MainWindow(object):
         self.tableWidget.setGeometry(QtCore.QRect(0, 0, 340, 270))
         self.tableWidget.setAlternatingRowColors(True)
         self.tableWidget.setShowGrid(False)
-        self.tableWidget.setCornerButtonEnabled(False)
+        self.tableWidget.setCornerButtonEnabled(True)
         self.tableWidget.setColumnCount(3)
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setRowCount(0)
