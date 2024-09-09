@@ -106,7 +106,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionQuit.triggered.connect(self.quit)
         self.menuOptions.triggered.connect(self.update_settings)
         self.menuTable.triggered.connect(self.update_settings)
-        self.actionEnableIDTable.triggered.connect(self.updateStackedWidget)
+        self.actionCopySelectedElements.triggered.connect(self.copy_selected)
         self.actionExport.triggered.connect(self.export_table)
 
         self.actionIPRStart.clicked.connect(self.start_listen)
@@ -187,7 +187,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tableWidget.setItem(rowPosition, 0, QTableWidgetItem(ip))
             self.tableWidget.setItem(rowPosition, 1, QTableWidgetItem(mac))
             # ASIC TYPE
-            self.tableWidget.setItem(rowPosition, 2, QTableWidgetItem(type))
+
+    def copy_selected(self):
+        rows = self.tableWidget.rowCount()
+        cols = self.tableWidget.columnCount()
+        out = ""
+        for i in range(rows):
+            for j in range(cols):
+                if self.tableWidget.item(i, j).isSelected():
+                    out += self.tableWidget.item(i, j).text()
+                    out += ';'
+            out += '\n'
+        cb = QApplication.clipboard()
+        cb.clear(mode=cb.Mode.Clipboard)
+        cb.setText(out.strip(), mode=cb.Mode.Clipboard)
 
     def export_table(self):
         rows = self.tableWidget.rowCount()

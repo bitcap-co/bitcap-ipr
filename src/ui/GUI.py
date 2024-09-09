@@ -127,6 +127,8 @@ class Ui_MainWindow(object):
         self.actionEnableIDTable.setObjectName("actionEnableIDTable")
         self.actionExport = QtGui.QAction(parent=MainWindow)
         self.actionExport.setObjectName("actionExport")
+        self.actionCopySelectedElements = QtGui.QAction(parent=MainWindow)
+        self.actionCopySelectedElements.setObjectName("actionCopySelectedElements")
         self.menuAbout.addAction(self.actionHelp)
         self.menuAbout.addAction(self.actionVersion)
         self.menuOptions.addAction(self.actionAlwaysOpenIPInBrowser)
@@ -136,6 +138,7 @@ class Ui_MainWindow(object):
         self.menuQuit.addAction(self.actionKillAllConfirmations)
         self.menuQuit.addAction(self.actionQuit)
         self.menuTable.addAction(self.actionEnableIDTable)
+        self.menuTable.addAction(self.actionCopySelectedElements)
         self.menuTable.addAction(self.actionExport)
         self.menubar.addAction(self.menuAbout.menuAction())
         self.menubar.addAction(self.menuOptions.menuAction())
@@ -174,7 +177,7 @@ class Ui_MainWindow(object):
         self.actionEnableIDTable.setText(_translate("MainWindow", "Enable ID Table"))
         self.actionEnableIDTable.setToolTip(_translate("MainWindow", "Stores IP, MAC, TYPE in a table on confirmation"))
         self.actionExport.setText(_translate("MainWindow", "Export"))
-
+        self.actionCopySelectedElements.setText(_translate("MainWindow", "Copy Selected Elements"))
 
 class Ui_IPRConfirmation(object):
     def setupUi(self, IPRConfirmation):

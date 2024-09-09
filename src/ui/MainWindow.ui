@@ -252,6 +252,7 @@
      <string>Table</string>
     </property>
     <addaction name="actionEnableIDTable"/>
+    <addaction name="actionCopySelectedElements"/>
     <addaction name="actionExport"/>
    </widget>
    <addaction name="menuAbout"/>
@@ -346,6 +347,11 @@
   <action name="actionExport">
    <property name="text">
     <string>Export</string>
+   </property>
+  </action>
+  <action name="actionCopySelectedElements">
+   <property name="text">
+    <string>Copy Selected Elements</string>
    </property>
   </action>
  </widget>
