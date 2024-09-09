@@ -106,6 +106,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionQuit.triggered.connect(self.quit)
         self.menuOptions.triggered.connect(self.update_settings)
         self.menuTable.triggered.connect(self.update_settings)
+        self.actionEnableIDTable.triggered.connect(self.update_stacked_widget)
         self.actionCopySelectedElements.triggered.connect(self.copy_selected)
         self.actionExport.triggered.connect(self.export_table)
 
@@ -128,7 +129,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.inactive.setInterval(900000)
         self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
 
-        self.updateStackedWidget()
+        self.update_stacked_widget()
 
         if self.actionAutoStartOnLaunch.isChecked():
             self.start_listen()
@@ -155,7 +156,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def open_dashboard(self, ip):
         webbrowser.open('http://{0}'.format(ip), new=2)
 
-    def updateStackedWidget(self):
+    def update_stacked_widget(self):
         if self.actionEnableIDTable.isChecked():
             self.stackedWidget.setCurrentIndex(0)
         else:
