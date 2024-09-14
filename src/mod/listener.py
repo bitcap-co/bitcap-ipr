@@ -20,7 +20,10 @@ class Listener(QThread):
     @pyqtSlot()
     def run(self):
         while True:
-            self.d = self.sock.recv(self.bufsize)
+            try:
+                self.d = self.sock.recv(self.bufsize)
+            except Exception:
+                break
             if not (self.prev.decode('ascii') == self.d.decode('ascii')):
                 self.d_str = self.d.decode('ascii')
                 match self.port:

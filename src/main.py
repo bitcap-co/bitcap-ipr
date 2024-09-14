@@ -68,7 +68,7 @@ class ListenerManager(QThread):
         if len(self.listeners):
             for listener in self.listeners:
                 listener.close()
-                listener.terminate()
+                listener.exit()
         self.listeners = []
 
     @pyqtSlot()
@@ -252,7 +252,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def quit(self):
         self.thread.stop_listeners()
-        self.thread.terminate()
+        self.thread.exit()
         for c in self.children:
             c.close()
         self.close()
