@@ -7,7 +7,7 @@ basedir = os.getcwd()
 resources = os.path.join(basedir, 'src/resources')
 icons = os.path.join(resources, 'icons/app')
 scalable = os.path.join(resources, 'scalable')
-settings = os.path.join(basedir, 'src/config.json')
+settings = os.path.join(basedir, 'src/instance.json')
 
 a = Analysis(
     ['main.py'],

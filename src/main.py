@@ -28,7 +28,7 @@ from ui.GUI import Ui_MainWindow, Ui_IPRConfirmation
 basedir = os.path.dirname(__file__)
 icons = os.path.join(basedir, 'resources/icons/app')
 scalable = os.path.join(basedir, 'resources/scalable')
-settings = os.path.join(basedir, 'config.json')
+settings = os.path.join(basedir, 'instance.json')
 
 app_info = {
     "name": "BitCap IPReporter",
