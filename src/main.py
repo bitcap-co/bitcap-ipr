@@ -189,6 +189,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tableWidget.setItem(rowPosition, 0, QTableWidgetItem(ip))
             self.tableWidget.setItem(rowPosition, 1, QTableWidgetItem(mac))
             # ASIC TYPE
+            self.tableWidget.setItem(rowPosition, 3, QTableWidgetItem(type))
 
     def copy_selected(self):
         rows = self.tableWidget.rowCount()
