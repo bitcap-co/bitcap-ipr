@@ -2,6 +2,8 @@ import os
 import sys
 import json
 import webbrowser
+import requests
+from requests.auth import HTTPDigestAuth
 from mod.listener import Listener
 
 from PyQt6.QtCore import (
@@ -188,6 +190,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tableWidget.insertRow(rowPosition)
             self.tableWidget.setItem(rowPosition, 0, QTableWidgetItem(ip))
             self.tableWidget.setItem(rowPosition, 1, QTableWidgetItem(mac))
+            # SERIAL
+            serial = 'N/A'
+            uri = None
+            endpoints = [f'http://{ip}/api/v1/info', f'http://{ip}/cgi-bin/get_system_info.cgi']
+            with open(os.path.join(basedir, 'config.json'), 'r') as f:
+                config = json.load(f)
+                passwd = config['bitmain_passwd']
+
+            for endp in range(0, (len(endpoints))):
+                r = requests.head(endpoints[endp], auth=HTTPDigestAuth('root', passwd))
+                print(r.status_code)
+                if r.status_code == 401:
+                    passwd = 'root'
+                    r = requests.head(endpoints[endp], auth=HTTPDigestAuth('root', passwd))
+                if r.status_code == 200:
+                    uri = endp
+                    break
+
+            match endp:
+                case 0:
+                    r = requests.get(endpoints[uri])
+                    serial = r.json()['serial']
+                case 1:
+                    r = requests.get(endpoints[uri], auth= HTTPDigestAuth('root', passwd))
+                    serial = r.json()['serinum']
+
+            self.tableWidget.setItem(rowPosition, 2, QTableWidgetItem(serial))
             # ASIC TYPE
             self.tableWidget.setItem(rowPosition, 3, QTableWidgetItem(type))
 
