@@ -254,6 +254,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         outfile = QTextStream(file)
         outfile << out << "\n"
+        QMessageBox.information(self, "BitCapIPR", f"Successfully wrote csv to {p}.")
 
     def hide_confirm(self, confirm):
         confirm.close()
