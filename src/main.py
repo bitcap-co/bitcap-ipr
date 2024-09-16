@@ -3,6 +3,9 @@ import sys
 import json
 import webbrowser
 import requests
+import time
+from datetime import datetime
+from pathlib import Path
 from requests.auth import HTTPDigestAuth
 from mod.listener import Listener
 
@@ -244,7 +247,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             out += "\n"
 
         # .csv
-        file = QFile("test.csv")
+        p = Path(f"{Path.home()}/Documents/ipr").resolve()
+        Path.mkdir(p, exist_ok=True)
+        file = QFile(os.path.join(p, f"id_table-{datetime.now().strftime('%Y-%m-%d')}-{time.time().__floor__()}.csv"))
         if not file.open(QIODevice.OpenModeFlag.WriteOnly | QIODevice.OpenModeFlag.Truncate):
             return
         outfile = QTextStream(file)
