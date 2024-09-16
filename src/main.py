@@ -37,7 +37,7 @@ settings = os.path.join(basedir, 'instance.json')
 
 app_info = {
     "name": "BitCap IPReporter",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "author": "MatthewWertman",
     "company": "BitCap",
     "desc": "cross-platform IP Reporter\nthat listens for AntMiners, IceRivers, and Whatsminers."
