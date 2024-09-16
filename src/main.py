@@ -200,7 +200,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             for endp in range(0, (len(endpoints))):
                 r = requests.head(endpoints[endp], auth=HTTPDigestAuth('root', passwd))
-                print(r.status_code)
                 if r.status_code == 401:
                     passwd = 'root'
                     r = requests.head(endpoints[endp], auth=HTTPDigestAuth('root', passwd))
