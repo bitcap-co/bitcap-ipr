@@ -11,7 +11,7 @@ create-dmg \
   --volname "BitCapIPR" \
   --volicon "src/resources/icons/app/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.icns" \
   --window-pos 200 120 \
-  --window-size 500 500 \
+  --window-size 600 300 \
   --icon-size 100 \
   --icon "BitCapIPR.app" 175 120 \
   --hide-extension "BitCapIPR.app" \
