@@ -47,3 +47,13 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
+[Code]
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+    var ErrorCode: Integer;
+begin
+    if CurUninstallStep = usUninstall then
+    begin
+        ShellExec('open', 'taskkill.exe', '/f /im {#MyAppExeName}', '',SW_HIDE,ewNoWait,ErrorCode);
+        ShellExec('open', 'tskill.exe', ' {#MyAppName}', '',SW_HIDE,ewNoWait,ErrorCode);
+    end;
+end;
