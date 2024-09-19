@@ -200,7 +200,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             serial = 'N/A'
             uri = None
             endpoints = [f'http://{ip}/api/v1/info', f'http://{ip}/cgi-bin/get_system_info.cgi']
-            with open(os.path.join(basedir, 'config.json'), 'r') as f:
+            with open(Path(self.config_path, 'config.json'), 'r') as f:
                 config = json.load(f)
                 passwd = config['bitmain_passwd']
 
