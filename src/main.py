@@ -250,7 +250,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             out += "\n"
 
         # .csv
-        p = Path(f"{Path.home()}/Documents/ipr").resolve()
+        p = Path(Path.home(), 'Documents', 'ipr').resolve()
         Path.mkdir(p, exist_ok=True)
         file = QFile(os.path.join(p, f"id_table-{datetime.now().strftime('%Y-%m-%d')}-{time.time().__floor__()}.csv"))
         if not file.open(QIODevice.OpenModeFlag.WriteOnly | QIODevice.OpenModeFlag.Truncate):
@@ -302,7 +302,7 @@ def launch_app():
     # first-time launch
     config_path = Path(Path.home(), '.config', 'ipr').resolve()
     os.makedirs(config_path, exist_ok=True)
-    if not os.path.exists(os.path.join(config_path, 'config.json')):
+    if not os.path.exists(Path(config_path, 'config.json')):
         # no config so write them on first-time launch
         default_instance = {
             "options": {
