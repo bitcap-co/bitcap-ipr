@@ -19,7 +19,7 @@ mkdir -p package/usr/share/icons/hicolor/128x128/apps
 
 cat > package/DEBIAN/control << "EOF"
 Package: bitcapipr
-Version: 1.0.0
+Version: 1.0.2
 Maintainer: MatthewWertman
 Architecture: amd64
 Homepage: https://matthewwertman.github.io/
