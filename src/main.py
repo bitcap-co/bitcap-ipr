@@ -298,6 +298,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 def launch_app():
     app = QApplication(sys.argv)
+    # first-time launch
+    config_path = Path(Path.home(), '.config', 'ipr').resolve()
+    os.makedirs(config_path, exist_ok=True)
+    if not os.path.exists(os.path.join(config_path, 'config.json')):
+        # no config so write them on first-time launch
+        default_instance = {
+            "options": {
+                "alwaysOpenIPInBrowser": False,
+                "disableInactiveTimer": False,
+                "disableWarningDialog": False,
+                "autoStartOnLaunch": False,
+            },
+            "table": {
+                "enableIDTable": False
+            }
+        }
+        default_instance_json = json.dumps(default_instance, indent=4)
+        with open(Path(config_path, 'instance.json'), 'w') as f:
+            f.write(default_instance_json)
+
+        default_config = {
+            "bitmain_passwd": ""
+        }
+        default_config_json = json.dumps(default_config, indent=4)
+        with open(Path(config_path, 'config.json'), 'w') as f:
+            f.write(default_config_json)
+
     # Here we are making sure that only one instance is running at a time
     window_key = 'BitCapIPR'
     shared_mem_key = 'IPRSharedMemory'
