@@ -35,7 +35,6 @@ from ui.GUI import Ui_MainWindow, Ui_IPRConfirmation
 basedir = os.path.dirname(__file__)
 icons = os.path.join(basedir, 'resources/icons/app')
 scalable = os.path.join(basedir, 'resources/scalable')
-settings = os.path.join(basedir, 'instance.json')
 
 app_info = {
     "name": "BitCap IPReporter",
@@ -121,8 +120,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
 
-        if os.path.exists(settings):
-            with open(settings, 'r') as f:
+        self.config_path = Path(Path.home(), '.config', 'ipr').resolve()
+        self.settings = Path(self.config_path, 'instance.json')
+        if os.path.exists(self.settings):
+            with open(self.settings, 'r') as f:
                 config = json.load(f)
             self.actionAlwaysOpenIPInBrowser.setChecked(config['options']['alwaysOpenIPInBrowser'])
             self.actionDisableInactiveTimer.setChecked(config['options']['disableInactiveTimer'])
@@ -278,7 +279,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             }
         }
         self.instance_json = json.dumps(instance, indent=4)
-        with open(settings, 'w') as f:
+        with open(self.settings, 'w') as f:
             f.write(self.instance_json)
 
     def help(self):
