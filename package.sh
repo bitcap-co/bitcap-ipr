@@ -2,7 +2,8 @@
 ## build ipr linux package with dpkg-deb
 
 PNAME="bitcapipr"
-PLATFORM="linux-x86_64"
+PLATFORM="linux-amd64"
+
 
 # create dirs
 [ -e package ] && rm -r package
