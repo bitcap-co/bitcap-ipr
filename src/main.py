@@ -182,9 +182,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         confirm.actionOpenBrowser.clicked.connect(lambda: self.open_dashboard(ip))
         confirm.accept.clicked.connect(lambda: self.hide_confirm(confirm))
         # copy action
-        confirm.lineIPField.actionCopy = confirm.lineIPField.addAction(app.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon), QLineEdit.ActionPosition.TrailingPosition)
+        confirm.lineIPField.actionCopy = confirm.lineIPField.addAction(self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon), QLineEdit.ActionPosition.TrailingPosition)
         confirm.lineIPField.actionCopy.triggered.connect(lambda: self.copy_text(confirm.lineIPField))
-        confirm.lineMACField.actionCopy = confirm.lineMACField.addAction(app.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon), QLineEdit.ActionPosition.TrailingPosition)
+        confirm.lineMACField.actionCopy = confirm.lineMACField.addAction(self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon), QLineEdit.ActionPosition.TrailingPosition)
         confirm.lineMACField.actionCopy.triggered.connect(lambda: self.copy_text(confirm.lineMACField))
         confirm.lineIPField.setText(ip)
         confirm.lineMACField.setText(mac)
