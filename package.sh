@@ -4,6 +4,11 @@
 PNAME="bitcapipr"
 PLATFORM="linux-amd64"
 
+# build app with pyinstaller
+pyinstaller src/ipr.spec --noconfirm
+
+# zip dist/BitCapIPR
+zip -r "dist/$PNAME-$1-$PLATFORM-portable.zip" dist/BitCapIPR
 
 # create dirs
 [ -e package ] && rm -r package
