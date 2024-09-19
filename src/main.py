@@ -207,8 +207,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             for endp in range(0, (len(endpoints))):
                 r = requests.head(endpoints[endp], auth=HTTPDigestAuth('root', passwd))
                 if r.status_code == 401:
+                    # first pass failed
                     passwd = 'root'
                     r = requests.head(endpoints[endp], auth=HTTPDigestAuth('root', passwd))
+                    # second pass fail; abort
+                    if r.status_code == 401:
+                        endp = None
+                        break
                 if r.status_code == 200:
                     uri = endp
                     break
@@ -220,6 +225,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 case 1:
                     r = requests.get(endpoints[uri], auth= HTTPDigestAuth('root', passwd))
                     serial = r.json()['serinum']
+                case None:
+                    # failed to authenticate
+                    serial = "Failed auth"
 
             self.tableWidget.setItem(rowPosition, 2, QTableWidgetItem(serial))
             # ASIC TYPE
