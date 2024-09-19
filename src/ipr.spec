@@ -7,14 +7,12 @@ basedir = os.getcwd()
 resources = os.path.join(basedir, 'src/resources')
 icons = os.path.join(resources, 'icons/app')
 scalable = os.path.join(resources, 'scalable')
-settings = os.path.join(basedir, 'src/instance.json')
-config = os.path.join(basedir, 'src/config.json')
 
 a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[(os.path.join(icons), os.path.join('resources', 'icons', 'app')), (os.path.join(scalable, 'BitCapIPRCenterLogo.svg'), os.path.join('resources', 'scalable')), (settings, '.'), (config, '.')],
+    datas=[(os.path.join(icons), os.path.join('resources', 'icons', 'app')), (os.path.join(scalable, 'BitCapIPRCenterLogo.svg'), os.path.join('resources', 'scalable'))],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
