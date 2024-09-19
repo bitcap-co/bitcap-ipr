@@ -57,3 +57,6 @@ begin
         ShellExec('open', 'tskill.exe', ' {#MyAppName}', '',SW_HIDE,ewNoWait,ErrorCode);
     end;
 end;
+
+[UninstallDelete]
+Type: filesandordirs; Name: {%USERPROFILE}\.config\ipr
