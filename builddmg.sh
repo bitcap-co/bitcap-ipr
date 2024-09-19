@@ -1,4 +1,12 @@
 #!/bin/sh
+PNAME="BitCapIPR"
+
+# build app with pyinstaller
+pyinstaller src/ipr.spec --noconfirm
+
+# zip dist/BitCapIPR
+zip -r "dist/$PNAME-$1-$2-portable.zip" dist/BitCapIPR.app
+
 # Create a folder (named dmg) to prepare our DMG in (if it doesn't already exist).
 mkdir -p dist/dmg
 # Empty the dmg folder.
@@ -16,5 +24,5 @@ create-dmg \
   --icon "BitCapIPR.app" 175 120 \
   --hide-extension "BitCapIPR.app" \
   --app-drop-link 425 120 \
-  "dist/BitCapIPR.dmg" \
+  "dist/$PNAME-$1-$2-setup.dmg" \
   "dist/dmg/"
