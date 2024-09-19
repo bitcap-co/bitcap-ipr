@@ -296,38 +296,42 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.close()
         self = None
 
+def launch_app():
+    app = QApplication(sys.argv)
+    # Here we are making sure that only one instance is running at a time
+    window_key = 'BitCapIPR'
+    shared_mem_key = 'IPRSharedMemory'
+    semaphore = QSystemSemaphore(window_key, 1)
+    semaphore.acquire()
 
-app = QApplication(sys.argv)
-# Here we are making sure that only one instance is running at a time
-window_key = 'BitCapIPR'
-shared_mem_key = 'IPRSharedMemory'
-semaphore = QSystemSemaphore(window_key, 1)
-semaphore.acquire()
+    if sys.platform != 'win32':
+        # manually destroy shared memory if on unix
+        unix_fix_shared_mem = QSharedMemory(shared_mem_key)
+        if unix_fix_shared_mem.attach():
+            unix_fix_shared_mem.detach()
 
-if sys.platform != 'win32':
-    # manually destroy shared memory if on unix
-    unix_fix_shared_mem = QSharedMemory(shared_mem_key)
-    if unix_fix_shared_mem.attach():
-        unix_fix_shared_mem.detach()
+    shared_mem = QSharedMemory(shared_mem_key)
 
-shared_mem = QSharedMemory(shared_mem_key)
+    if shared_mem.attach():
+        is_running = True
+    else:
+        shared_mem.create(1)
+        is_running = False
 
-if shared_mem.attach():
-    is_running = True
-else:
-    shared_mem.create(1)
-    is_running = False
+    semaphore.release()
 
-semaphore.release()
+    if is_running:
+        # if already running, send warning dialog and close app
+        QMessageBox.warning(None, "BitCapIPR - Application already running", "One instance of the application is already running.")
+        return
 
-if is_running:
-    # if already running, send warning dialog and close app
-    QMessageBox.warning(None, "BitCapIPR - Application already running", "One instance of the application is already running.")
-    sys.exit(1)
+    app.setWindowIcon(QIcon(os.path.join(icons, 'BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png')))
+    app.setStyle('Fusion')
 
-app.setWindowIcon(QIcon(os.path.join(icons, 'BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png')))
-app.setStyle('Fusion')
+    w = MainWindow()
+    w.show()
+    sys.exit(app.exec())
 
-w = MainWindow()
-w.show()
-app.exec()
+
+if __name__ == '__main__':
+    launch_app()
