@@ -6,9 +6,19 @@ PLATFORM="linux-x86_64"
 
 # create dirs
 [ -e package ] && rm -r package
+mkdir -p package/DEBIAN
 mkdir -p package/opt
 mkdir -p package/usr/share/applications
 mkdir -p package/usr/share/icons/hicolor/128x128/apps
+
+cat > package/DEBIAN/control << "EOF"
+Package: bitcapipr
+Version: 1.0.0
+Maintainer: MatthewWertman
+Architecture: amd64
+Homepage: https://matthewwertman.github.io/
+Description: cross-platform IP Reporter that listens for AntMiners, IceRivers, and Whatsminers.
+EOF
 
 cp -r dist/BitCapIPR package/opt/
 cp src/resources/icons/app/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png package/usr/share/icons/hicolor/128x128/apps/
