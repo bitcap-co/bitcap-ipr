@@ -223,9 +223,12 @@ class Ui_MainWindow(object):
         self.actionEnableIDTable.setText(_translate("MainWindow", "Enable ID Table"))
         self.actionEnableIDTable.setToolTip(_translate("MainWindow", "Stores IP, MAC, TYPE in a table on confirmation"))
         self.actionExport.setText(_translate("MainWindow", "Export"))
+        self.actionExport.setToolTip(_translate("MainWindow", "Export current table as .CSV file"))
         self.actionCopySelectedElements.setText(_translate("MainWindow", "Copy Selected Elements"))
+        self.actionCopySelectedElements.setToolTip(_translate("MainWindow", "Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows"))
         self.actionSetAuthenticationPassword.setText(_translate("MainWindow", "Set Authentication Password"))
         self.actionSetAuthenticationPassword.setToolTip(_translate("MainWindow", "Set default Bitmain authentication password."))
+
 
 class Ui_IPRConfirmation(object):
     def setupUi(self, IPRConfirmation):
