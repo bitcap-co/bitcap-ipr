@@ -295,6 +295,9 @@
           <bold>true</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>Set default Bitmain authentication password</string>
+        </property>
         <property name="text">
          <string>Set Password</string>
         </property>
@@ -456,10 +459,16 @@
    <property name="text">
     <string>Export</string>
    </property>
+   <property name="toolTip">
+    <string>Export current table as .CSV file</string>
+   </property>
   </action>
   <action name="actionCopySelectedElements">
    <property name="text">
     <string>Copy Selected Elements</string>
+   </property>
+   <property name="toolTip">
+    <string>Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows</string>
    </property>
   </action>
   <action name="actionSetAuthenticationPassword">

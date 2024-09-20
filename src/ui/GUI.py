@@ -200,6 +200,7 @@ class Ui_MainWindow(object):
         self.actionIPRStop.setText(_translate("MainWindow", "Stop"))
         self.label_3.setText(_translate("MainWindow", "Authentication Password:"))
         self.label_3.setProperty("StyleClass", _translate("MainWindow", "setText"))
+        self.actionIPRSetPasswd.setToolTip(_translate("MainWindow", "Set default Bitmain authentication password"))
         self.actionIPRSetPasswd.setText(_translate("MainWindow", "Set Password"))
         self.menuAbout.setTitle(_translate("MainWindow", "About"))
         self.menuOptions.setTitle(_translate("MainWindow", "Options"))
