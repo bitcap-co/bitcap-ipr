@@ -25,8 +25,8 @@
 }</string>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="3" column="4">
-     <spacer name="horizontalSpacer_2">
+    <item row="3" column="0">
+     <spacer name="horizontalSpacer">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -38,34 +38,15 @@
       </property>
      </spacer>
     </item>
-    <item row="4" column="3">
-     <widget class="QPushButton" name="actionIPRStop">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>14</pointsize>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Stop</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="2">
-     <spacer name="verticalSpacer_2">
+    <item row="3" column="4">
+     <spacer name="horizontalSpacer_2">
       <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Maximum</enum>
+       <enum>Qt::Horizontal</enum>
       </property>
       <property name="sizeHint" stdset="0">
        <size>
-        <width>20</width>
-        <height>90</height>
+        <width>40</width>
+        <height>20</height>
        </size>
       </property>
      </spacer>
@@ -105,18 +86,37 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="0">
-     <spacer name="horizontalSpacer">
+    <item row="4" column="2">
+     <spacer name="verticalSpacer_2">
       <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Maximum</enum>
       </property>
       <property name="sizeHint" stdset="0">
        <size>
-        <width>40</width>
-        <height>20</height>
+        <width>20</width>
+        <height>90</height>
        </size>
       </property>
      </spacer>
+    </item>
+    <item row="4" column="3">
+     <widget class="QPushButton" name="actionIPRStop">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>14</pointsize>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Stop</string>
+      </property>
+     </widget>
     </item>
     <item row="1" column="2">
      <spacer name="verticalSpacer">
@@ -136,8 +136,14 @@
     </item>
     <item row="3" column="1" colspan="3">
      <widget class="QStackedWidget" name="stackedWidget">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="page">
        <widget class="QTableWidget" name="tableWidget">
@@ -203,6 +209,94 @@
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="page_3">
+       <widget class="QLabel" name="label_3">
+        <property name="geometry">
+         <rect>
+          <x>40</x>
+          <y>20</y>
+          <width>260</width>
+          <height>30</height>
+         </rect>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>260</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>14</pointsize>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Authentication Password:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="StyleClass" stdset="0">
+         <string>setText</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="linePasswdField">
+        <property name="geometry">
+         <rect>
+          <x>80</x>
+          <y>120</y>
+          <width>180</width>
+          <height>25</height>
+         </rect>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>180</width>
+          <height>25</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Password</enum>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="actionIPRSetPasswd">
+        <property name="geometry">
+         <rect>
+          <x>110</x>
+          <y>170</y>
+          <width>120</width>
+          <height>25</height>
+         </rect>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>120</width>
+          <height>25</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Set Password</string>
         </property>
        </widget>
       </widget>
@@ -365,6 +459,9 @@
   <action name="actionSetAuthenticationPassword">
    <property name="text">
     <string>Set Authentication Password</string>
+   </property>
+   <property name="toolTip">
+    <string>Set default Bitmain authentication password.</string>
    </property>
   </action>
  </widget>
