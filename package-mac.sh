@@ -12,7 +12,7 @@ esac
 pyinstaller src/ipr.spec --noconfirm
 
 # zip dist/BitCapIPR
-zip -r "dist/$PNAME-$1-$PLATFORM-portable.zip" dist/BitCapIPR.app
+zip -9 -y -r "dist/$PNAME-$1-$PLATFORM-portable.zip" dist/BitCapIPR.app
 
 # Create a folder (named dmg) to prepare our DMG in (if it doesn't already exist).
 mkdir -p dist/dmg
