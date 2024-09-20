@@ -3,9 +3,10 @@ PNAME="BitCapIPR"
 PLATFORM=""
 case "$2" in
     "10")
-        PLATFORM="mac10.15-amd64"
+        PLATFORM="mac10.15-amd64" ;;
     "14")
-        PLATFORM="mac14-arm"
+        PLATFORM="mac14-arm" ;;
+esac
 
 # build app with pyinstaller
 pyinstaller src/ipr.spec --noconfirm
