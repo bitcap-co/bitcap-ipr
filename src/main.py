@@ -114,11 +114,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.menuOptions.triggered.connect(self.update_settings)
         self.menuTable.triggered.connect(self.update_settings)
         self.actionEnableIDTable.triggered.connect(self.update_stacked_widget)
+        self.actionSetAuthenticationPassword.triggered.connect(self.show_api_config)
         self.actionCopySelectedElements.triggered.connect(self.copy_selected)
         self.actionExport.triggered.connect(self.export_table)
 
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
+        self.actionIPRSetPasswd.clicked.connect(self.set_api_passwd)
 
         self.config_path = Path(Path.home(), '.config', 'ipr').resolve()
         self.settings = Path(self.config_path, 'instance.json')
@@ -161,6 +163,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.thread.stop_listeners()
         self.actionIPRStart.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
+
+    def set_api_passwd(self):
+        passwd = self.linePasswdField.text()
+        config = {
+            "bitmain_passwd": passwd
+        }
+        config_json = json.dumps(config, indent=4)
+        with open(Path(self.config_path, 'config.json'), 'w') as f:
+            f.write(config_json)
+        QMessageBox.information(self, 'BitCapIPR', 'Successfully wrote to config.')
+        self.update_stacked_widget()
 
     def open_dashboard(self, ip):
         webbrowser.open('http://{0}'.format(ip), new=2)
@@ -232,6 +245,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tableWidget.setItem(rowPosition, 2, QTableWidgetItem(serial))
             # ASIC TYPE
             self.tableWidget.setItem(rowPosition, 3, QTableWidgetItem(type))
+
+    def show_api_config(self):
+        self.stackedWidget.setCurrentIndex(2)
 
     def copy_selected(self):
         rows = self.tableWidget.rowCount()
