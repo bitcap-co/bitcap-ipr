@@ -252,7 +252,14 @@
     <property name="title">
      <string>Table</string>
     </property>
+    <widget class="QMenu" name="menuTableSettings">
+     <property name="title">
+      <string>Table Settings</string>
+     </property>
+     <addaction name="actionSetAuthenticationPassword"/>
+    </widget>
     <addaction name="actionEnableIDTable"/>
+    <addaction name="menuTableSettings"/>
     <addaction name="actionCopySelectedElements"/>
     <addaction name="actionExport"/>
    </widget>
@@ -353,6 +360,11 @@
   <action name="actionCopySelectedElements">
    <property name="text">
     <string>Copy Selected Elements</string>
+   </property>
+  </action>
+  <action name="actionSetAuthenticationPassword">
+   <property name="text">
+    <string>Set Authentication Password</string>
    </property>
   </action>
  </widget>

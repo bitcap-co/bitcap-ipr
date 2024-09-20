@@ -100,6 +100,8 @@ class Ui_MainWindow(object):
         self.menuQuit.setObjectName("menuQuit")
         self.menuTable = QtWidgets.QMenu(parent=self.menubar)
         self.menuTable.setObjectName("menuTable")
+        self.menuTableSettings = QtWidgets.QMenu(parent=self.menuTable)
+        self.menuTableSettings.setObjectName("menuTableSettings")
         MainWindow.setMenuBar(self.menubar)
         self.actionHelp = QtGui.QAction(parent=MainWindow)
         self.actionHelp.setObjectName("actionHelp")
@@ -129,6 +131,8 @@ class Ui_MainWindow(object):
         self.actionExport.setObjectName("actionExport")
         self.actionCopySelectedElements = QtGui.QAction(parent=MainWindow)
         self.actionCopySelectedElements.setObjectName("actionCopySelectedElements")
+        self.actionSetAuthenticationPassword = QtGui.QAction(parent=MainWindow)
+        self.actionSetAuthenticationPassword.setObjectName("actionSetAuthenticationPassword")
         self.menuAbout.addAction(self.actionHelp)
         self.menuAbout.addAction(self.actionVersion)
         self.menuOptions.addAction(self.actionAlwaysOpenIPInBrowser)
@@ -137,7 +141,9 @@ class Ui_MainWindow(object):
         self.menuOptions.addAction(self.actionAutoStartOnLaunch)
         self.menuQuit.addAction(self.actionKillAllConfirmations)
         self.menuQuit.addAction(self.actionQuit)
+        self.menuTableSettings.addAction(self.actionSetAuthenticationPassword)
         self.menuTable.addAction(self.actionEnableIDTable)
+        self.menuTable.addAction(self.menuTableSettings.menuAction())
         self.menuTable.addAction(self.actionCopySelectedElements)
         self.menuTable.addAction(self.actionExport)
         self.menubar.addAction(self.menuAbout.menuAction())
@@ -146,7 +152,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuQuit.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -160,6 +166,7 @@ class Ui_MainWindow(object):
         self.menuOptions.setTitle(_translate("MainWindow", "Options"))
         self.menuQuit.setTitle(_translate("MainWindow", "Quit"))
         self.menuTable.setTitle(_translate("MainWindow", "Table"))
+        self.menuTableSettings.setTitle(_translate("MainWindow", "Table Settings"))
         self.actionHelp.setText(_translate("MainWindow", "Help"))
         self.actionVersion.setText(_translate("MainWindow", "Version"))
         self.actionAlwaysOpenIPInBrowser.setText(_translate("MainWindow", "Always Open IP in Browser"))
@@ -178,6 +185,7 @@ class Ui_MainWindow(object):
         self.actionEnableIDTable.setToolTip(_translate("MainWindow", "Stores IP, MAC, TYPE in a table on confirmation"))
         self.actionExport.setText(_translate("MainWindow", "Export"))
         self.actionCopySelectedElements.setText(_translate("MainWindow", "Copy Selected Elements"))
+        self.actionSetAuthenticationPassword.setText(_translate("MainWindow", "Set Authentication Password"))
 
 class Ui_IPRConfirmation(object):
     def setupUi(self, IPRConfirmation):
