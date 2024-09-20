@@ -1,11 +1,17 @@
 #!/bin/sh
 PNAME="BitCapIPR"
+PLATFORM=""
+case "$2" in
+    "10")
+        PLATFORM="mac10.15-amd64"
+    "14")
+        PLATFORM="mac14-arm"
 
 # build app with pyinstaller
 pyinstaller src/ipr.spec --noconfirm
 
 # zip dist/BitCapIPR
-zip -r "dist/$PNAME-$1-$2-portable.zip" dist/BitCapIPR.app
+zip -r "dist/$PNAME-$1-$PLATFORM-portable.zip" dist/BitCapIPR.app
 
 # Create a folder (named dmg) to prepare our DMG in (if it doesn't already exist).
 mkdir -p dist/dmg
@@ -24,5 +30,5 @@ create-dmg \
   --icon "BitCapIPR.app" 175 120 \
   --hide-extension "BitCapIPR.app" \
   --app-drop-link 425 120 \
-  "dist/$PNAME-$1-$2-setup.dmg" \
+  "dist/$PNAME-$1-$PLATFORM-setup.dmg" \
   "dist/dmg/"
