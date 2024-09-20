@@ -359,7 +359,7 @@
      <property name="toolTipsVisible">
       <bool>true</bool>
      </property>
-     <addaction name="actionSetAuthenticationPassword"/>
+     <addaction name="actionSetDefaultAPIPassword"/>
     </widget>
     <addaction name="actionEnableIDTable"/>
     <addaction name="menuTableSettings"/>
@@ -471,12 +471,12 @@
     <string>Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows</string>
    </property>
   </action>
-  <action name="actionSetAuthenticationPassword">
+  <action name="actionSetDefaultAPIPassword">
    <property name="text">
-    <string>Set Authentication Password</string>
+    <string>Set Default API Password</string>
    </property>
    <property name="toolTip">
-    <string>Set default Bitmain authentication password.</string>
+    <string>Set default API password to config. Used to get data from the miner</string>
    </property>
   </action>
  </widget>

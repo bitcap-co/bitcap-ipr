@@ -167,8 +167,8 @@ class Ui_MainWindow(object):
         self.actionExport.setObjectName("actionExport")
         self.actionCopySelectedElements = QtGui.QAction(parent=MainWindow)
         self.actionCopySelectedElements.setObjectName("actionCopySelectedElements")
-        self.actionSetAuthenticationPassword = QtGui.QAction(parent=MainWindow)
-        self.actionSetAuthenticationPassword.setObjectName("actionSetAuthenticationPassword")
+        self.actionSetDefaultAPIPassword = QtGui.QAction(parent=MainWindow)
+        self.actionSetDefaultAPIPassword.setObjectName("actionSetDefaultAPIPassword")
         self.menuAbout.addAction(self.actionHelp)
         self.menuAbout.addAction(self.actionVersion)
         self.menuOptions.addAction(self.actionAlwaysOpenIPInBrowser)
@@ -177,7 +177,7 @@ class Ui_MainWindow(object):
         self.menuOptions.addAction(self.actionAutoStartOnLaunch)
         self.menuQuit.addAction(self.actionKillAllConfirmations)
         self.menuQuit.addAction(self.actionQuit)
-        self.menuTableSettings.addAction(self.actionSetAuthenticationPassword)
+        self.menuTableSettings.addAction(self.actionSetDefaultAPIPassword)
         self.menuTable.addAction(self.actionEnableIDTable)
         self.menuTable.addAction(self.menuTableSettings.menuAction())
         self.menuTable.addAction(self.actionCopySelectedElements)
@@ -227,8 +227,8 @@ class Ui_MainWindow(object):
         self.actionExport.setToolTip(_translate("MainWindow", "Export current table as .CSV file"))
         self.actionCopySelectedElements.setText(_translate("MainWindow", "Copy Selected Elements"))
         self.actionCopySelectedElements.setToolTip(_translate("MainWindow", "Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows"))
-        self.actionSetAuthenticationPassword.setText(_translate("MainWindow", "Set Authentication Password"))
-        self.actionSetAuthenticationPassword.setToolTip(_translate("MainWindow", "Set default Bitmain authentication password."))
+        self.actionSetDefaultAPIPassword.setText(_translate("MainWindow", "Set Default API Password"))
+        self.actionSetDefaultAPIPassword.setToolTip(_translate("MainWindow", "Set default API password to config. Used to get data from the miner"))
 
 
 class Ui_IPRConfirmation(object):

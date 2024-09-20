@@ -114,7 +114,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.menuOptions.triggered.connect(self.update_settings)
         self.menuTable.triggered.connect(self.update_settings)
         self.actionEnableIDTable.triggered.connect(self.update_stacked_widget)
-        self.actionSetAuthenticationPassword.triggered.connect(self.show_api_config)
+        self.actionSetDefaultAPIPassword.triggered.connect(self.show_api_config)
         self.actionCopySelectedElements.triggered.connect(self.copy_selected)
         self.actionExport.triggered.connect(self.export_table)
 
