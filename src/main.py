@@ -174,7 +174,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         config = {
-            "bitmain_passwd": passwd
+            "defaultAPIPasswd": passwd
         }
         config_json = json.dumps(config, indent=4)
         with open(Path(self.config_path, 'config.json'), 'w') as f:
@@ -222,7 +222,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             endpoints = [f'http://{ip}/api/v1/info', f'http://{ip}/cgi-bin/get_system_info.cgi']
             with open(Path(self.config_path, 'config.json'), 'r') as f:
                 config = json.load(f)
-                passwd = config['bitmain_passwd']
+                passwd = config['defaultAPIPasswd']
 
             for endp in range(0, (len(endpoints))):
                 r = requests.head(endpoints[endp], auth=HTTPDigestAuth('root', passwd))
@@ -351,7 +351,7 @@ def launch_app():
             f.write(default_instance_json)
 
         default_config = {
-            "bitmain_passwd": ""
+            "defaultAPIPasswd": ""
         }
         default_config_json = json.dumps(default_config, indent=4)
         with open(Path(config_path, 'config.json'), 'w') as f:
