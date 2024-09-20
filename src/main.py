@@ -166,6 +166,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def set_api_passwd(self):
         passwd = self.linePasswdField.text()
+        if not passwd:
+            # if passwd is blank, exit
+            confirm = QMessageBox.question(self, 'BitCapIPR', 'No supplied password. Do you want to leave the config?', QMessageBox.StandardButton.No|QMessageBox.StandardButton.Yes)
+            if confirm == QMessageBox.StandardButton.Yes:
+                self.update_stacked_widget()
+            return
+
         config = {
             "bitmain_passwd": passwd
         }
