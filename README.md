@@ -1,2 +1,2 @@
-## BitCap PyPR
-ipr tool rewritten in Python
+## BitCap IPReporter
+A cross-platfrom IP Reporter tool for Bitmain, Whatsminer, and IceRiver ASICs.
