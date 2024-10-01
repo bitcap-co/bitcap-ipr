@@ -180,6 +180,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         with open(Path(self.config_path, 'config.json'), 'w') as f:
             f.write(config_json)
         QMessageBox.information(self, 'BitCapIPR', 'Successfully wrote to config.')
+        self.linePasswdField.clear()
         self.update_stacked_widget()
 
     def open_dashboard(self, ip):
