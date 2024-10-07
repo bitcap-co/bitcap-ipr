@@ -226,7 +226,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 passwd = config['defaultAPIPasswd']
 
             for endp in range(0, (len(endpoints))):
-                r = requests.head(endpoints[endp], auth=HTTPDigestAuth('root', passwd))
+                r = requests.get(endpoints[endp], auth=HTTPDigestAuth('root', passwd))
                 if r.status_code == 401:
                     # first pass failed
                     passwd = 'root'
