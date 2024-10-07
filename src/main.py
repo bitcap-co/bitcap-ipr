@@ -328,10 +328,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def quit(self):
         self.thread.stop_listeners()
         self.thread.exit()
-        for c in self.children:
-            c.close()
+        self.killall()
         self.close()
         self = None
+
+    # hook MainWindow close event
+    def closeEvent(self, event):
+        self.quit()
 
 def launch_app():
     app = QApplication(sys.argv)
