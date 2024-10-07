@@ -242,10 +242,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             match endp:
                 case 0:
                     r = requests.get(endpoints[uri])
-                    serial = r.json()['serial']
+                    r_json = r.json()
+                    if 'serial' in r_json:
+                        serial = r.json()['serial']
                 case 1:
                     r = requests.get(endpoints[uri], auth= HTTPDigestAuth('root', passwd))
-                    serial = r.json()['serinum']
+                    r_json = r.json()
+                    if 'serinum' in r_json:
+                        serial = r.json()['serinum']
                 case None:
                     # failed to authenticate
                     serial = "Failed auth"
