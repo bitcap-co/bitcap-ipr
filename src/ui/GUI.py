@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(500, 500)
+        MainWindow.setFixedSize(QtCore.QSize(501, 500))
         MainWindow.setStyleSheet("QWidget[StyleClass=\"setText\"] {\n"
 "    color: rgb(238, 238, 238);\n"
 "}")
