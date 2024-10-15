@@ -1,0 +1,180 @@
+name: Build
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  create_release:
+    name: Create release
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+  build:
+    needs: create_release
+    permissions:
+      contents: write
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - os: ubuntu-latest
+          - os: macos-latest
+          - os: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11' # use python 3.11 to build
+
+    - name: Install depends
+      run: pip install -r requirements.txt
+
+    - name: Run build
+      run: pyinstaller src/ipr.spec
+
+    - name: Linux - portable & deb package
+      run: echo "Packaging portable and .deb with dpkg-deb"
+    - if: runner.os == 'Linux'
+      shell: bash
+      run: |
+          # package portable
+          zip -r BitCapIPR-${{ github.ref_name}}-linux-amd64-portable.zip dist/BitCapIPR
+
+          # deb package
+          [ -e package ] && rm -r package
+          mkdir -p package/DEBIAN
+          mkdir -p package/opt
+          mkdir -p package/usr/share/applications
+          mkdir -p package/usr/share/icons/hicolor/128x128/apps
+
+          cat > package/DEBIAN/control << "EOF"
+          Package: bitcapipr
+          Version: 1.0.2
+          Maintainer: MatthewWertman
+          Architecture: amd64
+          Homepage: https://github.com/bitcap-co/bitcap-ipr
+          Description: cross-platform IP Reporter that listens for AntMiners, IceRivers, and Whatsminers.
+          EOF
+
+          cp -r dist/BitCapIPR package/opt/
+          cp src/resources/icons/app/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png package/usr/share/icons/hicolor/128x128/apps/
+          cp setup/resources/linux/ipr.desktop package/usr/share/applications
+
+          find package/opt/BitCapIPR -type f -exec chmod 644 -- {} +
+          find package/opt/BitCapIPR -type d -exec chmod 755 -- {} +
+          find package/usr/share -type f -exec chmod 644 -- {} +
+          chmod +x package/opt/BitCapIPR/BitCapIPR
+
+          dpkg-deb --build --root-owner-group package "dist/BitCapIPR-${{ github.ref_name }}-linux-amd64.deb"
+    - name: macOS - portable & dmg setup
+      run: echo "Packaging portable and .dmg with create-dmg"
+    - if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        # package portable
+        zip -9 -y -r BitCapIPR-${{ github.ref_name }}-macos14-portable.zip dist/BitCapIPR.app
+
+        # create dmg setup
+        brew install create-dmg
+        # Create a folder (named dmg) to prepare our DMG in (if it doesn't already exist).
+        mkdir -p dist/dmg
+        # Empty the dmg folder.
+        rm -rf dist/dmg/*
+        # Copy the app bundle to the dmg folder.
+        cp -r "dist/BitCapIPR.app" dist/dmg
+        # If the DMG already exists, delete it.
+        test -f "dist/BitCapIPR.dmg" && rm "dist/BitCapIPR.dmg"
+        create-dmg \
+          --volname "BitCapIPR" \
+          --volicon "src/resources/icons/app/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.icns" \
+          --window-pos 200 120 \
+          --window-size 600 300 \
+          --icon-size 100 \
+          --icon "BitCapIPR.app" 175 120 \
+          --hide-extension "BitCapIPR.app" \
+          --app-drop-link 425 120 \
+          "dist/BitCapIPR-${{ github.ref_name }}-macos14-setup.dmg" \
+          "dist/dmg/"
+    - name: Windows - portable & setup.exe
+      run: echo "Packaging portable and setup.exe with ISCC"
+    - if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        # package portable
+        Compress-Archive -Path .\dist\BitCapIPR -DestinationPath BitcapIPR-${{ github.ref_name}}-win-amd64-portable.zip -Force
+
+        # inno setup
+        choco install innosetup
+        ISCC.exe .\setup\setup.iss
+        Rename-Item -Path .\setup\Output\BitCapIPR-setup.exe -NewName "BitCapIPR-${{ github.ref_name }}-win-amd64-setup.exe"
+    - name: Uploading release assets
+      run: echo "Uploading release assets to release"
+    - if: runner.os == 'Linux'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_name: BitCapIPR-${{ github.ref_name}}-linux-amd64-portable.zip
+        asset_path: "./BitCapIPR-${{ github.ref_name}}-linux-amd64-portable.zip"
+        asset_content_type: application/zip
+    - if: runner.os == 'Linux'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_name: BitCapIPR-${{ github.ref_name }}-linux-amd64.deb
+        asset_path: "dist/BitCapIPR-${{ github.ref_name }}-linux-amd64.deb"
+        asset_content_type: application/zip
+    - if: runner.os == 'macOS'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_name: BitCapIPR-${{ github.ref_name}}-macos14-portable.zip
+        asset_path: "./BitCapIPR-${{ github.ref_name}}-macos14-portable.zip"
+        asset_content_type: application/zip
+    - if: runner.os == 'macOS'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_name: BitCapIPR-${{ github.ref_name }}-macos14-setup.dmg
+        asset_path: "dist/BitCapIPR-${{ github.ref_name }}-macos14-setup.dmg"
+        asset_content_type: application/octet-stream
+    - if: runner.os == 'Windows'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_name: BitCapIPR-${{ github.ref_name}}-win-amd64-portable.zip
+        asset_path: "./BitcapIPR-${{ github.ref_name}}-win-amd64-portable.zip"
+        asset_content_type: application/zip
+    - if: runner.os == 'Windows'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_name: BitCapIPR-${{ github.ref_name }}-win-amd64-setup.exe
+        asset_path: "setup/Output/BitCapIPR-${{ github.ref_name }}-win-amd64-setup.exe"
+        asset_content_type: application/octet-stream
