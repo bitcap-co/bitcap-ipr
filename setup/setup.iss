@@ -22,9 +22,8 @@ DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 PrivilegesRequired=lowest
-OutputDir=C:\Users\mattw\Projects\BitCap-PyPR\setup
 OutputBaseFilename=BitCapIPR-setup
-SetupIconFile=C:\Users\mattw\Projects\BitCap-PyPR\src\resources\icons\app\BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.ico
+SetupIconFile=..\src\resources\icons\app\BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -36,8 +35,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\mattw\Projects\BitCap-PyPR\dist\BitCapIPR\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\mattw\Projects\BitCap-PyPR\dist\BitCapIPR\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\BitCapIPR\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\dist\BitCapIPR\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
