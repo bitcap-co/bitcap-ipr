@@ -65,4 +65,5 @@ class Listener(QThread):
         self.signals.result.emit()
 
     def close(self):
+        self.memory = None # clear memory
         self.sock.close()
