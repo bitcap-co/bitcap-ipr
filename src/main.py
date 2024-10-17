@@ -40,8 +40,9 @@ app_info = {
     "name": "BitCap IPReporter",
     "version": "1.0.2",
     "author": "MatthewWertman",
-    "company": "BitCap",
-    "desc": "cross-platform IP Reporter\nthat listens for AntMiners, IceRivers, and Whatsminers."
+    "source": "https://github.com/bitcap-co/bitcap-ipr",
+    "company": "Bit Capital Group",
+    "desc": "cross-platform IP Reporter\nthat listens for AntMiners, IceRivers, and Whatsminers.",
 }
 
 # windows taskbar
