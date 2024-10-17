@@ -1,3 +1,4 @@
+import time
 import socket
 from PyQt6.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
 
@@ -25,9 +26,8 @@ class Listener(QThread):
                 self.d = self.sock.recv(self.bufsize)
             except Exception:
                 break
-            if not (self.prev.decode('ascii') == self.d.decode('ascii')):
-                self.d_str = self.d.decode('ascii')
-                match self.port:
+            self.d_str = self.d.decode('ascii')
+            match self.port:
                     case 11503:  # IceRiver
                         type = "iceriver"
                         ip = self.d_str.split(":")[1]
@@ -40,11 +40,29 @@ class Listener(QThread):
                     case 14235:  # AntMiner
                         type = "antminer"
                         ip, mac = self.d_str.split(",")
+            if self.memory:
+                prev_entry = False
+                # sort by timestamp descending
+                self.memory = dict(sorted(self.memory.items(), reverse=True, key=lambda item: float(item[1][1])))
+                for entry in self.memory.keys():
+                    _data = self.memory.get(entry)
+                    if ip == entry and self.d == _data[0]:
+                        prev_entry = True
+                        if time.time() - _data[1] <= 10.0: # prevent duplicate packet data
+                            break
+                        else:
+                            self.emit_received([ip, mac, type])
+                if not prev_entry:
+                    self.emit_received([ip, mac, type])
+            else:
+                # first entry
+                self.emit_received([ip, mac, type])
 
-                self.d_str = ','.join([ip, mac, type])
-                self.prev = self.d
-                # signal that we received a buffer
-                self.signals.result.emit()
+    def emit_received(self, received):
+        self.memory.update({f"{received[0]}": [self.d, time.time()]})
+        self.d_str = ','.join(received)
+        # signal that we received a buffer
+        self.signals.result.emit()
 
     def close(self):
         self.sock.close()
