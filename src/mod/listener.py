@@ -12,7 +12,7 @@ class Listener(QThread):
         self.signals = (ListenerSignals())
         self.bufsize = 40
         self.port = port
-        self.prev = b''
+        self.memory = {}
         self.d_str = ''
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
