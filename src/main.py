@@ -109,7 +109,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.children = []
 
         # MainWindow Signals
-        self.actionHelp.triggered.connect(self.help)
+        self.actionAbout.triggered.connect(self.about)
+        self.actionReportIssue.triggered.connect(self.open_issues)
+        self.actionSourceCode.triggered.connect(self.open_source)
         self.actionKillAllConfirmations.triggered.connect(self.killall)
         self.actionQuit.triggered.connect(self.quit)
         self.menuOptions.triggered.connect(self.update_settings)
@@ -145,6 +147,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if self.actionAutoStartOnLaunch.isChecked():
             self.start_listen()
+
+    def about(self):
+        QMessageBox.information(self, "BitCapIPR", f"{app_info['name']} is a {app_info['desc']}\nVersion {app_info['version']}\n{app_info['author']}\nPowered by {app_info['company']}\n")
+
+    def open_issues(self):
+        webbrowser.open(f"{app_info['source']}/issues", new=2)
+
+    def open_source(self):
+        webbrowser.open(f"{app_info['source']}", new=2)
 
     def start_listen(self):
         self.actionIPRStart.setEnabled(False)
@@ -318,9 +329,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.instance_json = json.dumps(instance, indent=4)
         with open(self.settings, 'w') as f:
             f.write(self.instance_json)
-
-    def help(self):
-        QMessageBox.information(self, "BitCapIPR", f"{app_info['name']} is a {app_info['desc']}\nVersion {app_info['version']}\n{app_info['author']}\nPowered by {app_info['company']}\n")
 
     def killall(self):
         for c in self.children:
