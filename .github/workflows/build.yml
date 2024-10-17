@@ -64,7 +64,7 @@ jobs:
 
           cat > package/DEBIAN/control << "EOF"
           Package: bitcapipr
-          Version: 1.0.2
+          Version: ${{ github.ref_name }}
           Maintainer: MatthewWertman
           Architecture: amd64
           Homepage: https://github.com/bitcap-co/bitcap-ipr
