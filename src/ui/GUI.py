@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.setFixedSize(QtCore.QSize(501, 500))
+        MainWindow.resize(501, 500)
         MainWindow.setStyleSheet("QWidget[StyleClass=\"setText\"] {\n"
 "    color: rgb(238, 238, 238);\n"
 "}")
@@ -209,8 +209,16 @@ class Ui_MainWindow(object):
         self.actionCopySelectedElements.setObjectName("actionCopySelectedElements")
         self.actionSetDefaultAPIPassword = QtGui.QAction(parent=MainWindow)
         self.actionSetDefaultAPIPassword.setObjectName("actionSetDefaultAPIPassword")
-        self.menuAbout.addAction(self.actionHelp)
-        self.menuAbout.addAction(self.actionVersion)
+        self.actionAbout = QtGui.QAction(parent=MainWindow)
+        self.actionAbout.setObjectName("actionAbout")
+        self.actionReportIssue = QtGui.QAction(parent=MainWindow)
+        self.actionReportIssue.setObjectName("actionReportIssue")
+        self.actionSourceCode = QtGui.QAction(parent=MainWindow)
+        self.actionSourceCode.setObjectName("actionSourceCode")
+        self.menuHelp.addAction(self.actionAbout)
+        self.menuHelp.addAction(self.actionReportIssue)
+        self.menuHelp.addAction(self.actionSourceCode)
+        self.menuHelp.addAction(self.actionVersion)
         self.menuOptions.addAction(self.actionAlwaysOpenIPInBrowser)
         self.menuOptions.addAction(self.actionDisableInactiveTimer)
         self.menuOptions.addAction(self.actionDisableWarningDialog)
@@ -222,9 +230,9 @@ class Ui_MainWindow(object):
         self.menuTable.addAction(self.menuTableSettings.menuAction())
         self.menuTable.addAction(self.actionCopySelectedElements)
         self.menuTable.addAction(self.actionExport)
-        self.menubar.addAction(self.menuAbout.menuAction())
         self.menubar.addAction(self.menuOptions.menuAction())
         self.menubar.addAction(self.menuTable.menuAction())
+        self.menubar.addAction(self.menuHelp.menuAction())
         self.menubar.addAction(self.menuQuit.menuAction())
 
         self.retranslateUi(MainWindow)
@@ -241,12 +249,11 @@ class Ui_MainWindow(object):
         self.actionIPRSetPasswd.setText(_translate("MainWindow", "Set Password"))
         self.actionIPRStart.setText(_translate("MainWindow", "Start"))
         self.actionIPRStop.setText(_translate("MainWindow", "Stop"))
-        self.menuAbout.setTitle(_translate("MainWindow", "About"))
+        self.menuHelp.setTitle(_translate("MainWindow", "Help"))
         self.menuOptions.setTitle(_translate("MainWindow", "Options"))
         self.menuQuit.setTitle(_translate("MainWindow", "Quit"))
         self.menuTable.setTitle(_translate("MainWindow", "Table"))
         self.menuTableSettings.setTitle(_translate("MainWindow", "Table Settings"))
-        self.actionHelp.setText(_translate("MainWindow", "Help"))
         self.actionVersion.setText(_translate("MainWindow", "Version"))
         self.actionAlwaysOpenIPInBrowser.setText(_translate("MainWindow", "Always Open IP in Browser"))
         self.actionAlwaysOpenIPInBrowser.setToolTip(_translate("MainWindow", "Always opens IPs in browser (No IP confirmation)"))
@@ -268,6 +275,12 @@ class Ui_MainWindow(object):
         self.actionCopySelectedElements.setToolTip(_translate("MainWindow", "Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows"))
         self.actionSetDefaultAPIPassword.setText(_translate("MainWindow", "Set Default API Password"))
         self.actionSetDefaultAPIPassword.setToolTip(_translate("MainWindow", "Set default API password to config. Used to get data from the miner"))
+        self.actionAbout.setText(_translate("MainWindow", "About"))
+        self.actionAbout.setToolTip(_translate("MainWindow", "Opens the about dialog"))
+        self.actionReportIssue.setText(_translate("MainWindow", "Report Issue"))
+        self.actionReportIssue.setToolTip(_translate("MainWindow", "Report a new issue on GitHub"))
+        self.actionSourceCode.setText(_translate("MainWindow", "Source Code"))
+        self.actionSourceCode.setToolTip(_translate("MainWindow", "Opens the GitHub repo in browser"))
 
 
 class Ui_IPRConfirmation(object):

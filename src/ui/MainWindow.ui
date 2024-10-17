@@ -350,6 +350,8 @@
      <bool>true</bool>
     </property>
     <addaction name="actionAbout"/>
+    <addaction name="actionReportIssue"/>
+    <addaction name="actionSourceCode"/>
     <addaction name="actionVersion"/>
    </widget>
    <widget class="QMenu" name="menuOptions">
@@ -395,16 +397,11 @@
     <addaction name="actionCopySelectedElements"/>
     <addaction name="actionExport"/>
    </widget>
-   <addaction name="menuAbout"/>
    <addaction name="menuOptions"/>
    <addaction name="menuTable"/>
+   <addaction name="menuHelp"/>
    <addaction name="menuQuit"/>
   </widget>
-  <action name="actionHelp">
-   <property name="text">
-    <string>Help</string>
-   </property>
-  </action>
   <action name="actionVersion">
    <property name="enabled">
     <bool>false</bool>
@@ -506,6 +503,30 @@
    </property>
    <property name="toolTip">
     <string>Set default API password to config. Used to get data from the miner</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+   <property name="toolTip">
+    <string>Opens the about dialog</string>
+   </property>
+  </action>
+  <action name="actionReportIssue">
+   <property name="text">
+    <string>Report Issue</string>
+   </property>
+   <property name="toolTip">
+    <string>Report a new issue on GitHub</string>
+   </property>
+  </action>
+  <action name="actionSourceCode">
+   <property name="text">
+    <string>Source Code</string>
+   </property>
+   <property name="toolTip">
+    <string>Opens the GitHub repo in browser</string>
    </property>
   </action>
  </widget>
