@@ -87,7 +87,7 @@ jobs:
       shell: bash
       run: |
         # package portable
-        zip -9 -y -r BitCapIPR-${{ github.ref_name }}-macos14-portable.zip dist/BitCapIPR.app
+        zip -9 -y -r BitCapIPR-${{ github.ref_name }}-macos14-arm64-portable.zip dist/BitCapIPR.app
 
         # create dmg setup
         brew install create-dmg
@@ -108,7 +108,7 @@ jobs:
           --icon "BitCapIPR.app" 175 120 \
           --hide-extension "BitCapIPR.app" \
           --app-drop-link 425 120 \
-          "dist/BitCapIPR-${{ github.ref_name }}-macos14-setup.dmg" \
+          "dist/BitCapIPR-${{ github.ref_name }}-macos14-arm64-setup.dmg" \
           "dist/dmg/"
     - name: Windows - portable & setup.exe
       run: echo "Packaging portable and setup.exe with ISCC"
@@ -148,8 +148,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.create_release.outputs.upload_url }}
-        asset_name: BitCapIPR-${{ github.ref_name}}-macos14-portable.zip
-        asset_path: "./BitCapIPR-${{ github.ref_name}}-macos14-portable.zip"
+        asset_name: BitCapIPR-${{ github.ref_name}}-macos14-arm64-portable.zip
+        asset_path: "./BitCapIPR-${{ github.ref_name}}-macos14-arm64-portable.zip"
         asset_content_type: application/zip
     - if: runner.os == 'macOS'
       uses: actions/upload-release-asset@v1
@@ -157,8 +157,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.create_release.outputs.upload_url }}
-        asset_name: BitCapIPR-${{ github.ref_name }}-macos14-setup.dmg
-        asset_path: "dist/BitCapIPR-${{ github.ref_name }}-macos14-setup.dmg"
+        asset_name: BitCapIPR-${{ github.ref_name }}-macos14-arm64-setup.dmg
+        asset_path: "dist/BitCapIPR-${{ github.ref_name }}-macos14-arm64-setup.dmg"
         asset_content_type: application/octet-stream
     - if: runner.os == 'Windows'
       uses: actions/upload-release-asset@v1
