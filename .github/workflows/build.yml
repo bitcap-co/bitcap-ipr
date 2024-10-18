@@ -54,7 +54,7 @@ jobs:
       run: |
           # vars
           REF_NAME=${{ github.ref_name }}
-          VERSION_NO_V=${REF_NAME:1}
+          VERSION_NO_V=${REF_NAME#v}
           # package portable
           zip -r BitCapIPR-${{ github.ref_name}}-linux-amd64-portable.zip dist/BitCapIPR
 
@@ -67,7 +67,7 @@ jobs:
 
           cat > package/DEBIAN/control << "EOF"
           Package: bitcapipr
-          Version: $VERSION_NO_V
+          Version: $(echo $VERSION_NO_V)
           Maintainer: MatthewWertman
           Architecture: amd64
           Homepage: https://github.com/bitcap-co/bitcap-ipr
