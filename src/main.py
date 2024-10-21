@@ -10,6 +10,7 @@ from requests.auth import HTTPDigestAuth
 from mod.listener import Listener
 
 from PyQt6.QtCore import (
+    Qt,
     QTimer,
     QThread,
     pyqtSignal,
@@ -102,6 +103,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+
+        self.setWindowFlags(
+            Qt.WindowType.Window |
+            Qt.WindowType.CustomizeWindowHint |
+            Qt.WindowType.WindowTitleHint |
+            Qt.WindowType.WindowMinimizeButtonHint |
+            Qt.WindowType.WindowCloseButtonHint
+        )
 
         self.actionVersion.setText(f"Version {app_info['version']}")
         self.label_2.setPixmap(QPixmap(os.path.join(scalable, 'BitCapIPRCenterLogo.svg')))
