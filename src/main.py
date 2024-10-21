@@ -223,6 +223,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         confirm.lineIPField.setText(ip)
         confirm.lineMACField.setText(mac)
         confirm.show()
+        confirm.activateWindow()
         self.children.append(confirm)
         if self.actionEnableIDTable.isChecked():
             rowPosition = self.tableWidget.rowCount()
