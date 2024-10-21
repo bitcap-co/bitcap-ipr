@@ -63,14 +63,12 @@ jobs:
           mkdir -p package/usr/share/applications
           mkdir -p package/usr/share/icons/hicolor/128x128/apps
 
-          cat > package/DEBIAN/control << "EOF"
-          Package: bitcapipr
-          Version: 1.0.3
-          Maintainer: MatthewWertman
-          Architecture: amd64
-          Homepage: https://github.com/bitcap-co/bitcap-ipr
-          Description: cross-platform IP Reporter that listens for AntMiners, IceRivers, and Whatsminers.
-          EOF
+          echo "Package: bitcapipr" > package/DEBIAN/control
+          echo "Version: ${GITHUB_REF_NAME##v}" >> package/DEBIAN/control
+          echo "Maintainer: MatthewWertman" >> package/DEBIAN/control
+          echo "Architecture: amd64" >> package/DEBIAN/control
+          echo "Homepage: https://github.com/bitcap-co/bitcap-ipr" >> package/DEBIAN/control
+          echo "Description: cross-platform IP Reporter that listens for AntMiners, IceRivers, and Whatsminers." >> package/DEBIAN/control
 
           cp -r dist/BitCapIPR package/opt/
           cp src/resources/icons/app/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png package/usr/share/icons/hicolor/128x128/apps/
