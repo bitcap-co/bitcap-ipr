@@ -32,6 +32,7 @@ jobs:
       matrix:
         config:
           - os: ubuntu-latest
+          - os: macos-13
           - os: macos-latest
           - os: windows-latest
     steps:
@@ -99,8 +100,11 @@ jobs:
         cp -r "dist/BitCapIPR.app" dist/dmg
         # If the DMG already exists, delete it.
         test -f "dist/BitCapIPR.dmg" && rm "dist/BitCapIPR.dmg"
+        DMG_FS="HFS+"
+        if [[ "$ImageOS" == "macos13" ]]; then DMG_FS="APFS"; fi;
         create-dmg \
           --volname "BitCapIPR" \
+          --filesystem $DMG_FS \
           --volicon "src/resources/icons/app/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.icns" \
           --window-pos 200 120 \
           --window-size 600 300 \
