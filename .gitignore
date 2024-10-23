@@ -9,6 +9,9 @@ build/
 dist/
 package/
 MANIFEST
+package-linux.sh
+package-mac.sh
+package-win.py
 *-setup.exe
 *.zip
 
