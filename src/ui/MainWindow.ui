@@ -397,9 +397,9 @@
     <addaction name="actionCopySelectedElements"/>
     <addaction name="actionExport"/>
    </widget>
+   <addaction name="menuHelp"/>
    <addaction name="menuOptions"/>
    <addaction name="menuTable"/>
-   <addaction name="menuHelp"/>
    <addaction name="menuQuit"/>
   </widget>
   <action name="actionVersion">

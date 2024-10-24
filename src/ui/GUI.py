@@ -230,9 +230,9 @@ class Ui_MainWindow(object):
         self.menuTable.addAction(self.menuTableSettings.menuAction())
         self.menuTable.addAction(self.actionCopySelectedElements)
         self.menuTable.addAction(self.actionExport)
+        self.menubar.addAction(self.menuHelp.menuAction())
         self.menubar.addAction(self.menuOptions.menuAction())
         self.menubar.addAction(self.menuTable.menuAction())
-        self.menubar.addAction(self.menuHelp.menuAction())
         self.menubar.addAction(self.menuQuit.menuAction())
 
         self.retranslateUi(MainWindow)
