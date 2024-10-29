@@ -260,6 +260,82 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if "mac" in r_data:
                 return r_data["mac"]
 
+    def get_table_data_from_ip(self, type, ip):
+        result = {"serial": "N/A", "subtype": "N/A"}
+        match type:
+            case "antminer":
+                uri = None
+                endpoints = [
+                    f"http://{ip}/api/v1/info",
+                    f"http://{ip}/cgi-bin/get_system_info.cgi",
+                ]
+                with open(Path(self.config_path, "config.json"), "r") as f:
+                    config = json.load(f)
+                    passwd = config["defaultAPIPasswd"]
+
+                for endp in range(0, (len(endpoints))):
+                    r = requests.get(
+                        endpoints[endp], auth=HTTPDigestAuth("root", passwd)
+                    )
+                    # second pass fail; abort
+                    if r.status_code == 401:
+                        # first pass failed
+                        passwd = "root"
+                        r = requests.head(
+                            endpoints[endp], auth=HTTPDigestAuth("root", passwd)
+                        )
+                        # second pass fail; abort
+                        if r.status_code == 401:
+                            endp = None
+                            break
+                    if r.status_code == 200:
+                        uri = endp
+                        break
+
+                match endp:
+                    case 0:
+                        r = requests.get(endpoints[uri])
+                        r_json = r.json()
+                        if "serial" in r_json:
+                            result["serial"] = r.json()["serial"]
+                        if "miner" in r_json:
+                            result["subtype"] = r.json()["miner"][9:]
+                    case 1:
+                        r = requests.get(
+                            endpoints[uri], auth=HTTPDigestAuth("root", passwd)
+                        )
+                        r_json = r.json()
+                        if "serinum" in r_json:
+                            result["serial"] = r.json()["serinum"]
+                        if "minertype" in r_json:
+                            result["subtype"] = r.json()["minertype"][9:]
+                    case None:
+                        # failed to authenticate
+                        result["serial"] = "Failed auth"
+                        result["subtype"] = "Failed auth"
+                return result
+            case "iceriver":
+                with requests.Session() as s:
+                    host = f"http://{ip}"
+                    s.head(host)
+                    res = s.post(
+                        url=f"{host}/user/userpanel",
+                        data={"post": 4},
+                        headers={"Referer": host},
+                    )
+                    r_data = res.json()["data"]
+                    if "model" in r_data:
+                        if r_data["model"] == "none":
+                            if "softver1" in r_data:
+                                model = "".join(r_data["softver1"].split("_")[-2:])
+                                result["subtype"] = model[model.rfind("ks"): model.rfind("miner")].upper()
+                        else:
+                            result["subtype"] = r_data["model"]
+                    return result
+            case "whatsminer":
+                # TODO
+                return result
+
     def show_confirm(self):
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
@@ -296,69 +372,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         confirm.activateWindow()
         self.children.append(confirm)
         if self.actionEnableIDTable.isChecked():
+            t_data = self.get_table_data_from_ip(type, ip)
             rowPosition = self.tableWidget.rowCount()
             self.tableWidget.insertRow(rowPosition)
             self.tableWidget.setItem(rowPosition, 0, QTableWidgetItem(ip))
             self.tableWidget.setItem(rowPosition, 1, QTableWidgetItem(mac))
-            # SERIAL
-            serial = "N/A"
-            subtype = "N/A"
-            if type == "antminer":
-                uri = None
-                endpoints = [
-                    f"http://{ip}/api/v1/info",
-                    f"http://{ip}/cgi-bin/get_system_info.cgi",
-                ]
-                with open(Path(self.config_path, "config.json"), "r") as f:
-                    config = json.load(f)
-                    passwd = config["defaultAPIPasswd"]
-
-                for endp in range(0, (len(endpoints))):
-                    r = requests.get(
-                        endpoints[endp], auth=HTTPDigestAuth("root", passwd)
-                    )
-                    # second pass fail; abort
-                    if r.status_code == 401:
-                        # first pass failed
-                        passwd = "root"
-                        r = requests.head(
-                            endpoints[endp], auth=HTTPDigestAuth("root", passwd)
-                        )
-                        # second pass fail; abort
-                        if r.status_code == 401:
-                            endp = None
-                            break
-                    if r.status_code == 200:
-                        uri = endp
-                        break
-
-                match endp:
-                    case 0:
-                        r = requests.get(endpoints[uri])
-                        r_json = r.json()
-                        if "serial" in r_json:
-                            serial = r.json()["serial"]
-                        if "miner" in r_json:
-                            subtype = r.json()["miner"][9:]
-                    case 1:
-                        r = requests.get(
-                            endpoints[uri], auth=HTTPDigestAuth("root", passwd)
-                        )
-                        r_json = r.json()
-                        if "serinum" in r_json:
-                            serial = r.json()["serinum"]
-                        if "minertype" in r_json:
-                            subtype = r.json()["minertype"][9:]
-                    case None:
-                        # failed to authenticate
-                        serial = "Failed auth"
-                        subtype = "Failed auth"
-
-            self.tableWidget.setItem(rowPosition, 2, QTableWidgetItem(serial))
+            self.tableWidget.setItem(
+                rowPosition, 2, QTableWidgetItem(t_data["serial"])
+            )
             # ASIC TYPE
             self.tableWidget.setItem(rowPosition, 3, QTableWidgetItem(type))
             # SUBTYPE
-            self.tableWidget.setItem(rowPosition, 4, QTableWidgetItem(subtype))
+            self.tableWidget.setItem(
+                rowPosition, 4, QTableWidgetItem(t_data["subtype"])
+            )
 
     def show_api_config(self):
         self.stackedWidget.setCurrentIndex(2)
