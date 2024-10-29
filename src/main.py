@@ -247,10 +247,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.stackedWidget.setCurrentIndex(1)
 
+    def retrieve_iceriver_mac_addr(self, ip):
+        with requests.Session() as s:
+            host = f"http://{ip}"
+            s.head(host)
+            res = s.post(
+                url=f"{host}/user/ipconfig",
+                data={"post": 1},
+                headers={"Referer": host},
+            )
+            r_data = res.json()["data"]
+            if "mac" in r_data:
+                return r_data["mac"]
+
     def show_confirm(self):
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
         ip, mac, type = self.thread.data.split(",")
+        if mac == "ice-river":
+            mac = self.retrieve_iceriver_mac_addr(ip)
         if self.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
             return
