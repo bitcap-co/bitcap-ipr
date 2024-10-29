@@ -116,7 +116,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QPixmap(os.path.join(scalable, "BitCapIPRCenterLogo.svg"))
         )
         self.tableWidget.setHorizontalHeaderLabels(
-            ["IP", "MAC", "SERIAL", "TYPE"]
+            ["IP", "MAC", "SERIAL", "TYPE", "SUBTYPE"]
         )
         self.children = []
 
@@ -287,6 +287,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tableWidget.setItem(rowPosition, 1, QTableWidgetItem(mac))
             # SERIAL
             serial = "N/A"
+            subtype = "N/A"
             uri = None
             endpoints = [
                 f"http://{ip}/api/v1/info",
@@ -320,6 +321,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     r_json = r.json()
                     if "serial" in r_json:
                         serial = r.json()["serial"]
+                    if "miner" in r_json:
+                        subtype = r.json()["miner"][9:]
                 case 1:
                     r = requests.get(
                         endpoints[uri], auth=HTTPDigestAuth("root", passwd)
@@ -327,13 +330,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     r_json = r.json()
                     if "serinum" in r_json:
                         serial = r.json()["serinum"]
+                    if "minertype" in r_json:
+                        subtype = r.json()["minertype"][9:]
                 case None:
                     # failed to authenticate
                     serial = "Failed auth"
+                    subtype = "Failed auth"
 
             self.tableWidget.setItem(rowPosition, 2, QTableWidgetItem(serial))
             # ASIC TYPE
             self.tableWidget.setItem(rowPosition, 3, QTableWidgetItem(type))
+            # SUBTYPE
+            self.tableWidget.setItem(rowPosition, 4, QTableWidgetItem(subtype))
 
     def show_api_config(self):
         self.stackedWidget.setCurrentIndex(2)
@@ -355,7 +363,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def export_table(self):
         rows = self.tableWidget.rowCount()
         cols = self.tableWidget.columnCount()
-        out = "IP, MAC, SERIAL, TYPE, \n"
+        out = "IP, MAC, SERIAL, TYPE, SUBTYPE, \n"
         for i in range(rows):
             for j in range(cols):
                 out += self.tableWidget.item(i, j).text()
