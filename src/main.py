@@ -1,5 +1,6 @@
 import os
 import sys
+import socket
 import time
 import json
 import webbrowser
@@ -328,12 +329,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         if r_data["model"] == "none":
                             if "softver1" in r_data:
                                 model = "".join(r_data["softver1"].split("_")[-2:])
-                                result["subtype"] = model[model.rfind("ks"): model.rfind("miner")].upper()
+                                result["subtype"] = model[model.rfind("ks"):model.rfind("miner")].upper()
                         else:
                             result["subtype"] = r_data["model"]
                     return result
             case "whatsminer":
-                # TODO
+                json_cmd = {"cmd": "devdetails"}
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.connect((ip, 4028))
+                    s.send(json.dumps(json_cmd).encode('utf-8'))
+                    data = s.recv(4096)
+
+                    try:
+                        r_json = json.loads(data.decode())
+                        if "Model" in r_json["DEVDETAILS"][0]:
+                            result["subtype"] = r_json["DEVDETAILS"][0]["Model"]
+                    except Exception:
+                        pass
                 return result
 
     def show_confirm(self):
