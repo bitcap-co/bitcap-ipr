@@ -40,7 +40,7 @@ scalable = os.path.join(basedir, "resources/scalable")
 
 app_info = {
     "name": "BitCap IPReporter",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "author": "MatthewWertman",
     "source": "https://github.com/bitcap-co/bitcap-ipr",
     "company": "Bit Capital Group",
