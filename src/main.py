@@ -356,6 +356,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             mac = self.retrieve_iceriver_mac_addr(ip)
         if self.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
+            if self.actionEnableIDTable.isChecked():
+                self.activateWindow()
         else:
             confirm = IPRConfirmation()
             # IPRConfirmation Signals
