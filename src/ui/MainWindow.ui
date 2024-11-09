@@ -16,7 +16,27 @@
   <property name="styleSheet">
    <string notr="true">QWidget[StyleClass=&quot;setText&quot;] {
 	color: rgb(238, 238, 238);
-}</string>
+}
+
+QPushButton {
+  background-color: #414141;
+  color: #EEEEEE;
+}
+
+QPushButton:disabled {
+  background-color: #434343;
+  color: #828282;
+}
+
+QPushButton:pressed {
+  background-color: #60798B;
+}
+
+QDialogButtonBox QPushButton {
+  /* Issue #194 #248 - Special case of QPushButton inside dialogs, for better UI */
+  min-width: 80px;
+}
+</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="styleSheet">
@@ -74,6 +94,9 @@
            <height>280</height>
           </size>
          </property>
+         <property name="currentIndex">
+          <number>1</number>
+         </property>
          <widget class="QWidget" name="iprIDTable">
           <widget class="QTableWidget" name="tableWidget">
            <property name="enabled">
@@ -103,11 +126,12 @@
             <bool>true</bool>
            </property>
            <property name="columnCount">
-            <number>4</number>
+            <number>5</number>
            </property>
            <attribute name="horizontalHeaderDefaultSectionSize">
             <number>105</number>
            </attribute>
+           <column/>
            <column/>
            <column/>
            <column/>

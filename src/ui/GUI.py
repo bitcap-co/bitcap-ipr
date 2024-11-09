@@ -15,7 +15,27 @@ class Ui_MainWindow(object):
         MainWindow.setFixedSize(QtCore.QSize(501, 500))
         MainWindow.setStyleSheet("QWidget[StyleClass=\"setText\"] {\n"
 "    color: rgb(238, 238, 238);\n"
-"}")
+"}\n"
+"\n"
+"QPushButton {\n"
+"  background-color: #414141;\n"
+"  color: #EEEEEE;\n"
+"}\n"
+"\n"
+"QPushButton:disabled {\n"
+"  background-color: #434343;\n"
+"  color: #828282;\n"
+"}\n"
+"\n"
+"QPushButton:pressed {\n"
+"  background-color: #60798B;\n"
+"}\n"
+"\n"
+"QDialogButtonBox QPushButton {\n"
+"  /* Issue #194 #248 - Special case of QPushButton inside dialogs, for better UI */\n"
+"  min-width: 80px;\n"
+"}\n"
+"")
         self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
         self.centralwidget.setStyleSheet("QWidget#centralwidget {\n"
 "    background-color:qlineargradient(spread:pad, x1:0.500, y1:0, x2:0.500, y2:1, stop:0.5 rgba(6, 16, 31, 255), stop:1 rgba(0, 0, 0, 255));\n"
@@ -236,6 +256,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuQuit.menuAction())
 
         self.retranslateUi(MainWindow)
+        self.stackedWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
