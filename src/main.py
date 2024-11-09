@@ -356,33 +356,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             mac = self.retrieve_iceriver_mac_addr(ip)
         if self.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
-            return
-        confirm = IPRConfirmation()
-        # IPRConfirmation Signals
-        confirm.actionOpenBrowser.clicked.connect(
-            lambda: self.open_dashboard(ip)
-        )
-        confirm.accept.clicked.connect(lambda: self.hide_confirm(confirm))
-        # copy action
-        confirm.lineIPField.actionCopy = confirm.lineIPField.addAction(
-            self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon),
-            QLineEdit.ActionPosition.TrailingPosition,
-        )
-        confirm.lineIPField.actionCopy.triggered.connect(
-            lambda: self.copy_text(confirm.lineIPField)
-        )
-        confirm.lineMACField.actionCopy = confirm.lineMACField.addAction(
-            self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon),
-            QLineEdit.ActionPosition.TrailingPosition,
-        )
-        confirm.lineMACField.actionCopy.triggered.connect(
-            lambda: self.copy_text(confirm.lineMACField)
-        )
-        confirm.lineIPField.setText(ip)
-        confirm.lineMACField.setText(mac)
-        confirm.show()
-        confirm.activateWindow()
-        self.children.append(confirm)
+        else:
+            confirm = IPRConfirmation()
+            # IPRConfirmation Signals
+            confirm.actionOpenBrowser.clicked.connect(
+                lambda: self.open_dashboard(ip)
+            )
+            confirm.accept.clicked.connect(lambda: self.hide_confirm(confirm))
+            # copy action
+            confirm.lineIPField.actionCopy = confirm.lineIPField.addAction(
+                self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon),
+                QLineEdit.ActionPosition.TrailingPosition,
+            )
+            confirm.lineIPField.actionCopy.triggered.connect(
+                lambda: self.copy_text(confirm.lineIPField)
+            )
+            confirm.lineMACField.actionCopy = confirm.lineMACField.addAction(
+                self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon),
+                QLineEdit.ActionPosition.TrailingPosition,
+            )
+            confirm.lineMACField.actionCopy.triggered.connect(
+                lambda: self.copy_text(confirm.lineMACField)
+            )
+            confirm.lineIPField.setText(ip)
+            confirm.lineMACField.setText(mac)
+            confirm.show()
+            confirm.activateWindow()
+            self.children.append(confirm)
         if self.actionEnableIDTable.isChecked():
             t_data = self.get_table_data_from_ip(type, ip)
             rowPosition = self.tableWidget.rowCount()
@@ -410,7 +410,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             for j in range(cols):
                 if self.tableWidget.item(i, j).isSelected():
                     out += self.tableWidget.item(i, j).text()
-                    out += ";"
+                    out += ","
             out += "\n"
         cb = QApplication.clipboard()
         cb.clear(mode=cb.Mode.Clipboard)
