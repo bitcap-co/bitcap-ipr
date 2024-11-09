@@ -459,7 +459,7 @@
     <string>Auto Start on Launch</string>
    </property>
    <property name="toolTip">
-    <string>Automatically start listeners on launch</string>
+    <string>Automatically start listeners on launch (Takes effect on next launch)</string>
    </property>
   </action>
   <action name="actionKillAllConfirmations">
@@ -478,7 +478,7 @@
     <string>Enable ID Table</string>
    </property>
    <property name="toolTip">
-    <string>Stores IP, MAC, TYPE in a table on confirmation</string>
+    <string>Stores IP,MAC,SERIAL,TYPE,SUBTYPE in a table on confirmation</string>
    </property>
   </action>
   <action name="actionExport">
