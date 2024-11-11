@@ -18,9 +18,17 @@
 	color: rgb(238, 238, 238);
 }
 
+QDialog {
+  background: #232323;
+}
+
+QDialog QLabel {
+	color: #EEEEEE
+}
+
 QPushButton {
   background-color: #414141;
-  color: #EEEEEE;
+  color: #F0F0F0;
 }
 
 QPushButton:disabled {
@@ -35,6 +43,59 @@ QPushButton:pressed {
 QDialogButtonBox QPushButton {
   /* Issue #194 #248 - Special case of QPushButton inside dialogs, for better UI */
   min-width: 80px;
+}
+
+QMenuBar {
+  background-color: #323232;
+  padding: 2px;
+  color: #F0F0F0;
+  selection-background-color: #1A72BB;
+}
+
+QMenu {
+  border: 0px solid #455364;
+  color: #F0F0F0;
+  margin: 0px;
+  background-color: #272727;
+  selection-background-color: #1A72BB;
+}
+
+QMenu::separator {
+  height: 1px;
+  background-color: #60798B;
+  color: #EEEEEE;
+}
+
+QMenu::item {
+  background-color: #272727;
+  padding: 4px 24px 4px 12px;
+}
+
+QMenu::item:selected {
+  color: #EEEEEE;
+  background-color: #1A72BB;
+}
+
+QMenu::item:pressed {
+  background-color: #1A72BB;
+}
+
+QMenu::item:disabled {
+  color: #828282;
+}
+
+QMenu::indicator {
+  margin-left: 8px;
+  margin-right: 4px;
+  width: 12px;
+  height: 12px;
+  /* non-exclusive indicator = check box style indicator (see QActionGroup::setExclusive) */
+  /* exclusive indicator = radio button style indicator (see QActionGroup::setExclusive) */
+}
+
+QMenu::indicator:non-exclusive:unchecked {
+  background-color: #232323;
+  border: 1px solid #434343;
 }
 </string>
   </property>
@@ -363,7 +424,7 @@ QDialogButtonBox QPushButton {
      <x>0</x>
      <y>0</y>
      <width>501</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuHelp">
