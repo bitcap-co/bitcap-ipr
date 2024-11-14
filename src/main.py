@@ -30,6 +30,7 @@ from PyQt6.QtWidgets import (
     QTableWidgetItem,
     QLineEdit,
     QStyle,
+    QMenuBar,
 )
 from PyQt6.QtGui import QIcon, QPixmap
 from ui.GUI import Ui_MainWindow, Ui_IPRConfirmation
@@ -105,14 +106,81 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
 
         self.setWindowFlags(
-            Qt.WindowType.Window
-            | Qt.WindowType.CustomizeWindowHint
-            | Qt.WindowType.WindowTitleHint
-            | Qt.WindowType.WindowMinimizeButtonHint
-            | Qt.WindowType.WindowCloseButtonHint
+            Qt.WindowType.FramelessWindowHint
         )
+        # title bar
+        self.title_bar = self.titlebar
+        icon = QIcon()
+        icon.addPixmap(QPixmap(os.path.join(icons, "BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png")), QIcon.Mode.Disabled, QIcon.State.On)
+        self.titleIcon.setIcon(icon)
+        min_icon = self.style().standardIcon(
+            QStyle.StandardPixmap.SP_TitleBarMinButton
+        )
+        self.minButton.setIcon(min_icon)
+        self.minButton.clicked.connect(self.window().showMinimized)
+        close_icon = self.style().standardIcon(
+            QStyle.StandardPixmap.SP_TitleBarCloseButton
+        )
+        self.closeButton.setIcon(close_icon)
+        self.closeButton.clicked.connect(self.quit)
 
-        self.actionVersion.setText(f"Version {app_info['version']}")
+        # menu bar
+        self.menu_bar = QMenuBar()
+        self.menuHelp = self.menu_bar.addMenu("Help")
+        self.menuHelp.setToolTipsVisible(True)
+        self.menuOptions = self.menu_bar.addMenu("Options")
+        self.menuOptions.setToolTipsVisible(True)
+        self.menuTable = self.menu_bar.addMenu("Table")
+        self.menuTable.setToolTipsVisible(True)
+        self.menuQuit = self.menu_bar.addMenu("Quit")
+        self.menuQuit.setToolTipsVisible(True)
+
+        # help
+        self.actionAbout = self.menuHelp.addAction("About")
+        self.actionAbout.setToolTip("Opens the about dialog")
+        self.actionReportIssue = self.menuHelp.addAction("Report Issue")
+        self.actionReportIssue.setToolTip("Report a new issue on GitHub")
+        self.actionSourceCode = self.menuHelp.addAction("Source Code")
+        self.actionSourceCode.setToolTip("Opens the GitHub repo in browser")
+        self.actionVersion = self.menuHelp.addAction(f"Version {app_info['version']}")
+        self.actionVersion.setEnabled(False)
+
+        # options
+        self.actionAlwaysOpenIPInBrowser = self.menuOptions.addAction("Always Open IP in Browser")
+        self.actionAlwaysOpenIPInBrowser.setCheckable(True)
+        self.actionAlwaysOpenIPInBrowser.setToolTip("Always opens IPs in browser (No IP confirmation)")
+        self.actionDisableInactiveTimer = self.menuOptions.addAction("Disable Inactive Timer")
+        self.actionDisableInactiveTimer.setCheckable(True)
+        self.actionDisableInactiveTimer.setToolTip("Disables inactive timer of 15 minutes (Listens until stopped)")
+        self.actionDisableWarningDialog = self.menuOptions.addAction("Disable Warning Dialog")
+        self.actionDisableWarningDialog.setCheckable(True)
+        self.actionDisableWarningDialog.setToolTip("Disables warning dialog when starting listeners")
+        self.actionAutoStartOnLaunch = self.menuOptions.addAction("Auto Start on Launch")
+        self.actionAutoStartOnLaunch.setCheckable(True)
+        self.actionAutoStartOnLaunch.setToolTip("Automatically start listeners on launch (Takes effect on next launch)")
+
+        # table
+        self.actionEnableIDTable = self.menuTable.addAction("Enable ID Table")
+        self.actionEnableIDTable.setCheckable(True)
+        self.actionEnableIDTable.setToolTip("Stores IP,MAC,SERIAL,TYPE,SUBTYPE in a table on confirmation")
+        self.menuTableSettings = self.menuTable.addMenu("Table Settings")
+        self.menuTableSettings.setToolTipsVisible(True)
+        self.actionSetDefaultAPIPassword = self.menuTableSettings.addAction("Set Default API Password")
+        self.actionSetDefaultAPIPassword.setToolTip("Set default API password to config. Used to get data from the miner")
+        self.actionCopySelectedElements = self.menuTable.addAction("Copy Selected Elements")
+        self.actionCopySelectedElements.setToolTip("Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows")
+        self.actionExport = self.menuTable.addAction("Export")
+        self.actionExport.setToolTip("Export current table as .CSV file")
+
+        # quit
+        self.actionKillAllConfirmations = self.menuQuit.addAction("Kill All Confirmations")
+        self.actionKillAllConfirmations.setToolTip("Kills all IP confirmation windows")
+        self.actionQuit = self.menuQuit.addAction("Quit")
+        self.actionQuit.setToolTip("Quits app")
+
+        menubarwidget = self.menubarwidget.layout()
+        menubarwidget.addWidget(self.menu_bar)
+
         self.label_2.setPixmap(
             QPixmap(os.path.join(scalable, "BitCapIPRCenterLogo.svg"))
         )
@@ -170,6 +238,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if self.actionAutoStartOnLaunch.isChecked():
             self.start_listen()
+
+    def changeEvent(self, event):
+        super().changeEvent(event)
+        event.accept()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.initial_pos = event.position().toPoint()
+        super().mousePressEvent(event)
+        event.accept()
+
+    def mouseMoveEvent(self, event):
+        if self.initial_pos is not None:
+            delta = event.position().toPoint() - self.initial_pos
+            self.window().move(
+                self.window().x() + delta.x(),
+                self.window().y() + delta.y(),
+            )
+        super().mouseMoveEvent(event)
+        event.accept()
+
+    def mouseReleaseEvent(self, event):
+        self.initial_pos = None
+        super().mouseReleaseEvent(event)
+        event.accept()
 
     def about(self):
         QMessageBox.information(
