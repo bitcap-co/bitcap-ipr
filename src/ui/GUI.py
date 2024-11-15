@@ -177,7 +177,7 @@ class Ui_MainWindow(object):
 "}\n"
 "\n"
 "QLineEdit:focus {\n"
-"  border: 1px solid #3183ff;\n"
+"  border: 1px solid #92beff;\n"
 "}\n"
 "")
         self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
@@ -425,7 +425,7 @@ class Ui_IPRConfirmation(object):
 "}\n"
 "\n"
 "QLineEdit:focus {\n"
-"  border: 1px solid #3183ff;\n"
+"  border: 1px solid #92beff;\n"
 "}\n"
 "")
         self.gridLayout = QtWidgets.QGridLayout(IPRConfirmation)
