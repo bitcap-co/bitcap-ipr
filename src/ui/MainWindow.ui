@@ -163,6 +163,23 @@ QScrollBar::sub-line:horizontal {
       border: none;
       background: none;
 }
+
+QLineEdit {
+  background-color: #151d28;
+  padding-top: 2px;
+  /* This QLineEdit fix  103, 111 */
+  padding-bottom: 2px;
+  /* This QLineEdit fix  103, 111 */
+  padding-left: 4px;
+  padding-right: 4px;
+  border-style: solid;
+  border: 1px solid #525252;
+  color: #FFFFFF;
+}
+
+QLineEdit:focus {
+  border: 1px solid #3183ff;
+}
 </string>
   </property>
   <widget class="QWidget" name="centralwidget">
