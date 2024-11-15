@@ -14,8 +14,13 @@
    <string>BitCap IPReporter</string>
   </property>
   <property name="styleSheet">
+   <string notr="true">
 QWidget[StyleClass=&quot;setText&quot;] {
 	color: #FFFFFF
+}
+
+QWidget #titlebar {
+	background: #151d28;
 }
 
 QDialog {
@@ -27,7 +32,7 @@ QDialog QLabel {
 }
 
 QPushButton {
-  background-color: #414141;
+  background-color: #383e46;
   color: #FFFFFF;
 }
 
@@ -37,7 +42,7 @@ QPushButton:disabled {
 }
 
 QPushButton:pressed {
-  background-color: #60798B;
+  background-color: #5c9dff;
 }
 
 QDialogButtonBox QPushButton {
@@ -51,18 +56,18 @@ QToolButton {
 }
 
 QMenuBar {
-  background-color: #323232;
+  background-color: #383e46;
   padding: 2px;
   color: #FFFFFF;
-  selection-background-color: #1A72BB;
+  selection-background-color: #3183ff;
 }
 
 QMenu {
   border: 0px solid #455364;
   color: #FFFFFF;
   margin: 0px;
-  background-color: #272727;
-  selection-background-color: #1A72BB;
+  background-color: #383e46;
+  selection-background-color: #3183ff;
 }
 
 QMenu::separator {
@@ -72,17 +77,17 @@ QMenu::separator {
 }
 
 QMenu::item {
-  background-color: #272727;
+  background-color: #383e46;
   padding: 4px 24px 4px 12px;
 }
 
 QMenu::item:selected {
   color: #FFFFFF;
-  background-color: #1A72BB;
+  background-color: #3183ff;
 }
 
 QMenu::item:pressed {
-  background-color: #1A72BB;
+  background-color: #3183ff;
 }
 
 QMenu::item:disabled {
@@ -99,7 +104,7 @@ QMenu::indicator {
 }
 
 QMenu::indicator:non-exclusive:unchecked {
-  background-color: #232323;
+  background-color: #151d28;
   border: 1px solid #434343;
 }
 
