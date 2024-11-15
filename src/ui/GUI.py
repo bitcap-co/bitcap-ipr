@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.setFixedSize(QtCore.QSize(501, 500))
+        MainWindow.setFixedSize(QtCore.QSize(500, 500))
         MainWindow.setStyleSheet("QWidget[StyleClass=\"setText\"] {\n"
 "    color: rgb(238, 238, 238);\n"
 "}\n"
@@ -164,7 +164,7 @@ class Ui_MainWindow(object):
 "}")
         self.centralwidget.setObjectName("centralwidget")
         self.titlebar = QtWidgets.QWidget(parent=self.centralwidget)
-        self.titlebar.setGeometry(QtCore.QRect(0, 5, 501, 20))
+        self.titlebar.setGeometry(QtCore.QRect(0, 5, 500, 20))
         self.titlebar.setObjectName("titlebar")
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout(self.titlebar)
         self.horizontalLayout_4.setContentsMargins(0, 0, 0, 0)
@@ -188,7 +188,7 @@ class Ui_MainWindow(object):
         self.closeButton.setObjectName("closeButton")
         self.horizontalLayout_4.addWidget(self.closeButton)
         self.menubarwidget = QtWidgets.QWidget(parent=self.centralwidget)
-        self.menubarwidget.setGeometry(QtCore.QRect(0, 30, 501, 26))
+        self.menubarwidget.setGeometry(QtCore.QRect(0, 30, 500, 26))
         self.menubarwidget.setMinimumSize(QtCore.QSize(0, 0))
         self.menubarwidget.setObjectName("menubarwidget")
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout(self.menubarwidget)
@@ -199,6 +199,7 @@ class Ui_MainWindow(object):
         self.vwrapper.setObjectName("vwrapper")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.vwrapper)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout.setSpacing(0)
         self.verticalLayout.setObjectName("verticalLayout")
         self.label = QtWidgets.QLabel(parent=self.vwrapper)
         font = QtGui.QFont()
@@ -211,7 +212,7 @@ class Ui_MainWindow(object):
         spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.stackedWidget = QtWidgets.QStackedWidget(parent=self.vwrapper)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.stackedWidget.sizePolicy().hasHeightForWidth())
@@ -222,7 +223,7 @@ class Ui_MainWindow(object):
         self.iprIDTable.setObjectName("iprIDTable")
         self.tableWidget = QtWidgets.QTableWidget(parent=self.iprIDTable)
         self.tableWidget.setEnabled(True)
-        self.tableWidget.setGeometry(QtCore.QRect(0, 0, 465, 280))
+        self.tableWidget.setGeometry(QtCore.QRect(0, 0, 483, 280))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
