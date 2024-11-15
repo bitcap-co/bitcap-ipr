@@ -23,13 +23,51 @@
    <string notr="true">QWidget#IPRConfirmation {
 	background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0.5 rgba(6, 16, 31, 255), stop:1 rgba(0, 0, 0, 255));
 }
+
 QWidget[StyleClass=&quot;setText&quot;] {
-	color: rgb(238, 238, 238);
+	color: #FFFFFF;
 }
+
+QWidget #titlebar {
+	background: #151d28;
+}
+
+QPushButton {
+  background-color: #383e46;
+  color: #FFFFFF;
+}
+
+QPushButton:disabled {
+  background-color: #434343;
+  color: #828282;
+}
+
+QPushButton:pressed {
+  background-color: #92beff;
+}
+
+QDialogButtonBox QPushButton {
+  /* Issue #194 #248 - Special case of QPushButton inside dialogs, for better UI */
+  min-width: 80px;
+}
+
 QLineEdit {
-	background-color: rgb(145, 149, 155);
-	color: rgb(238, 238, 238);
-}</string>
+  background-color: #6b7076;
+  padding-top: 2px;
+  /* This QLineEdit fix  103, 111 */
+  padding-bottom: 2px;
+  /* This QLineEdit fix  103, 111 */
+  padding-left: 4px;
+  padding-right: 4px;
+  border-style: solid;
+  border: 1px solid #525252;
+  color: #FFFFFF;
+}
+
+QLineEdit:focus {
+  border: 1px solid #3183ff;
+}
+</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="leftMargin">
