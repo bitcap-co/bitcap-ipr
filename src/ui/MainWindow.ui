@@ -109,47 +109,47 @@ QMenu::indicator:non-exclusive:unchecked {
 }
 
 QAbstractScrollArea, QHeaderView::section, QTableView QTableCornerButton::section {
-	background-color: #3d3d3d;
+	background-color: #383e46;
     color: #FFFFFF;
 }
 
 QTableView {
-  background-color: #242424;
+  background-color: #151d28;
   color: #FFFFFF;
 }
 
 QTableView::item:pressed {
-  background-color: #346792;
+  background-color: #3183ff;
 }
 
 QTableView::item:selected:active {
-  background-color: #346792;
+  background-color: #3183ff;
 }
 
 QTableView::item:selected:!active {
   color: #FFFFFF;
-  background-color: #37414F;
+  background-color: #5c9dff;
 }
 
 QTableView::item:!selected:hover {
   outline: 0;
   color: #FFFFFF;
-  background-color: #37414F;
+  background-color: #5c9dff;
 }
 
 QScrollBar:horizontal {
-  background-color: #393939;
+  background-color: #383e46;
   color: #828282;
 }
 
 QScrollBar::handle:horizontal {
-  background-color: #3e3e3e;
+  background-color: #5b5f64;
   border: 1px solid #525252;
   min-width: 8px;
 }
 
 QScrollBar::handle:horizontal:hover {
-  background-color: #3f3f3f;
+  background-color: #6b7076;
   border: 1px solid #525252;
   min-width: 8px;
 }
