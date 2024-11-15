@@ -109,6 +109,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             Qt.WindowType.FramelessWindowHint
         )
         # title bar
+        self.initial_pos = None
         self.title_bar = self.titlebar
         icon = QIcon()
         icon.addPixmap(QPixmap(os.path.join(icons, "BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png")), QIcon.Mode.Disabled, QIcon.State.On)
