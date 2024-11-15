@@ -15,7 +15,7 @@ class Ui_MainWindow(object):
         MainWindow.setFixedSize(QtCore.QSize(500, 500))
         MainWindow.setStyleSheet("\n"
 "QWidget[StyleClass=\"setText\"] {\n"
-"    color: #FFFFFF\n"
+"    color: #FFFFFF;\n"
 "}\n"
 "\n"
 "QWidget #titlebar {\n"
@@ -23,7 +23,7 @@ class Ui_MainWindow(object):
 "}\n"
 "\n"
 "QDialog {\n"
-"  background: #232323;\n"
+"  background: #151d28;\n"
 "}\n"
 "\n"
 "QDialog QLabel {\n"

@@ -16,7 +16,7 @@
   <property name="styleSheet">
    <string notr="true">
 QWidget[StyleClass=&quot;setText&quot;] {
-	color: #FFFFFF
+	color: #FFFFFF;
 }
 
 QWidget #titlebar {
@@ -24,7 +24,7 @@ QWidget #titlebar {
 }
 
 QDialog {
-  background: #232323;
+  background: #151d28;
 }
 
 QDialog QLabel {
