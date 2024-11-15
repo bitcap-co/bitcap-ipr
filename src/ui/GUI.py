@@ -41,7 +41,7 @@ class Ui_MainWindow(object):
 "}\n"
 "\n"
 "QPushButton:pressed {\n"
-"  background-color: #5c9dff;\n"
+"  background-color: #92beff;\n"
 "}\n"
 "\n"
 "QDialogButtonBox QPushButton {\n"
