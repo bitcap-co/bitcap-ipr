@@ -383,7 +383,7 @@ class Ui_IPRConfirmation(object):
         sizePolicy.setHeightForWidth(IPRConfirmation.sizePolicy().hasHeightForWidth())
         IPRConfirmation.setSizePolicy(sizePolicy)
         IPRConfirmation.setStyleSheet("QWidget#IPRConfirmation {\n"
-"    background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0.5 rgba(6, 16, 31, 255), stop:1 rgba(0, 0, 0, 255));\n"
+"    background-color: #151d28;\n"
 "}\n"
 "\n"
 "QWidget[StyleClass=\"setText\"] {\n"
@@ -413,6 +413,12 @@ class Ui_IPRConfirmation(object):
 "  min-width: 80px;\n"
 "}\n"
 "\n"
+"QToolButton {\n"
+"    border: none;\n"
+"    background: none;\n"
+"    color: #FFFFFF;\n"
+"}\n"
+"\n"
 "QLineEdit {\n"
 "  background-color: #6b7076;\n"
 "  padding-top: 2px;\n"
@@ -428,6 +434,10 @@ class Ui_IPRConfirmation(object):
 "\n"
 "QLineEdit:focus {\n"
 "  border: 1px solid #92beff;\n"
+"}\n"
+"\n"
+"QFrame[frameShape=\"4\"] {\n"
+"    color: #383e46\n"
 "}\n"
 "")
         self.titlebar = QtWidgets.QWidget(parent=IPRConfirmation)

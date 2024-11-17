@@ -21,7 +21,7 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget#IPRConfirmation {
-	background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0.5 rgba(6, 16, 31, 255), stop:1 rgba(0, 0, 0, 255));
+	background-color: #151d28;
 }
 
 QWidget[StyleClass=&quot;setText&quot;] {
@@ -51,6 +51,12 @@ QDialogButtonBox QPushButton {
   min-width: 80px;
 }
 
+QToolButton {
+	border: none;
+    background: none;
+	color: #FFFFFF;
+}
+
 QLineEdit {
   background-color: #6b7076;
   padding-top: 2px;
@@ -66,6 +72,10 @@ QLineEdit {
 
 QLineEdit:focus {
   border: 1px solid #92beff;
+}
+
+QFrame[frameShape=&quot;4&quot;] {
+	color: #383e46
 }
 </string>
   </property>
