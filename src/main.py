@@ -614,6 +614,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 def launch_app():
     app = QApplication(sys.argv)
+    with open(os.path.join(basedir, 'ui/theme.qss')) as theme:
+        app.setStyleSheet(theme.read())
     # first-time launch
     config_path = Path(Path.home(), ".config", "ipr").resolve()
     os.makedirs(config_path, exist_ok=True)
