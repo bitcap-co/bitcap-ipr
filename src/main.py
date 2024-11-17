@@ -154,15 +154,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         icon = QIcon()
         icon.addPixmap(QPixmap(os.path.join(icons, "BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png")), QIcon.Mode.Disabled, QIcon.State.On)
         self.titleIcon.setIcon(icon)
-        min_icon = self.style().standardIcon(
-            QStyle.StandardPixmap.SP_TitleBarMinButton
-        )
-        self.minButton.setIcon(min_icon)
+        self.minButton.setText("🗕")
         self.minButton.clicked.connect(self.window().showMinimized)
-        close_icon = self.style().standardIcon(
-            QStyle.StandardPixmap.SP_TitleBarCloseButton
-        )
-        self.closeButton.setIcon(close_icon)
+        self.closeButton.setText("🗙")
         self.closeButton.clicked.connect(self.quit)
 
         # menu bar
