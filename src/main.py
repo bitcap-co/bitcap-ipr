@@ -34,6 +34,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QIcon, QPixmap
 from ui.GUI import Ui_MainWindow, Ui_IPRConfirmation
+from ui.TitleBar import TitleBar
 
 basedir = os.path.dirname(__file__)
 icons = os.path.join(basedir, "resources/icons/app")
@@ -104,40 +105,11 @@ class IPRConfirmation(QWidget, Ui_IPRConfirmation):
         )
 
         # title bar
-        self.initial_pos = None
-        self.title_bar = self.titlebar
-        icon = QIcon()
-        icon.addPixmap(QPixmap(os.path.join(icons, "BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png")), QIcon.Mode.Disabled, QIcon.State.On)
-        self.titleIcon.setIcon(icon)
-        self.minButton.setText("🗕")
-        self.minButton.clicked.connect(self.window().showMinimized)
-        self.closeButton.setText("🗙")
-        self.closeButton.clicked.connect(self.window().close)
-
-    def changeEvent(self, event):
-        super().changeEvent(event)
-        event.accept()
-
-    def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            self.initial_pos = event.position().toPoint()
-        super().mousePressEvent(event)
-        event.accept()
-
-    def mouseMoveEvent(self, event):
-        if self.initial_pos is not None:
-            delta = event.position().toPoint() - self.initial_pos
-            self.window().move(
-                self.window().x() + delta.x(),
-                self.window().y() + delta.y(),
-            )
-        super().mouseMoveEvent(event)
-        event.accept()
-
-    def mouseReleaseEvent(self, event):
-        self.initial_pos = None
-        super().mouseReleaseEvent(event)
-        event.accept()
+        self.title_bar = TitleBar(self, "IP Confirmation", ['min', 'close'])
+        self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
+        self.title_bar._closeButton.clicked.connect(self.window().close)
+        title_bar_widget = self.titlebarwidget.layout()
+        title_bar_widget.addWidget(self.title_bar)
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -149,15 +121,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             Qt.WindowType.FramelessWindowHint
         )
         # title bar
-        self.initial_pos = None
-        self.title_bar = self.titlebar
-        icon = QIcon()
-        icon.addPixmap(QPixmap(os.path.join(icons, "BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png")), QIcon.Mode.Disabled, QIcon.State.On)
-        self.titleIcon.setIcon(icon)
-        self.minButton.setText("🗕")
-        self.minButton.clicked.connect(self.window().showMinimized)
-        self.closeButton.setText("🗙")
-        self.closeButton.clicked.connect(self.quit)
+        self.title_bar = TitleBar(self, "BitCap IPReporter", ['min', 'close'])
+        self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
+        self.title_bar._closeButton.clicked.connect(self.quit)
+        title_bar_widget = self.titlebarwidget.layout()
+        title_bar_widget.addWidget(self.title_bar)
 
         # menu bar
         self.menu_bar = QMenuBar()
@@ -273,31 +241,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if self.actionAutoStartOnLaunch.isChecked():
             self.start_listen()
-
-    def changeEvent(self, event):
-        super().changeEvent(event)
-        event.accept()
-
-    def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            self.initial_pos = event.position().toPoint()
-        super().mousePressEvent(event)
-        event.accept()
-
-    def mouseMoveEvent(self, event):
-        if self.initial_pos is not None:
-            delta = event.position().toPoint() - self.initial_pos
-            self.window().move(
-                self.window().x() + delta.x(),
-                self.window().y() + delta.y(),
-            )
-        super().mouseMoveEvent(event)
-        event.accept()
-
-    def mouseReleaseEvent(self, event):
-        self.initial_pos = None
-        super().mouseReleaseEvent(event)
-        event.accept()
 
     def about(self):
         QMessageBox.information(
