@@ -19,66 +19,6 @@
   <property name="windowTitle">
    <string>IPR Confirmation</string>
   </property>
-  <property name="styleSheet">
-   <string notr="true">QWidget#IPRConfirmation {
-	background-color: #151d28;
-}
-
-QWidget[StyleClass=&quot;setText&quot;] {
-	color: #FFFFFF;
-}
-
-QWidget #titlebar {
-	background: #151d28;
-}
-
-QPushButton {
-  background-color: #383e46;
-  color: #FFFFFF;
-}
-
-QPushButton:disabled {
-  background-color: #434343;
-  color: #828282;
-}
-
-QPushButton:pressed {
-  background-color: #92beff;
-}
-
-QDialogButtonBox QPushButton {
-  /* Issue #194 #248 - Special case of QPushButton inside dialogs, for better UI */
-  min-width: 80px;
-}
-
-QToolButton {
-	border: none;
-    background: none;
-	color: #FFFFFF;
-}
-
-QLineEdit {
-  background-color: #6b7076;
-  padding-top: 2px;
-  /* This QLineEdit fix  103, 111 */
-  padding-bottom: 2px;
-  /* This QLineEdit fix  103, 111 */
-  padding-left: 4px;
-  padding-right: 4px;
-  border-style: solid;
-  border: 1px solid #525252;
-  color: #FFFFFF;
-}
-
-QLineEdit:focus {
-  border: 1px solid #92beff;
-}
-
-QFrame[frameShape=&quot;4&quot;] {
-	color: #383e46
-}
-</string>
-  </property>
   <widget class="QWidget" name="titlebar" native="true">
    <property name="geometry">
     <rect>
