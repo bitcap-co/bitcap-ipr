@@ -99,6 +99,46 @@ class IPRConfirmation(QWidget, Ui_IPRConfirmation):
         super().__init__()
         self.setupUi(self)
 
+        self.setWindowFlags(
+            Qt.WindowType.FramelessWindowHint
+        )
+
+        # title bar
+        self.initial_pos = None
+        self.title_bar = self.titlebar
+        icon = QIcon()
+        icon.addPixmap(QPixmap(os.path.join(icons, "BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png")), QIcon.Mode.Disabled, QIcon.State.On)
+        self.titleIcon.setIcon(icon)
+        self.minButton.setText("🗕")
+        self.minButton.clicked.connect(self.window().showMinimized)
+        self.closeButton.setText("🗙")
+        self.closeButton.clicked.connect(self.window().close)
+
+    def changeEvent(self, event):
+        super().changeEvent(event)
+        event.accept()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.initial_pos = event.position().toPoint()
+        super().mousePressEvent(event)
+        event.accept()
+
+    def mouseMoveEvent(self, event):
+        if self.initial_pos is not None:
+            delta = event.position().toPoint() - self.initial_pos
+            self.window().move(
+                self.window().x() + delta.x(),
+                self.window().y() + delta.y(),
+            )
+        super().mouseMoveEvent(event)
+        event.accept()
+
+    def mouseReleaseEvent(self, event):
+        self.initial_pos = None
+        super().mouseReleaseEvent(event)
+        event.accept()
+
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
