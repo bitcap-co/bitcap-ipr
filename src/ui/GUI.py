@@ -52,6 +52,7 @@ class Ui_MainWindow(object):
 "QToolButton {\n"
 "    border: none;\n"
 "    background: none;\n"
+"    color: #FFFFFF;\n"
 "}\n"
 "\n"
 "QMenuBar {\n"
