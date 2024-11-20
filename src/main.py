@@ -3,6 +3,7 @@ import sys
 import socket
 import time
 import json
+import logging
 import webbrowser
 from datetime import datetime
 from pathlib import Path
@@ -40,6 +41,9 @@ basedir = os.path.dirname(__file__)
 icons = os.path.join(basedir, "resources/icons/app")
 scalable = os.path.join(basedir, "resources/scalable")
 
+# logger
+logger = logging.getLogger(__name__)
+
 app_info = {
     "name": "BitCap IPReporter",
     "version": "1.0.4",
@@ -68,14 +72,18 @@ class ListenerManager(QThread):
         self.listeners = []
 
     def start_listeners(self):
+        logger.info("ListenerManager : start listening on 0.0.0.0:14235.")
         self.listeners.append(Listener(14235))
+        logger.info("ListenerManager : start listening on 0.0.0.0:11503.")
         self.listeners.append(Listener(11503))
+        logger.info("ListenerManager : start listening on 0.0.0.0:8888.")
         self.listeners.append(Listener(8888))
         for listener in self.listeners:
             listener.signals.result.connect(self.listen_complete)
             listener.start()
 
     def stop_listeners(self):
+        logger.info("ListenerManager : close listeners.")
         if len(self.listeners):
             for listener in self.listeners:
                 listener.close()
@@ -88,10 +96,12 @@ class ListenerManager(QThread):
         self.start_listeners()
 
     def listen_complete(self):
+        logger.info("ListenerManager : listen_complete signal result.")
         self.data = ""
         for listener in self.listeners:
             self.data += listener.d_str
             listener.d_str = ""
+        logger.info("ListenerManager : send completed.")
         self.completed.emit()
 
 
@@ -193,6 +203,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.children = []
 
         # MainWindow Signals
+        logger.info("MainWindow : set action signals.")
         self.actionAbout.triggered.connect(self.about)
         self.actionReportIssue.triggered.connect(self.open_issues)
         self.actionSourceCode.triggered.connect(self.open_source)
@@ -209,6 +220,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionIPRStop.clicked.connect(self.stop_listen)
         self.actionIPRSetPasswd.clicked.connect(self.set_api_passwd)
 
+        logger.info("MainWindow : read settings from config.")
         self.config_path = Path(Path.home(), ".config", "ipr").resolve()
         self.settings = Path(self.config_path, "instance.json")
         if os.path.exists(self.settings):
@@ -230,9 +242,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 config["table"]["enableIDTable"]
             )
 
+        logger.info("MainWindow : init ListenerManager thread.")
         self.thread = ListenerManager()
         self.thread.completed.connect(self.show_confirm)
 
+        logger.info("MainWindow : init inactive timer for 900000ms.")
         self.inactive = QTimer()
         self.inactive.setInterval(900000)
         self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
@@ -256,6 +270,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         webbrowser.open(f"{app_info['source']}", new=2)
 
     def start_listen(self):
+        logger.info("MainWindow : start listeners.")
         self.actionIPRStart.setEnabled(False)
         self.actionIPRStop.setEnabled(True)
         if not self.actionDisableInactiveTimer.isChecked():
@@ -272,7 +287,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.thread.start()
 
     def stop_listen(self, timeout):
+        logger.info("MainWindow : stop listeners.")
         if timeout:
+            logger.warning("stop_listen : timeout.")
             QMessageBox.warning(
                 self,
                 "BitCapIPR",
@@ -286,6 +303,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionIPRStop.setEnabled(False)
 
     def set_api_passwd(self):
+        logger.info("MainWindow : set api password.")
         passwd = self.linePasswdField.text()
         if not passwd:
             # if passwd is blank, exit
@@ -300,6 +318,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.update_stacked_widget()
             return
 
+        logger.info("set_api_passwd : write api password to config.")
         config = {"defaultAPIPasswd": passwd}
         config_json = json.dumps(config, indent=4)
         with open(Path(self.config_path, "config.json"), "w") as f:
@@ -315,6 +334,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def update_stacked_widget(self):
         if self.actionEnableIDTable.isChecked():
+            logger.info("MainWindow : enable table view.")
             self.stackedWidget.setCurrentIndex(0)
         else:
             self.stackedWidget.setCurrentIndex(1)
@@ -420,16 +440,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return result
 
     def show_confirm(self):
+        logger.info("MainWindow : show IPRConfirmation.")
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
         ip, mac, type = self.thread.data.split(",")
         if mac == "ice-river":
+            logger.info("show_confirm : get iceriver mac addr.")
             mac = self.retrieve_iceriver_mac_addr(ip)
         if self.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
             if self.actionEnableIDTable.isChecked():
                 self.activateWindow()
         else:
+            logger.info("show_confirm : init IPRConfirmation window.")
             confirm = IPRConfirmation()
             # IPRConfirmation Signals
             confirm.actionOpenBrowser.clicked.connect(
@@ -453,11 +476,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
             confirm.lineIPField.setText(ip)
             confirm.lineMACField.setText(mac)
+            logger.info("show_confirm : show IPRConfirmation window.")
             confirm.show()
             confirm.activateWindow()
             self.children.append(confirm)
         if self.actionEnableIDTable.isChecked():
             t_data = self.get_table_data_from_ip(type, ip)
+            logger.info("show_confirm : write table data.")
             rowPosition = self.tableWidget.rowCount()
             self.tableWidget.insertRow(rowPosition)
             self.tableWidget.setItem(rowPosition, 0, QTableWidgetItem(ip))
@@ -476,6 +501,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stackedWidget.setCurrentIndex(2)
 
     def copy_selected(self):
+        logger.info("MainWindow : copy selected elements.")
         rows = self.tableWidget.rowCount()
         cols = self.tableWidget.columnCount()
         out = ""
@@ -485,11 +511,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     out += self.tableWidget.item(i, j).text()
                     out += ","
             out += "\n"
+        logger.info("copy_selected : copy elements to clipboard.")
         cb = QApplication.clipboard()
         cb.clear(mode=cb.Mode.Clipboard)
         cb.setText(out.strip(), mode=cb.Mode.Clipboard)
 
     def export_table(self):
+        logger.info("MainWindow : export table.")
         rows = self.tableWidget.rowCount()
         cols = self.tableWidget.columnCount()
         out = "IP, MAC, SERIAL, TYPE, SUBTYPE, \n"
@@ -500,6 +528,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             out += "\n"
 
         # .csv
+        logger.info("export_table : write table to csv.")
         p = Path(Path.home(), "Documents", "ipr").resolve()
         Path.mkdir(p, exist_ok=True)
         file = QFile(
@@ -526,6 +555,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         lineEdit.copy()
 
     def update_settings(self):
+        logger.info("MainWindow : write settings to config.")
         instance = {
             "options": {
                 "alwaysOpenIPInBrowser": self.actionAlwaysOpenIPInBrowser.isChecked(),
@@ -540,6 +570,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             f.write(self.instance_json)
 
     def killall(self):
+        logger.info("MainWindow : kill all confirms.")
         for c in self.children:
             c.close()
 
@@ -547,6 +578,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.thread.stop_listeners()
         self.thread.exit()
         self.killall()
+        logger.info("MainWindow : exit app.")
         self.close()
         self = None
 
@@ -556,14 +588,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
 def launch_app():
+    # paths
+    config_path = Path(Path.home(), ".config", "ipr").resolve()
+    log_path = Path(config_path, "logs").resolve()
+    os.makedirs(log_path, exist_ok=True)
+
+    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s:%(message)s', datefmt='%m/%d/%Y %I:%M:%S%p', filename=f"{Path(log_path, 'ipr.log')}", level=logging.INFO)
+    logger.info("launch_app : start init.")
+
     app = QApplication(sys.argv)
     with open(os.path.join(basedir, 'ui/theme.qss')) as theme:
         app.setStyleSheet(theme.read())
     # first-time launch
-    config_path = Path(Path.home(), ".config", "ipr").resolve()
-    os.makedirs(config_path, exist_ok=True)
+    logger.info("launch_app : check for existing config.")
     if not os.path.exists(Path(config_path, "config.json")):
         # no config so write them on first-time launch
+        logger.info("launch_app : first time launch; write default config.")
         default_instance = {
             "options": {
                 "alwaysOpenIPInBrowser": False,
@@ -620,6 +660,8 @@ def launch_app():
     )
     app.setStyle("Fusion")
 
+    logger.info("launch_app : finish app init.")
+    logger.info("launch_app : start MainWindow() init.")
     w = MainWindow()
     w.show()
     sys.exit(app.exec())

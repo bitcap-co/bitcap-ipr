@@ -1,7 +1,9 @@
 import time
 import socket
+import logging
 from PyQt6.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
 
+logger = logging.getLogger(__name__)
 
 class ListenerSignals(QObject):
     result = pyqtSignal()
@@ -27,6 +29,8 @@ class Listener(QThread):
             except Exception:
                 break
             self.d_str = self.d.decode("ascii")
+            logger.info(f"Listener[{self.port}] : received msg.")
+            logger.info(f"Listener[{self.port}] : d_str {self.d_str}")
             match self.port:
                 case 11503:  # IceRiver
                     type = "iceriver"
@@ -40,6 +44,7 @@ class Listener(QThread):
                 case 14235:  # AntMiner
                     type = "antminer"
                     ip, mac = self.d_str.split(",")
+            logger.info(f"Listener[{self.port}] : found type {type} from port.")
             if self.memory:
                 prev_entry = False
                 # sort by timestamp descending
@@ -67,11 +72,13 @@ class Listener(QThread):
                 self.emit_received([ip, mac, type])
 
     def emit_received(self, received):
+        logger.info(f"Listener[{self.port}] : emit received.")
         self.memory.update({f"{received[0]}": [self.d, time.time()]})
         self.d_str = ",".join(received)
         # signal that we received a buffer
         self.signals.result.emit()
 
     def close(self):
+        logger.info(f"Listener[{self.port}] : close socket.")
         self.memory = None  # clear memory
         self.sock.close()
