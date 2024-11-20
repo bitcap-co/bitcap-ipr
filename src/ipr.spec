@@ -4,6 +4,7 @@ import platform
 
 # filepaths
 basedir = os.getcwd()
+ui = os.path.join(basedir, 'src/ui')
 resources = os.path.join(basedir, 'src/resources')
 icons = os.path.join(resources, 'icons/app')
 scalable = os.path.join(resources, 'scalable')
@@ -12,7 +13,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[(os.path.join(icons), os.path.join('resources', 'icons', 'app')), (os.path.join(scalable, 'BitCapIPRCenterLogo.svg'), os.path.join('resources', 'scalable'))],
+    datas=[(os.path.join(icons), os.path.join('resources', 'icons', 'app')), (os.path.join(scalable, 'BitCapIPRCenterLogo.svg'), os.path.join('resources', 'scalable')), (os.path.join(ui, 'theme.qss'), os.path.join('ui'))],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
