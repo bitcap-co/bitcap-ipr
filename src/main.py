@@ -355,6 +355,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def get_table_data_from_ip(self, type, ip):
         result = {"serial": "N/A", "subtype": "N/A"}
+        logger.info(f"MainWindow : get table data from ip {ip}.")
         match type:
             case "antminer":
                 uri = None
@@ -367,6 +368,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     passwd = config["defaultAPIPasswd"]
 
                 for endp in range(0, (len(endpoints))):
+                    logger.info(f"get_table_data_from_ip : authenticate endp {endp}.")
                     r = requests.get(
                         endpoints[endp], auth=HTTPDigestAuth("root", passwd)
                     )
@@ -379,9 +381,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         )
                         # second pass fail; abort
                         if r.status_code == 401:
+                            logger.warning("get_table_data_from_ip : authentication fail. abort!")
                             endp = None
                             break
                     if r.status_code == 200:
+                        logger.info("get_table_data_from_ip : authentication success.")
                         uri = endp
                         break
 
