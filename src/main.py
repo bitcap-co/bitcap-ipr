@@ -15,10 +15,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QIcon
 from MainWindow import MainWindow
-
-basedir = os.path.dirname(__file__)
-icons = os.path.join(basedir, "resources/icons/app")
-scalable = os.path.join(basedir, "resources/scalable")
+from util import basedir, icons
 
 # logger
 logger = logging.getLogger(__name__)

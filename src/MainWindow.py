@@ -30,22 +30,11 @@ from ui.GUI import Ui_MainWindow
 
 from ListenerManager import ListenerManager
 from IPRConfirmation import IPRConfirmation
-
-basedir = os.path.dirname(__file__)
-icons = os.path.join(basedir, "resources/icons/app")
-scalable = os.path.join(basedir, "resources/scalable")
+from util import app_info, scalable
 
 # logger
 logger = logging.getLogger(__name__)
 
-app_info = {
-    "name": "BitCap IPReporter",
-    "version": "1.0.4",
-    "author": "MatthewWertman",
-    "source": "https://github.com/bitcap-co/bitcap-ipr",
-    "company": "Bit Capital Group",
-    "desc": "cross-platform IP Reporter\nthat listens for AntMiners, IceRivers, and Whatsminers.",
-}
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
