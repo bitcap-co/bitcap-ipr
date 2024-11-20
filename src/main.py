@@ -4,6 +4,7 @@ import socket
 import time
 import json
 import logging
+import traceback
 import webbrowser
 from datetime import datetime
 from pathlib import Path
@@ -582,9 +583,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.close()
         self = None
 
-    # hook MainWindow close event
-    def closeEvent(self, event):
-        self.quit()
+
+def exception_hook(exc_type, exc_value, exc_tb):
+    QMessageBox.critical(
+        None,
+        "BitCap IPR - Critical Error",
+        "Application has encounter an error!\nSee output log."
+    )
+    tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+    logger.critical("exception_hook : exception caught!")
+    logger.critical(f"exception_hook : {tb}")
+    QApplication.quit()
 
 
 def launch_app():
@@ -664,6 +673,7 @@ def launch_app():
     logger.info("launch_app : start MainWindow() init.")
     w = MainWindow()
     w.show()
+    sys.excepthook = exception_hook
     sys.exit(app.exec())
 
 
