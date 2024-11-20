@@ -22,7 +22,7 @@ from PyQt6.QtWidgets import (
     QTableWidgetItem,
     QLineEdit,
     QStyle,
-    QMenuBar
+    QMenuBar,
 )
 from PyQt6.QtGui import QPixmap
 from ui.TitleBar import TitleBar
@@ -41,9 +41,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
 
-        self.setWindowFlags(
-            Qt.WindowType.FramelessWindowHint
-        )
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         # title bar
         self.title_bar = TitleBar(self, "BitCap IPReporter", ['min', 'close'])
         self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
@@ -346,7 +344,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 json_cmd = {"cmd": "devdetails"}
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     s.connect((ip, 4028))
-                    s.send(json.dumps(json_cmd).encode('utf-8'))
+                    s.send(json.dumps(json_cmd).encode("utf-8"))
                     data = s.recv(4096)
 
                     try:

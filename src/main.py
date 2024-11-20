@@ -34,7 +34,7 @@ def exception_hook(exc_type, exc_value, exc_tb):
     QMessageBox.critical(
         None,
         "BitCap IPR - Critical Error",
-        "Application has encounter an error!\nSee output log."
+        "Application has encounter an error!\nSee output log.",
     )
     tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
     logger.critical("exception_hook : exception caught!")
@@ -48,11 +48,16 @@ def launch_app():
     log_path = Path(config_path, "logs").resolve()
     os.makedirs(log_path, exist_ok=True)
 
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s:%(message)s', datefmt='%m/%d/%Y %I:%M:%S%p', filename=f"{Path(log_path, 'ipr.log')}", level=logging.INFO)
+    logging.basicConfig(
+        format="%(asctime)s - %(levelname)s - %(name)s:%(message)s",
+        datefmt="%m/%d/%Y %I:%M:%S%p",
+        filename=f"{Path(log_path, 'ipr.log')}",
+        level=logging.INFO,
+    )
     logger.info("launch_app : start init.")
 
     app = QApplication(sys.argv)
-    with open(os.path.join(basedir, 'ui/theme.qss')) as theme:
+    with open(os.path.join(basedir, "ui/theme.qss")) as theme:
         app.setStyleSheet(theme.read())
     # first-time launch
     logger.info("launch_app : check for existing config.")

@@ -8,6 +8,7 @@ from mod.listener import Listener
 
 logger = logging.getLogger(__name__)
 
+
 class ListenerManager(QThread):
     completed = pyqtSignal()
 

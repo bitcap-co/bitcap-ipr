@@ -5,6 +5,7 @@ from PyQt6.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
 
 logger = logging.getLogger(__name__)
 
+
 class ListenerSignals(QObject):
     result = pyqtSignal()
 

@@ -10,9 +10,7 @@ class IPRConfirmation(QWidget, Ui_IPRConfirmation):
         super().__init__()
         self.setupUi(self)
 
-        self.setWindowFlags(
-            Qt.WindowType.FramelessWindowHint
-        )
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
 
         # title bar
         self.title_bar = TitleBar(self, "IP Confirmation", ['min', 'close'])
