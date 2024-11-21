@@ -434,12 +434,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         rows = self.tableWidget.rowCount()
         cols = self.tableWidget.columnCount()
         out = ""
-        for i in range(rows):
-            for j in range(cols):
-                if self.tableWidget.item(i, j).isSelected():
-                    out += self.tableWidget.item(i, j).text()
-                    out += ","
+        if len(self.tableWidget.selectedItems()) == 1:
+            out += self.tableWidget.selectedItems()[0].text()
             out += "\n"
+        else:
+            for i in range(rows):
+                for j in range(cols):
+                    if self.tableWidget.item(i, j).isSelected():
+                        out += self.tableWidget.item(i, j).text()
+                        out += ","
+                out += "\n"
         logger.info("copy_selected : copy elements to clipboard.")
         cb = QApplication.clipboard()
         cb.clear(mode=cb.Mode.Clipboard)
