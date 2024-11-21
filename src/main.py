@@ -39,7 +39,7 @@ def exception_hook(exc_type, exc_value, exc_tb):
     tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
     logger.critical("exception_hook : exception caught!")
     logger.critical(f"exception_hook : {tb}")
-    QApplication.quit()
+    QApplication.exit(0)
 
 
 def launch_app():
