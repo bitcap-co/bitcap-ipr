@@ -246,7 +246,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def update_stacked_widget(self):
         if self.actionEnableIDTable.isChecked():
-            logger.info(" enable table view.")
+            logger.info(" show table view.")
             self.stackedWidget.setCurrentIndex(0)
         else:
             self.stackedWidget.setCurrentIndex(1)
@@ -269,6 +269,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logger.info(f" get table data from ip {ip}.")
         match type:
             case "antminer":
+                logger.info("get_table_data_from_ip : get api from endpoint.")
                 uri = None
                 endpoints = [
                     f"http://{ip}/api/v1/info",
@@ -299,7 +300,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         logger.info("get_table_data_from_ip : authentication success.")
                         uri = endp
                         break
-
+                logger.info("get_table_data_from_ip : parse json data.")
                 match endp:
                     case 0:
                         r = requests.get(endpoints[uri])
@@ -323,6 +324,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         result["subtype"] = "Failed auth"
                 return result
             case "iceriver":
+                logger.info("get_table_data_from_ip : type is iceriver; start session.")
                 with requests.Session() as s:
                     host = f"http://{ip}"
                     s.head(host)
@@ -331,6 +333,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         data={"post": 4},
                         headers={"Referer": host},
                     )
+                    logger.info("get_table_data_from_ip : parse json data.")
                     r_data = res.json()["data"]
                     if "model" in r_data:
                         if r_data["model"] == "none":
@@ -341,12 +344,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             result["subtype"] = r_data["model"]
                     return result
             case "whatsminer":
+                logger.info(f"get_table_data_from_ip : type is whatsminer; send json command.")
                 json_cmd = {"cmd": "devdetails"}
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     s.connect((ip, 4028))
                     s.send(json.dumps(json_cmd).encode("utf-8"))
                     data = s.recv(4096)
-
+                    logger.info("get_table_data_from_ip : parse json data.")
                     try:
                         r_json = json.loads(data.decode())
                         if "Model" in r_json["DEVDETAILS"][0]:
