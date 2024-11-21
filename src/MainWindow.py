@@ -163,6 +163,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.inactive.setInterval(900000)
         self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
 
+        self.actionDisableInactiveTimer.changed.connect(self.restart_listen)
+
         self.update_stacked_widget()
 
         if self.actionAutoStartOnLaunch.isChecked():
@@ -198,7 +200,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
         self.thread.start()
 
-    def stop_listen(self, timeout):
+    def stop_listen(self, timeout=False):
         logger.info(" stop listeners.")
         if timeout:
             logger.warning("stop_listen : timeout.")
@@ -213,6 +215,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.thread.stop_listeners()
         self.actionIPRStart.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
+
+    def restart_listen(self):
+        if self.thread.listeners:
+            logger.info(" restart listeners.")
+            self.stop_listen()
+            self.start_listen()
 
     def set_api_passwd(self):
         logger.info(" set api password.")
