@@ -1,9 +1,11 @@
+import logging
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget
 
 from ui.TitleBar import TitleBar
 from ui.GUI import Ui_IPRConfirmation
 
+logger = logging.getLogger(__name__)
 
 class IPRConfirmation(QWidget, Ui_IPRConfirmation):
     def __init__(self):
@@ -11,7 +13,7 @@ class IPRConfirmation(QWidget, Ui_IPRConfirmation):
         self.setupUi(self)
 
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-
+        logger.info(" start IPRConfirmation() init.")
         # title bar
         self.title_bar = TitleBar(self, "IP Confirmation", ['min', 'close'])
         self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)

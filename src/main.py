@@ -121,7 +121,6 @@ def launch_app():
     app.setStyle("Fusion")
 
     logger.info("launch_app : finish app init.")
-    logger.info("launch_app : start MainWindow() init.")
     w = MainWindow()
     w.show()
     sys.excepthook = exception_hook

@@ -41,6 +41,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
 
+        logger.info(" start MainWindow() init.")
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         # title bar
         self.title_bar = TitleBar(self, "BitCap IPReporter", ['min', 'close'])
@@ -115,7 +116,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.children = []
 
         # MainWindow Signals
-        logger.info(" set action signals.")
         self.actionAbout.triggered.connect(self.about)
         self.actionReportIssue.triggered.connect(self.open_issues)
         self.actionSourceCode.triggered.connect(self.open_source)
@@ -356,19 +356,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return result
 
     def show_confirm(self):
-        logger.info(" show IPRConfirmation.")
+        logger.info(" show IP confirmation.")
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
         ip, mac, type = self.thread.data.split(",")
+        logger.info(f"show_confirm : got {ip},{mac},{type} from listener thread.")
         if mac == "ice-river":
-            logger.info("show_confirm : get iceriver mac addr.")
             mac = self.retrieve_iceriver_mac_addr(ip)
+            logger.info(f"show_confirm : got iceriver mac addr : {mac}")
         if self.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
             if self.actionEnableIDTable.isChecked():
                 self.activateWindow()
         else:
-            logger.info("show_confirm : init IPRConfirmation window.")
             confirm = IPRConfirmation()
             # IPRConfirmation Signals
             confirm.actionOpenBrowser.clicked.connect(
@@ -390,9 +390,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             confirm.lineMACField.actionCopy.triggered.connect(
                 lambda: self.copy_text(confirm.lineMACField)
             )
+            logger.info("show_confirm : show IPRConfirmation.")
             confirm.lineIPField.setText(ip)
             confirm.lineMACField.setText(mac)
-            logger.info("show_confirm : show IPRConfirmation window.")
             confirm.show()
             confirm.activateWindow()
             self.children.append(confirm)
@@ -414,6 +414,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
 
     def show_api_config(self):
+        logger.info(" show set api password view.")
         self.stackedWidget.setCurrentIndex(2)
 
     def copy_selected(self):
@@ -486,7 +487,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             f.write(self.instance_json)
 
     def killall(self):
-        logger.info(" kill all confirms.")
+        logger.info(" kill all confirmations.")
         for c in self.children:
             c.close()
 
