@@ -1,9 +1,10 @@
 QWidget[StyleClass="setText"] {
-	color: #FFFFFF;
+  color: #FFFFFF;
 }
 
-QWidget#MainWindow, QWidget#IPRConfirmation {
-	background: #151d28;
+QWidget#MainWindow,
+QWidget#IPRConfirmation {
+  background: #151d28;
 }
 
 QDialog {
@@ -11,7 +12,7 @@ QDialog {
 }
 
 QDialog QLabel {
-	color: #FFFFFF;
+  color: #FFFFFF;
 }
 
 QPushButton {
@@ -34,9 +35,9 @@ QDialogButtonBox QPushButton {
 }
 
 QToolButton {
-	border: none;
-    background: none;
-	color: #FFFFFF;
+  border: none;
+  background: none;
+  color: #FFFFFF;
 }
 
 QMenuBar {
@@ -92,9 +93,11 @@ QMenu::indicator:non-exclusive:unchecked {
   border: 1px solid #434343;
 }
 
-QAbstractScrollArea, QHeaderView::section, QTableView QTableCornerButton::section {
-	background-color: #383e46;
-    color: #FFFFFF;
+QAbstractScrollArea,
+QHeaderView::section,
+QTableView QTableCornerButton::section {
+  background-color: #383e46;
+  color: #FFFFFF;
 }
 
 QTableView {
@@ -139,13 +142,13 @@ QScrollBar::handle:horizontal:hover {
 }
 
 QScrollBar::add-line:horizontal {
-      border: none;
-      background: none;
+  border: none;
+  background: none;
 }
 
 QScrollBar::sub-line:horizontal {
-      border: none;
-      background: none;
+  border: none;
+  background: none;
 }
 
 QLineEdit {
@@ -161,7 +164,8 @@ QLineEdit {
   color: #FFFFFF;
 }
 
-QLineEdit#lineIPField, QLineEdit#lineMACField {
+QLineEdit#lineIPField,
+QLineEdit#lineMACField {
   background-color: #6b7076;
   padding-top: 2px;
   /* This QLineEdit fix  103, 111 */
@@ -180,5 +184,5 @@ QLineEdit:focus {
 }
 
 QFrame[frameShape="4"] {
-	color: #383e46
+  color: #383e46;
 }
