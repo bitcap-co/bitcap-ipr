@@ -157,7 +157,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionEnableIDTable.setChecked(
                 config["table"]["enableIDTable"]
             )
-            self.actionDisableIPConfirmation.setChecked(
+            self.actionDisableIPConfirmations.setChecked(
                 config["table"]["disableIPConfirmations"]
             )
 
