@@ -91,6 +91,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionEnableIDTable.setToolTip("Stores IP,MAC,SERIAL,TYPE,SUBTYPE in a table on confirmation")
         self.menuTableSettings = self.menuTable.addMenu("Table Settings")
         self.menuTableSettings.setToolTipsVisible(True)
+        self.actionDisableIPConfirmations = self.menuTableSettings.addAction("Disable IP Confirmations")
+        self.actionDisableIPConfirmations.setEnabled(False)
+        self.actionDisableIPConfirmations.setCheckable(True)
+        self.actionDisableIPConfirmations.setToolTip("Disables IP Confirmation windows when in table view.")
         self.actionSetDefaultAPIPassword = self.menuTableSettings.addAction("Set Default API Password")
         self.actionSetDefaultAPIPassword.setToolTip("Set default API password to config. Used to get data from the miner")
         self.actionCopySelectedElements = self.menuTable.addAction("Copy Selected Elements")
@@ -153,6 +157,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionEnableIDTable.setChecked(
                 config["table"]["enableIDTable"]
             )
+            self.actionDisableIPConfirmation.setChecked(
+                config["table"]["disableIPConfirmations"]
+            )
 
         logger.info(" init ListenerManager thread.")
         self.thread = ListenerManager()
@@ -164,6 +171,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
 
         self.actionDisableInactiveTimer.changed.connect(self.restart_listen)
+        self.actionEnableIDTable.changed.connect(self.toggle_table_settings)
 
         self.update_stacked_widget()
 
@@ -380,6 +388,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.open_dashboard(ip)
             if self.actionEnableIDTable.isChecked():
                 self.activateWindow()
+        elif self.actionDisableIPConfirmations.isChecked():
+            self.activateWindow()
         else:
             confirm = IPRConfirmation()
             # IPRConfirmation Signals
@@ -424,6 +434,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tableWidget.setItem(
                 rowPosition, 4, QTableWidgetItem(t_data["subtype"])
             )
+
+    def toggle_table_settings(self):
+        if self.actionEnableIDTable.isChecked():
+            self.actionDisableIPConfirmations.setEnabled(True)
+        else:
+            self.actionDisableIPConfirmations.setChecked(False)
+            self.update_settings()
+            self.actionDisableIPConfirmations.setEnabled(False)
 
     def show_api_config(self):
         logger.info(" show set api password view.")
@@ -496,7 +514,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "disableWarningDialog": self.actionDisableWarningDialog.isChecked(),
                 "autoStartOnLaunch": self.actionAutoStartOnLaunch.isChecked(),
             },
-            "table": {"enableIDTable": self.actionEnableIDTable.isChecked()},
+            "table": {
+                "enableIDTable": self.actionEnableIDTable.isChecked(),
+                "disableIPConfirmations": self.actionDisableIPConfirmations.isChecked(),
+            },
         }
         self.instance_json = json.dumps(instance, indent=4)
         with open(self.settings, "w") as f:

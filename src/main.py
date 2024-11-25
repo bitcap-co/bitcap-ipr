@@ -71,7 +71,10 @@ def launch_app():
                 "disableWarningDialog": False,
                 "autoStartOnLaunch": False,
             },
-            "table": {"enableIDTable": False},
+            "table": {
+                "enableIDTable": False,
+                "disableIPConfirmations": False,
+            },
         }
         default_instance_json = json.dumps(default_instance, indent=4)
         with open(Path(config_path, "instance.json"), "w") as f:
