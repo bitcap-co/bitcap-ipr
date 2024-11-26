@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QIcon
 from MainWindow import MainWindow
-from util import basedir, icons
+from util import curr_platform, basedir, icons
 
 # logger
 logger = logging.getLogger(__name__)
@@ -91,7 +91,7 @@ def launch_app():
     semaphore = QSystemSemaphore(window_key, 1)
     semaphore.acquire()
 
-    if sys.platform != "win32":
+    if curr_platform != "win32":
         # manually destroy shared memory if on unix
         unix_fix_shared_mem = QSharedMemory(shared_mem_key)
         if unix_fix_shared_mem.attach():
