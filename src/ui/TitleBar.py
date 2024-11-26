@@ -1,6 +1,6 @@
 import os
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QIcon, QPixmap
+from PyQt6.QtGui import QIcon, QPixmap, QColor
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QToolButton, QWidget
 
 basedir = os.path.dirname(__file__)
@@ -9,32 +9,44 @@ icons = os.path.join(basedir, "../resources/icons/app")
 
 class TitleBar(QWidget):
     def __init__(
-        self, parent: QWidget, title: str, hint: list = ["min", "max", "close"]
+        self, parent: QWidget, title: str, hint: list = ["min", "max", "close"], style: str = "win"
     ):
         super().__init__(parent)
-        self.__initObj(parent, title, hint)
+        self.__size = 12
+        self.__initObj(parent, title, hint, style)
         self.__initUI()
 
-    def __initObj(self, parent, title, hint):
+    def __initObj(self, parent, title, hint, style):
         self.initial_pos = None
 
         self._title = QLabel()
         self._iconButton = QToolButton()
         self._closeButton = QToolButton()
-        self._closeButton.setText("🗙")
         self._minimizeButton = QToolButton()
-        self._minimizeButton.setText("🗕")
         self._maximizeButton = QToolButton()
-        self._maximizeButton.setText("🗖")
+        if style == "win":
+            self._closeButton.setText("🗙")
+            self._minimizeButton.setText("🗕")
+            self._maximizeButton.setText("🗖")
+        elif style == "mac":
+            self._border_width = self.__size // 20
+            self._border_radius = self.__size // 2
+            self._macBtnStyle = ''
+            self._colors = {
+                "close": '#DD0000',
+                "min": '#AA8800',
+                "max": '#008800',
+            }
 
         self._button_dict = {
+            "close": self._closeButton,
             "min": self._minimizeButton,
             "max": self._maximizeButton,
-            "close": self._closeButton,
         }
 
         self._title_str = title
         self._hint = hint
+        self._style = style
         self._parent = parent
         self._window = self._parent.window()
 
@@ -43,19 +55,27 @@ class TitleBar(QWidget):
         title_bar_layout.setContentsMargins(5, 0, 0, 0)
         title_bar_layout.setSpacing(10)
 
-        icon = QIcon()
-        icon.addPixmap(
-            QPixmap(
-                os.path.join(
-                    icons, "BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png"
-                )
-            ),
-            QIcon.Mode.Disabled,
-            QIcon.State.On,
-        )
-        self._iconButton.setIcon(icon)
-        self._iconButton.setEnabled(False)
-        title_bar_layout.addWidget(self._iconButton)
+        if self._style == "mac":
+            for x in self._hint:
+                if x in self._button_dict:
+                    self._button_dict[x].setFixedSize(self.__size, self.__size)
+                    self.__setMacStyle(self._button_dict[x], self._colors[x])
+                    title_bar_layout.addWidget(self._button_dict[x])
+
+        if self._style == "win":
+            icon = QIcon()
+            icon.addPixmap(
+                QPixmap(
+                    os.path.join(
+                        icons, "BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png"
+                    )
+                ),
+                QIcon.Mode.Disabled,
+                QIcon.State.On,
+            )
+            self._iconButton.setIcon(icon)
+            self._iconButton.setEnabled(False)
+            title_bar_layout.addWidget(self._iconButton)
 
         # title
         self._title.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
@@ -67,11 +87,22 @@ class TitleBar(QWidget):
                                   }""")
         title_bar_layout.addWidget(self._title)
 
-        # buttons
-        for x in self._hint:
-            if x in self._button_dict:
-                self._button_dict[x].setFocusPolicy(Qt.FocusPolicy.NoFocus)
-                title_bar_layout.addWidget(self._button_dict[x])
+        if self._style == "win":
+            for x in self._hint:
+                if x in self._button_dict:
+                    self._button_dict[x].setFocusPolicy(Qt.FocusPolicy.NoFocus)
+                    title_bar_layout.addWidget(self._button_dict[x])
+
+    def __setMacStyle(self, btn, color):
+        border_color = QColor(color)
+        border_color_name = border_color.name()
+        background_color_name = border_color.lighter().name()
+
+        btn.setStyleSheet(f"""QToolButton {{
+                            background-color: {background_color_name};
+                            border: {self._border_width} solid {border_color_name};
+                            border-radius: {self._border_radius};
+                          }}""")
 
     def changeEvent(self, event):
         super().changeEvent(event)

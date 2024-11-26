@@ -30,7 +30,7 @@ from ui.GUI import Ui_MainWindow
 
 from ListenerManager import ListenerManager
 from IPRConfirmation import IPRConfirmation
-from util import app_info, scalable
+from util import app_info, curr_platform, scalable
 
 # logger
 logger = logging.getLogger(__name__)
@@ -44,7 +44,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logger.info(" start MainWindow() init.")
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         # title bar
-        self.title_bar = TitleBar(self, "BitCap IPReporter", ['min', 'close'])
+        if curr_platform == "darwin":
+            self.title_bar = TitleBar(self, "BitCap IPReporter", ['close', 'min'], style="mac")
+        else:
+            self.title_bar = TitleBar(self, "BitCap IPReporter", ['min', 'close'])
         self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
         self.title_bar._closeButton.clicked.connect(self.quit)
         title_bar_widget = self.titlebarwidget.layout()
