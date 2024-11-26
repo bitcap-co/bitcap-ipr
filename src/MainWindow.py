@@ -89,6 +89,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # advanced
         self.actionCustomListeners = self.menuAdvanced.addAction("Custom Listener...")
+        self.actionCustomListeners.setCheckable(True)
         self.actionCustomListeners.setToolTip("Create a custom listener")
 
         # table
@@ -133,6 +134,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionQuit.triggered.connect(self.quit)
         self.menuOptions.triggered.connect(self.update_settings)
         self.menuTable.triggered.connect(self.update_settings)
+        self.actionCustomListeners.triggered.connect(self.update_stacked_widget)
         self.actionEnableIDTable.triggered.connect(self.update_stacked_widget)
         self.actionSetDefaultAPIPassword.triggered.connect(self.show_api_config)
         self.actionCopySelectedElements.triggered.connect(self.copy_selected)
@@ -270,6 +272,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.actionEnableIDTable.isChecked():
             logger.info(" show table view.")
             self.stackedWidget.setCurrentIndex(0)
+        elif self.actionCustomListeners.isChecked():
+            self.stackedWidget.setCurrentIndex(3)
         else:
             self.stackedWidget.setCurrentIndex(1)
 
