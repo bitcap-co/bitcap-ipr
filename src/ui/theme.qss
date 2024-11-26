@@ -2,7 +2,7 @@ QWidget[StyleClass="setText"] {
   color: #FFFFFF;
 }
 
-QWidget#MainWindow,
+QWidget#centralwidget,
 QWidget#IPRConfirmation {
   background: #151d28;
 }
