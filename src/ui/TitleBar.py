@@ -12,7 +12,6 @@ class TitleBar(QWidget):
         self, parent: QWidget, title: str, hint: list = ["min", "max", "close"], style: str = "win"
     ):
         super().__init__(parent)
-        self.__size = 12
         self.__initObj(parent, title, hint, style)
         self.__initUI()
 
@@ -24,19 +23,6 @@ class TitleBar(QWidget):
         self._closeButton = QToolButton()
         self._minimizeButton = QToolButton()
         self._maximizeButton = QToolButton()
-        if style == "win":
-            self._closeButton.setText("🗙")
-            self._minimizeButton.setText("🗕")
-            self._maximizeButton.setText("🗖")
-        elif style == "mac":
-            self._border_width = self.__size // 20
-            self._border_radius = self.__size // 2
-            self._macBtnStyle = ''
-            self._colors = {
-                "close": '#DD0000',
-                "min": '#AA8800',
-                "max": '#008800',
-            }
 
         self._button_dict = {
             "close": self._closeButton,
@@ -55,11 +41,20 @@ class TitleBar(QWidget):
         title_bar_layout.setContentsMargins(5, 0, 0, 0)
         title_bar_layout.setSpacing(10)
 
+        # mac buttons
         if self._style == "mac":
+            self._button_size = 12
+            self._border_width = self._button_size // 20
+            self._border_radius = self._button_size // 2
+            self._colors = {
+                "close": '#DD0000',
+                "min": '#AA8800',
+                "max": '#008800',
+            }
             for x in self._hint:
                 if x in self._button_dict:
-                    self._button_dict[x].setFixedSize(self.__size, self.__size)
-                    self.__setMacStyle(self._button_dict[x], self._colors[x])
+                    self._button_dict[x].setFixedSize(self._button_size, self._button_size)
+                    self.setMacButtonStyle(self._button_dict[x], self._colors[x])
                     title_bar_layout.addWidget(self._button_dict[x])
 
         if self._style == "win":
@@ -87,13 +82,17 @@ class TitleBar(QWidget):
                                   }""")
         title_bar_layout.addWidget(self._title)
 
+        # win buttons
         if self._style == "win":
+            self._closeButton.setText("🗙")
+            self._minimizeButton.setText("🗕")
+            self._maximizeButton.setText("🗖")
             for x in self._hint:
                 if x in self._button_dict:
                     self._button_dict[x].setFocusPolicy(Qt.FocusPolicy.NoFocus)
                     title_bar_layout.addWidget(self._button_dict[x])
 
-    def __setMacStyle(self, btn, color):
+    def setMacButtonStyle(self, btn, color):
         border_color = QColor(color)
         border_color_name = border_color.name()
         background_color_name = border_color.lighter().name()
