@@ -56,6 +56,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.menuHelp.setToolTipsVisible(True)
         self.menuOptions = self.menu_bar.addMenu("Options")
         self.menuOptions.setToolTipsVisible(True)
+        self.menuAdvanced = self.menu_bar.addMenu("Advanced")
+        self.menuAdvanced.setToolTipsVisible(True)
         self.menuTable = self.menu_bar.addMenu("Table")
         self.menuTable.setToolTipsVisible(True)
         self.menuQuit = self.menu_bar.addMenu("Quit")
@@ -84,6 +86,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionAutoStartOnLaunch = self.menuOptions.addAction("Auto Start on Launch")
         self.actionAutoStartOnLaunch.setCheckable(True)
         self.actionAutoStartOnLaunch.setToolTip("Automatically start listeners on launch (Takes effect on next launch)")
+
+        # advanced
+        self.actionCustomListeners = self.menuAdvanced.addAction("Custom Listener...")
+        self.actionCustomListeners.setToolTip("Create a custom listener")
 
         # table
         self.actionEnableIDTable = self.menuTable.addAction("Enable ID Table")
