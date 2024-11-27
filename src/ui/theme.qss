@@ -74,6 +74,67 @@ QCheckBox::indicator:checked {
   border: 1px solid #434343;
 }
 
+QAbstractSpinBox {
+  background-color: #151d28;
+  border: 1px solid #434343;
+  color: #FFFFFF;
+  /* This fixes 103, 111 */
+  padding-top: 2px;
+  /* This fixes 103, 111 */
+  padding-bottom: 2px;
+  padding-left: 4px;
+  padding-right: 4px;
+  /* min-width: 5px; removed to fix 109 */
+}
+
+QAbstractSpinBox:up-button {
+  background-color: transparent #151d28;
+  subcontrol-origin: border;
+  subcontrol-position: top right;
+  border-left: 1px solid #455364;
+  border-bottom: 1px solid #455364;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  margin: 1px;
+  width: 12px;
+  margin-bottom: -1px;
+}
+
+QAbstractSpinBox::up-arrow {
+  width: 8px;
+  height: 8px;
+  image: url(":theme/icons/rc/arrow_up.png");
+}
+
+QAbstractSpinBox:down-button {
+  background-color: transparent #151d28;
+  color: #FFFFFF;
+  subcontrol-origin: border;
+  subcontrol-position: bottom right;
+  border-left: 1px solid #455364;
+  border-top: 1px solid #455364;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  margin: 1px;
+  width: 12px;
+  margin-top: -1px;
+}
+
+QAbstractSpinBox::down-arrow {
+  width: 8px;
+  height: 8px;
+  image: url(":theme/icons/rc/arrow_down.png");
+}
+
+QAbstractSpinBox:disabled {
+  background-color: #434343;
+  color: #828282;
+}
+
+QAbstractSpinBox:focus {
+  border: 1px solid #92beff;
+}
+
 QMenuBar {
   background-color: #383e46;
   padding: 2px;
@@ -238,7 +299,6 @@ QLineEdit#lineMACField {
   border: 1px solid #525252;
   color: #FFFFFF;
 }
-
 
 QLineEdit:focus {
   border: 1px solid #92beff;
