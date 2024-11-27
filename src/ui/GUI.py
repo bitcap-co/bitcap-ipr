@@ -214,7 +214,7 @@ class Ui_MainWindow(object):
         self.actionCreateListener.setObjectName("actionCreateListener")
         self.tableNetworks = QtWidgets.QTableWidget(parent=self.iprCustomListener)
         self.tableNetworks.setGeometry(QtCore.QRect(20, 140, 451, 101))
-        self.tableNetworks.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.NoSelection)
+        self.tableNetworks.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.MultiSelection)
         self.tableNetworks.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
         self.tableNetworks.setColumnCount(3)
         self.tableNetworks.setObjectName("tableNetworks")
