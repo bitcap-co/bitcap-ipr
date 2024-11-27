@@ -27,6 +27,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QPixmap
 from ui.TitleBar import TitleBar
 from ui.GUI import Ui_MainWindow
+import ui.resources
 
 from ListenerManager import ListenerManager
 from IPRConfirmation import IPRConfirmation
