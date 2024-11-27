@@ -537,6 +537,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     # custom listener view
     def read_networks(self):
+        self.tableNetworks.setRowCount(0)
         self.networks = Path(self.config_path, "networks.json")
         if os.path.exists(self.networks):
             with open(self.networks, 'r') as f:
