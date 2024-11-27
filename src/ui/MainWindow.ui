@@ -322,21 +322,21 @@
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
-           <widget class="QCheckBox" name="checkBox_3">
+           <widget class="QCheckBox" name="checkAntminer">
             <property name="text">
              <string>antminer</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox_2">
+           <widget class="QCheckBox" name="checkIceRiver">
             <property name="text">
              <string>iceriver</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox">
+           <widget class="QCheckBox" name="checkWhatsminer">
             <property name="text">
              <string>whatsminer</string>
             </property>
@@ -383,7 +383,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkBox_4">
+           <widget class="QCheckBox" name="checkSelectALl">
             <property name="text">
              <string>Select All</string>
             </property>
@@ -430,7 +430,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton">
+           <widget class="QPushButton" name="actionCreateNetwork">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -444,17 +444,7 @@
           </item>
          </layout>
         </widget>
-        <widget class="QListWidget" name="listWidget">
-         <property name="geometry">
-          <rect>
-           <x>20</x>
-           <y>140</y>
-           <width>450</width>
-           <height>100</height>
-          </rect>
-         </property>
-        </widget>
-        <widget class="QPushButton" name="pushButton_2">
+        <widget class="QPushButton" name="actionCreateListener">
          <property name="geometry">
           <rect>
            <x>150</x>
