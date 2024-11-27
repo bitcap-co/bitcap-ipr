@@ -148,7 +148,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # api config signals
         self.actionIPRSetPasswd.clicked.connect(self.set_api_passwd)
         # custom listener signals
-        self.checkSelectALl.clicked.connect(self.toggle_all_machines)
+        self.checkSelectAll.clicked.connect(self.toggle_all_machines)
         self.actionShowCreateNetwork.clicked.connect(self.show_create_network)
         # network signals
         self.actionCreateNetwork.clicked.connect(self.update_stacked_widget)
