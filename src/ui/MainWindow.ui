@@ -314,7 +314,7 @@
         <widget class="QWidget" name="machines" native="true">
          <property name="geometry">
           <rect>
-           <x>10</x>
+           <x>20</x>
            <y>50</y>
            <width>450</width>
            <height>35</height>
@@ -347,7 +347,7 @@
         <widget class="QWidget" name="header1" native="true">
          <property name="geometry">
           <rect>
-           <x>10</x>
+           <x>20</x>
            <y>0</y>
            <width>450</width>
            <height>50</height>
@@ -394,8 +394,8 @@
         <widget class="QWidget" name="header2" native="true">
          <property name="geometry">
           <rect>
-           <x>10</x>
-           <y>85</y>
+           <x>20</x>
+           <y>90</y>
            <width>450</width>
            <height>50</height>
           </rect>
@@ -447,8 +447,8 @@
         <widget class="QListWidget" name="listWidget">
          <property name="geometry">
           <rect>
-           <x>10</x>
-           <y>130</y>
+           <x>20</x>
+           <y>140</y>
            <width>450</width>
            <height>100</height>
           </rect>
@@ -457,8 +457,8 @@
         <widget class="QPushButton" name="pushButton_2">
          <property name="geometry">
           <rect>
-           <x>140</x>
-           <y>240</y>
+           <x>150</x>
+           <y>250</y>
            <width>181</width>
            <height>24</height>
           </rect>
