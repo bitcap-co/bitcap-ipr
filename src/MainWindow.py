@@ -333,7 +333,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     # api config view
     def show_api_config(self):
-        logger.info(" show set api password view.")
+        logger.info(" show api config view.")
         self.stackedWidget.setCurrentIndex(2)
     
     def set_api_passwd(self):
