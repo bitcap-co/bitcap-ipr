@@ -40,6 +40,40 @@ QToolButton {
   color: #FFFFFF;
 }
 
+QCheckBox {
+  background-color: none;
+  color: #FFFFFF;
+  spacing: 4px;
+  outline: none;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+QCheckBox:focus {
+  border: none;
+}
+
+QCheckBox QWidget:disabled {
+  background-color: #434343;
+  color: #828282;
+}
+
+QCheckBox::indicator {
+  margin-left: 2px;
+  height: 14px;
+  width: 14px;
+}
+
+QCheckBox::indicator:unchecked {
+  background-color: #151d28;
+  border: 1px solid #434343;
+}
+
+QCheckBox::indicator:checked {
+  background-color: #92beff;
+  border: 1px solid #434343;
+}
+
 QMenuBar {
   background-color: #383e46;
   padding: 2px;
