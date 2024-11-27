@@ -127,6 +127,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
         self.children = []
 
+        self.checkGroupMachines = [
+            self.checkAntminer,
+            self.checkIceRiver,
+            self.checkWhatsminer
+        ]
+
         # MainWindow Signals
         self.actionAbout.triggered.connect(self.about)
         self.actionReportIssue.triggered.connect(self.open_issues)
@@ -140,6 +146,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSetDefaultAPIPassword.triggered.connect(self.show_api_config)
         self.actionCopySelectedElements.triggered.connect(self.copy_selected)
         self.actionExport.triggered.connect(self.export_table)
+
+        self.checkSelectALl.clicked.connect(self.toggle_all_machines)
+        self.actionShowCreateNetwork.clicked.connect(self.show_create_network)
+        self.actionCreateNetwork.clicked.connect(self.update_stacked_widget)
 
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
@@ -275,6 +285,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.stackedWidget.setCurrentIndex(0)
         elif self.actionCustomListeners.isChecked():
             self.stackedWidget.setCurrentIndex(3)
+            self.read_networks()
         else:
             self.stackedWidget.setCurrentIndex(1)
 
@@ -445,6 +456,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.tableWidget.setItem(
                 rowPosition, 4, QTableWidgetItem(t_data["subtype"])
             )
+
+    def show_create_network(self):
+        self.stackedWidget.setCurrentIndex(4)
+
+    def read_networks(self):
+        self.networks = Path(self.config_path, "networks.json")
+        with open(self.networks, 'r') as f:
+            networks = json.load(f)
+        for network in networks["networks"]:
+            rowPosition = self.tableNetworks.rowCount()
+            self.tableNetworks.insertRow(rowPosition)
+            self.tableNetworks.setItem(rowPosition, 0, QTableWidgetItem(network["name"]))
+            self.tableNetworks.setItem(rowPosition, 1, QTableWidgetItem(network["addr"]))
+            self.tableNetworks.setItem(rowPosition, 2, QTableWidgetItem(network["location"]))
+
+    def toggle_all_machines(self):
+        for miner in self.checkGroupMachines:
+            miner.setChecked(not miner.isChecked())
 
     def toggle_table_settings(self):
         if self.actionEnableIDTable.isChecked():
