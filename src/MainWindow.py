@@ -462,14 +462,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def read_networks(self):
         self.networks = Path(self.config_path, "networks.json")
-        with open(self.networks, 'r') as f:
-            networks = json.load(f)
-        for network in networks["networks"]:
-            rowPosition = self.tableNetworks.rowCount()
-            self.tableNetworks.insertRow(rowPosition)
-            self.tableNetworks.setItem(rowPosition, 0, QTableWidgetItem(network["name"]))
-            self.tableNetworks.setItem(rowPosition, 1, QTableWidgetItem(network["addr"]))
-            self.tableNetworks.setItem(rowPosition, 2, QTableWidgetItem(network["location"]))
+        if os.path.exists(self.networks):
+            with open(self.networks, 'r') as f:
+                networks = json.load(f)
+            for network in networks["networks"]:
+                rowPosition = self.tableNetworks.rowCount()
+                self.tableNetworks.insertRow(rowPosition)
+                self.tableNetworks.setItem(rowPosition, 0, QTableWidgetItem(network["name"]))
+                self.tableNetworks.setItem(rowPosition, 1, QTableWidgetItem(network["addr"]))
+                self.tableNetworks.setItem(rowPosition, 2, QTableWidgetItem(network["location"]))
 
     def toggle_all_machines(self):
         for miner in self.checkGroupMachines:
