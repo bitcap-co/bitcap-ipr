@@ -85,6 +85,13 @@ def launch_app():
         with open(Path(config_path, "config.json"), "w") as f:
             f.write(default_config_json)
 
+        default_networks = {
+            "networks": []
+        }
+        default_networks_json = json.dumps(default_networks, indent=4)
+        with open(Path(config_path, "networks.json"), "w") as f:
+            f.write(default_networks_json)
+
     # Here we are making sure that only one instance is running at a time
     window_key = "BitCapIPR"
     shared_mem_key = "IPRSharedMemory"
