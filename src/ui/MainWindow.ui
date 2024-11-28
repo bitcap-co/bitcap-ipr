@@ -116,7 +116,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>4</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="iprIDTable">
         <widget class="QTableWidget" name="tableWidget">
@@ -740,13 +740,13 @@
                 <bool>true</bool>
                </property>
                <property name="minimum">
-                <number>1</number>
+                <number>0</number>
                </property>
                <property name="maximum">
                 <number>255</number>
                </property>
                <property name="value">
-                <number>1</number>
+                <number>0</number>
                </property>
               </widget>
              </item>
@@ -759,13 +759,10 @@
                 <bool>true</bool>
                </property>
                <property name="minimum">
-                <number>1</number>
+                <number>0</number>
                </property>
                <property name="maximum">
                 <number>255</number>
-               </property>
-               <property name="value">
-                <number>1</number>
                </property>
               </widget>
              </item>
@@ -775,13 +772,10 @@
                 <bool>true</bool>
                </property>
                <property name="minimum">
-                <number>1</number>
+                <number>0</number>
                </property>
                <property name="maximum">
                 <number>255</number>
-               </property>
-               <property name="value">
-                <number>1</number>
                </property>
               </widget>
              </item>
@@ -842,10 +836,13 @@
                 <bool>true</bool>
                </property>
                <property name="minimum">
-                <number>1</number>
+                <number>0</number>
                </property>
                <property name="maximum">
                 <number>255</number>
+               </property>
+               <property name="value">
+                <number>0</number>
                </property>
               </widget>
              </item>
@@ -863,9 +860,6 @@
                <property name="maximum">
                 <number>255</number>
                </property>
-               <property name="value">
-                <number>1</number>
-               </property>
               </widget>
              </item>
              <item>
@@ -873,14 +867,11 @@
                <property name="accelerated">
                 <bool>true</bool>
                </property>
-               <property name="minimum">
-                <number>1</number>
-               </property>
                <property name="maximum">
                 <number>255</number>
                </property>
                <property name="value">
-                <number>1</number>
+                <number>0</number>
                </property>
               </widget>
              </item>
