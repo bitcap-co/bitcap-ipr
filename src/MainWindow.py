@@ -197,7 +197,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if self.actionAutoStartOnLaunch.isChecked():
             self.start_listen()
-    
+
     def update_stacked_widget(self):
         if self.actionEnableIDTable.isChecked():
             logger.info(" show table view.")
@@ -207,7 +207,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.read_networks()
         else:
             self.stackedWidget.setCurrentIndex(1)
-    
+
     def about(self):
         QMessageBox.information(
             self,
@@ -220,7 +220,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def open_source(self):
         webbrowser.open(f"{app_info['source']}", new=2)
-        
+
     def open_dashboard(self, ip):
         webbrowser.open("http://{0}".format(ip), new=2)
 
@@ -262,7 +262,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             logger.info(" restart listeners.")
             self.stop_listen()
             self.start_listen()
-    
+
     # confirm
     def show_confirm(self):
         logger.info(" show IP confirmation.")
@@ -330,12 +330,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def copy_text(self, lineEdit):
         lineEdit.selectAll()
         lineEdit.copy()
-    
+
     # api config view
     def show_api_config(self):
         logger.info(" show api config view.")
         self.stackedWidget.setCurrentIndex(2)
-    
+
     def set_api_passwd(self):
         logger.info(" set api password.")
         passwd = self.linePasswdField.text()
@@ -530,7 +530,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QMessageBox.information(
             self, "BitCapIPR", f"Successfully wrote csv to {p}."
         )
-    
+
     # networks view
     def show_create_network(self):
         self.stackedWidget.setCurrentIndex(4)
