@@ -12,9 +12,11 @@ logger = logging.getLogger(__name__)
 class ListenerManager(QThread):
     completed = pyqtSignal()
 
-    def __init__(self):
+    def __init__(self, addrs : list = ["0.0.0.0"], ports : list = [14235, 11503, 8888]):
         super().__init__()
         self.data = None
+        self.addrs = addrs
+        self.ports = ports
         self.listeners = []
 
     def start_listeners(self):
@@ -28,6 +30,17 @@ class ListenerManager(QThread):
             listener.signals.result.connect(self.listen_complete)
             listener.start()
 
+    def start_custom_listeners(self):
+        for port in self.ports:
+            for addr in self.addrs:
+                logger.info(f" start listening on {addr}:{port}.")
+                self.listeners.append(Listener(port, addr))
+
+        for listener in self.listeners:
+            listener.signals.result.connect(self.listen_complete)
+            logger.info(" start custom listener")
+            listener.start()
+
     def stop_listeners(self):
         logger.info(" close listeners.")
         if len(self.listeners):
@@ -38,8 +51,12 @@ class ListenerManager(QThread):
 
     @pyqtSlot()
     def run(self):
-        # default action (start listeners)
-        self.start_listeners()
+        if self.addrs or self.ports:
+            logger.info(" start custom listeners.")
+            self.start_custom_listeners()
+        else:
+            # default action (start listeners)
+            self.start_listeners()
 
     def listen_complete(self):
         logger.info(" listen_complete signal result.")

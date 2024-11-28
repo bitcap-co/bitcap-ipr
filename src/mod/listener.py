@@ -11,16 +11,17 @@ class ListenerSignals(QObject):
 
 
 class Listener(QThread):
-    def __init__(self, port):
+    def __init__(self, port, addr: str = "0.0.0.0"):
         super().__init__()
         self.signals = ListenerSignals()
         self.bufsize = 40
+        self.addr = addr
         self.port = port
         self.memory = {}
         self.d_str = ""
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.bind(("0.0.0.0", self.port))
+        self.sock.bind((self.addr, self.port))
 
     @pyqtSlot()
     def run(self):

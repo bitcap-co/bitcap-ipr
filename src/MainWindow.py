@@ -153,6 +153,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # network signals
         self.actionCreateNetwork.clicked.connect(self.create_new_network)
         # listener signals
+        self.actionIPRCustomStart.clicked.connect(self.start_custom_listen)
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
 
@@ -245,6 +246,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
         self.thread.start()
 
+    def start_custom_listen(self):
+        self.actionIPRCustomStart.setEnabled(False)
+        self.actionIPRStart.setEnabled(False)
+        self.actionIPRStop.setEnabled(True)
+        ports = {
+            "antminer": 14235,
+            "iceriver": 11503,
+            "whatsminer": 8888
+        }
+        selected_ports = [ports[m.text()] for m in self.checkGroupMachines if m.isChecked()]
+        logger.info(selected_ports)
+        addrs = []
+        selected_networks = self.tableNetworks.selectedIndexes()
+        for net in selected_networks:
+            item = self.tableNetworks.itemFromIndex(net)
+            if self.tableNetworks.column(item) == 1:
+                addrs.append(item.text())
+        logger.info(addrs)
+        self.thread = ListenerManager(addrs, selected_ports)
+        self.thread.completed.connect(self.show_confirm)
+        self.thread.start()
+
     def stop_listen(self, timeout=False):
         logger.info(" stop listeners.")
         if timeout:
@@ -260,6 +283,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.thread.stop_listeners()
         self.actionIPRStart.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
+        if self.actionCustomListeners.isChecked():
+            self.actionIPRCustomStart.setEnabled(True)
 
     def restart_listen(self):
         if self.thread.listeners:
