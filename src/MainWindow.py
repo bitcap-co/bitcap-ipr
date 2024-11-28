@@ -151,7 +151,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.checkSelectAll.clicked.connect(self.toggle_all_machines)
         self.actionShowCreateNetwork.clicked.connect(self.show_create_network)
         # network signals
-        self.actionCreateNetwork.clicked.connect(self.update_stacked_widget)
+        self.actionCreateNetwork.clicked.connect(self.create_new_network)
         # listener signals
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
@@ -192,6 +192,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actionDisableInactiveTimer.changed.connect(self.restart_listen)
         self.actionEnableIDTable.changed.connect(self.toggle_table_settings)
+
+        self.octlet1_start.textChanged.connect(lambda: self.octlet1_end.setValue(self.octlet1_start.value()))
+        self.octlet2_start.textChanged.connect(lambda: self.octlet2_end.setValue(self.octlet2_start.value()))
+        self.octlet3_start.textChanged.connect(lambda: self.octlet3_end.setValue(self.octlet3_start.value()))
 
         self.update_stacked_widget()
 
@@ -534,7 +538,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # networks view
     def show_create_network(self):
         self.stackedWidget.setCurrentIndex(4)
-    
+
+    def create_new_network(self):
+        net_count = self.octlet3_end.value() - self.octlet3_start.value()
+        for net in range(net_count + 1):
+            # assume second value is number
+            net_name, num = self.lineNetworkName.text().split()
+            name = f"{net_name} {int(num) + net}"
+            addr = f"{self.octlet1_start.value()}.{self.octlet2_start.value()}.{self.octlet3_start.value() + net}.255"
+            loc = f"{self.lineNetworkLoc.text()}"
+            logger.info(f"{name}, {addr}, {loc}")
+            with open(self.networks, "r") as f:
+                networks = json.load(f)
+            if not self.tableNetworks.findItems(addr, Qt.MatchFlag.MatchExactly):
+                networks["networks"].append({
+                    "name": name,
+                    "addr": addr,
+                    "location": loc
+                })
+                networks_json = json.dumps(networks, indent=4)
+                with open(self.networks, 'w') as f:
+                    f.write(networks_json)
+            else:
+                continue
+        self.update_stacked_widget()
+
     # custom listener view
     def read_networks(self):
         self.tableNetworks.setRowCount(0)
