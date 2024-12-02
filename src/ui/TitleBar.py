@@ -43,7 +43,7 @@ class TitleBar(QWidget):
 
         # mac buttons
         if self._style == "mac":
-            self._button_size = 12
+            self._button_size = 14
             self._border_width = self._button_size // 20
             self._border_radius = self._button_size // 2
             self._colors = {
