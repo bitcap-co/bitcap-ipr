@@ -151,6 +151,33 @@ QScrollBar::sub-line:horizontal {
   background: none;
 }
 
+QScrollBar:vertical {
+  background-color: #383e46;
+  color: #828282;
+}
+
+QScrollBar::handle:vertical {
+  background-color: #5b5f64;
+  border: 1px solid #525252;
+  min-width: 8px;
+}
+
+QScrollBar::handle:vertical:hover {
+  background-color: #6b7076;
+  border: 1px solid #525252;
+  min-width: 8px;
+}
+
+QScrollBar::add-line:vertical {
+  border: none;
+  background: none;
+}
+
+QScrollBar::sub-line:vertical {
+  border: none;
+  background: none;
+}
+
 QLineEdit {
   background-color: #151d28;
   padding-top: 2px;
