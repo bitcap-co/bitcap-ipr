@@ -2,6 +2,7 @@ import os
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon, QPixmap, QColor
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QToolButton, QWidget
+import ui.resources
 
 basedir = os.path.dirname(__file__)
 icons = os.path.join(basedir, "../resources/icons/app")
@@ -105,6 +106,18 @@ class TitleBar(QWidget):
 
     def changeEvent(self, event):
         super().changeEvent(event)
+        event.accept()
+
+    def enterEvent(self, event):
+        if self._style == "mac":
+            for x in self._button_dict:
+                self._button_dict[x].setIcon(QIcon(f":/theme/icons/rc/macos/{x}.png"))
+        event.accept()
+
+    def leaveEvent(self, event):
+        if self._style == "mac":
+            for x in self._button_dict:
+                self._button_dict[x].setIcon(QIcon())
         event.accept()
 
     def mousePressEvent(self, event):
