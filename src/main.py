@@ -15,7 +15,9 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QIcon
 from MainWindow import MainWindow
-from util import curr_platform, basedir, icons
+from util import curr_platform
+
+basedir = os.path.dirname(__file__)
 
 # logger
 logger = logging.getLogger(__name__)
@@ -57,7 +59,7 @@ def launch_app():
     logger.info("launch_app : start init.")
 
     app = QApplication(sys.argv)
-    with open(os.path.join(basedir, "ui/theme.qss")) as theme:
+    with open(Path(basedir, "ui", "theme", "theme.qss").resolve()) as theme:
         app.setStyleSheet(theme.read())
     # first-time launch
     logger.info("launch_app : check for existing config.")
@@ -116,11 +118,7 @@ def launch_app():
         )
         return
 
-    app.setWindowIcon(
-        QIcon(
-            os.path.join(icons, "BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png")
-        )
-    )
+    app.setWindowIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"))
     app.setStyle("Fusion")
 
     logger.info("launch_app : finish app init.")

@@ -25,12 +25,13 @@ from PyQt6.QtWidgets import (
     QMenuBar,
 )
 from PyQt6.QtGui import QPixmap
-from ui.TitleBar import TitleBar
+from ui.widgets.TitleBar import TitleBar
 from ui.GUI import Ui_MainWindow
+import ui.resources
 
 from ListenerManager import ListenerManager
 from IPRConfirmation import IPRConfirmation
-from util import app_info, curr_platform, scalable
+from util import curr_platform, app_info
 
 # logger
 logger = logging.getLogger(__name__)
@@ -115,7 +116,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         menubarwidget.addWidget(self.menu_bar)
 
         self.label_2.setPixmap(
-            QPixmap(os.path.join(scalable, "BitCapIPRCenterLogo.svg"))
+            QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg")
         )
         self.tableWidget.setHorizontalHeaderLabels(
             ["IP", "MAC", "SERIAL", "TYPE", "SUBTYPE"]

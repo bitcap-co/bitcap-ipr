@@ -1,9 +1,4 @@
-import os
 import sys
-
-basedir = os.path.dirname(__file__)
-icons = os.path.join(basedir, "resources/icons/app")
-scalable = os.path.join(basedir, "resources/scalable")
 
 curr_platform = sys.platform
 

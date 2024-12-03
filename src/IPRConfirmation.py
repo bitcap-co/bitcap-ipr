@@ -2,7 +2,7 @@ import logging
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget
 
-from ui.TitleBar import TitleBar
+from ui.widgets.TitleBar import TitleBar
 from ui.GUI import Ui_IPRConfirmation
 from util import curr_platform
 
