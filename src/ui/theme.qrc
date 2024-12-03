@@ -1,6 +1,0 @@
-<RCC>
-  <qresource prefix="theme/icons">
-    <file>rc/macos/close.png</file>
-    <file>rc/macos/min.png</file>
-  </qresource>
-</RCC>

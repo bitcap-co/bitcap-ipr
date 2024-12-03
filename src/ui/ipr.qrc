@@ -1,0 +1,10 @@
+<RCC>
+  <qresource>
+    <file>rc/titlebar/macos/close.png</file>
+    <file>rc/titlebar/macos/min.png</file>
+  </qresource>
+  <qresource>
+    <file>rc/img/BitCapIPR_BLK-02_Square.png</file>
+    <file>rc/img/scalable/BitCapIPRCenterLogo.svg</file>
+  </qresource>
+</RCC>

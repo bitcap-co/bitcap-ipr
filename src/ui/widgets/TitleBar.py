@@ -1,11 +1,7 @@
-import os
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon, QPixmap, QColor
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QToolButton, QWidget
 import ui.resources
-
-basedir = os.path.dirname(__file__)
-icons = os.path.join(basedir, "../resources/icons/app")
 
 
 class TitleBar(QWidget):
@@ -61,11 +57,7 @@ class TitleBar(QWidget):
         if self._style == "win":
             icon = QIcon()
             icon.addPixmap(
-                QPixmap(
-                    os.path.join(
-                        icons, "BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png"
-                    )
-                ),
+                QPixmap(":rc/img/BitCapIPR_BLK-02_Square.png"),
                 QIcon.Mode.Disabled,
                 QIcon.State.On,
             )
@@ -111,7 +103,7 @@ class TitleBar(QWidget):
     def enterEvent(self, event):
         if self._style == "mac":
             for x in self._button_dict:
-                self._button_dict[x].setIcon(QIcon(f":/theme/icons/rc/macos/{x}.png"))
+                self._button_dict[x].setIcon(QIcon(f":rc/titlebar/macos/{x}.png"))
         event.accept()
 
     def leaveEvent(self, event):
