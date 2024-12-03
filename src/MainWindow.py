@@ -123,7 +123,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
         self.children = []
 
-        # MainWindow Signals
+        # menu_bar signals
         self.actionAbout.triggered.connect(self.about)
         self.actionReportIssue.triggered.connect(self.open_issues)
         self.actionSourceCode.triggered.connect(self.open_source)
@@ -135,10 +135,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSetDefaultAPIPassword.triggered.connect(self.show_api_config)
         self.actionCopySelectedElements.triggered.connect(self.copy_selected)
         self.actionExport.triggered.connect(self.export_table)
-
+        # api config signals
+        self.actionIPRSetPasswd.clicked.connect(self.set_api_passwd)
+        # listener signals
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
-        self.actionIPRSetPasswd.clicked.connect(self.set_api_passwd)
 
         logger.info(" read settings from config.")
         self.config_path = Path(Path.home(), ".config", "ipr").resolve()
@@ -182,6 +183,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.actionAutoStartOnLaunch.isChecked():
             self.start_listen()
 
+    def update_stacked_widget(self):
+        if self.actionEnableIDTable.isChecked():
+            logger.info(" show table view.")
+            self.stackedWidget.setCurrentIndex(0)
+        else:
+            self.stackedWidget.setCurrentIndex(1)
+
     def about(self):
         QMessageBox.information(
             self,
@@ -194,6 +202,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def open_source(self):
         webbrowser.open(f"{app_info['source']}", new=2)
+
+    def open_dashboard(self, ip):
+        webbrowser.open("http://{0}".format(ip), new=2)
 
     def start_listen(self):
         logger.info(" start listeners.")
@@ -234,6 +245,92 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.stop_listen()
             self.start_listen()
 
+    # confirm
+    def retrieve_iceriver_mac_addr(self, ip):
+        with requests.Session() as s:
+            host = f"http://{ip}"
+            s.head(host)
+            res = s.post(
+                url=f"{host}/user/ipconfig",
+                data={"post": 1},
+                headers={"Referer": host},
+            )
+            r_data = res.json()["data"]
+            if "mac" in r_data:
+                return r_data["mac"]
+
+    def show_confirm(self):
+        logger.info(" show IP confirmation.")
+        if not self.actionDisableInactiveTimer.isChecked():
+            self.inactive.start()
+        ip, mac, type = self.thread.data.split(",")
+        logger.info(f"show_confirm : got {ip},{mac},{type} from listener thread.")
+        if mac == "ice-river":
+            mac = self.retrieve_iceriver_mac_addr(ip)
+            logger.info(f"show_confirm : got iceriver mac addr : {mac}")
+        if self.actionAlwaysOpenIPInBrowser.isChecked():
+            self.open_dashboard(ip)
+            if self.actionEnableIDTable.isChecked():
+                self.activateWindow()
+        elif self.actionDisableIPConfirmations.isChecked():
+            self.activateWindow()
+        else:
+            confirm = IPRConfirmation()
+            # IPRConfirmation Signals
+            confirm.actionOpenBrowser.clicked.connect(
+                lambda: self.open_dashboard(ip)
+            )
+            confirm.accept.clicked.connect(lambda: self.hide_confirm(confirm))
+            # copy action
+            confirm.lineIPField.actionCopy = confirm.lineIPField.addAction(
+                self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon),
+                QLineEdit.ActionPosition.TrailingPosition,
+            )
+            confirm.lineIPField.actionCopy.triggered.connect(
+                lambda: self.copy_text(confirm.lineIPField)
+            )
+            confirm.lineMACField.actionCopy = confirm.lineMACField.addAction(
+                self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon),
+                QLineEdit.ActionPosition.TrailingPosition,
+            )
+            confirm.lineMACField.actionCopy.triggered.connect(
+                lambda: self.copy_text(confirm.lineMACField)
+            )
+            logger.info("show_confirm : show IPRConfirmation.")
+            confirm.lineIPField.setText(ip)
+            confirm.lineMACField.setText(mac)
+            confirm.show()
+            confirm.activateWindow()
+            self.children.append(confirm)
+        if self.actionEnableIDTable.isChecked():
+            t_data = self.get_table_data_from_ip(type, ip)
+            logger.info("show_confirm : write table data.")
+            rowPosition = self.tableWidget.rowCount()
+            self.tableWidget.insertRow(rowPosition)
+            self.tableWidget.setItem(rowPosition, 0, QTableWidgetItem(ip))
+            self.tableWidget.setItem(rowPosition, 1, QTableWidgetItem(mac))
+            self.tableWidget.setItem(
+                rowPosition, 2, QTableWidgetItem(t_data["serial"])
+            )
+            # ASIC TYPE
+            self.tableWidget.setItem(rowPosition, 3, QTableWidgetItem(type))
+            # SUBTYPE
+            self.tableWidget.setItem(
+                rowPosition, 4, QTableWidgetItem(t_data["subtype"])
+            )
+
+    def hide_confirm(self, confirm):
+        confirm.close()
+
+    def copy_text(self, lineEdit):
+        lineEdit.selectAll()
+        lineEdit.copy()
+
+    # api config view
+    def show_api_config(self):
+        logger.info(" show api config view.")
+        self.stackedWidget.setCurrentIndex(2)
+
     def set_api_passwd(self):
         logger.info(" set api password.")
         passwd = self.linePasswdField.text()
@@ -261,29 +358,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.linePasswdField.clear()
         self.update_stacked_widget()
 
-    def open_dashboard(self, ip):
-        webbrowser.open("http://{0}".format(ip), new=2)
-
-    def update_stacked_widget(self):
-        if self.actionEnableIDTable.isChecked():
-            logger.info(" show table view.")
-            self.stackedWidget.setCurrentIndex(0)
-        else:
-            self.stackedWidget.setCurrentIndex(1)
-
-    def retrieve_iceriver_mac_addr(self, ip):
-        with requests.Session() as s:
-            host = f"http://{ip}"
-            s.head(host)
-            res = s.post(
-                url=f"{host}/user/ipconfig",
-                data={"post": 1},
-                headers={"Referer": host},
-            )
-            r_data = res.json()["data"]
-            if "mac" in r_data:
-                return r_data["mac"]
-
+    # id table view
     def get_table_data_from_ip(self, type, ip):
         result = {"serial": "N/A", "subtype": "N/A"}
         logger.info(f" get table data from ip {ip}.")
@@ -379,66 +454,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         pass
                 return result
 
-    def show_confirm(self):
-        logger.info(" show IP confirmation.")
-        if not self.actionDisableInactiveTimer.isChecked():
-            self.inactive.start()
-        ip, mac, type = self.thread.data.split(",")
-        logger.info(f"show_confirm : got {ip},{mac},{type} from listener thread.")
-        if mac == "ice-river":
-            mac = self.retrieve_iceriver_mac_addr(ip)
-            logger.info(f"show_confirm : got iceriver mac addr : {mac}")
-        if self.actionAlwaysOpenIPInBrowser.isChecked():
-            self.open_dashboard(ip)
-            if self.actionEnableIDTable.isChecked():
-                self.activateWindow()
-        elif self.actionDisableIPConfirmations.isChecked():
-            self.activateWindow()
-        else:
-            confirm = IPRConfirmation()
-            # IPRConfirmation Signals
-            confirm.actionOpenBrowser.clicked.connect(
-                lambda: self.open_dashboard(ip)
-            )
-            confirm.accept.clicked.connect(lambda: self.hide_confirm(confirm))
-            # copy action
-            confirm.lineIPField.actionCopy = confirm.lineIPField.addAction(
-                self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon),
-                QLineEdit.ActionPosition.TrailingPosition,
-            )
-            confirm.lineIPField.actionCopy.triggered.connect(
-                lambda: self.copy_text(confirm.lineIPField)
-            )
-            confirm.lineMACField.actionCopy = confirm.lineMACField.addAction(
-                self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon),
-                QLineEdit.ActionPosition.TrailingPosition,
-            )
-            confirm.lineMACField.actionCopy.triggered.connect(
-                lambda: self.copy_text(confirm.lineMACField)
-            )
-            logger.info("show_confirm : show IPRConfirmation.")
-            confirm.lineIPField.setText(ip)
-            confirm.lineMACField.setText(mac)
-            confirm.show()
-            confirm.activateWindow()
-            self.children.append(confirm)
-        if self.actionEnableIDTable.isChecked():
-            t_data = self.get_table_data_from_ip(type, ip)
-            logger.info("show_confirm : write table data.")
-            rowPosition = self.tableWidget.rowCount()
-            self.tableWidget.insertRow(rowPosition)
-            self.tableWidget.setItem(rowPosition, 0, QTableWidgetItem(ip))
-            self.tableWidget.setItem(rowPosition, 1, QTableWidgetItem(mac))
-            self.tableWidget.setItem(
-                rowPosition, 2, QTableWidgetItem(t_data["serial"])
-            )
-            # ASIC TYPE
-            self.tableWidget.setItem(rowPosition, 3, QTableWidgetItem(type))
-            # SUBTYPE
-            self.tableWidget.setItem(
-                rowPosition, 4, QTableWidgetItem(t_data["subtype"])
-            )
-
     def toggle_table_settings(self):
         if self.actionEnableIDTable.isChecked():
             self.actionDisableIPConfirmations.setEnabled(True)
@@ -446,10 +461,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionDisableIPConfirmations.setChecked(False)
             self.update_settings()
             self.actionDisableIPConfirmations.setEnabled(False)
-
-    def show_api_config(self):
-        logger.info(" show set api password view.")
-        self.stackedWidget.setCurrentIndex(2)
 
     def copy_selected(self):
         logger.info(" copy selected elements.")
@@ -501,13 +512,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QMessageBox.information(
             self, "BitCapIPR", f"Successfully wrote csv to {p}."
         )
-
-    def hide_confirm(self, confirm):
-        confirm.close()
-
-    def copy_text(self, lineEdit):
-        lineEdit.selectAll()
-        lineEdit.copy()
 
     def update_settings(self):
         logger.info(" write settings to config.")
