@@ -11,6 +11,7 @@ from PyQt6.QtCore import (
 )
 from PyQt6.QtWidgets import (
     QApplication,
+    QSystemTrayIcon,
     QMessageBox,
 )
 from PyQt6.QtGui import QIcon
@@ -122,7 +123,9 @@ def launch_app():
     app.setStyle("Fusion")
 
     logger.info("launch_app : finish app init.")
-    w = MainWindow()
+    # systray
+    system_tray = QSystemTrayIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"), app)
+    w = MainWindow(system_tray)
     w.show()
     sys.excepthook = exception_hook
     sys.exit(app.exec())

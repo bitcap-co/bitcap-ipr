@@ -18,11 +18,13 @@ from PyQt6.QtCore import (
 from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
+    QSystemTrayIcon,
     QMessageBox,
     QTableWidgetItem,
     QLineEdit,
     QStyle,
     QMenuBar,
+    QMenu,
 )
 from PyQt6.QtGui import QPixmap
 from ui.widgets.TitleBar import TitleBar
@@ -38,19 +40,24 @@ logger = logging.getLogger(__name__)
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setupUi(self)
+    def __init__(self, sys_tray : QSystemTrayIcon | None):
+        self.sys_tray = sys_tray
+        if self.sys_tray:
+            self.system_tray_menu = QMenu()
+            self.system_tray_menu.addAction("Show/Hide", self.toggle_visibility)
+            self.sys_tray.setContextMenu(self.system_tray_menu)
 
         logger.info(" start MainWindow() init.")
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        super().__init__(flags=Qt.WindowType.FramelessWindowHint)
+        self.setupUi(self)
+
         # title bar
         if curr_platform == "darwin":
             self.title_bar = TitleBar(self, "BitCap IPReporter", ['close', 'min'], style="mac")
         else:
             self.title_bar = TitleBar(self, "BitCap IPReporter", ['min', 'close'])
         self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
-        self.title_bar._closeButton.clicked.connect(self.quit)
+        self.title_bar._closeButton.clicked.connect(self.close_to_tray)
         title_bar_widget = self.titlebarwidget.layout()
         title_bar_widget.addWidget(self.title_bar)
 
@@ -530,6 +537,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.instance_json = json.dumps(instance, indent=4)
         with open(self.settings, "w") as f:
             f.write(self.instance_json)
+
+    def toggle_visibility(self):
+        self.setVisible(not self.isVisible())
+
+    def close_to_tray(self):
+        self.toggle_visibility()
+        self.sys_tray.show()
+        self.sys_tray.showMessage("BitCapIPR", "BitCapIPR is now running in the background.", QSystemTrayIcon.MessageIcon.Information, 2000)
 
     def killall(self):
         logger.info(" kill all confirmations.")
