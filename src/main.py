@@ -83,7 +83,15 @@ def launch_app():
         with open(Path(config_path, "instance.json"), "w") as f:
             f.write(default_instance_json)
 
-        default_config = {"defaultAPIPasswd": ""}
+        default_config = {
+            "config": {
+                "enableSysTray": False,
+                "onWindowClose": "close",
+                "api": {
+                    "defaultAPIPasswd": ""
+                }
+            }
+        }
         default_config_json = json.dumps(default_config, indent=4)
         with open(Path(config_path, "config.json"), "w") as f:
             f.write(default_config_json)

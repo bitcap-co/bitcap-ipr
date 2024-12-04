@@ -69,6 +69,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.menuOptions.setToolTipsVisible(True)
         self.menuTable = self.menu_bar.addMenu("Table")
         self.menuTable.setToolTipsVisible(True)
+        self.actionSettings = self.menu_bar.addAction("Settings...")
+        self.actionSettings.setToolTip("Change app settings")
         self.menuQuit = self.menu_bar.addMenu("Quit")
         self.menuQuit.setToolTipsVisible(True)
 
@@ -142,14 +144,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSetDefaultAPIPassword.triggered.connect(self.show_api_config)
         self.actionCopySelectedElements.triggered.connect(self.copy_selected)
         self.actionExport.triggered.connect(self.export_table)
+        self.actionSettings.triggered.connect(self.show_app_config)
         # api config signals
         self.actionIPRSetPasswd.clicked.connect(self.set_api_passwd)
+        # app config signals
+        self.checkEnableSysTray.toggled.connect(self.toggle_app_config)
+        self.actionIPRShowAPI.clicked.connect(self.show_api_config)
+        self.actionIPRCancelConfig.clicked.connect(self.update_stacked_widget)
+        self.actionIPRSaveConfig.clicked.connect(self.update_config)
         # listener signals
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
 
         logger.info(" read settings from config.")
         self.config_path = Path(Path.home(), ".config", "ipr").resolve()
+        self.config = Path(self.config_path, "config.json")
+        if os.path.exists(self.config):
+            with open(self.config, "r") as f:
+                config = json.load(f)
+            self.checkEnableSysTray.setChecked(
+                config["config"]["enableSysTray"]
+            )
+            self.onWindowCloseIndex = {
+                "close": 0,
+                "minimizeToTray": 1
+            }
+            self.comboOnWindowClose.setCurrentIndex(self.onWindowCloseIndex[config["config"]["onWindowClose"]])
+
         self.settings = Path(self.config_path, "instance.json")
         if os.path.exists(self.settings):
             with open(self.settings, "r") as f:
@@ -519,6 +540,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QMessageBox.information(
             self, "BitCapIPR", f"Successfully wrote csv to {p}."
         )
+
+    # app config view
+    def show_app_config(self):
+        self.stackedWidget.setCurrentIndex(3)
+
+    def toggle_app_config(self):
+        if self.checkEnableSysTray.isChecked():
+            self.comboOnWindowClose.setEnabled(True)
+        else:
+            self.comboOnWindowClose.setCurrentIndex(0)
+            self.comboOnWindowClose.setEnabled(False)
+
+    def update_config(self):
+        config = {
+            "config": {
+                "enableSysTray": self.checkEnableSysTray.isChecked(),
+                "onWindowClose": [x for x,y in self.onWindowCloseIndex.items() if y == self.comboOnWindowClose.currentIndex()][0],
+                "api": {
+                    "defaultAPIPasswd": ""
+                }
+            }
+        }
+        self.config_json = json.dumps(config, indent=4)
+        with open(self.config, "w") as f:
+            f.write(self.config_json)
 
     def update_settings(self):
         logger.info(" write settings to config.")
