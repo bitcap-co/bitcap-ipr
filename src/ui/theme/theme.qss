@@ -15,6 +15,24 @@ QDialog QLabel {
   color: #FFFFFF;
 }
 
+QGroupBox {
+  font-weight: bold;
+  border: 1px solid #60798B;
+  padding: 2px;
+  margin-top: 6px;
+  margin-bottom: 4px;
+}
+
+QGroupBox::title {
+  color: #FFFFFF;
+  subcontrol-origin: margin;
+  subcontrol-position: top left;
+  left: 4px;
+  padding-left: 2px;
+  padding-right: 4px;
+  padding-top: -4px;
+}
+
 QPushButton {
   background-color: #383e46;
   color: #FFFFFF;
@@ -38,6 +56,94 @@ QToolButton {
   border: none;
   background: none;
   color: #FFFFFF;
+}
+
+QCheckBox {
+  background-color: none;
+  color: #FFFFFF;
+  spacing: 4px;
+  outline: none;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+QCheckBox:focus {
+  border: none;
+}
+
+QCheckBox QWidget:disabled {
+  background-color: #434343;
+  color: #828282;
+}
+
+QCheckBox::indicator {
+  margin-left: 2px;
+  height: 14px;
+  width: 14px;
+}
+
+QCheckBox::indicator:unchecked {
+  background-color: #151d28;
+  border: 1px solid #434343;
+}
+
+QCheckBox::indicator:checked {
+  background-color: #92beff;
+  border: 1px solid #434343;
+}
+
+QComboBox {
+  border: 1px solid #434343;
+  background-color: #151d28;
+  selection-background-color: #3183ff;
+  color: #FFFFFF;
+  padding-left: 4px;
+  padding-right: 4px;
+  /* padding-right = 36; 4 + 16*2 See scrollbar size */
+  /* changed to 4px to fix #239 */
+  /* Fixes #103, #111 */
+  min-height: 1.5em;
+  /* padding-top: 2px;     removed to fix #132 */
+  /* padding-bottom: 2px;  removed to fix #132 */
+  /* min-width: 75px;      removed to fix #109 */
+  /* Needed to remove indicator - fix #132 */
+}
+
+QComboBox QAbstractItemView {
+  border: 1px solid #434343;
+  border-radius: 0;
+  color: #FFFFFF;
+  background-color: #383e46;
+  selection-background-color: #3183ff;
+}
+
+QComboBox:disabled {
+  color: #828282;
+}
+
+QComboBox:hover {
+  border: 1px solid #92beff;
+}
+
+QComboBox:focus {
+  border: 1px solid #92beff;
+}
+
+QComboBox:on {
+  selection-background-color: #5c9dff;
+}
+
+QComboBox::drop-down {
+  subcontrol-origin: padding;
+  subcontrol-position: top right;
+  width: 12px;
+  border-left: 1px solid #525252;
+}
+
+QComboBox::down-arrow {
+  image: url(":theme/icons/rc/arrow_down.png");
+  height: 8px;
+  width: 8px;
 }
 
 QMenuBar {
