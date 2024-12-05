@@ -108,8 +108,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionDisableIPConfirmations.setEnabled(False)
         self.actionDisableIPConfirmations.setCheckable(True)
         self.actionDisableIPConfirmations.setToolTip("Disables IP Confirmation windows when in table view.")
-        self.actionSetDefaultAPIPassword = self.menuTableSettings.addAction("Set Default API Password")
-        self.actionSetDefaultAPIPassword.setToolTip("Set default API password to config. Used to get data from the miner")
         self.actionCopySelectedElements = self.menuTable.addAction("Copy Selected Elements")
         self.actionCopySelectedElements.setToolTip("Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows")
         self.actionExport = self.menuTable.addAction("Export")
@@ -141,17 +139,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.menuOptions.triggered.connect(self.update_settings)
         self.menuTable.triggered.connect(self.update_settings)
         self.actionEnableIDTable.triggered.connect(self.update_stacked_widget)
-        self.actionSetDefaultAPIPassword.triggered.connect(self.show_api_config)
         self.actionCopySelectedElements.triggered.connect(self.copy_selected)
         self.actionExport.triggered.connect(self.export_table)
         self.actionSettings.triggered.connect(self.show_app_config)
-        # api config signals
-        self.actionIPRSetPasswd.clicked.connect(self.set_api_passwd)
         # app config signals
         self.checkEnableSysTray.toggled.connect(self.toggle_app_config)
-        self.actionIPRShowAPI.clicked.connect(self.show_api_config)
         self.actionIPRCancelConfig.clicked.connect(self.update_stacked_widget)
-        self.actionIPRSaveConfig.clicked.connect(self.update_config)
+        self.actionIPRSaveConfig.clicked.connect(self.update_settings)
         # listener signals
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
@@ -351,38 +345,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         lineEdit.selectAll()
         lineEdit.copy()
 
-    # api config view
-    def show_api_config(self):
-        logger.info(" show api config view.")
-        self.stackedWidget.setCurrentIndex(2)
-
-    def set_api_passwd(self):
-        logger.info(" set api password.")
-        passwd = self.linePasswdField.text()
-        if not passwd:
-            # if passwd is blank, exit
-            confirm = QMessageBox.question(
-                self,
-                "BitCapIPR",
-                "No supplied password. Do you want to leave the config?",
-                QMessageBox.StandardButton.No | QMessageBox.StandardButton.Yes,
-                defaultButton=QMessageBox.StandardButton.Yes,
-            )
-            if confirm == QMessageBox.StandardButton.Yes:
-                self.update_stacked_widget()
-            return
-
-        logger.info("set_api_passwd : write api password to config.")
-        config = {"defaultAPIPasswd": passwd}
-        config_json = json.dumps(config, indent=4)
-        with open(Path(self.config_path, "config.json"), "w") as f:
-            f.write(config_json)
-        QMessageBox.information(
-            self, "BitCapIPR", "Successfully wrote to config."
-        )
-        self.linePasswdField.clear()
-        self.update_stacked_widget()
-
     # id table view
     def get_table_data_from_ip(self, type, ip):
         result = {"serial": "N/A", "subtype": "N/A"}
@@ -540,7 +502,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # app config view
     def show_app_config(self):
-        self.stackedWidget.setCurrentIndex(3)
+        self.stackedWidget.setCurrentIndex(2)
 
     def toggle_app_config(self):
         if self.checkEnableSysTray.isChecked():
