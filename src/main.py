@@ -93,6 +93,10 @@ def launch_app():
         default_config_json = json.dumps(default_config, indent=4)
         with open(Path(config_path, "config.json"), "w") as f:
             f.write(default_config_json)
+    else:
+        logger.info("launch_app: read existing config.")
+        with open(Path(config_path, "config.json")) as f:
+            config = json.load(f)
 
     # Here we are making sure that only one instance is running at a time
     window_key = "BitCapIPR"
@@ -130,7 +134,9 @@ def launch_app():
 
     logger.info("launch_app : finish app init.")
     # systray
-    system_tray = QSystemTrayIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"), app)
+    system_tray = None
+    if config["general"]["enableSysTray"]:
+        system_tray = QSystemTrayIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"), app)
     w = MainWindow(system_tray)
     w.show()
     sys.excepthook = exception_hook

@@ -57,7 +57,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.title_bar = TitleBar(self, "BitCap IPReporter", ['min', 'close'])
         self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
-        self.title_bar._closeButton.clicked.connect(self.close_to_tray)
+        self.title_bar._closeButton.clicked.connect(self.close_to_tray_or_exit)
         title_bar_widget = self.titlebarwidget.layout()
         title_bar_widget.addWidget(self.title_bar)
 
@@ -557,10 +557,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def toggle_visibility(self):
         self.setVisible(not self.isVisible())
 
-    def close_to_tray(self):
-        self.toggle_visibility()
-        self.sys_tray.show()
-        self.sys_tray.showMessage("BitCapIPR", "BitCapIPR is now running in the background.", QSystemTrayIcon.MessageIcon.Information, 2000)
+    def close_to_tray_or_exit(self):
+        if self.comboOnWindowClose.currentIndex() == 1:
+            self.toggle_visibility()
+            self.sys_tray.show()
+            self.sys_tray.showMessage("BitCapIPR", "BitCapIPR is now running in the background.", QSystemTrayIcon.MessageIcon.Information, 2000)
+        else:
+            self.quit()
 
     def killall(self):
         logger.info(" kill all confirmations.")
