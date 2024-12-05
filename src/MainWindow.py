@@ -156,42 +156,39 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
 
-        logger.info(" read settings from config.")
+        logger.info(" read config.")
         self.config_path = Path(Path.home(), ".config", "ipr").resolve()
         self.config = Path(self.config_path, "config.json")
         if os.path.exists(self.config):
             with open(self.config, "r") as f:
                 config = json.load(f)
             self.checkEnableSysTray.setChecked(
-                config["config"]["enableSysTray"]
+                config["general"]["enableSysTray"]
             )
             self.onWindowCloseIndex = {
                 "close": 0,
                 "minimizeToTray": 1
             }
-            self.comboOnWindowClose.setCurrentIndex(self.onWindowCloseIndex[config["config"]["onWindowClose"]])
+            self.comboOnWindowClose.setCurrentIndex(self.onWindowCloseIndex[config["general"]["onWindowClose"]])
+            self.linePasswdField.setText(config["api"]["defaultAPIPasswd"])
 
-        self.settings = Path(self.config_path, "instance.json")
-        if os.path.exists(self.settings):
-            with open(self.settings, "r") as f:
-                config = json.load(f)
             self.actionAlwaysOpenIPInBrowser.setChecked(
-                config["options"]["alwaysOpenIPInBrowser"]
+                config["instance"]["options"]["alwaysOpenIPInBrowser"]
             )
             self.actionDisableInactiveTimer.setChecked(
-                config["options"]["disableInactiveTimer"]
+                config["instance"]["options"]["disableInactiveTimer"]
             )
             self.actionDisableWarningDialog.setChecked(
-                config["options"]["disableWarningDialog"]
+                config["instance"]["options"]["disableWarningDialog"]
             )
             self.actionAutoStartOnLaunch.setChecked(
-                config["options"]["autoStartOnLaunch"]
+                config["instance"]["options"]["autoStartOnLaunch"]
             )
             self.actionEnableIDTable.setChecked(
-                config["table"]["enableIDTable"]
+                config["instance"]["table"]["enableIDTable"]
             )
             self.actionDisableIPConfirmations.setChecked(
-                config["table"]["disableIPConfirmations"]
+                config["instance"]["table"]["disableIPConfirmations"]
             )
 
         logger.info(" init ListenerManager thread.")
@@ -580,9 +577,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "disableIPConfirmations": self.actionDisableIPConfirmations.isChecked(),
             },
         }
-        self.instance_json = json.dumps(instance, indent=4)
-        with open(self.settings, "w") as f:
-            f.write(self.instance_json)
+        config = {
+            "general": {
+                "enableSysTray": self.checkEnableSysTray.isChecked(),
+                "onWindowClose": [x for x,y in self.onWindowCloseIndex.items() if y == self.comboOnWindowClose.currentIndex()][0]
+            },
+            "api": {
+                "defaultAPIPasswd": self.linePasswdField.text()
+            },
+            "instance": instance
+        }
+        self.config_json = json.dumps(config, indent=4)
+        with open(self.config, "w") as f:
+            f.write(self.config_json)
+        self.update_stacked_widget()
 
     def toggle_visibility(self):
         self.setVisible(not self.isVisible())

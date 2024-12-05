@@ -79,18 +79,16 @@ def launch_app():
                 "disableIPConfirmations": False,
             },
         }
-        default_instance_json = json.dumps(default_instance, indent=4)
-        with open(Path(config_path, "instance.json"), "w") as f:
-            f.write(default_instance_json)
 
         default_config = {
-            "config": {
+            "general": {
                 "enableSysTray": False,
-                "onWindowClose": "close",
-                "api": {
-                    "defaultAPIPasswd": ""
-                }
-            }
+                "onWindowClose": "close"
+            },
+            "api": {
+                "defaultAPIPasswd": ""
+            },
+            "instance" : default_instance
         }
         default_config_json = json.dumps(default_config, indent=4)
         with open(Path(config_path, "config.json"), "w") as f:
