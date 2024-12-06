@@ -206,6 +206,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.sys_tray = QSystemTrayIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"), self)
             self.system_tray_menu = QMenu()
             self.system_tray_menu.addAction("Show/Hide", self.toggle_visibility)
+            self.system_tray_menu.addSeparator()
+            self.system_tray_menu.addAction("Quit", self.quit)
             self.sys_tray.setContextMenu(self.system_tray_menu)
         else:
             self.sys_tray = None
@@ -573,6 +575,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             c.close()
 
     def quit(self):
+        if not self.isVisible():
+            self.toggle_visibility()
         self.thread.stop_listeners()
         self.thread.exit()
         self.killall()
