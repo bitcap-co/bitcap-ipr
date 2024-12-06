@@ -40,13 +40,7 @@ logger = logging.getLogger(__name__)
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
-    def __init__(self, sys_tray : QSystemTrayIcon | None):
-        self.sys_tray = sys_tray
-        if self.sys_tray:
-            self.system_tray_menu = QMenu()
-            self.system_tray_menu.addAction("Show/Hide", self.toggle_visibility)
-            self.sys_tray.setContextMenu(self.system_tray_menu)
-
+    def __init__(self):
         logger.info(" start MainWindow() init.")
         super().__init__(flags=Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
@@ -200,11 +194,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actionDisableInactiveTimer.changed.connect(self.restart_listen)
         self.actionEnableIDTable.changed.connect(self.toggle_table_settings)
+        self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
 
         self.update_stacked_widget()
 
         if self.actionAutoStartOnLaunch.isChecked():
             self.start_listen()
+
+    def create_or_destroy_systray(self):
+        if self.checkEnableSysTray.isChecked():
+            self.sys_tray = QSystemTrayIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"), self)
+            self.system_tray_menu = QMenu()
+            self.system_tray_menu.addAction("Show/Hide", self.toggle_visibility)
+            self.sys_tray.setContextMenu(self.system_tray_menu)
+        else:
+            self.sys_tray = None
 
     def update_stacked_widget(self):
         if self.actionEnableIDTable.isChecked():
