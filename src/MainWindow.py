@@ -343,9 +343,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             logger.info("show_confirm : show IPRConfirmation.")
             confirm.lineIPField.setText(ip)
             confirm.lineMACField.setText(mac)
-            confirm.show()
-            confirm.activateWindow()
             self.children.append(confirm)
+            if not self.isVisible():
+                self.sys_tray.messageClicked.connect(lambda: self.show_confirm_from_sys_tray(confirm))
+                self.sys_tray.showMessage("Received confirmation", "Click to show.", QSystemTrayIcon.MessageIcon.Information, 5000)
+            else:
+                confirm.show()
+                confirm.activateWindow()
         if self.actionEnableIDTable.isChecked():
             t_data = self.get_table_data_from_ip(type, ip)
             logger.info("show_confirm : write table data.")
@@ -363,8 +367,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 rowPosition, 4, QTableWidgetItem(t_data["subtype"])
             )
 
-    def hide_confirm(self, confirm):
-        confirm.close()
+    def show_confirm_from_sys_tray(self, confirm):
+        confirm.show()
+        confirm.activateWindow()
+        self.sys_tray.messageClicked.disconnect()
 
     def copy_text(self, lineEdit):
         lineEdit.selectAll()
