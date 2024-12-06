@@ -584,7 +584,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.comboOnWindowClose.currentIndex() == 1:
             self.toggle_visibility()
             self.sys_tray.show()
-            self.sys_tray.showMessage("BitCapIPR", "BitCapIPR is now running in the background.", QSystemTrayIcon.MessageIcon.Information, 2000)
+            self.sys_tray.showMessage("Minimized to tray", "BitCapIPR is now running in the background.", QSystemTrayIcon.MessageIcon.Information, 2000)
         else:
             self.quit()
 
