@@ -388,9 +388,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     f"http://{ip}/api/v1/info",
                     f"http://{ip}/cgi-bin/get_system_info.cgi",
                 ]
-                with open(Path(self.config_path, "config.json"), "r") as f:
-                    config = json.load(f)
-                    passwd = config["defaultAPIPasswd"]
+                passwd = self.linePasswdField.text()
 
                 for endp in range(0, (len(endpoints))):
                     logger.info(f"get_table_data_from_ip : authenticate endp {endp}.")
