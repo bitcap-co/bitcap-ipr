@@ -206,6 +206,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.sys_tray = QSystemTrayIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"), self)
             self.system_tray_menu = QMenu()
             self.system_tray_menu.addAction("Show/Hide", self.toggle_visibility)
+            self.actionSysStartListen = self.system_tray_menu.addAction("Start Listen", self.start_listen)
+            self.actionSysStopListen = self.system_tray_menu.addAction("Stop Listen", self.stop_listen)
+            self.actionSysStopListen.setEnabled(False)
             self.system_tray_menu.addSeparator()
             self.system_tray_menu.addAction("Quit", self.quit)
             self.sys_tray.setContextMenu(self.system_tray_menu)
@@ -237,7 +240,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def start_listen(self):
         logger.info(" start listeners.")
+        self.actionSysStartListen.setEnabled(False)
         self.actionIPRStart.setEnabled(False)
+        self.actionSysStopListen.setEnabled(True)
         self.actionIPRStop.setEnabled(True)
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
@@ -250,23 +255,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "BitCapIPR",
                 "UDP listening on 0.0.0.0[:8888,11503,14235]...\nPress the 'IP Report' button on miner after this dialog.",
             )
+        if not self.isVisible():
+            self.sys_tray.showMessage("IPR Listener: Start", "Started Listening on 0.0.0.0[:8888,:11503,:14235]...", QSystemTrayIcon.MessageIcon.Information, 2000)
         self.thread.start()
 
     def stop_listen(self, timeout=False):
         logger.info(" stop listeners.")
         if timeout:
             logger.warning("stop_listen : timeout.")
-            QMessageBox.warning(
-                self,
-                "BitCapIPR",
-                "Inactive Timeout exceeded! Stopping listeners...",
-            )
+            if not self.isVisible():
+                self.sys_tray.showMessage("Inactive timeout", "Timeout exceeded. Stopping listeners...", QSystemTrayIcon.MessageIcon.Warning, 2000)
+            else:
+                QMessageBox.warning(
+                    self,
+                    "BitCapIPR",
+                    "Inactive Timeout exceeded! Stopping listeners...",
+                )
             self.inactive.stop()
         if self.actionEnableIDTable.isChecked():
             self.tableWidget.setRowCount(0)
+        if not self.isVisible():
+            self.sys_tray.showMessage("IPR Listener: Stop", "Stopping listeners...", QSystemTrayIcon.MessageIcon.Information, 2000)
         self.thread.stop_listeners()
         self.actionIPRStart.setEnabled(True)
+        self.actionSysStartListen.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
+        self.actionSysStopListen.setEnabled(False)
 
     def restart_listen(self):
         if self.thread.listeners:
