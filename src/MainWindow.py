@@ -324,7 +324,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             confirm.actionOpenBrowser.clicked.connect(
                 lambda: self.open_dashboard(ip)
             )
-            confirm.accept.clicked.connect(lambda: self.hide_confirm(confirm))
+            confirm.accept.clicked.connect(confirm.hide)
             # copy action
             confirm.lineIPField.actionCopy = confirm.lineIPField.addAction(
                 self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon),
