@@ -348,7 +348,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.children.append(confirm)
             if not self.isVisible():
                 self.sys_tray.messageClicked.connect(lambda: self.show_confirm_from_sys_tray(confirm))
-                self.sys_tray.showMessage("Received confirmation", "Click to show.", QSystemTrayIcon.MessageIcon.Information, 5000)
+                if curr_platform == "linux":
+                    self.sys_tray.showMessage("Received confirmation", "Click to show.", QSystemTrayIcon.MessageIcon.Critical, 5000)
+                else:
+                    self.sys_tray.showMessage("Received confirmation", "Click to show.", QSystemTrayIcon.MessageIcon.Information, 5000)
             else:
                 confirm.show()
                 confirm.activateWindow()
