@@ -26,7 +26,7 @@ from PyQt6.QtWidgets import (
     QMenuBar,
     QMenu,
 )
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QIcon
 from ui.widgets.TitleBar import TitleBar
 from ui.GUI import Ui_MainWindow
 import ui.resources
@@ -128,6 +128,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tableWidget.setHorizontalHeaderLabels(
             ["IP", "MAC", "SERIAL", "TYPE", "SUBTYPE"]
         )
+        self.actionTogglePasswd = self.linePasswdField.addAction(QIcon(":theme/icons/rc/view.png"), QLineEdit.ActionPosition.TrailingPosition)
+        self.actionTogglePasswd.setToolTip("Show/Hide password")
+        self.actionTogglePasswd.triggered.connect(self.toggle_passwd)
+
         self.children = []
 
         # menu_bar signals
@@ -511,19 +515,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.comboOnWindowClose.setCurrentIndex(0)
             self.comboOnWindowClose.setEnabled(False)
 
-    def update_config(self):
-        config = {
-            "config": {
-                "enableSysTray": self.checkEnableSysTray.isChecked(),
-                "onWindowClose": [x for x,y in self.onWindowCloseIndex.items() if y == self.comboOnWindowClose.currentIndex()][0],
-                "api": {
-                    "defaultAPIPasswd": ""
-                }
-            }
-        }
-        self.config_json = json.dumps(config, indent=4)
-        with open(self.config, "w") as f:
-            f.write(self.config_json)
+    def toggle_passwd(self):
+        if self.linePasswdField.echoMode() == QLineEdit.EchoMode.Password:
+            self.linePasswdField.setEchoMode(QLineEdit.EchoMode.Normal)
+            self.actionTogglePasswd.setIcon(QIcon(":theme/icons/rc/hide.png"))
+        elif self.linePasswdField.echoMode() == QLineEdit.EchoMode.Normal:
+            self.linePasswdField.setEchoMode(QLineEdit.EchoMode.Password)
+            self.actionTogglePasswd.setIcon(QIcon(":theme/icons/rc/view.png"))
 
     def update_settings(self):
         logger.info(" write settings to config.")

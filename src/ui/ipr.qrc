@@ -9,5 +9,7 @@
   </qresource>
   <qresource prefix="theme/icons">
     <file>rc/arrow_down.png</file>
+    <file>rc/hide.png</file>
+    <file>rc/view.png</file>
   </qresource>
 </RCC>
