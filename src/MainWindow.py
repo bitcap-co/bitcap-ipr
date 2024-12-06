@@ -183,6 +183,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 config["instance"]["table"]["disableIPConfirmations"]
             )
         self.create_or_destroy_systray()
+        if self.actionEnableIDTable.isChecked():
+            self.actionDisableIPConfirmations.setEnabled(True)
 
         logger.info(" init ListenerManager thread.")
         self.thread = ListenerManager()
