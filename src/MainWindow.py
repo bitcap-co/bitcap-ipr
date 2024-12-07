@@ -161,10 +161,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.checkEnableSysTray.setChecked(
                 config["general"]["enableSysTray"]
             )
-            self.onWindowCloseIndex = {
-                "close": 0,
-                "minimizeToTray": 1
-            }
             self.comboOnWindowClose.setCurrentIndex(self.onWindowCloseIndex[config["general"]["onWindowClose"]])
             self.linePasswdField.setText(config["api"]["defaultAPIPasswd"])
 
@@ -186,7 +182,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionDisableIPConfirmations.setChecked(
                 config["instance"]["table"]["disableIPConfirmations"]
             )
+
+        # systray
+        self.onWindowCloseIndex = {
+            "close": 0,
+            "minimizeToTray": 1
+        }
         self.create_or_destroy_systray()
+
         if self.actionEnableIDTable.isChecked():
             self.actionDisableIPConfirmations.setEnabled(True)
 
