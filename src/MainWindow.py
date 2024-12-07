@@ -63,8 +63,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.menuOptions.setToolTipsVisible(True)
         self.menuTable = self.menu_bar.addMenu("Table")
         self.menuTable.setToolTipsVisible(True)
-        self.actionSettings = self.menu_bar.addAction("Settings...")
-        self.actionSettings.setToolTip("Change app settings")
+        self.menuSettings = self.menu_bar.addMenu("Settings")
+        self.menuSettings.setToolTipsVisible(True)
         self.menuQuit = self.menu_bar.addMenu("Quit")
         self.menuQuit.setToolTipsVisible(True)
 
@@ -106,6 +106,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionCopySelectedElements.setToolTip("Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows")
         self.actionExport = self.menuTable.addAction("Export")
         self.actionExport.setToolTip("Export current table as .CSV file")
+
+        # settings
+        self.actionSettings = self.menuSettings.addAction("Settings...")
+        self.actionSettings.setToolTip("Change application settings")
 
         # quit
         self.actionKillAllConfirmations = self.menuQuit.addAction("Kill All Confirmations")
