@@ -126,7 +126,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tableWidget.setHorizontalHeaderLabels(
             ["IP", "MAC", "SERIAL", "TYPE", "SUBTYPE"]
         )
-        self.actionTogglePasswd = self.linePasswdField.addAction(QIcon(":theme/icons/rc/view.png"), QLineEdit.ActionPosition.TrailingPosition)
+        self.actionTogglePasswd = self.linePasswdField.addAction(
+            QIcon(":theme/icons/rc/view.png"),
+            QLineEdit.ActionPosition.TrailingPosition,
+        )
         self.actionTogglePasswd.setToolTip("Show/Hide password")
         self.actionTogglePasswd.triggered.connect(self.toggle_passwd)
 
@@ -161,7 +164,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.checkEnableSysTray.setChecked(
                 config["general"]["enableSysTray"]
             )
-            self.comboOnWindowClose.setCurrentIndex(self.onWindowCloseIndex[config["general"]["onWindowClose"]])
+            self.comboOnWindowClose.setCurrentIndex(
+                self.onWindowCloseIndex[config["general"]["onWindowClose"]]
+            )
             self.linePasswdField.setText(config["api"]["defaultAPIPasswd"])
 
             self.actionAlwaysOpenIPInBrowser.setChecked(
@@ -184,10 +189,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
 
         # systray
-        self.onWindowCloseIndex = {
-            "close": 0,
-            "minimizeToTray": 1
-        }
+        self.onWindowCloseIndex = {"close": 0, "minimizeToTray": 1}
         self.create_or_destroy_systray()
 
         if self.actionEnableIDTable.isChecked():
@@ -266,7 +268,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "UDP listening on 0.0.0.0[:8888,11503,14235]...\nPress the 'IP Report' button on miner after this dialog.",
             )
         if not self.isVisible():
-            self.sys_tray.showMessage("IPR Listener: Start", "Started Listening on 0.0.0.0[:8888,:11503,:14235]...", QSystemTrayIcon.MessageIcon.Information, 2000)
+            self.sys_tray.showMessage(
+                "IPR Listener: Start",
+                "Started Listening on 0.0.0.0[:8888,:11503,:14235]...",
+                QSystemTrayIcon.MessageIcon.Information,
+                2000,
+            )
         self.thread.start()
 
     def stop_listen(self, timeout=False):
@@ -274,7 +281,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if timeout:
             logger.warning("stop_listen : timeout.")
             if not self.isVisible():
-                self.sys_tray.showMessage("Inactive timeout", "Timeout exceeded. Stopping listeners...", QSystemTrayIcon.MessageIcon.Warning, 2000)
+                self.sys_tray.showMessage(
+                    "Inactive timeout",
+                    "Timeout exceeded. Stopping listeners...",
+                    QSystemTrayIcon.MessageIcon.Warning,
+                    2000,
+                )
             else:
                 QMessageBox.warning(
                     self,
@@ -285,7 +297,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.actionEnableIDTable.isChecked():
             self.tableWidget.setRowCount(0)
         if not self.isVisible():
-            self.sys_tray.showMessage("IPR Listener: Stop", "Stopping listeners...", QSystemTrayIcon.MessageIcon.Information, 2000)
+            self.sys_tray.showMessage(
+                "IPR Listener: Stop",
+                "Stopping listeners...",
+                QSystemTrayIcon.MessageIcon.Information,
+                2000,
+            )
         self.thread.stop_listeners()
         self.actionIPRStart.setEnabled(True)
         self.actionSysStartListen.setEnabled(True)
@@ -356,9 +373,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if not self.isVisible():
                 self.sys_tray.messageClicked.connect(lambda: self.show_confirm_from_sys_tray(confirm))
                 if curr_platform == "linux":
-                    self.sys_tray.showMessage("Received confirmation", "Click to show.", QSystemTrayIcon.MessageIcon.Critical, 5000)
+                    self.sys_tray.showMessage(
+                        "Received confirmation",
+                        "Click to show.",
+                        QSystemTrayIcon.MessageIcon.Critical,
+                        5000,
+                    )
                 else:
-                    self.sys_tray.showMessage("Received confirmation", "Click to show.", QSystemTrayIcon.MessageIcon.Information, 5000)
+                    self.sys_tray.showMessage(
+                        "Received confirmation",
+                        "Click to show.",
+                        QSystemTrayIcon.MessageIcon.Information,
+                        5000,
+                    )
             else:
                 confirm.show()
                 confirm.activateWindow()
@@ -579,10 +606,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "enableSysTray": self.checkEnableSysTray.isChecked(),
                 "onWindowClose": [x for x, y in self.onWindowCloseIndex.items() if y == self.comboOnWindowClose.currentIndex()][0]
             },
-            "api": {
-                "defaultAPIPasswd": self.linePasswdField.text()
-            },
-            "instance": instance
+            "api": {"defaultAPIPasswd": self.linePasswdField.text()},
+            "instance": instance,
         }
         self.config_json = json.dumps(config, indent=4)
         with open(self.config, "w") as f:
@@ -596,7 +621,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.comboOnWindowClose.currentIndex() == 1:
             self.toggle_visibility()
             self.sys_tray.show()
-            self.sys_tray.showMessage("Minimized to tray", "BitCapIPR is now running in the background.", QSystemTrayIcon.MessageIcon.Information, 2000)
+            self.sys_tray.showMessage(
+                "Minimized to tray",
+                "BitCapIPR is now running in the background.",
+                QSystemTrayIcon.MessageIcon.Information,
+                2000,
+            )
         else:
             self.quit()
 
