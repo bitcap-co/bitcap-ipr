@@ -189,9 +189,9 @@
         </layout>
        </widget>
        <widget class="QWidget" name="iprConfig">
-        <layout class="QVBoxLayout" name="verticalLayout_3">
+        <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
-          <widget class="QLabel" name="label_3">
+          <widget class="QLabel" name="label">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -200,7 +200,7 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>260</width>
+             <width>0</width>
              <height>30</height>
             </size>
            </property>
@@ -211,7 +211,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Authentication Password:</string>
+            <string>Configuration</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -222,88 +222,154 @@
           </widget>
          </item>
          <item>
-          <widget class="QWidget" name="hwrapper" native="true">
-           <layout class="QHBoxLayout" name="horizontalLayout">
+          <widget class="QGroupBox" name="groupBox">
+           <property name="title">
+            <string>General</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
-             <spacer name="horizontalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+             <widget class="QCheckBox" name="checkEnableSysTray">
+              <property name="text">
+               <string>Enable System Tray</string>
               </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
+             </widget>
             </item>
             <item>
-             <widget class="QWidget" name="inputIPRConfig" native="true">
-              <layout class="QVBoxLayout" name="verticalLayout_4">
+             <widget class="QWidget" name="hwrapper_2" native="true">
+              <layout class="QHBoxLayout" name="horizontalLayout_6">
                <item>
-                <widget class="QLineEdit" name="linePasswdField">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>180</width>
-                   <height>25</height>
-                  </size>
-                 </property>
+                <widget class="QLabel" name="label_4">
                  <property name="font">
                   <font>
                    <pointsize>10</pointsize>
                   </font>
                  </property>
-                 <property name="echoMode">
-                  <enum>QLineEdit::Password</enum>
+                 <property name="text">
+                  <string>On Window Close:</string>
                  </property>
-                 <property name="alignment">
-                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                 <property name="StyleClass" stdset="0">
+                  <string>setText</string>
                  </property>
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="actionIPRSetPasswd">
-                 <property name="minimumSize">
+                <widget class="QComboBox" name="comboOnWindowClose">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="currentIndex">
+                  <number>0</number>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>Close</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Minimize To Tray</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_4">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
                   <size>
-                   <width>120</width>
-                   <height>25</height>
+                   <width>40</width>
+                   <height>20</height>
                   </size>
                  </property>
-                 <property name="font">
-                  <font>
-                   <pointsize>12</pointsize>
-                   <bold>true</bold>
-                  </font>
-                 </property>
-                 <property name="toolTip">
-                  <string>Set default Bitmain authentication password</string>
-                 </property>
-                 <property name="text">
-                  <string>Set Password</string>
-                 </property>
-                </widget>
+                </spacer>
                </item>
               </layout>
              </widget>
             </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="groupBox_2">
+           <property name="title">
+            <string>API Settings</string>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
-             <spacer name="horizontalSpacer_3">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+             <widget class="QLabel" name="label_3">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
               </property>
-              <property name="sizeHint" stdset="0">
+              <property name="text">
+               <string>Set API Password:</string>
+              </property>
+              <property name="StyleClass" stdset="0">
+               <string>setText</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="linePasswdField">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
                <size>
-                <width>40</width>
-                <height>20</height>
+                <width>180</width>
+                <height>25</height>
                </size>
               </property>
-             </spacer>
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+               </font>
+              </property>
+              <property name="echoMode">
+               <enum>QLineEdit::Password</enum>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="hwrapper_3" native="true">
+           <layout class="QHBoxLayout" name="horizontalLayout_8">
+            <item>
+             <widget class="QPushButton" name="actionIPRCancelConfig">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Cancel</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="actionIPRSaveConfig">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Save</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>

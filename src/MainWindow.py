@@ -18,13 +18,15 @@ from PyQt6.QtCore import (
 from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
+    QSystemTrayIcon,
     QMessageBox,
     QTableWidgetItem,
     QLineEdit,
     QStyle,
     QMenuBar,
+    QMenu,
 )
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QIcon
 from ui.widgets.TitleBar import TitleBar
 from ui.GUI import Ui_MainWindow
 import ui.resources
@@ -39,18 +41,17 @@ logger = logging.getLogger(__name__)
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
-        super().__init__()
+        logger.info(" start MainWindow() init.")
+        super().__init__(flags=Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
 
-        logger.info(" start MainWindow() init.")
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         # title bar
         if curr_platform == "darwin":
             self.title_bar = TitleBar(self, "BitCap IPReporter", ['close', 'min'], style="mac")
         else:
             self.title_bar = TitleBar(self, "BitCap IPReporter", ['min', 'close'])
         self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
-        self.title_bar._closeButton.clicked.connect(self.quit)
+        self.title_bar._closeButton.clicked.connect(self.close_to_tray_or_exit)
         title_bar_widget = self.titlebarwidget.layout()
         title_bar_widget.addWidget(self.title_bar)
 
@@ -62,6 +63,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.menuOptions.setToolTipsVisible(True)
         self.menuTable = self.menu_bar.addMenu("Table")
         self.menuTable.setToolTipsVisible(True)
+        self.menuSettings = self.menu_bar.addMenu("Settings")
+        self.menuSettings.setToolTipsVisible(True)
         self.menuQuit = self.menu_bar.addMenu("Quit")
         self.menuQuit.setToolTipsVisible(True)
 
@@ -99,12 +102,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionDisableIPConfirmations.setEnabled(False)
         self.actionDisableIPConfirmations.setCheckable(True)
         self.actionDisableIPConfirmations.setToolTip("Disables IP Confirmation windows when in table view.")
-        self.actionSetDefaultAPIPassword = self.menuTableSettings.addAction("Set Default API Password")
-        self.actionSetDefaultAPIPassword.setToolTip("Set default API password to config. Used to get data from the miner")
         self.actionCopySelectedElements = self.menuTable.addAction("Copy Selected Elements")
         self.actionCopySelectedElements.setToolTip("Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows")
         self.actionExport = self.menuTable.addAction("Export")
         self.actionExport.setToolTip("Export current table as .CSV file")
+
+        # settings
+        self.actionSettings = self.menuSettings.addAction("Settings...")
+        self.actionSettings.setToolTip("Change application settings")
 
         # quit
         self.actionKillAllConfirmations = self.menuQuit.addAction("Kill All Confirmations")
@@ -121,6 +126,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tableWidget.setHorizontalHeaderLabels(
             ["IP", "MAC", "SERIAL", "TYPE", "SUBTYPE"]
         )
+        self.actionTogglePasswd = self.linePasswdField.addAction(
+            QIcon(":theme/icons/rc/view.png"),
+            QLineEdit.ActionPosition.TrailingPosition,
+        )
+        self.actionTogglePasswd.setToolTip("Show/Hide password")
+        self.actionTogglePasswd.triggered.connect(self.toggle_passwd)
+
         self.children = []
 
         # menu_bar signals
@@ -132,39 +144,56 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.menuOptions.triggered.connect(self.update_settings)
         self.menuTable.triggered.connect(self.update_settings)
         self.actionEnableIDTable.triggered.connect(self.update_stacked_widget)
-        self.actionSetDefaultAPIPassword.triggered.connect(self.show_api_config)
         self.actionCopySelectedElements.triggered.connect(self.copy_selected)
         self.actionExport.triggered.connect(self.export_table)
-        # api config signals
-        self.actionIPRSetPasswd.clicked.connect(self.set_api_passwd)
+        self.actionSettings.triggered.connect(self.show_app_config)
+        # app config signals
+        self.checkEnableSysTray.toggled.connect(self.toggle_app_config)
+        self.actionIPRCancelConfig.clicked.connect(self.update_stacked_widget)
+        self.actionIPRSaveConfig.clicked.connect(self.update_settings)
         # listener signals
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
 
-        logger.info(" read settings from config.")
+        logger.info(" read config.")
         self.config_path = Path(Path.home(), ".config", "ipr").resolve()
-        self.settings = Path(self.config_path, "instance.json")
-        if os.path.exists(self.settings):
-            with open(self.settings, "r") as f:
+        self.config = Path(self.config_path, "config.json")
+        if os.path.exists(self.config):
+            with open(self.config, "r") as f:
                 config = json.load(f)
+            self.checkEnableSysTray.setChecked(
+                config["general"]["enableSysTray"]
+            )
+            self.comboOnWindowClose.setCurrentIndex(
+                self.onWindowCloseIndex[config["general"]["onWindowClose"]]
+            )
+            self.linePasswdField.setText(config["api"]["defaultAPIPasswd"])
+
             self.actionAlwaysOpenIPInBrowser.setChecked(
-                config["options"]["alwaysOpenIPInBrowser"]
+                config["instance"]["options"]["alwaysOpenIPInBrowser"]
             )
             self.actionDisableInactiveTimer.setChecked(
-                config["options"]["disableInactiveTimer"]
+                config["instance"]["options"]["disableInactiveTimer"]
             )
             self.actionDisableWarningDialog.setChecked(
-                config["options"]["disableWarningDialog"]
+                config["instance"]["options"]["disableWarningDialog"]
             )
             self.actionAutoStartOnLaunch.setChecked(
-                config["options"]["autoStartOnLaunch"]
+                config["instance"]["options"]["autoStartOnLaunch"]
             )
             self.actionEnableIDTable.setChecked(
-                config["table"]["enableIDTable"]
+                config["instance"]["table"]["enableIDTable"]
             )
             self.actionDisableIPConfirmations.setChecked(
-                config["table"]["disableIPConfirmations"]
+                config["instance"]["table"]["disableIPConfirmations"]
             )
+
+        # systray
+        self.onWindowCloseIndex = {"close": 0, "minimizeToTray": 1}
+        self.create_or_destroy_systray()
+
+        if self.actionEnableIDTable.isChecked():
+            self.actionDisableIPConfirmations.setEnabled(True)
 
         logger.info(" init ListenerManager thread.")
         self.thread = ListenerManager()
@@ -177,11 +206,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actionDisableInactiveTimer.changed.connect(self.restart_listen)
         self.actionEnableIDTable.changed.connect(self.toggle_table_settings)
+        self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
 
         self.update_stacked_widget()
 
         if self.actionAutoStartOnLaunch.isChecked():
             self.start_listen()
+
+    def create_or_destroy_systray(self):
+        if self.checkEnableSysTray.isChecked():
+            self.sys_tray = QSystemTrayIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"), self)
+            self.system_tray_menu = QMenu()
+            self.system_tray_menu.addAction("Show/Hide", self.toggle_visibility)
+            self.actionSysStartListen = self.system_tray_menu.addAction("Start Listen", self.start_listen)
+            self.actionSysStopListen = self.system_tray_menu.addAction("Stop Listen", self.stop_listen)
+            self.actionSysStopListen.setEnabled(False)
+            self.system_tray_menu.addSeparator()
+            self.system_tray_menu.addAction("Quit", self.quit)
+            self.sys_tray.setContextMenu(self.system_tray_menu)
+        else:
+            self.sys_tray = None
 
     def update_stacked_widget(self):
         if self.actionEnableIDTable.isChecked():
@@ -208,7 +252,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def start_listen(self):
         logger.info(" start listeners.")
+        self.actionSysStartListen.setEnabled(False)
         self.actionIPRStart.setEnabled(False)
+        self.actionSysStopListen.setEnabled(True)
         self.actionIPRStop.setEnabled(True)
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
@@ -221,23 +267,47 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "BitCapIPR",
                 "UDP listening on 0.0.0.0[:8888,11503,14235]...\nPress the 'IP Report' button on miner after this dialog.",
             )
+        if not self.isVisible():
+            self.sys_tray.showMessage(
+                "IPR Listener: Start",
+                "Started Listening on 0.0.0.0[:8888,:11503,:14235]...",
+                QSystemTrayIcon.MessageIcon.Information,
+                2000,
+            )
         self.thread.start()
 
     def stop_listen(self, timeout=False):
         logger.info(" stop listeners.")
         if timeout:
             logger.warning("stop_listen : timeout.")
-            QMessageBox.warning(
-                self,
-                "BitCapIPR",
-                "Inactive Timeout exceeded! Stopping listeners...",
-            )
+            if not self.isVisible():
+                self.sys_tray.showMessage(
+                    "Inactive timeout",
+                    "Timeout exceeded. Stopping listeners...",
+                    QSystemTrayIcon.MessageIcon.Warning,
+                    2000,
+                )
+            else:
+                QMessageBox.warning(
+                    self,
+                    "BitCapIPR",
+                    "Inactive Timeout exceeded! Stopping listeners...",
+                )
             self.inactive.stop()
         if self.actionEnableIDTable.isChecked():
             self.tableWidget.setRowCount(0)
+        if not self.isVisible():
+            self.sys_tray.showMessage(
+                "IPR Listener: Stop",
+                "Stopping listeners...",
+                QSystemTrayIcon.MessageIcon.Information,
+                2000,
+            )
         self.thread.stop_listeners()
         self.actionIPRStart.setEnabled(True)
+        self.actionSysStartListen.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
+        self.actionSysStopListen.setEnabled(False)
 
     def restart_listen(self):
         if self.thread.listeners:
@@ -280,7 +350,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             confirm.actionOpenBrowser.clicked.connect(
                 lambda: self.open_dashboard(ip)
             )
-            confirm.accept.clicked.connect(lambda: self.hide_confirm(confirm))
+            confirm.accept.clicked.connect(confirm.hide)
             # copy action
             confirm.lineIPField.actionCopy = confirm.lineIPField.addAction(
                 self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon),
@@ -299,9 +369,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             logger.info("show_confirm : show IPRConfirmation.")
             confirm.lineIPField.setText(ip)
             confirm.lineMACField.setText(mac)
-            confirm.show()
-            confirm.activateWindow()
             self.children.append(confirm)
+            if not self.isVisible():
+                self.sys_tray.messageClicked.connect(lambda: self.show_confirm_from_sys_tray(confirm))
+                if curr_platform == "linux":
+                    self.sys_tray.showMessage(
+                        "Received confirmation",
+                        "Click to show.",
+                        QSystemTrayIcon.MessageIcon.Critical,
+                        5000,
+                    )
+                else:
+                    self.sys_tray.showMessage(
+                        "Received confirmation",
+                        "Click to show.",
+                        QSystemTrayIcon.MessageIcon.Information,
+                        5000,
+                    )
+            else:
+                confirm.show()
+                confirm.activateWindow()
         if self.actionEnableIDTable.isChecked():
             t_data = self.get_table_data_from_ip(type, ip)
             logger.info("show_confirm : write table data.")
@@ -319,44 +406,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 rowPosition, 4, QTableWidgetItem(t_data["subtype"])
             )
 
-    def hide_confirm(self, confirm):
-        confirm.close()
+    def show_confirm_from_sys_tray(self, confirm):
+        confirm.show()
+        confirm.activateWindow()
+        self.sys_tray.messageClicked.disconnect()
 
     def copy_text(self, lineEdit):
         lineEdit.selectAll()
         lineEdit.copy()
-
-    # api config view
-    def show_api_config(self):
-        logger.info(" show api config view.")
-        self.stackedWidget.setCurrentIndex(2)
-
-    def set_api_passwd(self):
-        logger.info(" set api password.")
-        passwd = self.linePasswdField.text()
-        if not passwd:
-            # if passwd is blank, exit
-            confirm = QMessageBox.question(
-                self,
-                "BitCapIPR",
-                "No supplied password. Do you want to leave the config?",
-                QMessageBox.StandardButton.No | QMessageBox.StandardButton.Yes,
-                defaultButton=QMessageBox.StandardButton.Yes,
-            )
-            if confirm == QMessageBox.StandardButton.Yes:
-                self.update_stacked_widget()
-            return
-
-        logger.info("set_api_passwd : write api password to config.")
-        config = {"defaultAPIPasswd": passwd}
-        config_json = json.dumps(config, indent=4)
-        with open(Path(self.config_path, "config.json"), "w") as f:
-            f.write(config_json)
-        QMessageBox.information(
-            self, "BitCapIPR", "Successfully wrote to config."
-        )
-        self.linePasswdField.clear()
-        self.update_stacked_widget()
 
     # id table view
     def get_table_data_from_ip(self, type, ip):
@@ -370,9 +427,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     f"http://{ip}/api/v1/info",
                     f"http://{ip}/cgi-bin/get_system_info.cgi",
                 ]
-                with open(Path(self.config_path, "config.json"), "r") as f:
-                    config = json.load(f)
-                    passwd = config["defaultAPIPasswd"]
+                passwd = self.linePasswdField.text()
 
                 for endp in range(0, (len(endpoints))):
                     logger.info(f"get_table_data_from_ip : authenticate endp {endp}.")
@@ -439,7 +494,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             result["subtype"] = r_data["model"]
                     return result
             case "whatsminer":
-                logger.info(f"get_table_data_from_ip : type is whatsminer; send json command.")
+                logger.info("get_table_data_from_ip : type is whatsminer; send json command.")
                 json_cmd = {"cmd": "devdetails"}
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     s.connect((ip, 4028))
@@ -513,6 +568,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self, "BitCapIPR", f"Successfully wrote csv to {p}."
         )
 
+    # app config view
+    def show_app_config(self):
+        self.stackedWidget.setCurrentIndex(2)
+
+    def toggle_app_config(self):
+        if self.checkEnableSysTray.isChecked():
+            self.comboOnWindowClose.setEnabled(True)
+        else:
+            self.comboOnWindowClose.setCurrentIndex(0)
+            self.comboOnWindowClose.setEnabled(False)
+
+    def toggle_passwd(self):
+        if self.linePasswdField.echoMode() == QLineEdit.EchoMode.Password:
+            self.linePasswdField.setEchoMode(QLineEdit.EchoMode.Normal)
+            self.actionTogglePasswd.setIcon(QIcon(":theme/icons/rc/hide.png"))
+        elif self.linePasswdField.echoMode() == QLineEdit.EchoMode.Normal:
+            self.linePasswdField.setEchoMode(QLineEdit.EchoMode.Password)
+            self.actionTogglePasswd.setIcon(QIcon(":theme/icons/rc/view.png"))
+
     def update_settings(self):
         logger.info(" write settings to config.")
         instance = {
@@ -527,9 +601,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "disableIPConfirmations": self.actionDisableIPConfirmations.isChecked(),
             },
         }
-        self.instance_json = json.dumps(instance, indent=4)
-        with open(self.settings, "w") as f:
-            f.write(self.instance_json)
+        config = {
+            "general": {
+                "enableSysTray": self.checkEnableSysTray.isChecked(),
+                "onWindowClose": [x for x, y in self.onWindowCloseIndex.items() if y == self.comboOnWindowClose.currentIndex()][0]
+            },
+            "api": {"defaultAPIPasswd": self.linePasswdField.text()},
+            "instance": instance,
+        }
+        self.config_json = json.dumps(config, indent=4)
+        with open(self.config, "w") as f:
+            f.write(self.config_json)
+        self.update_stacked_widget()
+
+    def toggle_visibility(self):
+        self.setVisible(not self.isVisible())
+
+    def close_to_tray_or_exit(self):
+        if self.comboOnWindowClose.currentIndex() == 1:
+            self.toggle_visibility()
+            self.sys_tray.show()
+            self.sys_tray.showMessage(
+                "Minimized to tray",
+                "BitCapIPR is now running in the background.",
+                QSystemTrayIcon.MessageIcon.Information,
+                2000,
+            )
+        else:
+            self.quit()
 
     def killall(self):
         logger.info(" kill all confirmations.")
@@ -537,6 +636,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             c.close()
 
     def quit(self):
+        if not self.isVisible():
+            self.toggle_visibility()
         self.thread.stop_listeners()
         self.thread.exit()
         self.killall()

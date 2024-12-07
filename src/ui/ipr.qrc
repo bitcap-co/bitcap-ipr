@@ -7,4 +7,9 @@
     <file>rc/img/BitCapIPR_BLK-02_Square.png</file>
     <file>rc/img/scalable/BitCapIPRCenterLogo.svg</file>
   </qresource>
+  <qresource prefix="theme/icons">
+    <file>rc/arrow_down.png</file>
+    <file>rc/hide.png</file>
+    <file>rc/view.png</file>
+  </qresource>
 </RCC>
