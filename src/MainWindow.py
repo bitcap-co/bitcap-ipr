@@ -464,7 +464,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             result["subtype"] = r_data["model"]
                     return result
             case "whatsminer":
-                logger.info(f"get_table_data_from_ip : type is whatsminer; send json command.")
+                logger.info("get_table_data_from_ip : type is whatsminer; send json command.")
                 json_cmd = {"cmd": "devdetails"}
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     s.connect((ip, 4028))
@@ -574,7 +574,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config = {
             "general": {
                 "enableSysTray": self.checkEnableSysTray.isChecked(),
-                "onWindowClose": [x for x,y in self.onWindowCloseIndex.items() if y == self.comboOnWindowClose.currentIndex()][0]
+                "onWindowClose": [x for x, y in self.onWindowCloseIndex.items() if y == self.comboOnWindowClose.currentIndex()][0]
             },
             "api": {
                 "defaultAPIPasswd": self.linePasswdField.text()
