@@ -164,6 +164,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.checkEnableSysTray.setChecked(
                 config["general"]["enableSysTray"]
             )
+            self.onWindowCloseIndex = {"close": 0, "minimizeToTray": 1}
             self.comboOnWindowClose.setCurrentIndex(
                 self.onWindowCloseIndex[config["general"]["onWindowClose"]]
             )
@@ -188,12 +189,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 config["instance"]["table"]["disableIPConfirmations"]
             )
 
-        # systray
-        self.onWindowCloseIndex = {"close": 0, "minimizeToTray": 1}
-        self.create_or_destroy_systray()
-
         if self.actionEnableIDTable.isChecked():
             self.actionDisableIPConfirmations.setEnabled(True)
+
+        self.create_or_destroy_systray()
 
         logger.info(" init ListenerManager thread.")
         self.thread = ListenerManager()
