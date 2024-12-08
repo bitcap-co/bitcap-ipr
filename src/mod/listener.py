@@ -30,47 +30,50 @@ class Listener(QThread):
             except Exception:
                 break
             self.d_str = self.d.decode("ascii")
-            logger.info(f"Listener[{self.port}] : received msg.")
-            logger.info(f"Listener[{self.port}] : d_str {self.d_str}")
-            match self.port:
-                case 11503:  # IceRiver
-                    type = "iceriver"
-                    ip = self.d_str.split(":")[1]
-                    mac = "ice-river"
-                case 8888:  # Whatsminer
-                    type = "whatsminer"
-                    ip, mac = self.d_str.split("M")
-                    ip = ip[3:]
-                    mac = mac[3:]
-                case 14235:  # AntMiner
-                    type = "antminer"
-                    ip, mac = self.d_str.split(",")
-            logger.info(f"Listener[{self.port}] : found type {type} from port.")
-            if self.memory:
-                prev_entry = False
-                # sort by timestamp descending
-                self.memory = dict(
-                    sorted(
-                        self.memory.items(),
-                        reverse=True,
-                        key=lambda item: float(item[1][1]),
+            if self.d_str:
+                logger.info(f"Listener[{self.port}] : received msg.")
+                logger.info(f"Listener[{self.port}] : d_str {self.d_str}")
+                match self.port:
+                    case 11503:  # IceRiver
+                        type = "iceriver"
+                        ip = self.d_str.split(":")[1]
+                        mac = "ice-river"
+                    case 8888:  # Whatsminer
+                        type = "whatsminer"
+                        ip, mac = self.d_str.split("M")
+                        ip = ip[3:]
+                        mac = mac[3:]
+                    case 14235:  # AntMiner
+                        type = "antminer"
+                        ip, mac = self.d_str.split(",")
+                logger.info(f"Listener[{self.port}] : found type {type} from port.")
+                if self.memory:
+                    prev_entry = False
+                    # sort by timestamp descending
+                    self.memory = dict(
+                        sorted(
+                            self.memory.items(),
+                            reverse=True,
+                            key=lambda item: float(item[1][1]),
+                        )
                     )
-                )
-                for entry in self.memory.keys():
-                    _data = self.memory.get(entry)
-                    if ip == entry and self.d == _data[0]:
-                        prev_entry = True
-                        if (
-                            time.time() - _data[1] <= 10.0
-                        ):  # prevent duplicate packet data
-                            break
-                        else:
-                            self.emit_received([ip, mac, type])
-                if not prev_entry:
+                    for entry in self.memory.keys():
+                        _data = self.memory.get(entry)
+                        if ip == entry and self.d == _data[0]:
+                            prev_entry = True
+                            if (
+                                time.time() - _data[1] <= 10.0
+                            ):  # prevent duplicate packet data
+                                break
+                            else:
+                                self.emit_received([ip, mac, type])
+                    if not prev_entry:
+                        self.emit_received([ip, mac, type])
+                else:
+                    # first entry
                     self.emit_received([ip, mac, type])
             else:
-                # first entry
-                self.emit_received([ip, mac, type])
+                logger.warning(f"Listener[{self.port}] : d_str empty! Ignoring.")
 
     def emit_received(self, received):
         logger.info(f"Listener[{self.port}] : emit received.")
