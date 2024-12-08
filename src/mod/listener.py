@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 class ListenerSignals(QObject):
     result = pyqtSignal()
+    error = pyqtSignal()
 
 
 class Listener(QThread):
@@ -36,16 +37,28 @@ class Listener(QThread):
                 match self.port:
                     case 11503:  # IceRiver
                         type = "iceriver"
-                        ip = self.d_str.split(":")[1]
+                        try:
+                            ip = self.d_str.split(":")[1]
+                        except IndexError as e:
+                            self.emit_error(e)
+                            break
                         mac = "ice-river"
                     case 8888:  # Whatsminer
                         type = "whatsminer"
-                        ip, mac = self.d_str.split("M")
+                        try:
+                            ip, mac = self.d_str.split("M")
+                        except ValueError as e:
+                            self.emit_error(e)
+                            break
                         ip = ip[3:]
                         mac = mac[3:]
                     case 14235:  # AntMiner
                         type = "antminer"
-                        ip, mac = self.d_str.split(",")
+                        try:
+                            ip, mac = self.d_str.split(",")
+                        except ValueError as e:
+                            self.emit_error(e)
+                            break
                 logger.info(f"Listener[{self.port}] : found type {type} from port.")
                 if self.memory:
                     prev_entry = False
@@ -81,6 +94,10 @@ class Listener(QThread):
         self.d_str = ",".join(received)
         # signal that we received a buffer
         self.signals.result.emit()
+
+    def emit_error(self, err):
+        logger.error(f"Listener[{self.port}] : emit error! got {err}")
+        self.signals.error.emit()
 
     def close(self):
         logger.info(f"Listener[{self.port}] : close socket.")

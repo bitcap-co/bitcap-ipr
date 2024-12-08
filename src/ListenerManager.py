@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 class ListenerManager(QThread):
     completed = pyqtSignal()
+    failed = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -26,6 +27,7 @@ class ListenerManager(QThread):
         self.listeners.append(Listener(8888))
         for listener in self.listeners:
             listener.signals.result.connect(self.listen_complete)
+            listener.signals.error.connect(self.listen_error)
             listener.start()
 
     def stop_listeners(self):
@@ -49,3 +51,7 @@ class ListenerManager(QThread):
             listener.d_str = ""
         logger.info(" send completed.")
         self.completed.emit()
+
+    def listen_error(self):
+        logger.error(" listen_error signal result!")
+        self.failed.emit()

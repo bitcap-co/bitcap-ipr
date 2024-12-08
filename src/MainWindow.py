@@ -198,6 +198,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logger.info(" init ListenerManager thread.")
         self.thread = ListenerManager()
         self.thread.completed.connect(self.show_confirm)
+        # restart listeners on fail
+        self.thread.failed.connect(self.restart_listen)
 
         logger.info(" init inactive timer for 900000ms.")
         self.inactive = QTimer()
