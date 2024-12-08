@@ -192,6 +192,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.actionEnableIDTable.isChecked():
             self.actionDisableIPConfirmations.setEnabled(True)
 
+        logger.info(" init systray.")
         self.create_or_destroy_systray()
 
         logger.info(" init ListenerManager thread.")
@@ -227,8 +228,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.sys_tray = None
 
     def update_stacked_widget(self):
+        logger.info(" update view.")
         if self.actionEnableIDTable.isChecked():
-            logger.info(" show table view.")
             self.stackedWidget.setCurrentIndex(0)
         else:
             self.stackedWidget.setCurrentIndex(1)
