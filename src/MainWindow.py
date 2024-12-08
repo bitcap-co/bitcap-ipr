@@ -353,14 +353,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             confirm.accept.clicked.connect(confirm.hide)
             # copy action
             confirm.lineIPField.actionCopy = confirm.lineIPField.addAction(
-                self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon),
+                QIcon(":theme/icons/rc/copy.png"),
                 QLineEdit.ActionPosition.TrailingPosition,
             )
             confirm.lineIPField.actionCopy.triggered.connect(
                 lambda: self.copy_text(confirm.lineIPField)
             )
             confirm.lineMACField.actionCopy = confirm.lineMACField.addAction(
-                self.style().standardIcon(QStyle.StandardPixmap.SP_FileIcon),
+                QIcon(":theme/icons/rc/copy.png"),
                 QLineEdit.ActionPosition.TrailingPosition,
             )
             confirm.lineMACField.actionCopy.triggered.connect(

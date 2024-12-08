@@ -11,5 +11,6 @@
     <file>rc/arrow_down.png</file>
     <file>rc/hide.png</file>
     <file>rc/view.png</file>
+    <file>rc/copy.png</file>
   </qresource>
 </RCC>
