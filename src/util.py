@@ -4,7 +4,7 @@ curr_platform = sys.platform
 
 app_info = {
     "name": "BitCap IPReporter",
-    "version": "1.1.0",
+    "version": "1.1.5",
     "author": "MatthewWertman",
     "source": "https://github.com/bitcap-co/bitcap-ipr",
     "company": "Bit Capital Group",
