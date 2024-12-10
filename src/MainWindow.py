@@ -22,7 +22,6 @@ from PyQt6.QtWidgets import (
     QMessageBox,
     QTableWidgetItem,
     QLineEdit,
-    QStyle,
     QMenuBar,
     QMenu,
 )
