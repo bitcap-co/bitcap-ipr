@@ -254,10 +254,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def start_listen(self):
         logger.info(" start listeners.")
-        self.actionSysStartListen.setEnabled(False)
         self.actionIPRStart.setEnabled(False)
-        self.actionSysStopListen.setEnabled(True)
         self.actionIPRStop.setEnabled(True)
+        if self.sys_tray:
+            self.actionSysStartListen.setEnabled(False)
+            self.actionSysStopListen.setEnabled(True)
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
         if (
@@ -307,9 +308,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
         self.thread.stop_listeners()
         self.actionIPRStart.setEnabled(True)
-        self.actionSysStartListen.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
-        self.actionSysStopListen.setEnabled(False)
+        if self.sys_tray:
+            self.actionSysStartListen.setEnabled(True)
+            self.actionSysStopListen.setEnabled(False)
 
     def restart_listen(self):
         if self.thread.listeners:
