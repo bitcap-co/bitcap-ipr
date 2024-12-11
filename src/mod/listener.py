@@ -6,6 +6,20 @@ from PyQt6.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
 logger = logging.getLogger(__name__)
 
 
+class Memory:
+    def __init__(self, size):
+        self.size = size
+        self.dict = {}
+
+    def __setitem__(self, key, value):
+        if len(self.dict) >= self.size:
+            self.dict.popitem()
+        self.dict[key] = value
+
+    def __getitem__(self, key):
+        return self.dict[key]
+
+
 class ListenerSignals(QObject):
     result = pyqtSignal()
     error = pyqtSignal()
@@ -17,7 +31,7 @@ class Listener(QThread):
         self.signals = ListenerSignals()
         self.bufsize = 40
         self.port = port
-        self.memory = {}
+        self.memory = Memory(size=10)
         self.d_str = ""
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -63,15 +77,15 @@ class Listener(QThread):
                 if self.memory:
                     prev_entry = False
                     # sort by timestamp descending
-                    self.memory = dict(
+                    self.memory.dict = dict(
                         sorted(
-                            self.memory.items(),
+                            self.memory.dict.items(),
                             reverse=True,
                             key=lambda item: float(item[1][1]),
                         )
                     )
-                    for entry in self.memory.keys():
-                        _data = self.memory.get(entry)
+                    for entry in self.memory.dict.keys():
+                        _data = self.memory.dict.get(entry)
                         if ip == entry and self.d == _data[0]:
                             prev_entry = True
                             if (
@@ -90,7 +104,7 @@ class Listener(QThread):
 
     def emit_received(self, received):
         logger.info(f"Listener[{self.port}] : emit received.")
-        self.memory.update({f"{received[0]}": [self.d, time.time()]})
+        self.memory[f"{received[0]}"] = [self.d, time.time()]
         self.d_str = ",".join(received)
         # signal that we received a buffer
         self.signals.result.emit()
