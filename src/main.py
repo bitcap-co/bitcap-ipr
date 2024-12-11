@@ -87,7 +87,7 @@ def launch_app():
             "api": {
                 "defaultAPIPasswd": ""
             },
-            "instance" : default_instance
+            "instance": default_instance
         }
         default_config_json = json.dumps(default_config, indent=4)
         with open(Path(config_path, "config.json"), "w") as f:
