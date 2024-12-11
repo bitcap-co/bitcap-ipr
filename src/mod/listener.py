@@ -104,7 +104,7 @@ class Listener(QThread):
 
     def emit_received(self, received):
         logger.info(f"Listener[{self.port}] : emit received.")
-        self.memory[f"{received[0]}"] = [self.d, time.time()]
+        self.memory[received[0]] = [self.d, time.time()]
         self.d_str = ",".join(received)
         # signal that we received a buffer
         self.signals.result.emit()
