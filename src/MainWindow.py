@@ -615,6 +615,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.config_json = json.dumps(config, indent=4)
         with open(self.config, "w") as f:
             f.write(self.config_json)
+        QMessageBox.information(
+            self,
+            "Configuration",
+            "Successfully wrote settings to config."
+        )
         self.update_stacked_widget()
 
     def toggle_visibility(self):
