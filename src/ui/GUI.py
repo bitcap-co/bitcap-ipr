@@ -339,3 +339,46 @@ class Ui_IPRConfirmation(object):
         self.actionOpenBrowser.setText(_translate("IPRConfirmation", "Open Browser"))
         self.label_2.setText(_translate("IPRConfirmation", "MAC Address"))
         self.label_2.setProperty("StyleClass", _translate("IPRConfirmation", "setText"))
+
+
+class Ui_IPRAbout(object):
+    def setupUi(self, IPRAbout):
+        IPRAbout.setObjectName("IPRAbout")
+        IPRAbout.resize(400, 250)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(IPRAbout.sizePolicy().hasHeightForWidth())
+        IPRAbout.setSizePolicy(sizePolicy)
+        self.titlebarwidget = QtWidgets.QWidget(parent=IPRAbout)
+        self.titlebarwidget.setGeometry(QtCore.QRect(0, 0, 400, 30))
+        self.titlebarwidget.setObjectName("titlebarwidget")
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.titlebarwidget)
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.centralwidget = QtWidgets.QWidget(parent=IPRAbout)
+        self.centralwidget.setGeometry(QtCore.QRect(0, 35, 400, 180))
+        self.centralwidget.setObjectName("centralwidget")
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.centralwidget)
+        self.horizontalLayout_2.setContentsMargins(9, 9, 9, 9)
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.buttons = QtWidgets.QWidget(parent=IPRAbout)
+        self.buttons.setGeometry(QtCore.QRect(0, 200, 400, 50))
+        self.buttons.setObjectName("buttons")
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self.buttons)
+        self.horizontalLayout.setContentsMargins(9, 9, 9, 9)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.horizontalLayout.addItem(spacerItem)
+        self.line = QtWidgets.QFrame(parent=IPRAbout)
+        self.line.setGeometry(QtCore.QRect(9, 30, 380, 4))
+        self.line.setFrameShadow(QtWidgets.QFrame.Shadow.Plain)
+        self.line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
+        self.line.setObjectName("line")
+
+        self.retranslateUi(IPRAbout)
+        QtCore.QMetaObject.connectSlotsByName(IPRAbout)
+
+    def retranslateUi(self, IPRAbout):
+        _translate = QtCore.QCoreApplication.translate
+        IPRAbout.setWindowTitle(_translate("IPRAbout", "Dialog"))

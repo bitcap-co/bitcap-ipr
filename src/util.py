@@ -8,5 +8,5 @@ app_info = {
     "author": "MatthewWertman",
     "source": "https://github.com/bitcap-co/bitcap-ipr",
     "company": "Bit Capital Group",
-    "desc": "cross-platform IP Reporter\nthat listens for AntMiners, IceRivers, and Whatsminers.",
+    "desc": "cross-platform IP\nReporter that listens for AntMiners, IceRivers,\nand Whatsminers.",
 }

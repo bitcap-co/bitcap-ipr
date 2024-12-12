@@ -32,6 +32,7 @@ import ui.resources
 
 from ListenerManager import ListenerManager
 from IPRConfirmation import IPRConfirmation
+from IPRAbout import IPRAbout
 from util import curr_platform, app_info
 
 # logger
@@ -238,11 +239,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.stackedWidget.setCurrentIndex(1)
 
     def about(self):
-        QMessageBox.information(
+        aboutDialog = IPRAbout(
             self,
             "About",
-            f"{app_info['name']} is a {app_info['desc']}\nVersion {app_info['version']}\n{app_info['author']}\nPowered by {app_info['company']}\n",
+            f"{app_info['name']} is a {app_info['desc']}\nVersion {app_info['version']}\n{app_info['author']}\nPowered by {app_info['company']}\n"
         )
+        aboutDialog._acceptButton.clicked.connect(aboutDialog.window().close)
+        aboutDialog.show()
 
     def open_issues(self):
         webbrowser.open(f"{app_info['source']}/issues", new=2)
