@@ -225,6 +225,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.system_tray_menu.addSeparator()
             self.system_tray_menu.addAction("Quit", self.quit)
             self.sys_tray.setContextMenu(self.system_tray_menu)
+            if self.comboOnWindowClose.currentIndex() == 0:
+                self.sys_tray.show()
         else:
             self.sys_tray = None
 
