@@ -238,7 +238,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def about(self):
         QMessageBox.information(
             self,
-            "BitCapIPR",
+            "About",
             f"{app_info['name']} is a {app_info['desc']}\nVersion {app_info['version']}\n{app_info['author']}\nPowered by {app_info['company']}\n",
         )
 
@@ -292,7 +292,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 QMessageBox.warning(
                     self,
-                    "BitCapIPR",
+                    "Timeout",
                     "Inactive Timeout exceeded! Stopping listeners...",
                 )
             self.inactive.stop()
@@ -568,7 +568,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         outfile = QTextStream(file)
         outfile << out << "\n"
         QMessageBox.information(
-            self, "BitCapIPR", f"Successfully wrote csv to {p}."
+            self, "Export Table Data", f"Successfully wrote csv to {p}."
         )
 
     # app config view
