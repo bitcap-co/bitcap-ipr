@@ -43,6 +43,9 @@ Source: "..\dist\BitCapIPR\_internal\*"; DestDir: "{app}\_internal"; Flags: igno
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
+[InstallDelete]
+Type: filesandordirs; Name: {%USERPROFILE}\.config\ipr
+
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
