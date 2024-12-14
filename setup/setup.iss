@@ -44,7 +44,7 @@ Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [InstallDelete]
-Type: filesandordirs; Name: {%USERPROFILE}\.config\ipr
+Type: files; Name: {%LOCALAPPDATA}\BitCap\BitCapIPR\config.json
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
@@ -61,4 +61,4 @@ begin
 end;
 
 [UninstallDelete]
-Type: filesandordirs; Name: {%USERPROFILE}\.config\ipr
+Type: filesandordirs; Name: {%LOCALAPPDATA}\BitCap

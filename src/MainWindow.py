@@ -33,7 +33,7 @@ import ui.resources
 from ListenerManager import ListenerManager
 from IPRConfirmation import IPRConfirmation
 from IPRAbout import IPRAbout
-from util import curr_platform, app_info
+from util import *
 
 # logger
 logger = logging.getLogger(__name__)
@@ -156,9 +156,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionIPRStop.clicked.connect(self.stop_listen)
 
         logger.info(" read config.")
-        self.config_path = Path(Path.home(), ".config", "ipr").resolve()
-        self.config = Path(self.config_path, "config.json")
-        if os.path.exists(self.config):
+        self.config = Path(config_path, "config.json")
+        if os.path.exists(config_path):
             with open(self.config, "r") as f:
                 config = json.load(f)
             self.checkEnableSysTray.setChecked(
