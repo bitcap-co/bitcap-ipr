@@ -150,7 +150,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # app config signals
         self.checkEnableSysTray.toggled.connect(self.toggle_app_config)
         self.actionIPRCancelConfig.clicked.connect(self.update_stacked_widget)
-        self.actionIPRSaveConfig.clicked.connect(self.update_settings)
+        self.actionIPRSaveConfig.clicked.connect(self.save_settings)
         # listener signals
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
@@ -595,6 +595,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.linePasswdField.setEchoMode(QLineEdit.EchoMode.Password)
             self.actionTogglePasswd.setIcon(QIcon(":theme/icons/rc/view.png"))
 
+    def save_settings(self):
+        self.update_settings()
+        QMessageBox.information(
+            self,
+            "Configuration",
+            "Successfully wrote settings to config."
+        )
+
     def update_settings(self):
         logger.info(" write settings to config.")
         instance = {
@@ -620,11 +628,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.config_json = json.dumps(config, indent=4)
         with open(self.config, "w") as f:
             f.write(self.config_json)
-        QMessageBox.information(
-            self,
-            "Configuration",
-            "Successfully wrote settings to config."
-        )
         self.update_stacked_widget()
 
     def toggle_visibility(self):
