@@ -62,35 +62,22 @@ def launch_app():
         app.setStyleSheet(theme.read())
     # first-time launch
     logger.info("launch_app : check for existing config.")
+    with open(Path(basedir, "resources", "app", "config.json.default"), "r") as f:
+        default_config = json.load(f)
     if not os.path.exists(Path(config_path, "config.json")):
         # no config so write them on first-time launch
         logger.info("launch_app : first time launch; write default config.")
-        default_instance = {
-            "options": {
-                "alwaysOpenIPInBrowser": False,
-                "disableInactiveTimer": False,
-                "disableWarningDialog": False,
-                "autoStartOnLaunch": False,
-            },
-            "table": {
-                "enableIDTable": False,
-                "disableIPConfirmations": False,
-            },
-        }
-
-        default_config = {
-            "general": {
-                "enableSysTray": False,
-                "onWindowClose": "close"
-            },
-            "api": {
-                "defaultAPIPasswd": ""
-            },
-            "instance": default_instance
-        }
         default_config_json = json.dumps(default_config, indent=4)
         with open(Path(config_path, "config.json"), "w") as f:
             f.write(default_config_json)
+    else:
+        logger.info("launch_app : update config.")
+        with open(Path(config_path, "config.json"), "r") as f:
+            user_config = json.load(f)
+        default_config.update(user_config)
+        update_config_json = json.dumps(default_config, indent=4)
+        with open(Path(config_path, "config.json"), "w") as f:
+            f.write(update_config_json)
 
     # Here we are making sure that only one instance is running at a time
     window_key = "BitCapIPR"
