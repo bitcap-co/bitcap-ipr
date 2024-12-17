@@ -5,14 +5,15 @@ import platform
 # filepaths
 basedir = os.getcwd()
 resources = os.path.join(basedir, 'resources')
-icons = os.path.join(resources, 'app')
+app = os.path.join(resources, 'app')
+icons = os.path.join(app, 'icons')
 theme = os.path.join(basedir, 'src/ui/theme')
 
 a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[(os.path.join(icons), os.path.join('resources', 'app')), (os.path.join(theme, 'theme.qss'), os.path.join('ui', 'theme'))],
+    datas=[(os.path.join(app, 'config.json.default'), os.path.join('resources', 'app')), (os.path.join(icons), os.path.join('resources', 'app', 'icons')), (os.path.join(theme, 'theme.qss'), os.path.join('ui', 'theme'))],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
