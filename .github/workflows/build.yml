@@ -54,6 +54,7 @@ jobs:
       shell: bash
       run: |
           # package portable
+          cp ./README.md dist/BitCapIPR
           zip -r BitCapIPR-${{ github.ref_name}}-linux-AMD64-portable.zip dist/BitCapIPR
 
           # deb package
@@ -86,6 +87,7 @@ jobs:
       shell: bash
       run: |
         # package portable
+        cp ./README.md dist/BitCapIPR.app/Contents
         zip -9 -y -r BitCapIPR-${{ github.ref_name }}-macos-${{ runner.arch }}-portable.zip dist/BitCapIPR.app
 
         # create dmg setup
@@ -118,6 +120,7 @@ jobs:
       shell: pwsh
       run: |
         # package portable
+        Copy-Item .\README.md .\dist\BitCapIPR
         Compress-Archive -Path .\dist\BitCapIPR -DestinationPath BitcapIPR-${{ github.ref_name}}-win-${{ runner.arch }}-portable.zip -Force
 
         # inno setup
