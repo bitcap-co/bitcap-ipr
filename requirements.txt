@@ -6,6 +6,7 @@ colorama==0.4.6
 idna==3.10
 packaging==24.2
 pefile==2023.2.7
+platformdirs==4.3.6
 pyinstaller==6.11.1
 pyinstaller-hooks-contrib==2024.10
 PyQt6==6.4.2
