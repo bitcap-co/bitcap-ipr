@@ -1,4 +1,5 @@
 import os
+import gc
 import socket
 import time
 import json
@@ -209,6 +210,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionDisableInactiveTimer.changed.connect(self.restart_listen)
         self.actionEnableIDTable.changed.connect(self.toggle_table_settings)
         self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
+
+        # collect garbage
+        gc.collect()
 
         self.update_stacked_widget()
 
