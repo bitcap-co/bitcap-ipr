@@ -4,7 +4,7 @@ charset-normalizer==3.4.0
 click==8.1.7
 colorama==0.4.6
 idna==3.10
-packaging==24.2`
+packaging==24.2
 pefile==2023.2.7
 pyinstaller==6.11.1
 pyinstaller-hooks-contrib==2024.10
