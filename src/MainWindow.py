@@ -156,6 +156,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionIPRStop.clicked.connect(self.stop_listen)
 
         logger.info(" read config.")
+        config_path = get_config_path()
         self.config = Path(config_path, "config.json")
         if os.path.exists(config_path):
             with open(self.config, "r") as f:

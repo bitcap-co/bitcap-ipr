@@ -15,9 +15,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QIcon
 from MainWindow import MainWindow
-from util import curr_platform, config_path, log_path
-
-basedir = os.path.dirname(__file__)
+from util import *
 
 # logger
 logger = logging.getLogger(__name__)
@@ -46,6 +44,8 @@ def exception_hook(exc_type, exc_value, exc_tb):
 
 def launch_app():
     # paths
+    config_path = get_config_path()
+    log_path = get_log_path()
     os.makedirs(config_path, exist_ok=True)
     os.makedirs(log_path, exist_ok=True)
 

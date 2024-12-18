@@ -1,4 +1,6 @@
+import os
 import sys
+from pathlib import Path
 from platformdirs import *
 
 curr_platform = sys.platform
@@ -14,5 +16,18 @@ app_info = {
     "desc": "cross-platform IP\nReporter that listens for AntMiners, IceRivers,\nand Whatsminers.",
 }
 
-config_path = user_data_dir(app_info["appname"], app_info["appauthor"])
-log_path = user_log_dir(app_info["appname"], app_info["appauthor"])
+basedir = os.path.dirname(__file__)
+
+def get_config_path():
+    if os.path.exists(Path(basedir, "..", "README.md")):
+        cp = Path(basedir, "..")
+    else:
+        cp = user_data_dir(app_info["appname"], app_info["appauthor"])
+    return cp
+
+def get_log_path():
+    if os.path.exists(Path(basedir, "..", "README.md")):
+        lp = Path(basedir, "..", "Logs")
+    else:
+        lp = user_log_dir(app_info["appname"], app_info["appauthor"])
+    return lp
