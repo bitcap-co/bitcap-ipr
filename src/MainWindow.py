@@ -1,5 +1,4 @@
 import os
-import gc
 import socket
 import time
 import json
@@ -211,9 +210,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionEnableIDTable.changed.connect(self.toggle_table_settings)
         self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
 
-        # collect garbage
-        gc.collect()
-
         self.update_stacked_widget()
 
         if self.actionAutoStartOnLaunch.isChecked():
@@ -243,13 +239,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.stackedWidget.setCurrentIndex(1)
 
     def about(self):
-        aboutDialog = IPRAbout(
+        self.aboutDialog = IPRAbout(
             self,
             "About",
             f"{app_info['name']} is a {app_info['desc']}\nVersion {app_info['version']}\n{app_info['author']}\nPowered by {app_info['company']}\n"
         )
-        aboutDialog._acceptButton.clicked.connect(aboutDialog.window().close)
-        aboutDialog.show()
+        self.aboutDialog._acceptButton.clicked.connect(self.aboutDialog.window().close)
+        self.aboutDialog.show()
 
     def open_issues(self):
         webbrowser.open(f"{app_info['source']}/issues", new=2)
