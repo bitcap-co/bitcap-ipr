@@ -15,9 +15,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QIcon
 from MainWindow import MainWindow
-from util import curr_platform
-
-basedir = os.path.dirname(__file__)
+from util import *
 
 # logger
 logger = logging.getLogger(__name__)
@@ -46,8 +44,9 @@ def exception_hook(exc_type, exc_value, exc_tb):
 
 def launch_app():
     # paths
-    config_path = Path(Path.home(), ".config", "ipr").resolve()
-    log_path = Path(config_path, "logs").resolve()
+    config_path = get_config_path()
+    log_path = get_log_path()
+    os.makedirs(config_path, exist_ok=True)
     os.makedirs(log_path, exist_ok=True)
 
     logging.basicConfig(
@@ -59,39 +58,26 @@ def launch_app():
     logger.info("launch_app : start init.")
 
     app = QApplication(sys.argv)
-    with open(Path(basedir, "ui", "theme", "theme.qss").resolve()) as theme:
+    with open(Path(basedir, "resources", "app", "ui", "theme.qss")) as theme:
         app.setStyleSheet(theme.read())
     # first-time launch
     logger.info("launch_app : check for existing config.")
+    with open(Path(basedir, "resources", "app", "config.json.default"), "r") as f:
+        default_config = json.load(f)
     if not os.path.exists(Path(config_path, "config.json")):
         # no config so write them on first-time launch
         logger.info("launch_app : first time launch; write default config.")
-        default_instance = {
-            "options": {
-                "alwaysOpenIPInBrowser": False,
-                "disableInactiveTimer": False,
-                "disableWarningDialog": False,
-                "autoStartOnLaunch": False,
-            },
-            "table": {
-                "enableIDTable": False,
-                "disableIPConfirmations": False,
-            },
-        }
-
-        default_config = {
-            "general": {
-                "enableSysTray": False,
-                "onWindowClose": "close"
-            },
-            "api": {
-                "defaultAPIPasswd": ""
-            },
-            "instance": default_instance
-        }
         default_config_json = json.dumps(default_config, indent=4)
         with open(Path(config_path, "config.json"), "w") as f:
             f.write(default_config_json)
+    else:
+        logger.info("launch_app : update config.")
+        with open(Path(config_path, "config.json"), "r") as f:
+            user_config = json.load(f)
+        default_config.update(user_config)
+        update_config_json = json.dumps(default_config, indent=4)
+        with open(Path(config_path, "config.json"), "w") as f:
+            f.write(update_config_json)
 
     # Here we are making sure that only one instance is running at a time
     window_key = "BitCapIPR"

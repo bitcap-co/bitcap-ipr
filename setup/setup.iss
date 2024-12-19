@@ -23,7 +23,7 @@ DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 PrivilegesRequired=lowest
 OutputBaseFilename=BitCapIPR-setup
-SetupIconFile=..\resources\app\BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.ico
+SetupIconFile=..\resources\app\icons\BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -44,7 +44,7 @@ Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [InstallDelete]
-Type: filesandordirs; Name: {%USERPROFILE}\.config\ipr
+Type: files; Name: {%LOCALAPPDATA}\BitCap\BitCapIPR\config.json
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
@@ -61,4 +61,4 @@ begin
 end;
 
 [UninstallDelete]
-Type: filesandordirs; Name: {%USERPROFILE}\.config\ipr
+Type: filesandordirs; Name: {%LOCALAPPDATA}\BitCap

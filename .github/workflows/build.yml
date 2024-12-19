@@ -54,6 +54,7 @@ jobs:
       shell: bash
       run: |
           # package portable
+          cp ./README.md dist/BitCapIPR
           zip -r BitCapIPR-${{ github.ref_name}}-linux-AMD64-portable.zip dist/BitCapIPR
 
           # deb package
@@ -71,7 +72,7 @@ jobs:
           echo "Description: cross-platform IP Reporter that listens for AntMiners, IceRivers, and Whatsminers." >> package/DEBIAN/control
 
           cp -r dist/BitCapIPR package/opt/
-          cp resources/app/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png package/usr/share/icons/hicolor/128x128/apps/
+          cp resources/app/icons/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png package/usr/share/icons/hicolor/128x128/apps/
           cp resources/linux/ipr.desktop package/usr/share/applications
 
           find package/opt/BitCapIPR -type f -exec chmod 644 -- {} +
@@ -86,6 +87,7 @@ jobs:
       shell: bash
       run: |
         # package portable
+        cp ./README.md dist/BitCapIPR.app/Contents
         zip -9 -y -r BitCapIPR-${{ github.ref_name }}-macos-${{ runner.arch }}-portable.zip dist/BitCapIPR.app
 
         # create dmg setup
@@ -103,7 +105,7 @@ jobs:
         create-dmg \
           --volname "BitCapIPR" \
           --filesystem $DMG_FS \
-          --volicon "resources/app/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.icns" \
+          --volicon "resources/app/icons/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.icns" \
           --window-pos 200 120 \
           --window-size 600 300 \
           --icon-size 100 \
@@ -118,6 +120,7 @@ jobs:
       shell: pwsh
       run: |
         # package portable
+        Copy-Item .\README.md .\dist\BitCapIPR
         Compress-Archive -Path .\dist\BitCapIPR -DestinationPath BitcapIPR-${{ github.ref_name}}-win-${{ runner.arch }}-portable.zip -Force
 
         # inno setup

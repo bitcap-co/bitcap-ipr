@@ -1,0 +1,21 @@
+{
+    "general": {
+        "enableSysTray": false,
+        "onWindowClose": "close"
+    },
+    "api": {
+        "defaultAPIPasswd": ""
+    },
+    "instance": {
+        "options": {
+            "alwaysOpenIPInBrowser": false,
+            "disableInactiveTimer": false,
+            "disableWarningDialog": false,
+            "autoStartOnLaunch": false
+        },
+        "table": {
+            "enableIDTable": false,
+            "disableIPConfirmations": false
+        }
+    }
+}
