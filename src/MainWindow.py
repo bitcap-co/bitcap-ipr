@@ -1,13 +1,10 @@
 import os
-import socket
 import time
 import json
 import logging
 import webbrowser
 from datetime import datetime
 from pathlib import Path
-import requests
-from requests.auth import HTTPDigestAuth
 from PyQt6.QtCore import (
     Qt,
     QTimer,
@@ -33,6 +30,7 @@ import ui.resources
 from ListenerManager import ListenerManager
 from IPRConfirmation import IPRConfirmation
 from IPRAbout import IPRAbout
+from mod.api import *
 from util import *
 
 # logger
@@ -324,19 +322,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.start_listen()
 
     # confirm
-    def retrieve_iceriver_mac_addr(self, ip):
-        with requests.Session() as s:
-            host = f"http://{ip}"
-            s.head(host)
-            res = s.post(
-                url=f"{host}/user/ipconfig",
-                data={"post": 1},
-                headers={"Referer": host},
-            )
-            r_data = res.json()["data"]
-            if "mac" in r_data:
-                return r_data["mac"]
-
     def show_confirm(self):
         logger.info(" show IP confirmation.")
         if not self.actionDisableInactiveTimer.isChecked():
@@ -344,7 +329,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ip, mac, type = self.thread.data.split(",")
         logger.info(f"show_confirm : got {ip},{mac},{type} from listener thread.")
         if mac == "ice-river":
-            mac = self.retrieve_iceriver_mac_addr(ip)
+            mac = retrieve_iceriver_mac_addr(ip)
             logger.info(f"show_confirm : got iceriver mac addr : {mac}")
         if self.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
@@ -429,93 +414,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logger.info(f" get table data from ip {ip}.")
         match type:
             case "antminer":
-                logger.info("get_table_data_from_ip : get api from endpoint.")
-                uri = None
+                logger.info("get_table_data_from_ip : type is antminer; get data from endpoint.")
                 endpoints = [
                     f"http://{ip}/api/v1/info",
                     f"http://{ip}/cgi-bin/get_system_info.cgi",
                 ]
                 passwd = self.linePasswdField.text()
+                return retrieve_antminer_data(endpoints, passwd, result)
 
-                for endp in range(0, (len(endpoints))):
-                    logger.info(f"get_table_data_from_ip : authenticate endp {endp}.")
-                    r = requests.get(
-                        endpoints[endp], auth=HTTPDigestAuth("root", passwd)
-                    )
-                    # second pass fail; abort
-                    if r.status_code == 401:
-                        # first pass failed
-                        passwd = "root"
-                        r = requests.head(
-                            endpoints[endp], auth=HTTPDigestAuth("root", passwd)
-                        )
-                        # second pass fail; abort
-                        if r.status_code == 401:
-                            logger.warning("get_table_data_from_ip : authentication fail. abort!")
-                            endp = None
-                            break
-                    if r.status_code == 200:
-                        logger.info("get_table_data_from_ip : authentication success.")
-                        uri = endp
-                        break
-                logger.info("get_table_data_from_ip : parse json data.")
-                match endp:
-                    case 0:
-                        r = requests.get(endpoints[uri])
-                        r_json = r.json()
-                        if "serial" in r_json:
-                            result["serial"] = r.json()["serial"]
-                        if "miner" in r_json:
-                            result["subtype"] = r.json()["miner"][9:]
-                    case 1:
-                        r = requests.get(
-                            endpoints[uri], auth=HTTPDigestAuth("root", passwd)
-                        )
-                        r_json = r.json()
-                        if "serinum" in r_json:
-                            result["serial"] = r.json()["serinum"]
-                        if "minertype" in r_json:
-                            result["subtype"] = r.json()["minertype"][9:]
-                    case None:
-                        # failed to authenticate
-                        result["serial"] = "Failed auth"
-                        result["subtype"] = "Failed auth"
-                return result
             case "iceriver":
                 logger.info("get_table_data_from_ip : type is iceriver; start session.")
-                with requests.Session() as s:
-                    host = f"http://{ip}"
-                    s.head(host)
-                    res = s.post(
-                        url=f"{host}/user/userpanel",
-                        data={"post": 4},
-                        headers={"Referer": host},
-                    )
-                    logger.info("get_table_data_from_ip : parse json data.")
-                    r_data = res.json()["data"]
-                    if "model" in r_data:
-                        if r_data["model"] == "none":
-                            if "softver1" in r_data:
-                                model = "".join(r_data["softver1"].split("_")[-2:])
-                                result["subtype"] = model[model.rfind("ks"):model.rfind("miner")].upper()
-                        else:
-                            result["subtype"] = r_data["model"]
-                    return result
+                return retreive_iceriver_data(ip, result)
             case "whatsminer":
                 logger.info("get_table_data_from_ip : type is whatsminer; send json command.")
-                json_cmd = {"cmd": "devdetails"}
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.connect((ip, 4028))
-                    s.send(json.dumps(json_cmd).encode("utf-8"))
-                    data = s.recv(4096)
-                    logger.info("get_table_data_from_ip : parse json data.")
-                    try:
-                        r_json = json.loads(data.decode())
-                        if "Model" in r_json["DEVDETAILS"][0]:
-                            result["subtype"] = r_json["DEVDETAILS"][0]["Model"]
-                    except Exception:
-                        pass
-                return result
+                return retreive_whatsminer_data(ip, {"cmd": "devdetails"}, result)
 
     def toggle_table_settings(self):
         if self.actionEnableIDTable.isChecked():
