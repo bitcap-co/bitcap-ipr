@@ -40,10 +40,10 @@ class IPRAbout(QDialog, Ui_IPRAbout):
 
         # central widget
         central_widget = self.centralwidget.layout()
-        self._logo.setFixedSize(QSize(125, 125))
+        self._logo.setFixedSize(QSize(150, 150))
         self._logo.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
         central_widget.addWidget(self._logo)
-        self._textLabel.setMargin(5)
+        self._textLabel.setMargin(20)
         self._textLabel.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         self._textLabel.setText(self._about_text)
         central_widget.addWidget(self._textLabel)
