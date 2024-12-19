@@ -43,6 +43,7 @@ class IPRAbout(QDialog, Ui_IPRAbout):
         self._logo.setFixedSize(QSize(150, 150))
         self._logo.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
         central_widget.addWidget(self._logo)
+        self._textLabel.setWordWrap(True)
         self._textLabel.setMargin(5)
         self._textLabel.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         self._textLabel.setText(self._about_text)
