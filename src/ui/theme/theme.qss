@@ -316,6 +316,77 @@ QLineEdit:focus {
   border: 1px solid #92beff;
 }
 
+/* QTabWiget --------------------------------------------------------------
+
+https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qtabwidget-and-qtabbar
+
+--------------------------------------------------------------------------- */
+QTabWidget {
+  padding: 2px;
+  selection-background-color: #525252;
+}
+
+QTabWidget QWidget {
+  /* Fixes #189 */
+  /* border-radius: 4px; */
+  color: #FFFFFF;
+}
+
+QTabWidget::pane {
+  border: 1px solid #525252;
+  margin: 0px;
+  /* Fixes double border inside pane with pyqt5 */
+  padding: 0px;
+}
+
+/* QTabBar ----------------------------------------------------------------
+
+https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qtabwidget-and-qtabbar
+
+--------------------------------------------------------------------------- */
+QTabBar, QDockWidget QTabBar {
+  qproperty-drawBase: 0;
+  border-radius: 4px;
+  margin: 0px;
+  padding: 2px;
+  border: 0;
+  /* left: 5px; move to the right by 5px - removed for fix */
+}
+
+QTabBar::tab, QDockWidget QTabBar::tab {
+  /* !selected and disabled ----------------------------------------- */
+  /* selected ------------------------------------------------------- */
+}
+
+QTabBar::tab:top:!selected, QDockWidget QTabBar::tab:top:!selected {
+  border-bottom: 2px solid #60798B;
+  margin-top: 2px;
+}
+
+QTabBar::tab:top, QDockWidget QTabBar::tab:top {
+  background-color: #383e46;
+  margin-left: 2px;
+  padding-left: 8px;
+  padding-right: 8px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  min-width: 5px;
+  border-bottom: 3px solid #383e46;
+}
+
+QTabBar::tab:top:selected, QDockWidget QTabBar::tab:top:selected {
+  background-color: #383e46;
+  border-bottom: 3px solid #3183ff;
+}
+
+QTabBar::tab:top:!selected:hover, QDockWidget QTabBar::tab:top:!selected:hover {
+  border: 1px solid #5c9dff;
+  border-bottom: 3px solid #5c9dff;
+  /* Fixes spyder-ide/spyder#9766 and #243 */
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
 QFrame[frameShape="4"] {
   color: #383e46;
 }
