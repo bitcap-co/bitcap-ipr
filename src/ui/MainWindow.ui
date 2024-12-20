@@ -498,6 +498,11 @@
                      </property>
                      <item>
                       <property name="text">
+                       <string>--</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
                        <string>Close</string>
                       </property>
                      </item>
