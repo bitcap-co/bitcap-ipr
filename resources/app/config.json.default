@@ -6,6 +6,11 @@
     "api": {
         "defaultAPIPasswd": ""
     },
+    "logs": {
+        "logLevel": 1,
+        "flushLogs": false,
+        "flushInterval": 0
+    },
     "instance": {
         "options": {
             "alwaysOpenIPInBrowser": false,

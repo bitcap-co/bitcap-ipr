@@ -167,6 +167,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
             self.linePasswdField.setText(config["api"]["defaultAPIPasswd"])
 
+            self.comboLogLevel.setCurrentIndex(
+                config["logs"]["logLevel"]
+            )
+            self.checkFlushLogs.setChecked(
+                config["logs"]["flushLogs"]
+            )
+            self.comboFlushInterval.setCurrentIndex(
+                config["logs"]["flushInterval"]
+            )
+
             self.actionAlwaysOpenIPInBrowser.setChecked(
                 config["instance"]["options"]["alwaysOpenIPInBrowser"]
             )
@@ -534,6 +544,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "onWindowClose": self.comboOnWindowClose.currentIndex()
             },
             "api": {"defaultAPIPasswd": self.linePasswdField.text()},
+            "logs": {
+                "logLevel": self.comboLogLevel.currentIndex(),
+                "flushLogs": self.checkFlushLogs.isChecked(),
+                "flushInterval": self.comboFlushInterval.currentIndex()
+            },
             "instance": instance,
         }
         self.config_json = json.dumps(config, indent=4)
