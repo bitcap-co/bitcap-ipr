@@ -58,7 +58,7 @@ def launch_app():
     logger.info("launch_app : start init.")
 
     app = QApplication(sys.argv)
-    with open(Path(basedir, "resources", "app", "ui", "theme.qss")) as theme:
+    with open(Path(basedir, "ui", "theme", "theme.qss")) as theme:
         app.setStyleSheet(theme.read())
     # first-time launch
     logger.info("launch_app : check for existing config.")

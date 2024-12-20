@@ -13,7 +13,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[(os.path.join(app, 'config.json.default'), os.path.join('resources', 'app')), (os.path.join(icons), os.path.join('resources', 'app', 'icons')), (os.path.join(theme, 'theme.qss'), os.path.join('resources', 'app', 'ui'))],
+    datas=[(os.path.join(app, 'config.json.default'), os.path.join('resources', 'app')), (os.path.join(icons), os.path.join('resources', 'app', 'icons')), (os.path.join(theme, 'theme.qss'), os.path.join('ui', 'theme'))],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
