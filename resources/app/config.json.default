@@ -1,7 +1,7 @@
 {
     "general": {
         "enableSysTray": false,
-        "onWindowClose": "close"
+        "onWindowClose": 0
     },
     "api": {
         "defaultAPIPasswd": ""

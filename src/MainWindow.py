@@ -162,9 +162,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.checkEnableSysTray.setChecked(
                 config["general"]["enableSysTray"]
             )
-            self.onWindowCloseIndex = {"close": 0, "minimizeToTray": 1}
             self.comboOnWindowClose.setCurrentIndex(
-                self.onWindowCloseIndex[config["general"]["onWindowClose"]]
+                config["general"]["onWindowClose"]
             )
             self.linePasswdField.setText(config["api"]["defaultAPIPasswd"])
 
@@ -532,7 +531,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         config = {
             "general": {
                 "enableSysTray": self.checkEnableSysTray.isChecked(),
-                "onWindowClose": [x for x, y in self.onWindowCloseIndex.items() if y == self.comboOnWindowClose.currentIndex()][0]
+                "onWindowClose": self.comboOnWindowClose.currentIndex()
             },
             "api": {"defaultAPIPasswd": self.linePasswdField.text()},
             "instance": instance,
