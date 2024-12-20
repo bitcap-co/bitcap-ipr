@@ -326,7 +326,7 @@ class Ui_MainWindow(object):
 class Ui_IPRConfirmation(object):
     def setupUi(self, IPRConfirmation):
         IPRConfirmation.setObjectName("IPRConfirmation")
-        IPRConfirmation.resize(350, 260)
+        IPRConfirmation.setFixedSize(QtCore.QSize(350, 260))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
