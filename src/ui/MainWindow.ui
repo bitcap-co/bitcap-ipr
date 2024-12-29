@@ -409,6 +409,9 @@
                 </item>
                 <item>
                  <widget class="QComboBox" name="comboLogLevel">
+                  <property name="toolTip">
+                   <string>Effective on next launch</string>
+                  </property>
                   <property name="currentIndex">
                    <number>1</number>
                   </property>

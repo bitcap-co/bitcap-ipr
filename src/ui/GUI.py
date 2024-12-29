@@ -341,6 +341,7 @@ class Ui_MainWindow(object):
         self.tabWidget.setTabToolTip(self.tabWidget.indexOf(self.general), _translate("MainWindow", "General and API settings"))
         self.label_5.setText(_translate("MainWindow", "Log Level: "))
         self.label_5.setProperty("StyleClass", _translate("MainWindow", "setText"))
+        self.comboLogLevel.setToolTip(_translate("MainWindow", "Effective on next launch"))
         self.comboLogLevel.setItemText(0, _translate("MainWindow", "DEBUG"))
         self.comboLogLevel.setItemText(1, _translate("MainWindow", "INFO"))
         self.comboLogLevel.setItemText(2, _translate("MainWindow", "WARNING"))
