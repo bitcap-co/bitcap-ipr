@@ -78,6 +78,9 @@ def launch_app():
         update_config_json = json.dumps(default_config, indent=4)
         with open(Path(config_path, "config.json"), "w") as f:
             f.write(update_config_json)
+        # set log level from config
+        logger.info(f"launch_app : set logger to level {user_config['logs']['logLevel']}.")
+        logger.manager.root.setLevel(user_config["logs"]["logLevel"])
 
     # Here we are making sure that only one instance is running at a time
     window_key = "BitCapIPR"

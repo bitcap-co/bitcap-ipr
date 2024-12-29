@@ -170,7 +170,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.linePasswdField.setText(config["api"]["defaultAPIPasswd"])
 
             # logs
-            self.comboLogLevel.setCurrentIndex(
+            self.comboLogLevel.setCurrentText(
                 config["logs"]["logLevel"]
             )
             self.lineMaxLogSize.setText(config["logs"]["maxLogSize"])
@@ -550,7 +550,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             },
             "api": {"defaultAPIPasswd": self.linePasswdField.text()},
             "logs": {
-                "logLevel": self.comboLogLevel.currentIndex(),
+                "logLevel": self.comboLogLevel.currentText(),
                 "maxLogSize": self.lineMaxLogSize.text(),
                 "onMaxLogSize": self.comboOnMaxLogSize.currentIndex(),
                 "flushInterval": self.comboFlushInterval.currentIndex()
