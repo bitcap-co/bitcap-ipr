@@ -159,24 +159,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if os.path.exists(config_path):
             with open(self.config, "r") as f:
                 config = json.load(f)
+            # general
             self.checkEnableSysTray.setChecked(
                 config["general"]["enableSysTray"]
             )
             self.comboOnWindowClose.setCurrentIndex(
                 config["general"]["onWindowClose"]
             )
+            # api
             self.linePasswdField.setText(config["api"]["defaultAPIPasswd"])
 
+            # logs
             self.comboLogLevel.setCurrentIndex(
                 config["logs"]["logLevel"]
             )
-            self.checkFlushLogs.setChecked(
-                config["logs"]["flushLogs"]
+            self.lineMaxLogSize.setText(config["logs"]["maxLogSize"])
+            self.comboOnMaxLogSize.setCurrentIndex(
+                config["logs"]["onMaxLogSize"]
             )
             self.comboFlushInterval.setCurrentIndex(
                 config["logs"]["flushInterval"]
             )
 
+            # instance
             self.actionAlwaysOpenIPInBrowser.setChecked(
                 config["instance"]["options"]["alwaysOpenIPInBrowser"]
             )
@@ -546,7 +551,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "api": {"defaultAPIPasswd": self.linePasswdField.text()},
             "logs": {
                 "logLevel": self.comboLogLevel.currentIndex(),
-                "flushLogs": self.checkFlushLogs.isChecked(),
+                "maxLogSize": self.lineMaxLogSize.text(),
+                "onMaxLogSize": self.comboOnMaxLogSize.currentIndex(),
                 "flushInterval": self.comboFlushInterval.currentIndex()
             },
             "instance": instance,

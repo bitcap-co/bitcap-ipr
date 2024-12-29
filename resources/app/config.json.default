@@ -8,7 +8,8 @@
     },
     "logs": {
         "logLevel": 1,
-        "flushLogs": false,
+        "maxLogSize": "1024",
+        "onMaxLogSize": 0,
         "flushInterval": 0
     },
     "instance": {

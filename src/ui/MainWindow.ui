@@ -128,7 +128,7 @@
            <x>0</x>
            <y>0</y>
            <width>483</width>
-           <height>306</height>
+           <height>308</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -390,154 +390,275 @@
             </attribute>
             <layout class="QVBoxLayout" name="verticalLayout_4">
              <item>
-              <widget class="QGroupBox" name="iprLog">
-               <property name="title">
-                <string>Log Settings</string>
-               </property>
-               <layout class="QVBoxLayout" name="verticalLayout_6">
+              <widget class="QWidget" name="hwrapper" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_7">
                 <item>
-                 <widget class="QWidget" name="hwrapper" native="true">
-                  <layout class="QHBoxLayout" name="horizontalLayout_7">
-                   <item>
-                    <widget class="QLabel" name="label_5">
-                     <property name="font">
-                      <font>
-                       <pointsize>10</pointsize>
-                      </font>
-                     </property>
-                     <property name="text">
-                      <string>Log Level: </string>
-                     </property>
-                     <property name="StyleClass" stdset="0">
-                      <string>setText</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QComboBox" name="comboLogLevel">
-                     <property name="currentIndex">
-                      <number>1</number>
-                     </property>
-                     <item>
-                      <property name="text">
-                       <string>DEBUG</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>INFO</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>WARNING</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>CRITICAL</string>
-                      </property>
-                     </item>
-                    </widget>
-                   </item>
-                   <item>
-                    <spacer name="horizontalSpacer_2">
-                     <property name="orientation">
-                      <enum>Qt::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>40</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QCheckBox" name="checkFlushLogs">
+                 <widget class="QLabel" name="label_5">
+                  <property name="font">
+                   <font>
+                    <pointsize>10</pointsize>
+                   </font>
+                  </property>
                   <property name="text">
-                   <string>Flush Logs</string>
+                   <string>Log Level: </string>
+                  </property>
+                  <property name="StyleClass" stdset="0">
+                   <string>setText</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QWidget" name="hwrapper_4" native="true">
-                  <layout class="QHBoxLayout" name="horizontalLayout_9">
-                   <item>
-                    <widget class="QLabel" name="label_6">
-                     <property name="font">
-                      <font>
-                       <pointsize>10</pointsize>
-                      </font>
-                     </property>
-                     <property name="text">
-                      <string>Flush Interval: </string>
-                     </property>
-                     <property name="StyleClass" stdset="0">
-                      <string>setText</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="label_7">
-                     <property name="text">
-                      <string>Every</string>
-                     </property>
-                     <property name="StyleClass" stdset="0">
-                      <string>setText</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QComboBox" name="comboFlushInterval">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <item>
-                      <property name="text">
-                       <string>--</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>Close</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>Day</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>Week</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>Month</string>
-                      </property>
-                     </item>
-                    </widget>
-                   </item>
-                   <item>
-                    <spacer name="horizontalSpacer_5">
-                     <property name="orientation">
-                      <enum>Qt::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>40</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                  </layout>
+                 <widget class="QComboBox" name="comboLogLevel">
+                  <property name="currentIndex">
+                   <number>1</number>
+                  </property>
+                  <item>
+                   <property name="text">
+                    <string>DEBUG</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>INFO</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>WARNING</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>ERROR</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>CRITICAL</string>
+                   </property>
+                  </item>
                  </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="hwrapper_5" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_10">
+                <property name="leftMargin">
+                 <number>6</number>
+                </property>
+                <property name="topMargin">
+                 <number>6</number>
+                </property>
+                <property name="rightMargin">
+                 <number>6</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>6</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="label_7">
+                  <property name="font">
+                   <font>
+                    <pointsize>10</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Max Log Size:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="lineMaxLogSize">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>70</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>10</pointsize>
+                   </font>
+                  </property>
+                  <property name="inputMask">
+                   <string>9999</string>
+                  </property>
+                  <property name="text">
+                   <string>1024</string>
+                  </property>
+                  <property name="echoMode">
+                   <enum>QLineEdit::Normal</enum>
+                  </property>
+                  <property name="cursorPosition">
+                   <number>0</number>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_9">
+                  <property name="font">
+                   <font>
+                    <pointsize>10</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>KB</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_6">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="hwrapper_6" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_11">
+                <property name="leftMargin">
+                 <number>6</number>
+                </property>
+                <property name="topMargin">
+                 <number>6</number>
+                </property>
+                <property name="rightMargin">
+                 <number>6</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>6</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="label_8">
+                  <property name="font">
+                   <font>
+                    <pointsize>10</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>On Max Log Size:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="comboOnMaxLogSize">
+                  <item>
+                   <property name="text">
+                    <string>Flush</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Rotate</string>
+                   </property>
+                  </item>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_3">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="hwrapper_4" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_9">
+                <property name="leftMargin">
+                 <number>6</number>
+                </property>
+                <property name="topMargin">
+                 <number>6</number>
+                </property>
+                <property name="rightMargin">
+                 <number>6</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>6</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="label_6">
+                  <property name="font">
+                   <font>
+                    <pointsize>10</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Flush Interval: </string>
+                  </property>
+                  <property name="StyleClass" stdset="0">
+                   <string>setText</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="comboFlushInterval">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <item>
+                   <property name="text">
+                    <string>On Log Size</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>Close</string>
+                   </property>
+                  </item>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_5">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
                 </item>
                </layout>
               </widget>
