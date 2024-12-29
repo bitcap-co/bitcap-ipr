@@ -504,6 +504,9 @@
                     <pointsize>10</pointsize>
                    </font>
                   </property>
+                  <property name="toolTip">
+                   <string>Set max size of log file; Max limit 4096kb</string>
+                  </property>
                   <property name="inputMask">
                    <string>9999</string>
                   </property>
@@ -575,6 +578,9 @@
                 </item>
                 <item>
                  <widget class="QComboBox" name="comboOnMaxLogSize">
+                  <property name="toolTip">
+                   <string>Flush (delete) or Rotate (keep) log</string>
+                  </property>
                   <item>
                    <property name="text">
                     <string>Flush</string>
@@ -637,6 +643,9 @@
                  <widget class="QComboBox" name="comboFlushInterval">
                   <property name="enabled">
                    <bool>true</bool>
+                  </property>
+                  <property name="toolTip">
+                   <string>Change when to flush log</string>
                   </property>
                   <item>
                    <property name="text">
