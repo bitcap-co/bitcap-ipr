@@ -30,8 +30,19 @@ import ui.resources
 from ListenerManager import ListenerManager
 from IPRConfirmation import IPRConfirmation
 from IPRAbout import IPRAbout
-from mod.api import *
-from util import *
+from mod.api import (
+    retrieve_iceriver_mac_addr,
+    retrieve_antminer_data,
+    retrieve_iceriver_data,
+    retrieve_whatsminer_data,
+)
+from util import (
+    CURR_PLATFORM,
+    APP_INFO,
+    MAX_LOG_SIZE_LIMIT,
+    get_config_path,
+    get_config,
+)
 
 # logger
 logger = logging.getLogger(__name__)
@@ -436,10 +447,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             case "iceriver":
                 logger.info("get_table_data_from_ip : type is iceriver; start session.")
-                return retreive_iceriver_data(ip, result)
+                return retrieve_iceriver_data(ip, result)
             case "whatsminer":
                 logger.info("get_table_data_from_ip : type is whatsminer; send json command.")
-                return retreive_whatsminer_data(ip, {"cmd": "devdetails"}, result)
+                return retrieve_whatsminer_data(ip, {"cmd": "devdetails"}, result)
 
     def toggle_table_settings(self):
         if self.actionEnableIDTable.isChecked():
@@ -583,10 +594,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for c in self.children:
             c.close()
 
-    def close_root_logger(self, l):
-        for handler in l.root.handlers:
+    def close_root_logger(self, log):
+        for handler in log.root.handlers:
             handler.close()
-            l.root.removeHandler(handler)
+            log.root.removeHandler(handler)
 
     def quit(self):
         if not self.isVisible():

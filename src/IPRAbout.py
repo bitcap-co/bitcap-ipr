@@ -5,6 +5,7 @@ from ui.widgets.SvgLabel import SvgLabel
 from ui.GUI import Ui_IPRAbout
 from util import CURR_PLATFORM
 
+
 class IPRAbout(QDialog, Ui_IPRAbout):
     def __init__(self, parent: QWidget, title: str, text: str):
         super().__init__(flags=Qt.WindowType.FramelessWindowHint)

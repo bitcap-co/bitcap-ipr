@@ -32,7 +32,7 @@ def get_config_path():
     return cp
 
 
-def get_config(cp : Path):
+def get_config(cp: Path):
     with open(cp, "r") as f:
         config = json.load(f)
     return config
@@ -46,7 +46,7 @@ def get_log_path():
     return lp
 
 
-def flush_log(p : Path):
+def flush_log(p: Path):
     with open(p, "r+") as f:
         f.truncate(0)
         f.seek(0)

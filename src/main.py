@@ -16,7 +16,16 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QIcon
 from MainWindow import MainWindow
-from util import *
+from util import (
+    BASEDIR,
+    CURR_PLATFORM,
+    MAX_ROTATE_LOG_FILES,
+    get_default_config,
+    get_config_path,
+    get_log_path,
+    get_config,
+    flush_log,
+)
 
 # logger
 logger = logging.getLogger(__name__)

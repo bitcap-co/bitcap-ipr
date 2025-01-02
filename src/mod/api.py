@@ -6,7 +6,8 @@ from requests.auth import HTTPDigestAuth
 
 logger = logging.getLogger(__name__)
 
-def retrieve_iceriver_mac_addr(ip_addr : str):
+
+def retrieve_iceriver_mac_addr(ip_addr: str):
     with requests.Session() as s:
         host = f"http://{ip_addr}"
         s.head(host)
@@ -19,7 +20,8 @@ def retrieve_iceriver_mac_addr(ip_addr : str):
         if "mac" in r_json:
             return r_json["mac"]
 
-def retrieve_antminer_data(endpoints : list, login_passwd : str, obj : dict) -> dict:
+
+def retrieve_antminer_data(endpoints: list, login_passwd: str, obj: dict) -> dict:
     for endp in range(0, (len(endpoints))):
         logger.info(f"retrieve_antminer_data : authenticate endp {endp}.")
         r = requests.get(
@@ -64,7 +66,8 @@ def retrieve_antminer_data(endpoints : list, login_passwd : str, obj : dict) -> 
             obj["subtype"] = "Failed auth"
     return obj
 
-def retreive_iceriver_data(ip_addr : str, obj: dict) -> dict:
+
+def retrieve_iceriver_data(ip_addr: str, obj: dict) -> dict:
     with requests.Session() as s:
         host = f"http://{ip_addr}"
         s.head(host)
@@ -84,7 +87,8 @@ def retreive_iceriver_data(ip_addr : str, obj: dict) -> dict:
                 obj["subtype"] = r_json["model"]
         return obj
 
-def retreive_whatsminer_data(ip_addr : str, cmd : dict, obj: dict) -> dict:
+
+def retrieve_whatsminer_data(ip_addr: str, cmd: dict, obj: dict) -> dict:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((ip_addr, 4028))
         s.send(json.dumps(cmd).encode("utf-8"))
