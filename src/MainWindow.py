@@ -154,51 +154,49 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionIPRStop.clicked.connect(self.stop_listen)
 
         logger.info(" read config.")
-        config_path = get_config_path()
-        self.config = Path(config_path, "config.json")
-        if os.path.exists(config_path):
-            with open(self.config, "r") as f:
-                config = json.load(f)
+        self.config_path = get_config_path()
+        if os.path.exists(self.config_path):
+            self.config = get_config(Path(self.config_path, "config.json"))
             # general
             self.checkEnableSysTray.setChecked(
-                config["general"]["enableSysTray"]
+                self.config["general"]["enableSysTray"]
             )
             self.comboOnWindowClose.setCurrentIndex(
-                config["general"]["onWindowClose"]
+                self.config["general"]["onWindowClose"]
             )
             # api
-            self.linePasswdField.setText(config["api"]["defaultAPIPasswd"])
+            self.linePasswdField.setText(self.config["api"]["defaultAPIPasswd"])
 
             # logs
             self.comboLogLevel.setCurrentText(
-                config["logs"]["logLevel"]
+                self.config["logs"]["logLevel"]
             )
-            self.lineMaxLogSize.setText(config["logs"]["maxLogSize"])
+            self.lineMaxLogSize.setText(self.config["logs"]["maxLogSize"])
             self.comboOnMaxLogSize.setCurrentIndex(
-                config["logs"]["onMaxLogSize"]
+                self.config["logs"]["onMaxLogSize"]
             )
             self.comboFlushInterval.setCurrentIndex(
-                config["logs"]["flushInterval"]
+                self.config["logs"]["flushInterval"]
             )
 
             # instance
             self.actionAlwaysOpenIPInBrowser.setChecked(
-                config["instance"]["options"]["alwaysOpenIPInBrowser"]
+                self.config["instance"]["options"]["alwaysOpenIPInBrowser"]
             )
             self.actionDisableInactiveTimer.setChecked(
-                config["instance"]["options"]["disableInactiveTimer"]
+                self.config["instance"]["options"]["disableInactiveTimer"]
             )
             self.actionDisableWarningDialog.setChecked(
-                config["instance"]["options"]["disableWarningDialog"]
+                self.config["instance"]["options"]["disableWarningDialog"]
             )
             self.actionAutoStartOnLaunch.setChecked(
-                config["instance"]["options"]["autoStartOnLaunch"]
+                self.config["instance"]["options"]["autoStartOnLaunch"]
             )
             self.actionEnableIDTable.setChecked(
-                config["instance"]["table"]["enableIDTable"]
+                self.config["instance"]["table"]["enableIDTable"]
             )
             self.actionDisableIPConfirmations.setChecked(
-                config["instance"]["table"]["disableIPConfirmations"]
+                self.config["instance"]["table"]["disableIPConfirmations"]
             )
 
         if self.actionEnableIDTable.isChecked():
@@ -558,7 +556,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "instance": instance,
         }
         self.config_json = json.dumps(config, indent=4)
-        with open(self.config, "w") as f:
+        with open(Path(self.config_path, "config.json"), "w") as f:
             f.write(self.config_json)
         self.update_stacked_widget()
 
