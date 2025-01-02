@@ -1,8 +1,8 @@
 import os
 import sys
 import json
-import glob
 import logging
+import logging.handlers
 import traceback
 from pathlib import Path
 
@@ -50,13 +50,6 @@ def init_app():
     os.makedirs(config_path, exist_ok=True)
     os.makedirs(log_path, exist_ok=True)
 
-    logging.basicConfig(
-        format="%(asctime)s - %(levelname)s - %(name)s:%(message)s",
-        datefmt="%m/%d/%Y %I:%M:%S%p",
-        filename=f"{Path(log_path, 'ipr.log.0')}",
-        level=logging.INFO,
-    )
-
     config = get_config(default_config)
     if not os.path.exists(Path(config_path, "config.json")):
         config_json = json.dumps(config, indent=4)
@@ -69,28 +62,37 @@ def init_app():
         with open(Path(config_path, "config.json"), "w") as f:
             f.write(config_json)
 
+    # init logger
     max_log_size = int(config["logs"]["maxLogSize"]) * 1000
     match config["logs"]["onMaxLogSize"]:
         case 0:
-            curr_log_size = os.stat(Path(log_path, "ipr.log.0")).st_size
-            if curr_log_size >= max_log_size:
-                flush_log(Path(log_path, "ipr.log.0"))
+            def namer(name):
+                return name
+
+            def rotator(source, dest):
+                # override rotator to clear log instead
+                flush_log(Path(log_path, "ipr.log"))
+
+            rfh = logging.handlers.RotatingFileHandler(
+                Path(log_path, "ipr.log"),
+                maxBytes=max_log_size,
+                backupCount=1
+            )
+            rfh.rotator = rotator
+            rfh.namer = namer
         case 1:
-            latest_log = max(glob.glob(f"{log_path}/*"), key=os.path.getmtime)
-            curr_log_size = os.stat(latest_log).st_size
-            if curr_log_size >= max_log_size:
-                log_index = int(os.path.basename(latest_log).split(".")[-1]) + 1
-                if int(log_index) == MAX_ROTATE_LOG_FILES:
-                    log_index = 0
-                if os.path.exists(Path(log_path, f"ipr.log.{log_index}")):
-                    flush_log(Path(log_path, f"ipr.log.{log_index}"))
-                logging.basicConfig(
-                    format="%(asctime)s - %(levelname)s - %(name)s:%(message)s",
-                    datefmt="%m/%d/%Y %I:%M:%S%p",
-                    filename=f"{Path(log_path, f'ipr.log.{log_index}')}",
-                    level=logging.INFO,
-                    force=True
-                )
+            rfh = logging.handlers.RotatingFileHandler(
+                Path(log_path, "ipr.log"),
+                maxBytes=max_log_size,
+                backupCount=MAX_ROTATE_LOG_FILES
+            )
+
+    logging.basicConfig(
+        format="%(asctime)s - %(levelname)s - %(name)s:%(message)s",
+        datefmt="%m/%d/%Y %I:%M:%S%p",
+        level=logging.INFO,
+        handlers=[rfh]
+    )
 
     logger.manager.root.setLevel(config["logs"]["logLevel"])
     logger.info(f"init_app : set logger to log level {config['logs']['logLevel']}")
