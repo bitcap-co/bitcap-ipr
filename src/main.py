@@ -44,7 +44,7 @@ def exception_hook(exc_type, exc_value, exc_tb):
     QMessageBox.critical(
         None,
         "BitCap IPR - Critical Error",
-        "Application has encounter an error!\nSee output log.",
+        f"Application has encounter an error!\nSee output log at {Path(get_log_path(), 'ipr.log')}.",
     )
     tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
     logger.critical("exception_hook : exception caught!")
@@ -104,7 +104,7 @@ def init_app():
     )
 
     logger.manager.root.setLevel(config["logs"]["logLevel"])
-    logger.info(f"init_app : set logger to log level {config['logs']['logLevel']}")
+    logger.info(f"init_app : set logger to log level {config['logs']['logLevel']}.")
 
 
 def launch_app():
