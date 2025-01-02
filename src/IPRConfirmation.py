@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QWidget
 
 from ui.widgets.TitleBar import TitleBar
 from ui.GUI import Ui_IPRConfirmation
-from util import curr_platform
+from util import CURR_PLATFORM
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class IPRConfirmation(QWidget, Ui_IPRConfirmation):
         self.setupUi(self)
 
         # title bar
-        if curr_platform == "darwin":
+        if CURR_PLATFORM == "darwin":
             self.title_bar = TitleBar(self, "IP Confirmation", ['close', 'min'], style="mac")
         else:
             self.title_bar = TitleBar(self, "IP Confirmation", ['min', 'close'])

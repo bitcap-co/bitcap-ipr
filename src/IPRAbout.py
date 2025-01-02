@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import QDialog, QWidget, QPushButton, QLabel
 from ui.widgets.TitleBar import TitleBar
 from ui.widgets.SvgLabel import SvgLabel
 from ui.GUI import Ui_IPRAbout
-from util import curr_platform
+from util import CURR_PLATFORM
 
 class IPRAbout(QDialog, Ui_IPRAbout):
     def __init__(self, parent: QWidget, title: str, text: str):
@@ -29,7 +29,7 @@ class IPRAbout(QDialog, Ui_IPRAbout):
     def __initUI(self):
         self.setWindowTitle(self._title_str)
         # title bar
-        if curr_platform == "darwin":
+        if CURR_PLATFORM == "darwin":
             self.title_bar = TitleBar(self, self._title_str, ['close'], style="mac")
         else:
             self.title_bar = TitleBar(self, self._title_str, ['close'])

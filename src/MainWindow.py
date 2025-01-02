@@ -44,7 +44,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
 
         # title bar
-        if curr_platform == "darwin":
+        if CURR_PLATFORM == "darwin":
             self.title_bar = TitleBar(self, "BitCap IPReporter", ['close', 'min'], style="mac")
         else:
             self.title_bar = TitleBar(self, "BitCap IPReporter", ['min', 'close'])
@@ -73,7 +73,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionReportIssue.setToolTip("Report a new issue on GitHub")
         self.actionSourceCode = self.menuHelp.addAction("Source Code")
         self.actionSourceCode.setToolTip("Opens the GitHub repo in browser")
-        self.actionVersion = self.menuHelp.addAction(f"Version {app_info['version']}")
+        self.actionVersion = self.menuHelp.addAction(f"Version {APP_INFO['version']}")
         self.actionVersion.setEnabled(False)
 
         # options
@@ -254,16 +254,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.aboutDialog = IPRAbout(
             self,
             "About",
-            f"{app_info['name']} is a {app_info['desc']}\nVersion {app_info['version']}\n{app_info['author']}\nPowered by {app_info['company']}\n"
+            f"{APP_INFO['name']} is a {APP_INFO['desc']}\nVersion {APP_INFO['version']}\n{APP_INFO['author']}\nPowered by {APP_INFO['company']}\n"
         )
         self.aboutDialog._acceptButton.clicked.connect(self.aboutDialog.window().close)
         self.aboutDialog.show()
 
     def open_issues(self):
-        webbrowser.open(f"{app_info['source']}/issues", new=2)
+        webbrowser.open(f"{APP_INFO['source']}/issues", new=2)
 
     def open_source(self):
-        webbrowser.open(f"{app_info['source']}", new=2)
+        webbrowser.open(f"{APP_INFO['source']}", new=2)
 
     def open_dashboard(self, ip):
         webbrowser.open("http://{0}".format(ip), new=2)
@@ -379,7 +379,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.children.append(confirm)
             if not self.isVisible():
                 self.sys_tray.messageClicked.connect(lambda: self.show_confirm_from_sys_tray(confirm))
-                if curr_platform == "linux":
+                if CURR_PLATFORM == "linux":
                     self.sys_tray.showMessage(
                         "Received confirmation",
                         "Click to show.",
