@@ -23,7 +23,7 @@ def retrieve_iceriver_mac_addr(ip_addr: str):
 
 def retrieve_antminer_data(endpoints: list, login_passwd: str, obj: dict) -> dict:
     for endp in range(0, (len(endpoints))):
-        logger.info(f"retrieve_antminer_data : authenticate endp {endp}.")
+        logger.debug(f"retrieve_antminer_data : authenticate endp {endp}.")
         r = requests.get(
             endpoints[endp], auth=HTTPDigestAuth("root", login_passwd)
         )
@@ -40,9 +40,9 @@ def retrieve_antminer_data(endpoints: list, login_passwd: str, obj: dict) -> dic
                 endp = -1
                 break
         if r.status_code == 200:
-            logger.info("retrieve_antminer_data : authentication success.")
+            logger.debug("retrieve_antminer_data : authentication success.")
             break
-    logger.info("retrieve_antminer_data : parse json data.")
+    logger.debug("retrieve_antminer_data : parse json data.")
     match endp:
         case 0:
             res = requests.get(endpoints[endp])
@@ -76,7 +76,7 @@ def retrieve_iceriver_data(ip_addr: str, obj: dict) -> dict:
             data={"post": 4},
             headers={"Referer": host},
         )
-        logger.info("retreive_iceriver_data : parse json data.")
+        logger.debug("retreive_iceriver_data : parse json data.")
         r_json = res.json()["data"]
         if "model" in r_json:
             if r_json["model"] == "none":
@@ -93,7 +93,7 @@ def retrieve_whatsminer_data(ip_addr: str, cmd: dict, obj: dict) -> dict:
         s.connect((ip_addr, 4028))
         s.send(json.dumps(cmd).encode("utf-8"))
         data = s.recv(4096)
-        logger.info("retreive_whatsminer_data : parse json data.")
+        logger.debug("retreive_whatsminer_data : parse json data.")
         try:
             r_json = json.loads(data.decode())
             if "Model" in r_json["DEVDETAILS"][0]:

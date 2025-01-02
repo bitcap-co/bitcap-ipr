@@ -437,7 +437,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logger.info(f" get table data from ip {ip}.")
         match type:
             case "antminer":
-                logger.info("get_table_data_from_ip : type is antminer; get data from endpoint.")
+                logger.debug("get_table_data_from_ip : type is antminer; get data from endpoint.")
                 endpoints = [
                     f"http://{ip}/api/v1/info",
                     f"http://{ip}/cgi-bin/get_system_info.cgi",
@@ -446,10 +446,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return retrieve_antminer_data(endpoints, passwd, result)
 
             case "iceriver":
-                logger.info("get_table_data_from_ip : type is iceriver; start session.")
+                logger.debug("get_table_data_from_ip : type is iceriver; start session.")
                 return retrieve_iceriver_data(ip, result)
             case "whatsminer":
-                logger.info("get_table_data_from_ip : type is whatsminer; send json command.")
+                logger.debug("get_table_data_from_ip : type is whatsminer; send json command.")
                 return retrieve_whatsminer_data(ip, {"cmd": "devdetails"}, result)
 
     def toggle_table_settings(self):

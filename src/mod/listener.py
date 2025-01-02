@@ -47,7 +47,7 @@ class Listener(QThread):
             self.d_str = self.d.decode("ascii")
             if self.d_str:
                 logger.info(f"Listener[{self.port}] : received msg.")
-                logger.info(f"Listener[{self.port}] : d_str {self.d_str}")
+                logger.debug(f"Listener[{self.port}] : d_str {self.d_str}")
                 match self.port:
                     case 11503:  # IceRiver
                         type = "iceriver"
@@ -73,7 +73,7 @@ class Listener(QThread):
                         except ValueError as e:
                             self.emit_error(e)
                             break
-                logger.info(f"Listener[{self.port}] : found type {type} from port.")
+                logger.debug(f"Listener[{self.port}] : found type {type} from port.")
                 if self.memory:
                     prev_entry = False
                     # sort by timestamp descending
