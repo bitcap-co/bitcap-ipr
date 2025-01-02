@@ -588,5 +588,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.thread.exit()
         self.killall()
         logger.info(" exit app.")
+        # flush log on close if set
+        if self.comboOnMaxLogSize.currentIndex() == 0 and self.comboFlushInterval.currentIndex() == 1:
+            logger.root.handlers[0].doRollover()
         self.close()
         self = None
