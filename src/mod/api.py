@@ -20,7 +20,6 @@ def retrieve_iceriver_mac_addr(ip_addr : str):
             return r_json["mac"]
 
 def retrieve_antminer_data(endpoints : list, login_passwd : str, obj : dict) -> dict:
-    uri = None
     for endp in range(0, (len(endpoints))):
         logger.info(f"retrieve_antminer_data : authenticate endp {endp}.")
         r = requests.get(
@@ -36,16 +35,15 @@ def retrieve_antminer_data(endpoints : list, login_passwd : str, obj : dict) -> 
             # second pass fail; abort
             if r.status_code == 401:
                 logger.warning("retrieve_antminer_data : authentication fail. abort!")
-                endp = None
+                endp = -1
                 break
         if r.status_code == 200:
             logger.info("retrieve_antminer_data : authentication success.")
-            uri = endp
             break
     logger.info("retrieve_antminer_data : parse json data.")
     match endp:
         case 0:
-            res = requests.get(endpoints[uri])
+            res = requests.get(endpoints[endp])
             r_json = res.json()
             if "serial" in r_json:
                 obj["serial"] = r.json()["serial"]
@@ -53,14 +51,14 @@ def retrieve_antminer_data(endpoints : list, login_passwd : str, obj : dict) -> 
                 obj["subtype"] = r.json()["miner"][9:]
         case 1:
             res = requests.get(
-                endpoints[uri], auth=HTTPDigestAuth("root", login_passwd)
+                endpoints[endp], auth=HTTPDigestAuth("root", login_passwd)
             )
             r_json = res.json()
             if "serinum" in r_json:
                 obj["serial"] = res.json()["serinum"]
             if "minertype" in r_json:
                 obj["subtype"] = res.json()["minertype"][9:]
-        case None:
+        case -1:
             # failed to authenticate
             obj["serial"] = "Failed auth"
             obj["subtype"] = "Failed auth"
