@@ -581,6 +581,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for c in self.children:
             c.close()
 
+    def close_root_logger(self, l):
+        for handler in l.root.handlers:
+            handler.close()
+            l.root.removeHandler(handler)
+
     def quit(self):
         if not self.isVisible():
             self.toggle_visibility()
@@ -591,5 +596,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # flush log on close if set
         if self.comboOnMaxLogSize.currentIndex() == 0 and self.comboFlushInterval.currentIndex() == 1:
             logger.root.handlers[0].doRollover()
+        self.close_root_logger(logger)
         self.close()
         self = None
