@@ -529,6 +529,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def update_settings(self):
         logger.info(" write settings to config.")
+        if int(self.lineMaxLogSize.text()) > MAX_LOG_SIZE_LIMIT:
+            self.lineMaxLogSize.setText(f"{MAX_LOG_SIZE_LIMIT}")
         instance = {
             "options": {
                 "alwaysOpenIPInBrowser": self.actionAlwaysOpenIPInBrowser.isChecked(),
