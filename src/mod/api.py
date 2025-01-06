@@ -10,7 +10,11 @@ logger = logging.getLogger(__name__)
 def retrieve_iceriver_mac_addr(ip_addr: str):
     with requests.Session() as s:
         host = f"http://{ip_addr}"
-        s.head(host)
+        try:
+            s.head(host, timeout=3.0)
+        except requests.exceptions.ConnectTimeout:
+            logger.error("retrieve_iceriver_mac_addr : failed to make connection to miner. abort!")
+            return "ice-river"
         res = s.post(
             url=f"{host}/user/ipconfig",
             data={"post": 1},
@@ -24,37 +28,37 @@ def retrieve_iceriver_mac_addr(ip_addr: str):
 def retrieve_antminer_data(endpoints: list, login_passwd: str, obj: dict) -> dict:
     for endp in range(0, (len(endpoints))):
         logger.debug(f"retrieve_antminer_data : authenticate endp {endp}.")
-        r = requests.get(
-            endpoints[endp], auth=HTTPDigestAuth("root", login_passwd)
-        )
-        # second pass fail; abort
-        if r.status_code == 401:
-            # first pass failed
-            login_passwd = "root"
-            r = requests.head(
-                endpoints[endp], auth=HTTPDigestAuth("root", login_passwd)
-            )
-            # second pass fail; abort
-            if r.status_code == 401:
-                logger.warning("retrieve_antminer_data : authentication fail. abort!")
-                endp = -1
+        try:
+            s = requests.Session()
+            res = s.get(endpoints[endp], auth=HTTPDigestAuth("root", login_passwd))
+            if res.status_code == 401:
+                logger.warning("retrieve_antminer_data : authentication login failed. Try default...")
+                # first pass failed
+                login_passwd = "root"
+                res = s.head(
+                    endpoints[endp], auth=HTTPDigestAuth("root", login_passwd)
+                )
+                # second pass fail; abort
+                if res.status_code == 401:
+                    logger.error("retrieve_antminer_data : authentication fail. abort!")
+                    endp = -1
+                    break
+            if res.status_code == 200:
+                logger.debug("retrieve_antminer_data : authentication success.")
                 break
-        if r.status_code == 200:
-            logger.debug("retrieve_antminer_data : authentication success.")
+        except requests.exceptions.ConnectionError:
+            logger.error(f"retrieve_antminer_data : failed to make connection to miner. abort!")
+            endp = -1
             break
     logger.debug("retrieve_antminer_data : parse json data.")
     match endp:
         case 0:
-            res = requests.get(endpoints[endp])
             r_json = res.json()
             if "serial" in r_json:
-                obj["serial"] = r.json()["serial"]
+                obj["serial"] = res.json()["serial"]
             if "miner" in r_json:
-                obj["subtype"] = r.json()["miner"][9:]
+                obj["subtype"] = res.json()["miner"][9:]
         case 1:
-            res = requests.get(
-                endpoints[endp], auth=HTTPDigestAuth("root", login_passwd)
-            )
             r_json = res.json()
             if "serinum" in r_json:
                 obj["serial"] = res.json()["serinum"]
@@ -62,15 +66,20 @@ def retrieve_antminer_data(endpoints: list, login_passwd: str, obj: dict) -> dic
                 obj["subtype"] = res.json()["minertype"][9:]
         case -1:
             # failed to authenticate
-            obj["serial"] = "Failed auth"
-            obj["subtype"] = "Failed auth"
+            obj["serial"] = "Failed Auth"
+            obj["subtype"] = "Failed Auth"
+    s.close()
     return obj
 
 
 def retrieve_iceriver_data(ip_addr: str, obj: dict) -> dict:
     with requests.Session() as s:
         host = f"http://{ip_addr}"
-        s.head(host)
+        try:
+            s.head(host, timeout=3.0)
+        except requests.exceptions.ConnectTimeout:
+            logger.error("retrieve_iceriver_data : failed to make connection to miner. abort!")
+            return obj
         res = s.post(
             url=f"{host}/user/userpanel",
             data={"post": 4},
@@ -90,7 +99,12 @@ def retrieve_iceriver_data(ip_addr: str, obj: dict) -> dict:
 
 def retrieve_whatsminer_data(ip_addr: str, cmd: dict, obj: dict) -> dict:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((ip_addr, 4028))
+        s.settimeout(3.0)
+        try:
+            s.connect((ip_addr, 4028))
+        except TimeoutError:
+            logger.error("retrieve_whatsminer_data : failed to connect to miner. abort!")
+            return obj
         s.send(json.dumps(cmd).encode("utf-8"))
         data = s.recv(4096)
         logger.debug("retreive_whatsminer_data : parse json data.")
