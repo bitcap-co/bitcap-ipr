@@ -214,6 +214,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionDisableIPConfirmations.setEnabled(True)
 
         logger.info(" init systray.")
+        self.sys_tray = None
         self.create_or_destroy_systray()
 
         logger.info(" init ListenerManager thread.")
@@ -250,6 +251,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if self.comboOnWindowClose.currentIndex() == 0:
                 self.sys_tray.show()
         else:
+            if self.sys_tray:
+                self.sys_tray.hide()
             self.sys_tray = None
 
     def update_stacked_widget(self):
