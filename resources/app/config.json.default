@@ -7,7 +7,7 @@
         "defaultAPIPasswd": ""
     },
     "logs": {
-        "logLevel": 1,
+        "logLevel": "INFO",
         "maxLogSize": "1024",
         "onMaxLogSize": 0,
         "flushInterval": 0
