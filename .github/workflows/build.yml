@@ -56,6 +56,7 @@ jobs:
           # package portable
           cp ./README.md dist/BitCapIPR
           zip -r BitCapIPR-${{ github.ref_name}}-linux-AMD64-portable.zip dist/BitCapIPR
+          rm dist/BitCapIPR/README.md
 
           # deb package
           [ -e package ] && rm -r package
@@ -89,6 +90,7 @@ jobs:
         # package portable
         cp ./README.md dist/BitCapIPR.app/Contents
         zip -9 -y -r BitCapIPR-${{ github.ref_name }}-macos-${{ runner.arch }}-portable.zip dist/BitCapIPR.app
+        rm dist/BitCapIPR.app/Contents/README.md
 
         # create dmg setup
         brew install create-dmg
@@ -122,6 +124,7 @@ jobs:
         # package portable
         Copy-Item .\README.md .\dist\BitCapIPR
         Compress-Archive -Path .\dist\BitCapIPR -DestinationPath BitcapIPR-${{ github.ref_name}}-win-${{ runner.arch }}-portable.zip -Force
+        Remove-Item -Path .\dist\BitCapIPR\README.md
 
         # inno setup
         choco install innosetup
