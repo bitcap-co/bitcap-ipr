@@ -11,6 +11,7 @@ from PyQt6.QtCore import (
     QFile,
     QIODevice,
     QTextStream,
+    QUrl,
 )
 from PyQt6.QtWidgets import (
     QApplication,
@@ -22,7 +23,11 @@ from PyQt6.QtWidgets import (
     QMenuBar,
     QMenu,
 )
-from PyQt6.QtGui import QPixmap, QIcon
+from PyQt6.QtGui import (
+   QPixmap,
+   QIcon,
+   QDesktopServices,
+)
 from ui.widgets.TitleBar import TitleBar
 from ui.GUI import Ui_MainWindow
 import ui.resources
@@ -40,6 +45,7 @@ from util import (
     CURR_PLATFORM,
     APP_INFO,
     MAX_LOG_SIZE_LIMIT,
+    get_log_path,
     get_config_path,
     get_config,
 )
@@ -80,6 +86,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # help
         self.actionAbout = self.menuHelp.addAction("About")
         self.actionAbout.setToolTip("Opens the about dialog")
+        self.actionOpenLog = self.menuHelp.addAction("Open Log")
+        self.actionOpenLog.setToolTip("Opens log file")
         self.actionReportIssue = self.menuHelp.addAction("Report Issue")
         self.actionReportIssue.setToolTip("Report a new issue on GitHub")
         self.actionSourceCode = self.menuHelp.addAction("Source Code")
@@ -146,6 +154,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # menu_bar signals
         self.actionAbout.triggered.connect(self.about)
+        self.actionOpenLog.triggered.connect(self.open_log)
         self.actionReportIssue.triggered.connect(self.open_issues)
         self.actionSourceCode.triggered.connect(self.open_source)
         self.actionKillAllConfirmations.triggered.connect(self.killall)
@@ -270,6 +279,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
         self.aboutDialog._acceptButton.clicked.connect(self.aboutDialog.window().close)
         self.aboutDialog.show()
+
+    def open_log(self):
+        QDesktopServices.openUrl(QUrl(f"file:///{get_log_path()}/ipr.log", QUrl.ParsingMode.TolerantMode))
 
     def open_issues(self):
         webbrowser.open(f"{APP_INFO['source']}/issues", new=2)
