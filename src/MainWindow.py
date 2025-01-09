@@ -390,6 +390,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             confirm.lineMACField.setText(mac)
             self.children.append(confirm)
             if not self.isVisible():
+                if self.sys_tray.receivers(self.sys_tray.messageClicked) > 0:
+                    self.children[-2].show()
+                    self.sys_tray.messageClicked.disconnect()
                 self.sys_tray.messageClicked.connect(lambda: self.show_confirm_from_sys_tray(confirm))
                 if CURR_PLATFORM == "linux":
                     self.sys_tray.showMessage(
