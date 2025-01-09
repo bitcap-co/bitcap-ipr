@@ -303,7 +303,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "IPR Listener: Start",
                 "Started Listening on 0.0.0.0[:8888,:11503,:14235]...",
                 QSystemTrayIcon.MessageIcon.Information,
-                2000,
+                3000,
             )
         self.thread.start()
 
@@ -316,7 +316,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     "Inactive timeout",
                     "Timeout exceeded. Stopping listeners...",
                     QSystemTrayIcon.MessageIcon.Warning,
-                    2000,
+                    3000,
                 )
             else:
                 QMessageBox.warning(
@@ -332,7 +332,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "IPR Listener: Stop",
                 "Stopping listeners...",
                 QSystemTrayIcon.MessageIcon.Information,
-                2000,
+                3000,
             )
         self.thread.stop_listeners()
         self.actionIPRStart.setEnabled(True)
@@ -396,14 +396,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         "Received confirmation",
                         "Click to show.",
                         QSystemTrayIcon.MessageIcon.Critical,
-                        5000,
+                        15000,
                     )
                 else:
                     self.sys_tray.showMessage(
                         "Received confirmation",
                         "Click to show.",
                         QSystemTrayIcon.MessageIcon.Information,
-                        5000,
+                        15000,
                     )
             else:
                 confirm.show()
@@ -587,7 +587,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "Minimized to tray",
                 "BitCapIPR is now running in the background.",
                 QSystemTrayIcon.MessageIcon.Information,
-                2000,
+                3000,
             )
         else:
             self.quit()
