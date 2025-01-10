@@ -30,13 +30,19 @@ def retrieve_antminer_data(endpoints: list, login_passwd: str, obj: dict) -> dic
         logger.debug(f"retrieve_antminer_data : authenticate endp {endp}.")
         try:
             s = requests.Session()
-            res = s.get(endpoints[endp], auth=HTTPDigestAuth("root", login_passwd))
+            res = s.get(
+                endpoints[endp],
+                auth=HTTPDigestAuth("root", login_passwd),
+                timeout=3.0
+            )
             if res.status_code == 401:
                 logger.warning("retrieve_antminer_data : authentication login failed. Try default...")
                 # first pass failed
                 login_passwd = "root"
                 res = s.head(
-                    endpoints[endp], auth=HTTPDigestAuth("root", login_passwd)
+                    endpoints[endp],
+                    auth=HTTPDigestAuth("root", login_passwd),
+                    timeout=3.0
                 )
                 # second pass fail; abort
                 if res.status_code == 401:
