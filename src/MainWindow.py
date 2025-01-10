@@ -240,6 +240,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionDisableInactiveTimer.changed.connect(self.restart_listen)
         self.actionEnableIDTable.changed.connect(self.toggle_table_settings)
         self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
+        self.comboLogLevel.currentIndexChanged.connect(self.set_logger_level)
 
         self.update_stacked_widget()
 
@@ -555,6 +556,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "Configuration",
             "Successfully wrote settings to config."
         )
+    
+    def set_logger_level(self):
+        logger.manager.root.setLevel(self.comboLogLevel.currentText())
+        logger.log(logger.manager.root.level, f" change logger to level {self.comboLogLevel.currentText()}.")
 
     def update_settings(self):
         logger.info(" write settings to config.")
