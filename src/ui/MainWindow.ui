@@ -410,7 +410,7 @@
                 <item>
                  <widget class="QComboBox" name="comboLogLevel">
                   <property name="toolTip">
-                   <string>Effective on next launch</string>
+                   <string>Change minimum output level</string>
                   </property>
                   <property name="currentIndex">
                    <number>1</number>
@@ -505,7 +505,7 @@
                    </font>
                   </property>
                   <property name="toolTip">
-                   <string>Set max size of log file; Max limit 4096kb</string>
+                   <string>Set maximum log file size (Max limit 4096kb)</string>
                   </property>
                   <property name="inputMask">
                    <string>9999</string>
@@ -579,7 +579,7 @@
                 <item>
                  <widget class="QComboBox" name="comboOnMaxLogSize">
                   <property name="toolTip">
-                   <string>Flush (delete) or Rotate (keep) log</string>
+                   <string>Choose behavior for when log file reaches set max size</string>
                   </property>
                   <item>
                    <property name="text">
@@ -645,7 +645,7 @@
                    <bool>true</bool>
                   </property>
                   <property name="toolTip">
-                   <string>Change when to flush log</string>
+                   <string>Choose when to flush log file</string>
                   </property>
                   <item>
                    <property name="text">
