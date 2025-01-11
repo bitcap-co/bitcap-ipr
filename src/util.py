@@ -9,7 +9,7 @@ CURR_PLATFORM = sys.platform
 APP_INFO = {
     "name": "BitCap IPReporter",
     "appname": "BitCapIPR",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "appauthor": "BitCap",
     "author": "MatthewWertman",
     "source": "https://github.com/bitcap-co/bitcap-ipr",
