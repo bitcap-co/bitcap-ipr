@@ -311,7 +311,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "BitCapIPR",
                 "UDP listening on 0.0.0.0[:8888,11503,14235]...\nPress the 'IP Report' button on miner after this dialog.",
             )
-        if not self.isVisible():
+        if self.sys_tray and not self.isVisible():
             self.sys_tray.showMessage(
                 "IPR Listener: Start",
                 "Started Listening on 0.0.0.0[:8888,:11503,:14235]...",
@@ -340,7 +340,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.inactive.stop()
         if self.actionEnableIDTable.isChecked():
             self.tableWidget.setRowCount(0)
-        if not self.isVisible():
+        if self.sys_tray and not self.isVisible():
             self.sys_tray.showMessage(
                 "IPR Listener: Stop",
                 "Stopping listeners...",
@@ -402,7 +402,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             confirm.lineIPField.setText(ip)
             confirm.lineMACField.setText(mac)
             self.children.append(confirm)
-            if not self.isVisible():
+            if self.sys_tray and not self.isVisible():
                 if self.sys_tray.receivers(self.sys_tray.messageClicked) > 0:
                     self.children[-2].show()
                     self.sys_tray.messageClicked.disconnect()
@@ -556,7 +556,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "Configuration",
             "Successfully wrote settings to config."
         )
-    
+
     def set_logger_level(self):
         logger.manager.root.setLevel(self.comboLogLevel.currentText())
         logger.log(logger.manager.root.level, f" change logger to level {self.comboLogLevel.currentText()}.")
@@ -600,7 +600,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setVisible(not self.isVisible())
 
     def close_to_tray_or_exit(self):
-        if self.comboOnWindowClose.currentIndex() == 1:
+        if self.sys_tray and self.comboOnWindowClose.currentIndex() == 1:
             self.toggle_visibility()
             self.sys_tray.show()
             self.sys_tray.showMessage(
@@ -623,7 +623,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             log.root.removeHandler(handler)
 
     def quit(self):
-        if not self.isVisible():
+        if self.sys_tray and not self.isVisible():
             self.toggle_visibility()
         self.thread.stop_listeners()
         self.thread.exit()
