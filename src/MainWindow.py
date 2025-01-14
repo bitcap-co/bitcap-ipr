@@ -452,24 +452,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # id table view
     def get_table_data_from_ip(self, type, ip):
-        result = {"serial": "N/A", "subtype": "N/A"}
         logger.info(f" get table data from ip {ip}.")
         match type:
             case "antminer":
                 logger.debug("get_table_data_from_ip : type is antminer; get data from endpoint.")
-                endpoints = [
-                    f"http://{ip}/api/v1/info",
-                    f"http://{ip}/cgi-bin/get_system_info.cgi",
-                ]
                 passwd = self.linePasswdField.text()
-                return retrieve_antminer_data(endpoints, passwd, result)
+                return retrieve_antminer_data(ip, passwd)
 
             case "iceriver":
                 logger.debug("get_table_data_from_ip : type is iceriver; start session.")
-                return retrieve_iceriver_data(ip, result)
+                return retrieve_iceriver_data(ip)
             case "whatsminer":
                 logger.debug("get_table_data_from_ip : type is whatsminer; send json command.")
-                return retrieve_whatsminer_data(ip, {"cmd": "devdetails"}, result)
+                return retrieve_whatsminer_data(ip)
 
     def toggle_table_settings(self):
         if self.actionEnableIDTable.isChecked():
