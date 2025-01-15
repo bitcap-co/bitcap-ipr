@@ -25,25 +25,22 @@ def get_default_config():
 
 
 def get_config_path():
+    cp = user_data_dir(APP_INFO["appname"], APP_INFO["appauthor"])
     if os.path.exists(Path(BASEDIR, "..", "README.md")):
         cp = Path(BASEDIR, "..")
-    else:
-        cp = user_data_dir(APP_INFO["appname"], APP_INFO["appauthor"])
     return cp
+
+def get_log_path():
+    lp = user_log_dir(APP_INFO["appname"], APP_INFO["appauthor"])
+    if os.path.exists(Path(BASEDIR, "..", "README.md")):
+        lp = Path(BASEDIR, "..", "Logs")
+    return lp
 
 
 def get_config(cp: Path):
     with open(cp, "r") as f:
         config = json.load(f)
     return config
-
-
-def get_log_path():
-    if os.path.exists(Path(BASEDIR, "..", "README.md")):
-        lp = Path(BASEDIR, "..", "Logs")
-    else:
-        lp = user_log_dir(APP_INFO["appname"], APP_INFO["appauthor"])
-    return lp
 
 
 def flush_log(p: Path):
