@@ -24,9 +24,9 @@ from PyQt6.QtWidgets import (
     QMenu,
 )
 from PyQt6.QtGui import (
-   QPixmap,
-   QIcon,
-   QDesktopServices,
+    QPixmap,
+    QIcon,
+    QDesktopServices,
 )
 from ui.widgets.TitleBar import TitleBar
 from ui.GUI import Ui_MainWindow

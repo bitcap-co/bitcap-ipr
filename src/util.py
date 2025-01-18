@@ -30,6 +30,7 @@ def get_config_path():
         cp = Path(BASEDIR, "..")
     return cp
 
+
 def get_log_path():
     lp = user_log_dir(APP_INFO["appname"], APP_INFO["appauthor"])
     if os.path.exists(Path(BASEDIR, "..", "README.md")):

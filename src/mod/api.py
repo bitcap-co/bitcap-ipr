@@ -46,9 +46,7 @@ def get_session(host: str, digest=False, login="root"):
 def retrieve_iceriver_mac_addr(ip_addr: str) -> str:
     host = f"http://{ip_addr}"
     s, _ = get_session(host)
-    if not isinstance(s, requests.sessions.Session):
-        return "ice-river"
-    else:
+    if isinstance(s, requests.sessions.Session):
         res = s.post(
             url=f"{host}/user/ipconfig",
             data={"post": 1},
@@ -58,6 +56,7 @@ def retrieve_iceriver_mac_addr(ip_addr: str) -> str:
         r_json = res.json()["data"]
         if "mac" in r_json:
             return r_json["mac"]
+    return "ice-river"
 
 
 def retrieve_antminer_data(ip_addr: str, login_passwd: str) -> dict:

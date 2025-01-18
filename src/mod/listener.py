@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 class Memory:
     def __init__(self, size: int):
         self.size = size
-        self.dict = {}
+        self.dict: dict[str, list] = {}
 
     def __setitem__(self, key, value):
         if len(self.dict) >= self.size:
