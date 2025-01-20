@@ -26,6 +26,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import (
     QPixmap,
     QIcon,
+    QCursor,
     QDesktopServices,
 )
 from ui.widgets.TitleBar import TitleBar
@@ -140,9 +141,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label_2.setPixmap(
             QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg")
         )
+
         self.tableWidget.setHorizontalHeaderLabels(
             ["IP", "MAC", "SERIAL", "TYPE", "SUBTYPE"]
         )
+        self.tableWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tableWidget.customContextMenuRequested.connect(self.table_context_menu)
         self.actionTogglePasswd = self.linePasswdField.addAction(
             QIcon(":theme/icons/rc/view.png"),
             QLineEdit.ActionPosition.TrailingPosition,
@@ -246,6 +250,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if self.actionAutoStartOnLaunch.isChecked():
             self.start_listen()
+
+    def table_context_menu(self):
+        table_context = QMenu()
+        self.actionContextCopySelectedElements = table_context.addAction("Copy Selected Elements")
+        self.actionContextCopySelectedElements.triggered.connect(self.copy_selected)
+        self.actionContextOpenSelectedIPs = table_context.addAction("Open Selected IPs")
+        self.actionContextOpenSelectedIPs.triggered.connect(self.open_selected_ips)
+        table_context.exec(QCursor.pos())
 
     def create_or_destroy_systray(self):
         if self.checkEnableSysTray.isChecked():
@@ -473,6 +485,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionDisableIPConfirmations.setChecked(False)
             self.update_settings()
             self.actionDisableIPConfirmations.setEnabled(False)
+
+    def open_selected_ips(self):
+        rows = self.tableWidget.rowCount()
+        if rows:
+            for row in range(rows):
+                if self.tableWidget.item(row, 0).isSelected():
+                    self.open_dashboard(self.tableWidget.item(row, 0).text())
 
     def copy_selected(self):
         logger.info(" copy selected elements.")
