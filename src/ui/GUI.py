@@ -60,6 +60,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.tableWidget.sizePolicy().hasHeightForWidth())
         self.tableWidget.setSizePolicy(sizePolicy)
         self.tableWidget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.tableWidget.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tableWidget.setAlternatingRowColors(False)
         self.tableWidget.setShowGrid(False)
         self.tableWidget.setCornerButtonEnabled(True)
