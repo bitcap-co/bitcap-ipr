@@ -489,9 +489,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionDisableIPConfirmations.setEnabled(False)
 
     def double_click_element(self, model_index):
+        row = model_index.row()
+        col = model_index.column()
         # ip
         if model_index.column() == 0:
-            self.open_dashboard(self.tableWidget.item(model_index.row(), model_index.column()).text())
+            self.open_dashboard(self.tableWidget.item(row, col).text())
+
+        # serial
+        if model_index.column() == 2:
+            self.tableWidget.editItem(self.tableWidget.item(row, col))
 
     def open_selected_ips(self):
         rows = self.tableWidget.rowCount()
