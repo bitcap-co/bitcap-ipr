@@ -147,6 +147,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
         self.tableWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tableWidget.customContextMenuRequested.connect(self.table_context_menu)
+        self.tableWidget.doubleClicked.connect(self.double_click_element)
+
         self.actionTogglePasswd = self.linePasswdField.addAction(
             QIcon(":theme/icons/rc/view.png"),
             QLineEdit.ActionPosition.TrailingPosition,
@@ -485,6 +487,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionDisableIPConfirmations.setChecked(False)
             self.update_settings()
             self.actionDisableIPConfirmations.setEnabled(False)
+
+    def double_click_element(self, model_index):
+        # ip
+        if model_index.column() == 0:
+            self.open_dashboard(self.tableWidget.item(model_index.row(), model_index.column()).text())
 
     def open_selected_ips(self):
         rows = self.tableWidget.rowCount()
