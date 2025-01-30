@@ -26,6 +26,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import (
    QPixmap,
    QIcon,
+   QCursor,
    QDesktopServices,
 )
 from ui.widgets.TitleBar import TitleBar
@@ -140,15 +141,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label_2.setPixmap(
             QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg")
         )
+
         self.tableWidget.setHorizontalHeaderLabels(
             ["IP", "MAC", "SERIAL", "TYPE", "SUBTYPE"]
         )
-        self.actionTogglePasswd = self.linePasswdField.addAction(
+        self.tableWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tableWidget.customContextMenuRequested.connect(self.show_table_context)
+        self.tableWidget.doubleClicked.connect(self.double_click_item)
+
+        self.actionToggleBitmainPasswd = self.lineBitmainPasswd.addAction(
             QIcon(":theme/icons/rc/view.png"),
             QLineEdit.ActionPosition.TrailingPosition,
         )
-        self.actionTogglePasswd.setToolTip("Show/Hide password")
-        self.actionTogglePasswd.triggered.connect(self.toggle_passwd)
+        self.actionToggleBitmainPasswd.setToolTip("Show/Hide password")
+        self.actionToggleBitmainPasswd.triggered.connect(lambda: self.toggle_show_passwd(self.lineBitmainPasswd, self.actionToggleBitmainPasswd))
 
         self.children = []
 
@@ -185,7 +191,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.config["general"]["onWindowClose"]
             )
             # api
-            self.linePasswdField.setText(self.config["api"]["defaultAPIPasswd"])
+            self.lineBitmainPasswd.setText(self.config["api"]["bitmainAltPasswd"])
 
             # logs
             self.comboLogLevel.setCurrentText(
@@ -227,10 +233,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.create_or_destroy_systray()
 
         logger.info(" init ListenerManager thread.")
-        self.thread = ListenerManager()
-        self.thread.completed.connect(self.show_confirm)
+        self.listener_thread = ListenerManager()
+        self.listener_thread.completed.connect(self.show_confirm)
         # restart listeners on fail
-        self.thread.failed.connect(self.restart_listen)
+        self.listener_thread.failed.connect(self.restart_listen)
 
         logger.info(" init inactive timer for 900000ms.")
         self.inactive = QTimer()
@@ -318,7 +324,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 QSystemTrayIcon.MessageIcon.Information,
                 3000,
             )
-        self.thread.start()
+        self.listener_thread.start()
 
     def stop_listen(self, timeout=False):
         logger.info(" stop listeners.")
@@ -347,7 +353,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 QSystemTrayIcon.MessageIcon.Information,
                 3000,
             )
-        self.thread.stop_listeners()
+        self.listener_thread.stop_listeners()
         self.actionIPRStart.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
         if self.sys_tray:
@@ -355,7 +361,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionSysStopListen.setEnabled(False)
 
     def restart_listen(self):
-        if self.thread.listeners:
+        if self.listener_thread.listeners:
             logger.info(" restart listeners.")
             self.stop_listen()
             self.start_listen()
@@ -365,7 +371,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logger.info(" show IP confirmation.")
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
-        ip, mac, type = self.thread.data.split(",")
+        ip, mac, type = self.listener_thread.data.split(",")
         logger.info(f"show_confirm : got {ip},{mac},{type} from listener thread.")
         if mac == "ice-river":
             mac = retrieve_iceriver_mac_addr(ip)
@@ -461,7 +467,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     f"http://{ip}/api/v1/info",
                     f"http://{ip}/cgi-bin/get_system_info.cgi",
                 ]
-                passwd = self.linePasswdField.text()
+                passwd = self.lineBitmainPasswd.text()
                 return retrieve_antminer_data(endpoints, passwd, result)
 
             case "iceriver":
@@ -471,6 +477,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 logger.debug("get_table_data_from_ip : type is whatsminer; send json command.")
                 return retrieve_whatsminer_data(ip, {"cmd": "devdetails"}, result)
 
+    def show_table_context(self):
+        self.table_context = QMenu()
+        self.actionContextOpenSelectedIPs = self.table_context.addAction("Open Selected IPs")
+        self.actionContextOpenSelectedIPs.triggered.connect(self.open_selected_ips)
+        self.actionContextCopySelectedElements = self.table_context.addAction("Copy Selected Elements")
+        self.actionContextCopySelectedElements.triggered.connect(self.copy_selected)
+        self.table_context.exec(QCursor.pos())
+
     def toggle_table_settings(self):
         if self.actionEnableIDTable.isChecked():
             self.actionDisableIPConfirmations.setEnabled(True)
@@ -478,6 +492,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionDisableIPConfirmations.setChecked(False)
             self.update_settings()
             self.actionDisableIPConfirmations.setEnabled(False)
+
+    def double_click_item(self, model_index):
+        row = model_index.row()
+        col = model_index.column()
+        # ip
+        if col == 0:
+            self.open_dashboard(self.tableWidget.item(row, col).text())
+        # serial
+        if col == 2:
+            self.tableWidget.editItem(self.tableWidget.item(row, col))
+
+    def open_selected_ips(self):
+        rows = self.tableWidget.rowCount()
+        if rows:
+            for r in range(rows):
+                if self.tableWidget.item(r, 0).isSelected():
+                    self.open_dashboard(self.tableWidget.item(r, 0).text())
 
     def copy_selected(self):
         logger.info(" copy selected elements.")
@@ -541,13 +572,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.comboOnWindowClose.setCurrentIndex(0)
             self.comboOnWindowClose.setEnabled(False)
 
-    def toggle_passwd(self):
-        if self.linePasswdField.echoMode() == QLineEdit.EchoMode.Password:
-            self.linePasswdField.setEchoMode(QLineEdit.EchoMode.Normal)
-            self.actionTogglePasswd.setIcon(QIcon(":theme/icons/rc/hide.png"))
-        elif self.linePasswdField.echoMode() == QLineEdit.EchoMode.Normal:
-            self.linePasswdField.setEchoMode(QLineEdit.EchoMode.Password)
-            self.actionTogglePasswd.setIcon(QIcon(":theme/icons/rc/view.png"))
+    def toggle_show_passwd(self, line: QLineEdit, action):
+        if line.echoMode() == QLineEdit.EchoMode.Password:
+            line.setEchoMode(QLineEdit.EchoMode.Normal)
+            action.setIcon(QIcon(":theme/icons/rc/hide.png"))
+        elif line.echoMode() == QLineEdit.EchoMode.Normal:
+            line.setEchoMode(QLineEdit.EchoMode.Password)
+            action.setIcon(QIcon(":theme/icons/rc/view.png"))
 
     def save_settings(self):
         self.update_settings()
@@ -582,7 +613,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "enableSysTray": self.checkEnableSysTray.isChecked(),
                 "onWindowClose": self.comboOnWindowClose.currentIndex()
             },
-            "api": {"defaultAPIPasswd": self.linePasswdField.text()},
+            "api": {
+                "bitmainAltPasswd": self.lineBitmainPasswd.text()
+            },
             "logs": {
                 "logLevel": self.comboLogLevel.currentText(),
                 "maxLogSize": self.lineMaxLogSize.text(),
@@ -625,8 +658,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def quit(self):
         if self.sys_tray and not self.isVisible():
             self.toggle_visibility()
-        self.thread.stop_listeners()
-        self.thread.exit()
+        self.listener_thread.stop_listeners()
+        self.listener_thread.exit()
         self.killall()
         logger.info(" exit app.")
         # flush log on close if set

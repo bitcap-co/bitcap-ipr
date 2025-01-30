@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class Memory:
-    def __init__(self, size):
+    def __init__(self, size: int):
         self.size = size
         self.dict = {}
 
@@ -26,7 +26,7 @@ class ListenerSignals(QObject):
 
 
 class Listener(QThread):
-    def __init__(self, port):
+    def __init__(self, port: int):
         super().__init__()
         self.signals = ListenerSignals()
         self.bufsize = 40
@@ -53,28 +53,28 @@ class Listener(QThread):
                         type = "iceriver"
                         try:
                             ip = self.d_str.split(":")[1]
-                        except IndexError as e:
-                            self.emit_error(e)
-                            break
+                        except IndexError:
+                            logger.warning(f"Listener[{self.port}] : Failed to unpack msg! Ignoring...")
+                            continue
                         mac = "ice-river"
                     case 8888:  # Whatsminer
                         type = "whatsminer"
                         try:
                             ip, mac = self.d_str.split("M")
-                        except ValueError as e:
-                            self.emit_error(e)
-                            break
+                        except ValueError:
+                            logger.warning(f"Listener[{self.port}] : Failed to unpack msg! Ignoring...")
+                            continue
                         ip = ip[3:]
                         mac = mac[3:]
                     case 14235:  # AntMiner
                         type = "antminer"
                         try:
                             ip, mac = self.d_str.split(",")
-                        except ValueError as e:
-                            self.emit_error(e)
-                            break
+                        except ValueError:
+                            logger.warning(f"Listener[{self.port}] : Failed to unpack msg! Ignoring...")
+                            continue
                 logger.debug(f"Listener[{self.port}] : found type {type} from port.")
-                if self.memory:
+                if self.memory.dict:
                     prev_entry = False
                     # sort by timestamp descending
                     self.memory.dict = dict(
@@ -115,5 +115,6 @@ class Listener(QThread):
 
     def close(self):
         logger.info(f"Listener[{self.port}] : close socket.")
-        self.memory = None  # clear memory
+        self.memory.dict = {}  # clear memory
         self.sock.close()
+        self.sock = None
