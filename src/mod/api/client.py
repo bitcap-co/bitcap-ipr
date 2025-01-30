@@ -1,10 +1,10 @@
 import logging
 from PyQt6.QtCore import QObject
-
 from .errors import (
     FailedConnectionError,
     AuthenticationError
 )
+from .bitmain import BitmainClient, BitmainParser
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +22,17 @@ class APIClient():
         if self.client:
             return self.client
 
-    def create_bitmain_client(self, ip_addr: str, auth_str: str = "root"):
-        pass
+    def create_bitmain_client(self, ip_addr: str, auth_str: str):
+        if not auth_str:
+            auth_str = "root"
+        try:
+            self.client = BitmainClient(ip_addr, auth_str)
+        except (
+            FailedConnectionError,
+            AuthenticationError
+        ) as exc:
+            logger.error(exc)
+            self.client = None
 
     def create_iceriver_client(self, ip_addr: str, auth_str: str = None):
         pass
@@ -38,7 +47,15 @@ class APIClient():
         pass
 
     def get_antminer_target_data(self):
-        pass
+        parser = BitmainParser(self.target_info)
+        result = parser.get_target()
+        if not self.client:
+            for k in result.keys():
+                result[k] = "Failed"
+            return result
+        system_info = self.client.run_command("GET", "get_system_info")
+        parser.parse_common(system_info)
+        return parser.get_target()
 
     def get_iceriver_target_data(self):
         pass
