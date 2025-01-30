@@ -185,7 +185,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.config["general"]["onWindowClose"]
             )
             # api
-            self.linePasswdField.setText(self.config["api"]["defaultAPIPasswd"])
+            self.lineBitmainPasswd.setText(self.config["api"]["bitmainAltPasswd"])
 
             # logs
             self.comboLogLevel.setCurrentText(
@@ -461,7 +461,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     f"http://{ip}/api/v1/info",
                     f"http://{ip}/cgi-bin/get_system_info.cgi",
                 ]
-                passwd = self.linePasswdField.text()
+                passwd = self.lineBitmainPasswd.text()
                 return retrieve_antminer_data(endpoints, passwd, result)
 
             case "iceriver":
@@ -582,7 +582,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "enableSysTray": self.checkEnableSysTray.isChecked(),
                 "onWindowClose": self.comboOnWindowClose.currentIndex()
             },
-            "api": {"defaultAPIPasswd": self.linePasswdField.text()},
+            "api": {
+                "bitmainAltPasswd": self.lineBitmainPasswd.text()
+            },
             "logs": {
                 "logLevel": self.comboLogLevel.currentText(),
                 "maxLogSize": self.lineMaxLogSize.text(),

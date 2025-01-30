@@ -4,7 +4,7 @@
         "onWindowClose": 0
     },
     "api": {
-        "defaultAPIPasswd": ""
+        "bitmainAltPasswd": ""
     },
     "logs": {
         "logLevel": "INFO",
