@@ -53,5 +53,5 @@ class ListenerManager(QThread):
         self.completed.emit()
 
     def listen_error(self):
-        logger.error(" listen_error signal result!")
+        logger.error(" listen_error signal result! Restart listeners.")
         self.failed.emit()
