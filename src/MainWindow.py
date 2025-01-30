@@ -26,6 +26,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import (
    QPixmap,
    QIcon,
+   QCursor,
    QDesktopServices,
 )
 from ui.widgets.TitleBar import TitleBar
@@ -140,9 +141,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label_2.setPixmap(
             QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg")
         )
+
         self.tableWidget.setHorizontalHeaderLabels(
             ["IP", "MAC", "SERIAL", "TYPE", "SUBTYPE"]
         )
+        self.tableWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tableWidget.customContextMenuRequested.connect(self.show_table_context)
         self.actionToggleBitmainPasswd = self.lineBitmainPasswd.addAction(
             QIcon(":theme/icons/rc/view.png"),
             QLineEdit.ActionPosition.TrailingPosition,
@@ -471,6 +475,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 logger.debug("get_table_data_from_ip : type is whatsminer; send json command.")
                 return retrieve_whatsminer_data(ip, {"cmd": "devdetails"}, result)
 
+    def show_table_context(self):
+        self.table_context = QMenu()
+        self.actionContextOpenSelectedIPs = self.table_context.addAction("Open Selected IPs")
+        self.actionContextOpenSelectedIPs.triggered.connect(self.open_selected_ips)
+        self.actionContextCopySelectedElements = self.table_context.addAction("Copy Selected Elements")
+        self.actionContextCopySelectedElements.triggered.connect(self.copy_selected)
+        self.table_context.exec(QCursor.pos())
+
     def toggle_table_settings(self):
         if self.actionEnableIDTable.isChecked():
             self.actionDisableIPConfirmations.setEnabled(True)
@@ -478,6 +490,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionDisableIPConfirmations.setChecked(False)
             self.update_settings()
             self.actionDisableIPConfirmations.setEnabled(False)
+
+    def open_selected_ips(self):
+        rows = self.tableWidget.rowCount()
+        if rows:
+            for r in range(rows):
+                if self.tableWidget.item(r, 0).isSelected():
+                    self.open_dashboard(self.tableWidget.item(r, 0).text())
 
     def copy_selected(self):
         logger.info(" copy selected elements.")
