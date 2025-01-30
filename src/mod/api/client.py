@@ -32,7 +32,6 @@ class APIClient():
             AuthenticationError
         ) as exc:
             logger.error(exc)
-            self.client = None
 
     def create_iceriver_client(self, ip_addr: str, auth_str: str = None):
         pass

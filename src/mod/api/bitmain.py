@@ -31,13 +31,15 @@ class BitmainClient():
     def _is_vnish(self):
         res = self.session.head(self.host + self.command_prefixes["vnish"], timeout=3.0)
         if res.status_code == 200:
+            if self.admin_passwd == "root":
+                self.admin_passwd = "admin"
             return True
         return False
 
     def _authenticate_session(self):
-        passwds = ["root"]
+        passwds = [self.admin_passwd]
         if self.admin_passwd != "root":
-            passwds = [self.admin_passwd, "root"]
+            passwds.append("root")
         for passwd in passwds:
             self.session.auth = HTTPDigestAuth("root", passwd)
             res = self.session.head(self.host, timeout=3.0)
@@ -84,9 +86,9 @@ class BitmainClient():
             return {"plain": res.text}
 
     def unlock_vnish_session(self):
-        passwds = ["admin"]
+        passwds = [self.admin_passwd]
         if self.admin_passwd != "admin":
-            passwds = [self.admin_passwd, "admin"]
+            passwds.append("admin")
         for passwd in passwds:
             payload = {"pw": passwd}
             res = self._do_http("POST", self.command_prefixes["vnish"] + "/unlock", payload)
