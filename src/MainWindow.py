@@ -499,6 +499,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # ip
         if col == 0:
             self.open_dashboard(self.tableWidget.item(row, col).text())
+        # serial
+        if col == 2:
+            self.tableWidget.editItem(self.tableWidget.item(row, col))
+
     def open_selected_ips(self):
         rows = self.tableWidget.rowCount()
         if rows:
