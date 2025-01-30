@@ -143,12 +143,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tableWidget.setHorizontalHeaderLabels(
             ["IP", "MAC", "SERIAL", "TYPE", "SUBTYPE"]
         )
-        self.actionTogglePasswd = self.linePasswdField.addAction(
+        self.actionToggleBitmainPasswd = self.lineBitmainPasswd.addAction(
             QIcon(":theme/icons/rc/view.png"),
             QLineEdit.ActionPosition.TrailingPosition,
         )
-        self.actionTogglePasswd.setToolTip("Show/Hide password")
-        self.actionTogglePasswd.triggered.connect(self.toggle_passwd)
+        self.actionToggleBitmainPasswd.setToolTip("Show/Hide password")
+        self.actionToggleBitmainPasswd.triggered.connect(lambda: self.toggle_show_passwd(self.lineBitmainPasswd, self.actionToggleBitmainPasswd))
 
         self.children = []
 
@@ -541,13 +541,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.comboOnWindowClose.setCurrentIndex(0)
             self.comboOnWindowClose.setEnabled(False)
 
-    def toggle_passwd(self):
-        if self.linePasswdField.echoMode() == QLineEdit.EchoMode.Password:
-            self.linePasswdField.setEchoMode(QLineEdit.EchoMode.Normal)
-            self.actionTogglePasswd.setIcon(QIcon(":theme/icons/rc/hide.png"))
-        elif self.linePasswdField.echoMode() == QLineEdit.EchoMode.Normal:
-            self.linePasswdField.setEchoMode(QLineEdit.EchoMode.Password)
-            self.actionTogglePasswd.setIcon(QIcon(":theme/icons/rc/view.png"))
+    def toggle_show_passwd(self, line: QLineEdit, action):
+        if line.echoMode() == QLineEdit.EchoMode.Password:
+            line.setEchoMode(QLineEdit.EchoMode.Normal)
+            action.setIcon(QIcon(":theme/icons/rc/hide.png"))
+        elif line.echoMode() == QLineEdit.EchoMode.Normal:
+            line.setEchoMode(QLineEdit.EchoMode.Password)
+            action.setIcon(QIcon(":theme/icons/rc/view.png"))
 
     def save_settings(self):
         self.update_settings()
