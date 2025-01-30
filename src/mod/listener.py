@@ -115,5 +115,5 @@ class Listener(QThread):
 
     def close(self):
         logger.info(f"Listener[{self.port}] : close socket.")
-        self.memory = None  # clear memory
         self.sock.close()
+        self.sock = None
