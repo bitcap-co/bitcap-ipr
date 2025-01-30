@@ -247,9 +247,9 @@
             </attribute>
             <layout class="QVBoxLayout" name="verticalLayout_3">
              <item>
-              <widget class="QGroupBox" name="iprGeneral">
+              <widget class="QGroupBox" name="iprSystemTray">
                <property name="title">
-                <string>General</string>
+                <string>System Tray</string>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_5">
                 <property name="leftMargin">
