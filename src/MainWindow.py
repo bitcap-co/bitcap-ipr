@@ -227,10 +227,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.create_or_destroy_systray()
 
         logger.info(" init ListenerManager thread.")
-        self.thread = ListenerManager()
-        self.thread.completed.connect(self.show_confirm)
+        self.listener_thread = ListenerManager()
+        self.listener_thread.completed.connect(self.show_confirm)
         # restart listeners on fail
-        self.thread.failed.connect(self.restart_listen)
+        self.listener_thread.failed.connect(self.restart_listen)
 
         logger.info(" init inactive timer for 900000ms.")
         self.inactive = QTimer()
@@ -318,7 +318,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 QSystemTrayIcon.MessageIcon.Information,
                 3000,
             )
-        self.thread.start()
+        self.listener_thread.start()
 
     def stop_listen(self, timeout=False):
         logger.info(" stop listeners.")
@@ -347,7 +347,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 QSystemTrayIcon.MessageIcon.Information,
                 3000,
             )
-        self.thread.stop_listeners()
+        self.listener_thread.stop_listeners()
         self.actionIPRStart.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
         if self.sys_tray:
@@ -355,7 +355,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionSysStopListen.setEnabled(False)
 
     def restart_listen(self):
-        if self.thread.listeners:
+        if self.listener_thread.listeners:
             logger.info(" restart listeners.")
             self.stop_listen()
             self.start_listen()
@@ -365,7 +365,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logger.info(" show IP confirmation.")
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
-        ip, mac, type = self.thread.data.split(",")
+        ip, mac, type = self.listener_thread.data.split(",")
         logger.info(f"show_confirm : got {ip},{mac},{type} from listener thread.")
         if mac == "ice-river":
             mac = retrieve_iceriver_mac_addr(ip)
@@ -627,8 +627,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def quit(self):
         if self.sys_tray and not self.isVisible():
             self.toggle_visibility()
-        self.thread.stop_listeners()
-        self.thread.exit()
+        self.listener_thread.stop_listeners()
+        self.listener_thread.exit()
         self.killall()
         logger.info(" exit app.")
         # flush log on close if set
