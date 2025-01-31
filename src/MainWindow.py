@@ -36,12 +36,13 @@ import ui.resources
 from ListenerManager import ListenerManager
 from IPRConfirmation import IPRConfirmation
 from IPRAbout import IPRAbout
-from mod.api import (
-    retrieve_iceriver_mac_addr,
-    retrieve_antminer_data,
-    retrieve_iceriver_data,
-    retrieve_whatsminer_data,
-)
+from mod.api.client import APIClient
+# from mod.api import (
+#     retrieve_iceriver_mac_addr,
+#     retrieve_antminer_data,
+#     retrieve_iceriver_data,
+#     retrieve_whatsminer_data,
+# )
 from util import (
     CURR_PLATFORM,
     APP_INFO,
@@ -243,6 +244,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.inactive.setInterval(900000)
         self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
 
+        self.api_client = APIClient(self)
+
         self.actionDisableInactiveTimer.changed.connect(self.restart_listen)
         self.actionEnableIDTable.changed.connect(self.toggle_table_settings)
         self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
@@ -373,9 +376,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.inactive.start()
         ip, mac, type = self.listener_thread.data.split(",")
         logger.info(f"show_confirm : got {ip},{mac},{type} from listener thread.")
-        if mac == "ice-river":
-            mac = retrieve_iceriver_mac_addr(ip)
+        if type == "iceriver":
+            self.api_client.create_iceriver_client(ip)
+            mac = self.api_client.get_iceriver_mac_addr()
+            self.api_client.client.close_client()
             logger.info(f"show_confirm : got iceriver mac addr : {mac}")
+        # if mac == "ice-river":
+        #     mac = retrieve_iceriver_mac_addr(ip)
+        #     logger.info(f"show_confirm : got iceriver mac addr : {mac}")
         if self.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
             if self.actionEnableIDTable.isChecked():
@@ -458,21 +466,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # id table view
     def get_table_data_from_ip(self, type, ip):
-        result = {"serial": "N/A", "subtype": "N/A"}
         logger.info(f" get table data from ip {ip}.")
         match type:
             case "antminer":
-                logger.debug("get_table_data_from_ip : type is antminer; get data from endpoint.")
-                endpoints = [
-                    f"http://{ip}/api/v1/info",
-                    f"http://{ip}/cgi-bin/get_system_info.cgi",
-                ]
+                logger.debug("get_table_data_from_ip : type is antminer; start session.")
                 passwd = self.lineBitmainPasswd.text()
-                return retrieve_antminer_data(endpoints, passwd, result)
-
+                self.api_client.create_bitmain_client(ip, passwd)
+                return self.api_client.get_antminer_target_data()
             case "iceriver":
                 logger.debug("get_table_data_from_ip : type is iceriver; start session.")
-                return retrieve_iceriver_data(ip, result)
+                self.api_client.create_iceriver_client(ip)
+                return self.api_client.get_iceriver_target_data()
             case "whatsminer":
                 logger.debug("get_table_data_from_ip : type is whatsminer; send json command.")
                 return retrieve_whatsminer_data(ip, {"cmd": "devdetails"}, result)
