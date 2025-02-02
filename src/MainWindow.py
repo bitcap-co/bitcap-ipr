@@ -478,8 +478,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.api_client.create_iceriver_client(ip)
                 return self.api_client.get_iceriver_target_data()
             case "whatsminer":
-                logger.debug("get_table_data_from_ip : type is whatsminer; send json command.")
-                return retrieve_whatsminer_data(ip, {"cmd": "devdetails"}, result)
+                logger.debug("get_table_data_from_ip : type is whatsminer; send json-rpc command.")
+                self.api_client.create_whatsminer_client(ip, auth_str="")
+                return self.api_client.get_whatsminer_target_data()
 
     def show_table_context(self):
         self.table_context = QMenu()
