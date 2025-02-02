@@ -151,6 +151,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionToggleBitmainPasswd.setToolTip("Show/Hide password")
         self.actionToggleBitmainPasswd.triggered.connect(lambda: self.toggle_show_passwd(self.lineBitmainPasswd, self.actionToggleBitmainPasswd))
 
+        self.actionToggleWhatsminerPasswd = self.lineWhatsminerPasswd.addAction(
+            QIcon(":theme/icons/rc/view.png"),
+            QLineEdit.ActionPosition.TrailingPosition,
+        )
+        self.actionToggleWhatsminerPasswd.setToolTip("Show/Hide password")
+        self.actionToggleWhatsminerPasswd.triggered.connect(lambda: self.toggle_show_passwd(self.lineWhatsminerPasswd, self.actionToggleWhatsminerPasswd))
+
+        self.actionTogglePbfarmerKey = self.linePbfarmerKey.addAction(
+            QIcon(":theme/icons/rc/view.png"),
+            QLineEdit.ActionPosition.TrailingPosition,
+        )
+        self.actionTogglePbfarmerKey.setToolTip("Show/Hide password")
+        self.actionTogglePbfarmerKey.triggered.connect(lambda: self.toggle_show_passwd(self.linePbfarmerKey, self.actionTogglePbfarmerKey))
+
         self.children = []
 
         # menu_bar signals
