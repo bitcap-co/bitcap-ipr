@@ -33,14 +33,14 @@ class APIClient():
         except (
             FailedConnectionError,
             AuthenticationError
-        ) as exc:
-            logger.error(exc)
+        ) as err:
+            logger.error(err)
 
-    def create_iceriver_client(self, ip_addr: str, auth_str: str = None):
+    def create_iceriver_client(self, ip_addr: str, auth_str: str):
         try:
             self.client = IceriverClient(ip_addr, auth_str)
-        except FailedConnectionError as exc:
-            logger.error(exc)
+        except FailedConnectionError as err:
+            logger.error(err)
 
     def create_whatsminer_client(self, ip_addr: str, port: int = 4028, auth_str: str = None):
         try:
