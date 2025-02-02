@@ -187,6 +187,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
             # api
             self.lineBitmainPasswd.setText(self.config["api"]["bitmainAltPasswd"])
+            self.lineWhatsminerPasswd.setText(self.config["api"]["whatsminerAltPasswd"])
+            self.linePbfarmerKey.setText(self.config["api"]["pbfarmerKey"])
 
             # logs
             self.comboLogLevel.setCurrentText(
@@ -606,7 +608,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "onWindowClose": self.comboOnWindowClose.currentIndex()
             },
             "api": {
-                "bitmainAltPasswd": self.lineBitmainPasswd.text()
+                "bitmainAltPasswd": self.lineBitmainPasswd.text(),
+                "whatsminerAltPasswd": self.lineWhatsminerPasswd.text(),
+                "pbfarmerKey": self.linePbfarmerKey.text()
             },
             "logs": {
                 "logLevel": self.comboLogLevel.currentText(),
