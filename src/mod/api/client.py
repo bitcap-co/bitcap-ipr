@@ -49,7 +49,13 @@ class APIClient():
             logger.error(err)
 
     def create_client_from_type(self, miner_type: str, ip_addr: str, auth_str: str):
-        pass
+        match miner_type:
+            case "antminer":
+                self.create_bitmain_client(ip_addr, auth_str)
+            case "iceriver":
+                self.create_iceriver_client(ip_addr, auth_str)
+            case "whatsminer":
+                self.create_whatsminer_client(ip_addr, auth_str=auth_str)
 
     def get_iceriver_mac_addr(self):
         if self.client:
@@ -101,6 +107,14 @@ class APIClient():
         return parser.get_target()
 
     def get_target_data_from_type(self, miner_type: str):
-        pass
+        match miner_type:
+            case "antminer":
+                return self.get_antminer_target_data()
+            case "iceriver":
+                return self.get_iceriver_target_data()
+            case "whatsminer":
+                return self.get_whatsminer_target_data()
 
-
+    def close_client(self):
+        if self.client:
+            self.client.close_client()
