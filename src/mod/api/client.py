@@ -7,6 +7,7 @@ from .errors import (
 )
 from .bitmain import BitmainClient, BitmainParser
 from .iceriver import IceriverClient, IceriverParser
+from .whatsminer import WhatsminerClient, WhatsminerParser
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +42,11 @@ class APIClient():
         except FailedConnectionError as exc:
             logger.error(exc)
 
-    def create_whatsminer_client(self, ip_addr: str, port: int = 4028, auth_str: str = "admin"):
-        pass
+    def create_whatsminer_client(self, ip_addr: str, port: int = 4028, auth_str: str = None):
+        try:
+            self.client = WhatsminerClient(ip_addr, port, admin_passwd=auth_str)
+        except FailedConnectionError as err:
+            logger.error(err)
 
     def create_client_from_type(self, miner_type: str, ip_addr: str, auth_str: str):
         pass
@@ -86,7 +90,15 @@ class APIClient():
         return parser.get_target()
 
     def get_whatsminer_target_data(self):
-        pass
+        parser = WhatsminerParser(self.target_info)
+        result = parser.get_target()
+        if not self.client:
+            for k in result.keys():
+                result[k] = "Failed"
+            return result
+        devs = self.client.get_dev_details()
+        parser.parse_subtype(devs)
+        return parser.get_target()
 
     def get_target_data_from_type(self, miner_type: str):
         pass

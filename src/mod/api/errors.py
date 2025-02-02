@@ -8,3 +8,7 @@ class AuthenticationError(Exception):
 
 class MissingAPIKeyError(Exception):
     """Raise for missing API key"""
+
+
+class TokenOverMaxTimesError(Exception):
+    """Raise for token over max times"""
