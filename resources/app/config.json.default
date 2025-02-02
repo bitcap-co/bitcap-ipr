@@ -4,7 +4,9 @@
         "onWindowClose": 0
     },
     "api": {
-        "bitmainAltPasswd": ""
+        "bitmainAltPasswd": "",
+        "whatsminerAltPasswd": "",
+        "pbfarmerKey": ""
     },
     "logs": {
         "logLevel": "INFO",
