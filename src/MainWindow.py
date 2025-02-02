@@ -387,7 +387,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ip, mac, type = self.listener_thread.data.split(",")
         logger.info(f"show_confirm : got {ip},{mac},{type} from listener thread.")
         if type == "iceriver":
-            self.api_client.create_iceriver_client(ip, "")
+            self.api_client.create_iceriver_client(ip, self.linePbfarmerKey.text())
             mac = self.api_client.get_iceriver_mac_addr()
             self.api_client.close_client()
             logger.info(f"show_confirm : got iceriver mac addr : {mac}")
@@ -479,7 +479,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             case "antminer":
                 client_auth = self.lineBitmainPasswd.text()
             case "iceriver":
-                client_auth = ""
+                client_auth = self.linePbfarmerKey.text()
         self.api_client.create_client_from_type(type, ip, client_auth)
         result = self.api_client.get_target_data_from_type(type)
         self.api_client.close_client()
