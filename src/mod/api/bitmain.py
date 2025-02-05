@@ -134,3 +134,9 @@ class BitmainParser():
                 self.target["serial"] = resp[k]
             if k in ["miner", "minertype"]:
                 self.target["subtype"] = resp[k][9:]
+
+    def parse_algorithm(self, resp: dict):
+        if "Algorithm" in resp:
+            self.target["algorithm"] = resp["Algorithm"]
+        else:
+            self.target["algorithm"] = "SHA256"

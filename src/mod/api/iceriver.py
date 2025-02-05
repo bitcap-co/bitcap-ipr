@@ -104,3 +104,13 @@ class IceriverParser():
                     self.target["subtype"] = model[model.rfind("ks"):model.rfind("miner")].upper()
             else:
                 self.target["subtype"] = resp["model"]
+
+    def parse_algorithm(self, resp: dict):
+        if "algo" in resp:
+            if not resp["algo"] == "none":
+                self.target["algorithm"] = resp["algo"]
+
+    def parse_all(self, resp: dict):
+        self.parse_subtype(resp)
+        self.parse_algorithm(resp)
+        return self.target

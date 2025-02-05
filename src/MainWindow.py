@@ -138,7 +138,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
 
         self.tableWidget.setHorizontalHeaderLabels(
-            ["IP", "MAC", "SERIAL", "TYPE", "SUBTYPE"]
+            ["IP", "MAC", "SERIAL", "TYPE", "SUBTYPE", "ALGORITHM"]
         )
         self.tableWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tableWidget.customContextMenuRequested.connect(self.show_table_context)
@@ -460,6 +460,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # SUBTYPE
             self.tableWidget.setItem(
                 rowPosition, 4, QTableWidgetItem(t_data["subtype"])
+            )
+            # ALGO
+            self.tableWidget.setItem(
+                rowPosition, 5, QTableWidgetItem(t_data["algorithm"])
             )
 
     def show_confirm_from_sys_tray(self, confirm):

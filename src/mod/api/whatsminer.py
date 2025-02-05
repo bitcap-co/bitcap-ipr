@@ -137,6 +137,7 @@ class WhatsminerClient():
 class WhatsminerParser():
     def __init__(self, target: dict):
         self.target = target.copy()
+        self.target["algorithm"] = "SHA256"
 
     def get_target(self):
         return self.target

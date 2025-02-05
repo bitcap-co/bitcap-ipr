@@ -19,6 +19,7 @@ class APIClient():
         self.target_info = {
             "serial": "N/A",
             "subtype": "N/A",
+            "algorithm": "N/A",
         }
 
     def get_client(self):
@@ -75,6 +76,8 @@ class APIClient():
                 result[k] = "Failed"
             return result
         system_info = self.client.run_command("GET", "get_system_info")
+        if not self.client.is_custom:
+            parser.parse_algorithm(system_info)
         parser.parse_common(system_info)
         return parser.get_target()
 
@@ -92,7 +95,7 @@ class APIClient():
             for k in result.keys():
                 result[k] = "Missing Auth"
             return result
-        parser.parse_subtype(system_info)
+        parser.parse_all(system_info)
         return parser.get_target()
 
     def get_whatsminer_target_data(self):
