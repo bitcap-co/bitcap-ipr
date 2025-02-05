@@ -59,7 +59,8 @@ class BitmainClient():
                 self._authenticate_session()
         except (
             requests.exceptions.ConnectionError,
-            requests.exceptions.ConnectTimeout
+            requests.exceptions.ConnectTimeout,
+            requests.exceptions.ReadTimeout
         ):
             self.close_client()
             raise FailedConnectionError("Connection Failed: Failed to connect or timeout occurred.")
