@@ -138,7 +138,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
 
         self.tableWidget.setHorizontalHeaderLabels(
-            ["IP", "MAC", "SERIAL", "TYPE", "SUBTYPE", "ALGORITHM", "FIRMWARE"]
+            ["IP", "MAC", "SERIAL", "TYPE", "SUBTYPE", "ALGORITHM", "FIRMWARE", "PLATFORM"]
         )
         self.tableWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tableWidget.customContextMenuRequested.connect(self.show_table_context)
@@ -468,6 +468,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # FIRMWARE
             self.tableWidget.setItem(
                 rowPosition, 6, QTableWidgetItem(t_data["firmware"])
+            )
+            # PLATFORM
+            self.tableWidget.setItem(
+                rowPosition, 7, QTableWidgetItem(t_data["platform"])
             )
 
     def show_confirm_from_sys_tray(self, confirm):

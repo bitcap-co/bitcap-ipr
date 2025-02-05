@@ -156,6 +156,11 @@ class WhatsminerParser():
         if "fw_ver" in msg:
             self.target["firmware"] = msg["fw_ver"]
 
+    def parse_platform(self, resp: dict):
+        msg = resp["Msg"]
+        if "platform" in msg:
+            self.target["platform"] = msg["platform"]
+
 
 def md5_encrypt(word: str, salt: str):
     salt = "$1$" + salt + "$"

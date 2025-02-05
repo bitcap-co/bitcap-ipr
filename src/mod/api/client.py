@@ -21,6 +21,7 @@ class APIClient():
             "subtype": "N/A",
             "algorithm": "N/A",
             "firmware": "N/A",
+            "platform": "N/A"
         }
 
     def get_client(self):
@@ -80,6 +81,10 @@ class APIClient():
         parser.parse_firmware(system_info)
         if not self.client.is_custom:
             parser.parse_algorithm(system_info)
+            log = self.client.get_system_log()
+            parser.parse_platform(log)
+        else:
+            parser.parse_platform(system_info)
         parser.parse_common(system_info)
         return parser.get_target()
 
@@ -111,6 +116,7 @@ class APIClient():
         parser.parse_subtype(devs)
         version_info = self.client.get_version()
         parser.parse_firmware(version_info)
+        parser.parse_platform(version_info)
         return parser.get_target()
 
     def get_target_data_from_type(self, miner_type: str):

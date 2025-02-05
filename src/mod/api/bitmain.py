@@ -116,6 +116,11 @@ class BitmainClient():
             path = self.command_prefixes["vnish"] + command
         return self._do_http(method, path, payload)
 
+    def get_system_log(self):
+        log = self.run_command("GET", "log")
+        log["plain"] = log["plain"][0:log["plain"].find("===")]
+        return log
+
     def close_client(self):
         self.session.close()
         self = None
@@ -124,6 +129,12 @@ class BitmainClient():
 class BitmainParser():
     def __init__(self, target: dict):
         self.target = target.copy()
+        self.ctrl_boards = {
+            "xil": r'Zynq|Xilinx|xil',
+            "bb": r'BeagleBone',
+            "aml": r'amlogic|aml',
+            "cv": r'cvitek|CVITEK',
+        }
 
     def get_target(self):
         return self.target
@@ -146,3 +157,12 @@ class BitmainParser():
             self.target["firmware"] = f"{resp['fw_name']} {resp['fw_version']}"
         elif "system_filesystem_version" in resp:
             self.target["firmware"] = resp["system_filesystem_version"]
+
+    def parse_platform(self, resp: dict):
+        if "platform" in resp:
+            self.target["platform"] = resp["platform"]
+        elif "plain" in resp:
+            for cb, pattern in self.ctrl_boards.items():
+                if re.search(pattern, resp["plain"]):
+                    self.target["platform"] = cb
+                    break

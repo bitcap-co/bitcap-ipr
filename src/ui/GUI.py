@@ -65,7 +65,7 @@ class Ui_MainWindow(object):
         self.tableWidget.setAlternatingRowColors(False)
         self.tableWidget.setShowGrid(False)
         self.tableWidget.setCornerButtonEnabled(True)
-        self.tableWidget.setColumnCount(7)
+        self.tableWidget.setColumnCount(8)
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setRowCount(0)
         self.tableWidget.horizontalHeader().setDefaultSectionSize(105)
