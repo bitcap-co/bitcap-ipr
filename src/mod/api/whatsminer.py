@@ -126,6 +126,10 @@ class WhatsminerClient():
             raise AuthenticationError("Authentication Failed: failed to authenticate to miner.")
         return res
 
+    def get_version(self):
+        cmd = {"cmd": "get_version"}
+        return self._do_rpc(cmd)
+
     def get_dev_details(self):
         cmd = {"cmd": "devdetails"}
         return self._do_rpc(cmd)
@@ -146,6 +150,11 @@ class WhatsminerParser():
         dev = resp["DEVDETAILS"][0]
         if "Model" in dev:
             self.target["subtype"] = dev["Model"]
+
+    def parse_firmware(self, resp: dict):
+        msg = resp["Msg"]
+        if "fw_ver" in msg:
+            self.target["firmware"] = msg["fw_ver"]
 
 
 def md5_encrypt(word: str, salt: str):

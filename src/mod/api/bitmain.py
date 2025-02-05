@@ -140,3 +140,9 @@ class BitmainParser():
             self.target["algorithm"] = resp["Algorithm"]
         else:
             self.target["algorithm"] = "SHA256"
+
+    def parse_firmware(self, resp: dict):
+        if "fw_name" in resp:
+            self.target["firmware"] = f"{resp['fw_name']} {resp['fw_version']}"
+        elif "system_filesystem_version" in resp:
+            self.target["firmware"] = resp["system_filesystem_version"]

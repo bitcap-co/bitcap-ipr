@@ -20,6 +20,7 @@ class APIClient():
             "serial": "N/A",
             "subtype": "N/A",
             "algorithm": "N/A",
+            "firmware": "N/A",
         }
 
     def get_client(self):
@@ -76,6 +77,7 @@ class APIClient():
                 result[k] = "Failed"
             return result
         system_info = self.client.run_command("GET", "get_system_info")
+        parser.parse_firmware(system_info)
         if not self.client.is_custom:
             parser.parse_algorithm(system_info)
         parser.parse_common(system_info)
@@ -107,6 +109,8 @@ class APIClient():
             return result
         devs = self.client.get_dev_details()
         parser.parse_subtype(devs)
+        version_info = self.client.get_version()
+        parser.parse_firmware(version_info)
         return parser.get_target()
 
     def get_target_data_from_type(self, miner_type: str):

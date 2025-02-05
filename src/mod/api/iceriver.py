@@ -110,7 +110,12 @@ class IceriverParser():
             if not resp["algo"] == "none":
                 self.target["algorithm"] = resp["algo"]
 
+    def parse_firmware(self, resp: dict):
+        if "softver1" in resp:
+            self.target["firmware"] = resp["softver1"]
+
     def parse_all(self, resp: dict):
         self.parse_subtype(resp)
         self.parse_algorithm(resp)
+        self.parse_firmware(resp)
         return self.target
