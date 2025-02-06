@@ -145,6 +145,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tableWidget.customContextMenuRequested.connect(self.show_table_context)
         self.tableWidget.setColumnWidth(0, 15)
         self.tableWidget.doubleClicked.connect(self.double_click_item)
+        self.tableWidget.cellClicked.connect(self.locate_miner)
 
         self.actionToggleBitmainPasswd = self.lineBitmainPasswd.addAction(
             QIcon(":theme/icons/rc/view.png"),
@@ -257,6 +258,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
 
         self.api_client = APIClient(self)
+        self.api_client.signals.locate_complete.connect(self.api_client.close_client)
 
         self.actionDisableInactiveTimer.changed.connect(self.restart_listen)
         self.actionEnableIDTable.changed.connect(self.toggle_table_settings)
@@ -520,6 +522,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionDisableIPConfirmations.setChecked(False)
             self.update_settings()
             self.actionDisableIPConfirmations.setEnabled(False)
+
+    def locate_miner(self, row: int, col: int):
+        if col == 0:
+            miner_type = self.tableWidget.item(row, 4).text()
+            ip_addr = self.tableWidget.item(row, 1).text()
+            logger.info(f" locate miner {ip_addr}.")
+            client_auth = None
+            match miner_type:
+                case "antminer":
+                    client_auth = self.lineBitmainPasswd.text()
+                case "iceriver":
+                    client_auth = self.linePbfarmerKey.text()
+                case "whatsminer":
+                    client_auth = self.lineWhatsminerPasswd.text()
+            self.api_client.create_client_from_type(miner_type, ip_addr, client_auth)
+            self.api_client.locate_miner(miner_type)
 
     def double_click_item(self, model_index):
         row = model_index.row()

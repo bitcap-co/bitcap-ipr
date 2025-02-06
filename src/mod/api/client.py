@@ -1,5 +1,5 @@
 import logging
-from PyQt6.QtCore import QObject
+from PyQt6.QtCore import QObject, QTimer, pyqtSignal
 from .errors import (
     FailedConnectionError,
     AuthenticationError,
@@ -12,9 +12,14 @@ from .whatsminer import WhatsminerClient, WhatsminerParser
 logger = logging.getLogger(__name__)
 
 
+class APISignals(QObject):
+    locate_complete = pyqtSignal()
+
+
 class APIClient():
     def __init__(self, parent: QObject):
         self.parent = parent
+        self.signals = APISignals()
         self.client = None
         self.target_info = {
             "serial": "N/A",
@@ -59,6 +64,34 @@ class APIClient():
                 self.create_iceriver_client(ip_addr, auth_str)
             case "whatsminer":
                 self.create_whatsminer_client(ip_addr, auth_str=auth_str)
+
+    def locate_miner(self, miner_type: str):
+        locate_duration = QTimer(self.parent)
+        locate_duration.setSingleShot(True)
+        locate_duration.timeout.connect(self.stop_locate)
+        logger.info(" locate miner for 10000ms.")
+        match miner_type:
+            case "antminer":
+                if self.client.is_custom:
+                    try:
+                        self.client.unlock_vnish_session()
+                    except AuthenticationError as err:
+                        logger.error(err)
+                self.client.blink(True)
+                locate_duration.start(10000)
+            case "iceriver":
+                self.client.blink(True)
+                locate_duration.start(10000)
+            case "whatsminer":
+                try:
+                    self.client.blink()
+                    self.signals.locate_complete.emit()
+                except AuthenticationError as err:
+                    logger.error(err)
+
+    def stop_locate(self):
+        self.client.blink(False)
+        self.signals.locate_complete.emit()
 
     def get_iceriver_mac_addr(self):
         if self.client:
