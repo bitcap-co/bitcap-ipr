@@ -134,6 +134,11 @@ class WhatsminerClient():
         cmd = {"cmd": "devdetails"}
         return self._do_rpc(cmd)
 
+    def blink(self):
+        cmd = {"cmd": "set_led"}
+        params = {"param": "auto"}
+        self._exec_authenticated_command(cmd, params)
+
     def close_client(self):
         self = None
 

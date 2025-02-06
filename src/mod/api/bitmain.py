@@ -115,6 +115,8 @@ class BitmainClient():
                     command = "/summary"
                 case "get_miner_conf":
                     command = "/settings"
+                case "blink":
+                    command = "/find-miner"
             path = self.command_prefixes["vnish"] + command
         return self._do_http(method, path, payload)
 
@@ -122,6 +124,12 @@ class BitmainClient():
         log = self.run_command("GET", "log")
         log["plain"] = log["plain"][0:log["plain"].find("===")]
         return log
+
+    def blink(self, enabled: bool):
+        payload = {"blink": enabled}
+        if self.is_custom:
+            payload = None
+        self.run_command("POST", "blink", payload)
 
     def close_client(self):
         self.session.close()

@@ -68,6 +68,8 @@ class IceriverClient():
                     command = "network"
                 case "userpanel":
                     command = "overview"
+                case "locate":
+                    command = "machine/locate"
             path = self.command_prefixes["pb"] + command
         return self._do_http(method, path, data)
 
@@ -83,6 +85,19 @@ class IceriverClient():
         data = {"post": 4}
         resp = self.run_command("POST", "userpanel", data)
         return resp["data"]
+
+    def blink(self, enabled: bool):
+        if not self.is_custom:
+            locate_enable = "0"
+            if enabled:
+                locate_enable = "1"
+            data = {
+                "post": 5,
+                "locate": locate_enable
+            }
+            self.run_command("POST", "userpanel", data)
+        else:
+            self.run_command("POST", "locate", None)
 
     def close_client(self):
         self.session.close()
