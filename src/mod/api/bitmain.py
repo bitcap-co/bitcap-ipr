@@ -98,6 +98,7 @@ class BitmainClient():
                 self.unlocked = True
                 break
         if not self.unlocked:
+            self.close_client()
             raise AuthenticationError("Authentication Failed: Failed to unlock miner.")
 
     def run_command(self, method: str, command: str, payload: dict = None):
