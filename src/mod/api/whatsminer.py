@@ -72,7 +72,7 @@ class WhatsminerClient():
 
     def enable_write_access(self, admin_passwd: str):
         self.admin_passwd = admin_passwd
-        self._create_token
+        self._create_token()
 
     def has_write_access(self):
         if not self.admin_passwd:
@@ -102,7 +102,7 @@ class WhatsminerClient():
         if "STATUS" in res and res["STATUS"] == "E":
             logger.error(res["Msg"])
         if write:
-            res_ciphertext = b64decode(json.loads(data.decode()))["enc"]
+            res_ciphertext = b64decode(json.loads(data.decode())["enc"])
             res_plaintext = self.cipher.decrypt(res_ciphertext).decode().split("\x00")[0]
             res = json.loads(res_plaintext)
 
