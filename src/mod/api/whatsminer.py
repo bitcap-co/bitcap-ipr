@@ -92,7 +92,7 @@ class WhatsminerClient():
             data_enc = {"enc": 1}
             data_enc["data"] = enc_str
             cmd = json.dumps(data_enc)
-
+        logger.debug(f" send rpc command: {cmd}.")
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((self.ip_addr, self.port))
             s.send(cmd.encode("utf-8"))
@@ -100,7 +100,7 @@ class WhatsminerClient():
 
         res = json.loads(data.decode())
         if "STATUS" in res and res["STATUS"] == "E":
-            logger.error(res["Msg"])
+            logger.error(f" {res['Msg']}")
         if write:
             res_ciphertext = b64decode(json.loads(data.decode())["enc"])
             res_plaintext = self.cipher.decrypt(res_ciphertext).decode().split("\x00")[0]
@@ -124,7 +124,7 @@ class WhatsminerClient():
         if not success:
             self.close_client()
             raise AuthenticationError("Authentication Failed: failed to authenticate to miner.")
-        return res
+        logger.debug(res)
 
     def get_version(self):
         cmd = {"cmd": "get_version"}
