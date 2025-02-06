@@ -11,7 +11,7 @@ from .whatsminer import WhatsminerClient, WhatsminerParser
 
 logger = logging.getLogger(__name__)
 
-# self.api_client = APIClient(self)
+
 class APIClient():
     def __init__(self, parent: QObject):
         self.parent = parent
@@ -130,4 +130,5 @@ class APIClient():
 
     def close_client(self):
         if self.client:
-            self.client.close_client()
+            logger.debug(" close client.")
+            self.client = self.client.close_client()
