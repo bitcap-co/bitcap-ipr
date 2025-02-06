@@ -12,5 +12,6 @@
     <file>rc/hide.png</file>
     <file>rc/view.png</file>
     <file>rc/copy.png</file>
+    <file>rc/flash.png</file>
   </qresource>
 </RCC>

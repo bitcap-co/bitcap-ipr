@@ -19,6 +19,7 @@ from PyQt6.QtWidgets import (
     QSystemTrayIcon,
     QMessageBox,
     QTableWidgetItem,
+    QLabel,
     QLineEdit,
     QMenuBar,
     QMenu,
@@ -138,10 +139,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
 
         self.tableWidget.setHorizontalHeaderLabels(
-            ["IP", "MAC", "SERIAL", "TYPE", "SUBTYPE", "ALGORITHM", "FIRMWARE", "PLATFORM"]
+            ["", "IP", "MAC", "SERIAL", "TYPE", "SUBTYPE", "ALGORITHM", "FIRMWARE", "PLATFORM"]
         )
         self.tableWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tableWidget.customContextMenuRequested.connect(self.show_table_context)
+        self.tableWidget.setColumnWidth(0, 15)
         self.tableWidget.doubleClicked.connect(self.double_click_item)
 
         self.actionToggleBitmainPasswd = self.lineBitmainPasswd.addAction(
@@ -450,28 +452,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             logger.info("show_confirm : write table data.")
             rowPosition = self.tableWidget.rowCount()
             self.tableWidget.insertRow(rowPosition)
-            self.tableWidget.setItem(rowPosition, 0, QTableWidgetItem(ip))
-            self.tableWidget.setItem(rowPosition, 1, QTableWidgetItem(mac))
+            actionLocateMiner = QLabel()
+            actionLocateMiner.setPixmap(
+                QPixmap(":theme/icons/rc/flash.png")
+            )
+            actionLocateMiner.setToolTip("Locate Miner")
+            self.tableWidget.setCellWidget(rowPosition, 0, actionLocateMiner)
+            self.tableWidget.setItem(rowPosition, 1, QTableWidgetItem(ip))
+            self.tableWidget.setItem(rowPosition, 2, QTableWidgetItem(mac))
             self.tableWidget.setItem(
-                rowPosition, 2, QTableWidgetItem(t_data["serial"])
+                rowPosition, 3, QTableWidgetItem(t_data["serial"])
             )
             # ASIC TYPE
-            self.tableWidget.setItem(rowPosition, 3, QTableWidgetItem(type))
+            self.tableWidget.setItem(rowPosition, 4, QTableWidgetItem(type))
             # SUBTYPE
             self.tableWidget.setItem(
-                rowPosition, 4, QTableWidgetItem(t_data["subtype"])
+                rowPosition, 5, QTableWidgetItem(t_data["subtype"])
             )
             # ALGO
             self.tableWidget.setItem(
-                rowPosition, 5, QTableWidgetItem(t_data["algorithm"])
+                rowPosition, 6, QTableWidgetItem(t_data["algorithm"])
             )
             # FIRMWARE
             self.tableWidget.setItem(
-                rowPosition, 6, QTableWidgetItem(t_data["firmware"])
+                rowPosition, 7, QTableWidgetItem(t_data["firmware"])
             )
             # PLATFORM
             self.tableWidget.setItem(
-                rowPosition, 7, QTableWidgetItem(t_data["platform"])
+                rowPosition, 8, QTableWidgetItem(t_data["platform"])
             )
 
     def show_confirm_from_sys_tray(self, confirm):
@@ -517,10 +525,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         row = model_index.row()
         col = model_index.column()
         # ip
-        if col == 0:
+        if col == 1:
             self.open_dashboard(self.tableWidget.item(row, col).text())
         # serial
-        if col == 2:
+        if col == 3:
             self.tableWidget.editItem(self.tableWidget.item(row, col))
 
     def open_selected_ips(self):
