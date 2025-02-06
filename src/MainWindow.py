@@ -257,6 +257,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.inactive.setInterval(900000)
         self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
 
+        logger.info(" init APIClient.")
         self.api_client = APIClient(self)
         self.api_client.signals.locate_complete.connect(self.api_client.close_client)
 
