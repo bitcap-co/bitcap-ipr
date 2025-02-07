@@ -361,7 +361,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     "Timeout",
                     "Inactive Timeout exceeded! Stopping listeners...",
                 )
-            self.inactive.stop()
+        self.inactive.stop()
         if self.actionEnableIDTable.isChecked():
             self.tableWidget.setRowCount(0)
         if self.sys_tray and not self.isVisible():
