@@ -73,7 +73,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.menuHelp.setToolTipsVisible(True)
         self.menuOptions = self.menu_bar.addMenu("Options")
         self.menuOptions.setToolTipsVisible(True)
-        self.menuTable = self.menu_bar.addMenu("Table")
+        self.menuTable = self.menu_bar.addMenu("ID Table")
         self.menuTable.setToolTipsVisible(True)
         self.menuSettings = self.menu_bar.addMenu("Settings")
         self.menuSettings.setToolTipsVisible(True)
