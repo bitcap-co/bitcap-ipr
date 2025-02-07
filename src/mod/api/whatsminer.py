@@ -19,15 +19,15 @@ from .errors import (
 logger = logging.getLogger(__name__)
 
 
-class WhatsminerClient():
+class WhatsminerRPCClient():
     """Whatsminer JSON-RPC API client"""
-    def __init__(self, ip_addr: str, port: int, admin_passwd: str = None):
-        self.ip_addr = ip_addr
+    def __init__(self, ip_addr: str, port: int, passwd: str = None):
+        self.ip = ip_addr
         self.port = port
-        self.admin_passwd = admin_passwd
-        if not self.admin_passwd:
-            if self.admin_passwd == "":
-                self.admin_passwd = "admin"
+        self.passwd = passwd
+        if not self.passwd:
+            if self.passwd == "":
+                self.passwd = "admin"
         self._test_connection()
 
 
@@ -35,9 +35,9 @@ class WhatsminerClient():
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.settimeout(3.0)
             try:
-                s.connect((self.ip_addr, self.port))
+                s.connect((self.ip, self.port))
             except TimeoutError:
-                self.close_client()
+                self._close_client()
                 raise FailedConnectionError("Connection Failed: Failed to connect or timeout occurred.")
 
     def _create_token(self):
@@ -53,7 +53,7 @@ class WhatsminerClient():
         Final assembly: enc|base64(aes256("token,sign|set_led|auto", $aeskey))
         """
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((self.ip_addr, self.port))
+            s.connect((self.ip, self.port))
             s.sendall('{"cmd": "get_token"}'.encode("utf-8"))
             data = recv_all(s, 4000)
 
@@ -62,22 +62,13 @@ class WhatsminerClient():
             raise TokenOverMaxTimesError("Token Creation Failed: token over max times.")
 
         # Make encrypted key from passwd and salt
-        key = md5_encrypt(self.admin_passwd, token_info["salt"])
+        key = md5_encrypt(self.passwd, token_info["salt"])
 
         aeskey = hashlib.sha256(key.encode()).hexdigest()
         aeskey = binascii.unhexlify(aeskey.encode())
         self.cipher = AES.new(aeskey, AES.MODE_ECB)
 
         self.sign = md5_encrypt(key + token_info["time"], token_info["newsalt"])
-
-    def enable_write_access(self, admin_passwd: str):
-        self.admin_passwd = admin_passwd
-        self._create_token()
-
-    def has_write_access(self):
-        if not self.admin_passwd:
-            return False
-        return True
 
     def _do_rpc(self, payload: dict, params: dict = None, write: bool = False):
         if params:
@@ -94,7 +85,7 @@ class WhatsminerClient():
             cmd = json.dumps(data_enc)
         logger.debug(f" send rpc command: {cmd}.")
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((self.ip_addr, self.port))
+            s.connect((self.ip, self.port))
             s.send(cmd.encode("utf-8"))
             data = recv_all(s, 4000)
 
@@ -110,9 +101,7 @@ class WhatsminerClient():
 
     def _exec_authenticated_command(self, command: dict, params: dict = None):
         success = False
-        passwds = [self.admin_passwd]
-        if self.admin_passwd != "admin":
-            passwds.append("admin")
+        passwds = [self.passwd, "admin"] if self.passwd != "admin" else [self.passwd]
         for passwd in passwds:
             self.enable_write_access(passwd)
             command.update({"token": self.sign})
@@ -122,9 +111,18 @@ class WhatsminerClient():
             except KeyError:
                 continue
         if not success:
-            self.close_client()
+            self._close_client()
             raise AuthenticationError("Authentication Failed: failed to authenticate to miner.")
         logger.debug(res)
+
+    def enable_write_access(self, passwd: str):
+        self.passwd = passwd
+        self._create_token()
+
+    def has_write_access(self):
+        if not self.passwd:
+            return False
+        return True
 
     def get_version(self):
         cmd = {"cmd": "get_version"}
@@ -139,7 +137,7 @@ class WhatsminerClient():
         params = {"param": "auto"}
         self._exec_authenticated_command(cmd, params)
 
-    def close_client(self):
+    def _close_client(self):
         self = None
 
 
@@ -151,18 +149,18 @@ class WhatsminerParser():
     def get_target(self):
         return self.target
 
-    def parse_subtype(self, resp: dict):
-        dev = resp["DEVDETAILS"][0]
+    def parse_subtype(self, obj: dict):
+        dev = obj["DEVDETAILS"][0]
         if "Model" in dev:
             self.target["subtype"] = dev["Model"]
 
-    def parse_firmware(self, resp: dict):
-        msg = resp["Msg"]
+    def parse_firmware(self, obj: dict):
+        msg = obj["Msg"]
         if "fw_ver" in msg:
             self.target["firmware"] = msg["fw_ver"]
 
-    def parse_platform(self, resp: dict):
-        msg = resp["Msg"]
+    def parse_platform(self, obj: dict):
+        msg = obj["Msg"]
         if "platform" in msg:
             self.target["platform"] = msg["platform"]
 

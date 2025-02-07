@@ -1,13 +1,17 @@
 import logging
-from PyQt6.QtCore import QObject, QTimer, pyqtSignal
+from PyQt6.QtCore import (
+    QObject,
+    QTimer,
+    pyqtSignal
+)
 from .errors import (
     FailedConnectionError,
     AuthenticationError,
     MissingAPIKeyError
 )
-from .bitmain import BitmainClient, BitmainParser
-from .iceriver import IceriverClient, IceriverParser
-from .whatsminer import WhatsminerClient, WhatsminerParser
+from .bitmain import BitmainHTTPClient, BitmainParser
+from .iceriver import IceriverHTTPClient, IceriverParser
+from .whatsminer import WhatsminerRPCClient, WhatsminerParser
 
 logger = logging.getLogger(__name__)
 
@@ -33,26 +37,26 @@ class APIClient():
         if self.client:
             return self.client
 
-    def create_bitmain_client(self, ip_addr: str, auth_str: str):
-        if not auth_str:
-            auth_str = "root"
+    def create_bitmain_client(self, ip_addr: str, passwd: str):
+        if not passwd:
+            passwd = "root"
         try:
-            self.client = BitmainClient(ip_addr, auth_str)
+            self.client = BitmainHTTPClient(ip_addr, passwd)
         except (
             FailedConnectionError,
             AuthenticationError
         ) as err:
             logger.error(err)
 
-    def create_iceriver_client(self, ip_addr: str, auth_str: str):
+    def create_iceriver_client(self, ip_addr: str, pb_key: str):
         try:
-            self.client = IceriverClient(ip_addr, auth_str)
+            self.client = IceriverHTTPClient(ip_addr, pb_key)
         except FailedConnectionError as err:
             logger.error(err)
 
-    def create_whatsminer_client(self, ip_addr: str, port: int = 4028, auth_str: str = None):
+    def create_whatsminer_client(self, ip_addr: str, port: int = 4028, passwd: str = None):
         try:
-            self.client = WhatsminerClient(ip_addr, port, admin_passwd=auth_str)
+            self.client = WhatsminerRPCClient(ip_addr, port, passwd)
         except FailedConnectionError as err:
             logger.error(err)
 
@@ -63,7 +67,7 @@ class APIClient():
             case "iceriver":
                 self.create_iceriver_client(ip_addr, auth_str)
             case "whatsminer":
-                self.create_whatsminer_client(ip_addr, auth_str=auth_str)
+                self.create_whatsminer_client(ip_addr, passwd=auth_str)
 
     def locate_miner(self, miner_type: str):
         locate_duration = QTimer(self.parent)
@@ -96,7 +100,7 @@ class APIClient():
     def get_iceriver_mac_addr(self):
         if self.client:
             try:
-                mac = self.client.get_mac_address()
+                mac = self.client.get_iceriver_mac_addr()
             except MissingAPIKeyError as err:
                 logger.error(err)
                 return "ice-river"
@@ -110,11 +114,11 @@ class APIClient():
             for k in result.keys():
                 result[k] = "Failed"
             return result
-        system_info = self.client.run_command("GET", "get_system_info")
+        system_info = self.client.get_system_info()
         parser.parse_firmware(system_info)
         if not self.client.is_custom:
             parser.parse_algorithm(system_info)
-            log = self.client.get_system_log()
+            log = self.client.get_bitmain_system_log()
             parser.parse_platform(log)
         else:
             parser.parse_platform(system_info)
@@ -164,4 +168,4 @@ class APIClient():
     def close_client(self):
         if self.client:
             logger.debug(" close client.")
-            self.client = self.client.close_client()
+            self.client = self.client._close_client()
