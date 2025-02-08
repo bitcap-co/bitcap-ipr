@@ -581,9 +581,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logger.info("export table.")
         rows = self.tableWidget.rowCount()
         cols = self.tableWidget.columnCount()
-        out = "IP, MAC, SERIAL, TYPE, SUBTYPE, \n"
+        out = "IP, MAC, SERIAL, TYPE, SUBTYPE, ALGORITHM, FIRMWARE, PLATFORM \n"
         for i in range(rows):
-            for j in range(cols):
+            for j in range(1, cols-1):
                 out += self.tableWidget.item(i, j).text()
                 out += ","
             out += "\n"
