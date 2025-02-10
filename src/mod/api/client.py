@@ -5,8 +5,7 @@ from PyQt6.QtCore import (
 )
 from .errors import (
     FailedConnectionError,
-    AuthenticationError,
-    MissingAPIKeyError
+    AuthenticationError
 )
 from .bitmain import BitmainHTTPClient, BitmainParser
 from .iceriver import IceriverHTTPClient, IceriverParser
@@ -78,12 +77,8 @@ class APIClient():
                     logger.error(err)
                     self.close_client()
             case "iceriver":
-                try:
-                    self.client.blink(True)
-                    locate_duration.start(10000)
-                except MissingAPIKeyError as err:
-                    logger.error(err)
-                    self.close_client()
+                self.client.blink(True)
+                locate_duration.start(10000)
             case "whatsminer":
                 try:
                     self.client.blink()
@@ -98,11 +93,7 @@ class APIClient():
 
     def get_iceriver_mac_addr(self):
         if self.client:
-            try:
-                mac = self.client.get_iceriver_mac_addr()
-            except MissingAPIKeyError as err:
-                logger.error(err)
-                return "ice-river"
+            mac = self.client.get_mac_addr()
             return mac
         return "ice-river"
 
@@ -131,13 +122,7 @@ class APIClient():
             for k in result.keys():
                 result[k] = "Failed"
             return result
-        try:
-            system_info = self.client.get_system_info()
-        except MissingAPIKeyError as err:
-            logger.error(err)
-            for k in result.keys():
-                result[k] = "Missing Auth"
-            return result
+        system_info = self.client.get_system_info()
         parser.parse_all(system_info)
         return parser.get_target()
 

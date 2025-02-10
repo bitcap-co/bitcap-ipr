@@ -42,8 +42,6 @@ class IceriverHTTPClient():
     def _do_http(self, method: str, path: str, data: dict | None = None):
         headers = {"Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"}
         if self.is_custom:
-            if not self.pb_key:
-                self._close_client(MissingAPIKeyError("Missing API Key: No pbfarmer API key found."))
             headers.update({"Authorization": "Bearer " + self.pb_key})
         req = requests.Request(
             method=method,
@@ -77,7 +75,7 @@ class IceriverHTTPClient():
             return True
         return False
 
-    def get_iceriver_mac_addr(self):
+    def get_mac_addr(self):
         data = {"post": 1}
         resp = self.run_command("POST", "ipconfig", data)
         for k in resp.keys():
