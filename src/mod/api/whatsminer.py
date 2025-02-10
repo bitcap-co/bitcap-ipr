@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class WhatsminerRPCClient():
     """Whatsminer JSON-RPC API client"""
-    def __init__(self, ip_addr: str, port: int, passwd: str = None):
+    def __init__(self, ip_addr: str, port: int, passwd: str | None = None):
         self.ip = ip_addr
         self.port = port
         self.passwd = passwd
@@ -30,7 +30,6 @@ class WhatsminerRPCClient():
                 self.passwd = "admin"
         self.err = None
         self._test_connection()
-
 
     def _test_connection(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -70,7 +69,7 @@ class WhatsminerRPCClient():
 
         self.sign = md5_encrypt(key + token_info["time"], token_info["newsalt"])
 
-    def _do_rpc(self, payload: dict, params: dict = None, write: bool = False):
+    def _do_rpc(self, payload: dict, params: dict | None = None, write: bool = False):
         if params:
             payload.update(params)
         cmd = json.dumps(payload)
@@ -78,7 +77,7 @@ class WhatsminerRPCClient():
             enc_str = str(
                 base64.encodebytes(
                     self.cipher.encrypt(add_to_16(cmd))),
-                    encoding="utf8"
+                encoding="utf8"
             ).replace('\n', '')
             data_enc = {"enc": 1}
             data_enc["data"] = enc_str
@@ -99,7 +98,7 @@ class WhatsminerRPCClient():
 
         return res
 
-    def _exec_authenticated_command(self, command: dict, params: dict = None):
+    def _exec_authenticated_command(self, command: dict, params: dict | None = None):
         success = False
         passwds = [self.passwd, "admin"] if self.passwd != "admin" else [self.passwd]
         for passwd in passwds:
@@ -136,7 +135,7 @@ class WhatsminerRPCClient():
         params = {"param": "auto"}
         self._exec_authenticated_command(cmd, params)
 
-    def _close_client(self, error: Exception = None):
+    def _close_client(self, error: Exception | None = None):
         if error:
             self.err = error
             raise error

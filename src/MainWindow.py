@@ -25,10 +25,10 @@ from PyQt6.QtWidgets import (
     QMenu,
 )
 from PyQt6.QtGui import (
-   QPixmap,
-   QIcon,
-   QCursor,
-   QDesktopServices,
+    QPixmap,
+    QIcon,
+    QCursor,
+    QDesktopServices,
 )
 from ui.widgets.TitleBar import TitleBar
 from ui.GUI import Ui_MainWindow
@@ -356,7 +356,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionIPRStop.setEnabled(False)
         self.listener_thread.stop_listeners()
         if self.sys_tray and not self.isVisible():
-                self.sys_tray.showMessage(
+            self.sys_tray.showMessage(
                 "IPR Listener: Stop",
                 "Stopped UDP listening.",
                 QSystemTrayIcon.MessageIcon.Information,

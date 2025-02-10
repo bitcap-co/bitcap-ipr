@@ -47,7 +47,7 @@ class APIClient():
         except FailedConnectionError as err:
             logger.error(err)
 
-    def create_whatsminer_client(self, ip_addr: str, port: int = 4028, passwd: str = None):
+    def create_whatsminer_client(self, ip_addr: str, port: int = 4028, passwd: str | None = None):
         try:
             self.client = WhatsminerRPCClient(ip_addr, port, passwd)
         except FailedConnectionError as err:

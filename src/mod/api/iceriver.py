@@ -39,7 +39,7 @@ class IceriverHTTPClient():
         ):
             self._close_client(FailedConnectionError("Connection Failed: Failed to connect to timeout occurred."))
 
-    def _do_http(self, method: str, path: str, data: dict = None):
+    def _do_http(self, method: str, path: str, data: dict | None = None):
         headers = {"Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"}
         if self.is_custom:
             if not self.pb_key:
@@ -56,7 +56,7 @@ class IceriverHTTPClient():
         res = self.session.send(r, timeout=10.0, verify=self.session.verify)
         return res.json()
 
-    def run_command(self, method: str, command: str, data: dict = None):
+    def run_command(self, method: str, command: str, data: dict | None = None):
         path = self.command_prefix["stock"] + command
         if self.is_custom:
             match command:
@@ -69,7 +69,7 @@ class IceriverHTTPClient():
             path = self.command_prefix["pb"] + command
         return self._do_http(method, path, data)
 
-    ## pbfarmer support
+    # pbfarmer support
     def _is_pbfarmer(self):
         res = self.session.head(self.host + "api", timeout=5.0, verify=self.session.verify)
         if res.status_code == 301:
@@ -104,7 +104,7 @@ class IceriverHTTPClient():
         else:
             self.run_command("POST", "locate")
 
-    def _close_client(self, error: Exception = None):
+    def _close_client(self, error: Exception | None = None):
         self.session.close()
         if error:
             self.err = error

@@ -54,7 +54,7 @@ class BitmainHTTPClient():
         if not self.digest:
             self._close_client(AuthenticationError("Authentication Failed: Failed to authenticate session."))
 
-    def _do_http(self, method: str, path: str, payload: dict = None):
+    def _do_http(self, method: str, path: str, payload: dict | None = None):
         req = requests.Request(
             method=method,
             url=self.url + path,
@@ -74,7 +74,7 @@ class BitmainHTTPClient():
             logger.warning("_do_http : return wrapped plaintext content.")
             return {"plaintext": res.text}
 
-    def run_command(self, method: str, command: str, payload: dict = None):
+    def run_command(self, method: str, command: str, payload: dict | None = None):
         path = self.command_prefix["stock"].substitute(cmd=command)
         if self.is_custom:
             match command:
@@ -87,7 +87,7 @@ class BitmainHTTPClient():
             path = self.command_prefix["vnish"] + command
         return self._do_http(method, path, payload)
 
-    ## Vnish support
+    # Vnish support
     def _is_vnish(self) -> bool:
         res = self.session.head(
             self.url + self.command_prefix["vnish"],
@@ -134,7 +134,7 @@ class BitmainHTTPClient():
         else:
             self.run_command("POST", "blink", {"blink": enabled})
 
-    def _close_client(self, error: Exception = None):
+    def _close_client(self, error: Exception | None = None):
         self.session.close()
         if error:
             self.err = error
