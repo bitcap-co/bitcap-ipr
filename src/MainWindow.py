@@ -249,6 +249,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
         self.comboLogLevel.currentIndexChanged.connect(self.set_logger_level)
 
+        # status bar
+        self.iprStatus.messageChanged.connect(self.update_status_msg)
+        self.update_status_msg()
+
         self.update_stacked_widget()
 
         if self.actionAutoStartOnLaunch.isChecked():
@@ -279,6 +283,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.stackedWidget.setCurrentIndex(1)
 
+    def update_status_msg(self):
+        if self.listener_thread.listeners and not self.iprStatus.currentMessage():
+            self.iprStatus.showMessage("Status :: UDP listening on 0.0.0.0[:8888,11503,14235]...")
+        if not self.iprStatus.currentMessage():
+            self.iprStatus.showMessage("Status :: Ready.")
+
     def about(self):
         self.aboutDialog = IPRAbout(
             self,
@@ -302,22 +312,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def start_listen(self):
         logger.info(" start listeners.")
-        self.actionIPRStart.setEnabled(False)
-        self.actionIPRStop.setEnabled(True)
+        if not self.actionDisableInactiveTimer.isChecked():
+            self.inactive.start()
         if self.sys_tray:
             self.actionSysStartListen.setEnabled(False)
             self.actionSysStopListen.setEnabled(True)
-        if not self.actionDisableInactiveTimer.isChecked():
-            self.inactive.start()
-        if (
-            not self.actionDisableWarningDialog.isChecked()
-            and not self.actionAutoStartOnLaunch.isChecked()
-        ):
-            QMessageBox.warning(
-                self,
-                "BitCapIPR",
-                "UDP listening on 0.0.0.0[:8888,11503,14235]...\nPress the 'IP Report' button on miner after this dialog.",
-            )
+        self.actionIPRStart.setEnabled(False)
+        self.actionIPRStop.setEnabled(True)
+        self.listener_thread.start()
         if self.sys_tray and not self.isVisible():
             self.sys_tray.showMessage(
                 "IPR Listener: Start",
@@ -325,15 +327,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 QSystemTrayIcon.MessageIcon.Information,
                 3000,
             )
-        self.listener_thread.start()
+        self.iprStatus.showMessage("Status :: UDP listening on 0.0.0.0[:8888,11503,14235]...")
 
     def stop_listen(self, timeout=False):
         logger.info(" stop listeners.")
+        self.inactive.stop()
         if timeout:
             logger.warning("stop_listen : timeout.")
-            if not self.isVisible():
+            if self.sys_tray and not self.isVisible():
                 self.sys_tray.showMessage(
-                    "Inactive timeout",
+                    "IPR Listener: Inactive timeout!",
                     "Timeout exceeded. Stopping listeners...",
                     QSystemTrayIcon.MessageIcon.Warning,
                     3000,
@@ -342,24 +345,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 QMessageBox.warning(
                     self,
                     "Timeout",
-                    "Inactive Timeout exceeded! Stopping listeners...",
+                    "Inactive timeout exceeded! Stopping listeners...",
                 )
-        self.inactive.stop()
-        if self.actionEnableIDTable.isChecked():
-            self.tableWidget.setRowCount(0)
-        if self.sys_tray and not self.isVisible():
-            self.sys_tray.showMessage(
-                "IPR Listener: Stop",
-                "Stopping listeners...",
-                QSystemTrayIcon.MessageIcon.Information,
-                3000,
-            )
-        self.listener_thread.stop_listeners()
-        self.actionIPRStart.setEnabled(True)
-        self.actionIPRStop.setEnabled(False)
         if self.sys_tray:
             self.actionSysStartListen.setEnabled(True)
             self.actionSysStopListen.setEnabled(False)
+        if self.actionEnableIDTable.isChecked():
+            self.tableWidget.setRowCount(0)
+        self.actionIPRStart.setEnabled(True)
+        self.actionIPRStop.setEnabled(False)
+        self.listener_thread.stop_listeners()
+        if self.sys_tray and not self.isVisible():
+                self.sys_tray.showMessage(
+                "IPR Listener: Stop",
+                "Stopped UDP listening.",
+                QSystemTrayIcon.MessageIcon.Information,
+                3000,
+            )
+        self.iprStatus.clearMessage()
 
     def restart_listen(self):
         if self.listener_thread.listeners:
@@ -379,6 +382,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             mac = self.api_client.get_iceriver_mac_addr()
             self.api_client.close_client()
             logger.info(f"show_confirm : got iceriver mac addr : {mac}")
+        self.iprStatus.showMessage(f"Status :: Got {type}: IP:{ip} MAC:{mac}", 3000)
         if self.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
         if self.actionEnableIDTable.isChecked():
@@ -485,7 +489,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             case "iceriver":
                 client_auth = self.linePbfarmerKey.text()
         self.api_client.create_client_from_type(type, ip, client_auth)
+        client = self.api_client.get_client()
+        if not client:
+            self.iprStatus.showMessage("Status :: Failed to connect or authenticate client.", 5000)
         result = self.api_client.get_target_data_from_type(type)
+        if client.err:
+            self.iprStatus.showMessage(f"Status :: Failed to retreive miner data: {client.err}", 5000)
         self.api_client.close_client()
         return result
 
@@ -511,7 +520,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 case "whatsminer":
                     client_auth = self.lineWhatsminerPasswd.text()
             self.api_client.create_client_from_type(miner_type, ip_addr, client_auth)
+            client = self.api_client.get_client()
+            if not client:
+                self.iprStatus.showMessage("Status :: Failed to connect or authenticate client.", 5000)
             self.api_client.locate_miner(miner_type)
+            if client.err:
+                self.iprStatus.showMessage(f"Status :: Failed to locate miner: {client.err}", 5000)
+            else:
+                self.iprStatus.showMessage(f"Status :: Locating miner: {ip_addr}...", 10000)
 
     def double_click_item(self, model_index):
         row = model_index.row()
@@ -549,6 +565,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         cb = QApplication.clipboard()
         cb.clear(mode=cb.Mode.Clipboard)
         cb.setText(out.strip(), mode=cb.Mode.Clipboard)
+        self.iprStatus.showMessage("Status :: Copied elements to clipboard.", 3000)
 
     def export_table(self):
         logger.info("export table.")
@@ -577,9 +594,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         outfile = QTextStream(file)
         outfile << out << "\n"
-        QMessageBox.information(
-            self, "Export Table Data", f"Successfully wrote csv to {p}."
-        )
+        self.iprStatus.showMessage(f"Status :: Wrote table as .CSV to {p}.", 3000)
 
     # app config view
     def show_app_config(self):
@@ -602,11 +617,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def save_settings(self):
         self.update_settings()
-        QMessageBox.information(
-            self,
-            "Configuration",
-            "Successfully wrote settings to config."
-        )
+        self.iprStatus.showMessage("Status :: Wrote settings to config.", 3000)
 
     def set_logger_level(self):
         logger.manager.root.setLevel(self.comboLogLevel.currentText())
@@ -648,6 +659,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         with open(Path(self.config_path, "config.json"), "w") as f:
             f.write(self.config_json)
         self.update_stacked_widget()
+        self.iprStatus.showMessage("Status :: Updated settings to config.", 1000)
 
     def toggle_visibility(self):
         self.setVisible(not self.isVisible())
@@ -669,6 +681,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logger.info(" kill all confirmations.")
         for c in self.children:
             c.close()
+        self.iprStatus.showMessage("Status :: Killed all confirmations.", 3000)
 
     def close_root_logger(self, log):
         for handler in log.root.handlers:
