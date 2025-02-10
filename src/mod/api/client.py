@@ -71,13 +71,12 @@ class APIClient():
         logger.info(" locate miner for 10000ms.")
         match miner_type:
             case "antminer":
-                if self.client.is_custom:
-                    try:
-                        self.client.unlock_vnish_session()
-                    except AuthenticationError as err:
-                        logger.error(err)
-                self.client.blink(True)
-                locate_duration.start(10000)
+                try:
+                    self.client.blink(True)
+                    locate_duration.start(10000)
+                except AuthenticationError as err:
+                    logger.error(err)
+                    self.close_client()
             case "iceriver":
                 self.client.blink(True)
                 locate_duration.start(10000)

@@ -127,10 +127,12 @@ class BitmainHTTPClient():
         return resp["blink"]
 
     def blink(self, enabled: bool):
-        if not self.is_custom:
-            self.run_command("POST", "blink", {"blink": enabled})
-        else:
+        if self.is_custom and not self.is_unlocked:
+            self.unlock_vnish_session()
+        if self.is_custom:
             self.run_command("POST", "blink")
+        else:
+            self.run_command("POST", "blink", {"blink": enabled})
 
     def _close_client(self, error: Exception = None):
         self.session.close()
