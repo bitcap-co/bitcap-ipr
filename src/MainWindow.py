@@ -108,10 +108,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionEnableIDTable.setCheckable(True)
         self.actionEnableIDTable.setToolTip("Stores identifying information in a table on confirmation")
         self.actionOpenSelectedIPs = self.menuTable.addAction("Open Selected IPs")
+        self.actionOpenSelectedIPs.setEnabled(False)
         self.actionOpenSelectedIPs.setToolTip("Open selected IPs in browser")
         self.actionCopySelectedElements = self.menuTable.addAction("Copy Selected Elements")
+        self.actionCopySelectedElements.setEnabled(False)
         self.actionCopySelectedElements.setToolTip("Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows")
         self.actionExport = self.menuTable.addAction("Export")
+        self.actionExport.setEnabled(False)
         self.actionExport.setToolTip("Export current table as .CSV file")
 
         # settings
@@ -227,6 +230,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.config["instance"]["table"]["enableIDTable"]
             )
 
+        if self.actionEnableIDTable.isChecked():
+            self.toggle_table_settings(True)
+
         logger.info(" init systray.")
         self.sys_tray = None
         self.create_or_destroy_systray()
@@ -246,6 +252,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.api_client = APIClient(self)
 
         self.actionDisableInactiveTimer.changed.connect(self.restart_listen)
+        self.actionEnableIDTable.changed.connect(
+            lambda: self.toggle_table_settings(self.actionEnableIDTable.isChecked())
+        )
         self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
         self.comboLogLevel.currentIndexChanged.connect(self.set_logger_level)
 
@@ -505,6 +514,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionContextCopySelectedElements = self.table_context.addAction("Copy Selected Elements")
         self.actionContextCopySelectedElements.triggered.connect(self.copy_selected)
         self.table_context.exec(QCursor.pos())
+
+    def toggle_table_settings(self, enabled: bool):
+        self.actionOpenSelectedIPs.setEnabled(enabled)
+        self.actionCopySelectedElements.setEnabled(enabled)
+        self.actionExport.setEnabled(enabled)
 
     def locate_miner(self, row: int, col: int):
         if col == 0:
