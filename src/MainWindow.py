@@ -242,9 +242,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.inactive.setInterval(900000)
         self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
 
-        logger.info(" init APIClient.")
+        logger.info(" init APIClient().")
         self.api_client = APIClient(self)
-        self.api_client.signals.locate_complete.connect(self.api_client.close_client)
 
         self.actionDisableInactiveTimer.changed.connect(self.restart_listen)
         self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)

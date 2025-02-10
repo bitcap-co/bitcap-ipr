@@ -16,14 +16,9 @@ from .whatsminer import WhatsminerRPCClient, WhatsminerParser
 logger = logging.getLogger(__name__)
 
 
-class APISignals(QObject):
-    locate_complete = pyqtSignal()
-
-
 class APIClient():
     def __init__(self, parent: QObject):
         self.parent = parent
-        self.signals = APISignals()
         self.client = None
         self.target_info = {
             "serial": "N/A",
