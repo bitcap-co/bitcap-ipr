@@ -554,8 +554,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         rows = self.tableWidget.rowCount()
         if rows:
             for r in range(rows):
-                if self.tableWidget.item(r, 0).isSelected():
-                    self.open_dashboard(self.tableWidget.item(r, 0).text())
+                if self.tableWidget.item(r, 1).isSelected():
+                    self.open_dashboard(self.tableWidget.item(r, 1).text())
 
     def copy_selected(self):
         logger.info(" copy selected elements.")
