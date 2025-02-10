@@ -1,8 +1,7 @@
 import logging
 from PyQt6.QtCore import (
     QObject,
-    QTimer,
-    pyqtSignal
+    QTimer
 )
 from .errors import (
     FailedConnectionError,
