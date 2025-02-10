@@ -78,18 +78,23 @@ class APIClient():
                     logger.error(err)
                     self.close_client()
             case "iceriver":
-                self.client.blink(True)
-                locate_duration.start(10000)
+                try:
+                    self.client.blink(True)
+                    locate_duration.start(10000)
+                except MissingAPIKeyError as err:
+                    logger.error(err)
+                    self.close_client()
             case "whatsminer":
                 try:
                     self.client.blink()
-                    self.signals.locate_complete.emit()
+                    self.close_client()
                 except AuthenticationError as err:
                     logger.error(err)
+                    self.close_client()
 
     def stop_locate(self):
         self.client.blink(False)
-        self.signals.locate_complete.emit()
+        self.close_client()
 
     def get_iceriver_mac_addr(self):
         if self.client:
