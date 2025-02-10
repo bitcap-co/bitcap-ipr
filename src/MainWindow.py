@@ -567,7 +567,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             out += "\n"
         else:
             for i in range(rows):
-                for j in range(cols):
+                for j in range(1, cols):
                     if self.tableWidget.item(i, j).isSelected():
                         out += self.tableWidget.item(i, j).text()
                         out += ","
