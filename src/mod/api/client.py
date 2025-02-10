@@ -29,8 +29,7 @@ class APIClient():
         }
 
     def get_client(self):
-        if self.client:
-            return self.client
+        return self.client
 
     def create_bitmain_client(self, ip_addr: str, passwd: str):
         if not passwd:
