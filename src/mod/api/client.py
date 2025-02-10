@@ -42,6 +42,8 @@ class APIClient():
             logger.error(err)
 
     def create_iceriver_client(self, ip_addr: str, pb_key: str):
+        if not pb_key:
+            pb_key = "5b281acc-de86-41bb-b14d-e266d9c9edbd"
         try:
             self.client = IceriverHTTPClient(ip_addr, pb_key)
         except FailedConnectionError as err:

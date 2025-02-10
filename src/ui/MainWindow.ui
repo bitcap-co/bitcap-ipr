@@ -509,7 +509,7 @@
                    </font>
                   </property>
                   <property name="toolTip">
-                   <string>Set API Key to enable support for pbfarmer firmware.</string>
+                   <string>Set alternative API Key for pbfarmer. Default API key is supplied if blank</string>
                   </property>
                   <property name="echoMode">
                    <enum>QLineEdit::Password</enum>
