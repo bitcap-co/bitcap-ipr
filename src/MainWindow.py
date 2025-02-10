@@ -583,7 +583,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         cols = self.tableWidget.columnCount()
         out = "IP, MAC, SERIAL, TYPE, SUBTYPE, ALGORITHM, FIRMWARE, PLATFORM \n"
         for i in range(rows):
-            for j in range(1, cols-1):
+            for j in range(1, cols):
                 out += self.tableWidget.item(i, j).text()
                 out += ","
             out += "\n"
