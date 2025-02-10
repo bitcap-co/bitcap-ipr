@@ -26,6 +26,7 @@ class BitmainHTTPClient():
             "vnish": "api/v1",
             "stock": Template("cgi-bin/${cmd}.cgi")
         }
+        self.err = None
         self._initialize_session()
 
     def _initialize_session(self):
@@ -40,8 +41,7 @@ class BitmainHTTPClient():
             requests.exceptions.ConnectTimeout,
             requests.exceptions.ReadTimeout
         ):
-            self._close_client()
-            raise FailedConnectionError("Connection Failed: Failed to connect or timeout occured.")
+            self._close_client(FailedConnectionError("Connection Failed: Failed to connect or timeout occured."))
 
     def _authenticate_session(self):
         passwds = [self.passwd, "root"] if self.passwd != "root" else [self.passwd]
@@ -52,8 +52,7 @@ class BitmainHTTPClient():
                 self.digest = self.session.auth
                 break
         if not self.digest:
-            self._close_client()
-            raise AuthenticationError("Authentication Failed: Failed to authenticate session.")
+            self._close_client(AuthenticationError("Authentication Failed: Failed to authenticate session."))
 
     def _do_http(self, method: str, path: str, payload: dict = None):
         req = requests.Request(
@@ -111,8 +110,7 @@ class BitmainHTTPClient():
                 self.is_unlocked = True
                 break
         if not self.is_unlocked:
-            self._close_client()
-            raise AuthenticationError("Authentication Failed: Failed to unlock vnish session.")
+            self._close_client(AuthenticationError("Authentication Failed: Failed to unlock vnish session."))
 
     def get_bitmain_system_log(self):
         resp = self.run_command("GET", "log")
@@ -134,9 +132,11 @@ class BitmainHTTPClient():
         else:
             self.run_command("POST", "blink")
 
-    def _close_client(self):
+    def _close_client(self, error: Exception = None):
         self.session.close()
-        self = None
+        if error:
+            self.err = error
+            raise error
 
 
 class BitmainParser():

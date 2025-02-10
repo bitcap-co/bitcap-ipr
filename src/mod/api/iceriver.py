@@ -22,6 +22,7 @@ class IceriverHTTPClient():
             "pb": "api/",
             "stock": "user/"
         }
+        self.err = None
         self._initialize_session()
 
     def _initialize_session(self):
@@ -36,15 +37,13 @@ class IceriverHTTPClient():
             requests.exceptions.ConnectTimeout,
             requests.exceptions.ReadTimeout
         ):
-            self._close_client()
-            raise FailedConnectionError("Connection Failed: Failed to connect to timeout occurred.")
+            self._close_client(FailedConnectionError("Connection Failed: Failed to connect to timeout occurred."))
 
     def _do_http(self, method: str, path: str, data: dict = None):
         headers = {"Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"}
         if self.is_custom:
             if not self.pb_key:
-                self._close_client()
-                raise MissingAPIKeyError("Missing API Key: No pbfarmer API key found.")
+                self._close_client(MissingAPIKeyError("Missing API Key: No pbfarmer API key found."))
             headers.update({"Authorization": "Bearer " + self.pb_key})
         req = requests.Request(
             method=method,
@@ -105,9 +104,11 @@ class IceriverHTTPClient():
         else:
             self.run_command("POST", "locate")
 
-    def _close_client(self):
+    def _close_client(self, error: Exception = None):
         self.session.close()
-        self = None
+        if error:
+            self.err = error
+            raise error
 
 
 class IceriverParser():

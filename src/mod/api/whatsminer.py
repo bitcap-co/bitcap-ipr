@@ -28,6 +28,7 @@ class WhatsminerRPCClient():
         if not self.passwd:
             if self.passwd == "":
                 self.passwd = "admin"
+        self.err = None
         self._test_connection()
 
 
@@ -37,8 +38,7 @@ class WhatsminerRPCClient():
             try:
                 s.connect((self.ip, self.port))
             except TimeoutError:
-                self._close_client()
-                raise FailedConnectionError("Connection Failed: Failed to connect or timeout occurred.")
+                self._close_client(FailedConnectionError("Connection Failed: Failed to connect or timeout occurred."))
 
     def _create_token(self):
         """
@@ -59,7 +59,7 @@ class WhatsminerRPCClient():
 
         token_info = json.loads(data)["Msg"]
         if token_info == "over max connect":
-            raise TokenOverMaxTimesError("Token Creation Failed: token over max times.")
+            self._close_client(TokenOverMaxTimesError("Token Creation Failed: token over max times."))
 
         # Make encrypted key from passwd and salt
         key = md5_encrypt(self.passwd, token_info["salt"])
@@ -111,8 +111,7 @@ class WhatsminerRPCClient():
             except KeyError:
                 continue
         if not success:
-            self._close_client()
-            raise AuthenticationError("Authentication Failed: failed to authenticate to miner.")
+            self._close_client(AuthenticationError("Authentication Failed: failed to authenticate to miner."))
         logger.debug(res)
 
     def enable_write_access(self, passwd: str):
@@ -137,8 +136,10 @@ class WhatsminerRPCClient():
         params = {"param": "auto"}
         self._exec_authenticated_command(cmd, params)
 
-    def _close_client(self):
-        self = None
+    def _close_client(self, error: Exception = None):
+        if error:
+            self.err = error
+            raise error
 
 
 class WhatsminerParser():
