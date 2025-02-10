@@ -99,9 +99,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionDisableInactiveTimer = self.menuOptions.addAction("Disable Inactive Timer")
         self.actionDisableInactiveTimer.setCheckable(True)
         self.actionDisableInactiveTimer.setToolTip("Disables inactive timer of 15 minutes (Listens until stopped)")
-        self.actionDisableWarningDialog = self.menuOptions.addAction("Disable Warning Dialog")
-        self.actionDisableWarningDialog.setCheckable(True)
-        self.actionDisableWarningDialog.setToolTip("Disables warning dialog when starting listeners")
         self.actionAutoStartOnLaunch = self.menuOptions.addAction("Auto Start on Launch")
         self.actionAutoStartOnLaunch.setCheckable(True)
         self.actionAutoStartOnLaunch.setToolTip("Automatically start listeners on launch (Takes effect on next launch)")
@@ -109,13 +106,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # table
         self.actionEnableIDTable = self.menuTable.addAction("Enable ID Table")
         self.actionEnableIDTable.setCheckable(True)
-        self.actionEnableIDTable.setToolTip("Stores IP,MAC,SERIAL,TYPE,SUBTYPE in a table on confirmation")
-        self.menuTableSettings = self.menuTable.addMenu("Table Settings")
-        self.menuTableSettings.setToolTipsVisible(True)
-        self.actionDisableIPConfirmations = self.menuTableSettings.addAction("Disable IP Confirmations")
-        self.actionDisableIPConfirmations.setEnabled(False)
-        self.actionDisableIPConfirmations.setCheckable(True)
-        self.actionDisableIPConfirmations.setToolTip("Disables IP Confirmation windows when in table view.")
+        self.actionEnableIDTable.setToolTip("Stores identifying information in a table on confirmation")
         self.actionCopySelectedElements = self.menuTable.addAction("Copy Selected Elements")
         self.actionCopySelectedElements.setToolTip("Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows")
         self.actionExport = self.menuTable.addAction("Export")
@@ -226,21 +217,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionDisableInactiveTimer.setChecked(
                 self.config["instance"]["options"]["disableInactiveTimer"]
             )
-            self.actionDisableWarningDialog.setChecked(
-                self.config["instance"]["options"]["disableWarningDialog"]
-            )
             self.actionAutoStartOnLaunch.setChecked(
                 self.config["instance"]["options"]["autoStartOnLaunch"]
             )
             self.actionEnableIDTable.setChecked(
                 self.config["instance"]["table"]["enableIDTable"]
             )
-            self.actionDisableIPConfirmations.setChecked(
-                self.config["instance"]["table"]["disableIPConfirmations"]
-            )
-
-        if self.actionEnableIDTable.isChecked():
-            self.actionDisableIPConfirmations.setEnabled(True)
 
         logger.info(" init systray.")
         self.sys_tray = None
@@ -262,7 +244,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.api_client.signals.locate_complete.connect(self.api_client.close_client)
 
         self.actionDisableInactiveTimer.changed.connect(self.restart_listen)
-        self.actionEnableIDTable.changed.connect(self.toggle_table_settings)
         self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
         self.comboLogLevel.currentIndexChanged.connect(self.set_logger_level)
 
@@ -398,9 +379,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             logger.info(f"show_confirm : got iceriver mac addr : {mac}")
         if self.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
-            if self.actionEnableIDTable.isChecked():
-                self.activateWindow()
-        elif self.actionDisableIPConfirmations.isChecked():
+        if self.actionEnableIDTable.isChecked():
             self.activateWindow()
         else:
             confirm = IPRConfirmation()
@@ -515,14 +494,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionContextCopySelectedElements = self.table_context.addAction("Copy Selected Elements")
         self.actionContextCopySelectedElements.triggered.connect(self.copy_selected)
         self.table_context.exec(QCursor.pos())
-
-    def toggle_table_settings(self):
-        if self.actionEnableIDTable.isChecked():
-            self.actionDisableIPConfirmations.setEnabled(True)
-        else:
-            self.actionDisableIPConfirmations.setChecked(False)
-            self.update_settings()
-            self.actionDisableIPConfirmations.setEnabled(False)
 
     def locate_miner(self, row: int, col: int):
         if col == 0:
@@ -647,12 +618,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "options": {
                 "alwaysOpenIPInBrowser": self.actionAlwaysOpenIPInBrowser.isChecked(),
                 "disableInactiveTimer": self.actionDisableInactiveTimer.isChecked(),
-                "disableWarningDialog": self.actionDisableWarningDialog.isChecked(),
                 "autoStartOnLaunch": self.actionAutoStartOnLaunch.isChecked(),
             },
             "table": {
-                "enableIDTable": self.actionEnableIDTable.isChecked(),
-                "disableIPConfirmations": self.actionDisableIPConfirmations.isChecked(),
+                "enableIDTable": self.actionEnableIDTable.isChecked()
             },
         }
         config = {

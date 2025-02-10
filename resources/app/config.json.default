@@ -18,12 +18,10 @@
         "options": {
             "alwaysOpenIPInBrowser": false,
             "disableInactiveTimer": false,
-            "disableWarningDialog": false,
             "autoStartOnLaunch": false
         },
         "table": {
-            "enableIDTable": false,
-            "disableIPConfirmations": false
+            "enableIDTable": false
         }
     }
 }
