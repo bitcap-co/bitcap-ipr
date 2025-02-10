@@ -15,6 +15,18 @@ QDialog QLabel {
   color: #FFFFFF;
 }
 
+QStatusBar {
+  border: 1px solid #383e46;
+  /* Fixes Spyder #9120, #9121 */
+  background: #383e46;
+  /* Fixes #205, white vertical borders separating items */
+  color: #FFFFFF;
+}
+
+QStatusBar::item {
+  border: none;
+}
+
 QGroupBox {
   font-weight: bold;
   border: 1px solid #60798B;

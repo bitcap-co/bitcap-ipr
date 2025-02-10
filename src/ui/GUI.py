@@ -33,7 +33,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
         self.vwrapper = QtWidgets.QWidget(parent=self.centralwidget)
-        self.vwrapper.setGeometry(QtCore.QRect(9, 60, 581, 531))
+        self.vwrapper.setGeometry(QtCore.QRect(9, 60, 581, 511))
         self.vwrapper.setObjectName("vwrapper")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.vwrapper)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
@@ -380,6 +380,13 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.addWidget(self.actionIPRStop)
         self.verticalLayout.addWidget(self.inputIPRButtons)
         MainWindow.setCentralWidget(self.centralwidget)
+        self.iprStatus = QtWidgets.QStatusBar(parent=MainWindow)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.iprStatus.setFont(font)
+        self.iprStatus.setSizeGripEnabled(False)
+        self.iprStatus.setObjectName("iprStatus")
+        MainWindow.setStatusBar(self.iprStatus)
 
         self.retranslateUi(MainWindow)
         self.stackedWidget.setCurrentIndex(1)
@@ -444,6 +451,7 @@ class Ui_MainWindow(object):
         self.actionIPRSaveConfig.setText(_translate("MainWindow", "Save"))
         self.actionIPRStart.setText(_translate("MainWindow", "Start"))
         self.actionIPRStop.setText(_translate("MainWindow", "Stop"))
+        self.iprStatus.setToolTip(_translate("MainWindow", "Current IPR Status"))
 
 
 class Ui_IPRConfirmation(object):

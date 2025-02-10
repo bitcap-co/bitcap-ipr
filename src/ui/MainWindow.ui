@@ -69,7 +69,7 @@
       <x>9</x>
       <y>60</y>
       <width>581</width>
-      <height>531</height>
+      <height>511</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -933,6 +933,19 @@
      </item>
     </layout>
    </widget>
+  </widget>
+  <widget class="QStatusBar" name="iprStatus">
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
+   </property>
+   <property name="toolTip">
+    <string>Current IPR Status</string>
+   </property>
+   <property name="sizeGripEnabled">
+    <bool>false</bool>
+   </property>
   </widget>
  </widget>
  <resources/>
