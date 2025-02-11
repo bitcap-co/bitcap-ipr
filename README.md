@@ -13,7 +13,7 @@ A cross-platfrom IP Reporter tool for Antminer, Whatsminer, and IceRiver ASICs.
     - Export table to .CSV file (ID Table -> "Export").
     - API support for stock and custom firmwares (Vnish, pbfarmer).
     - Locate miners by blinking.
- - System Tray support (Settings -> General -> System Tray).
+ - System Tray support.
  - Logs (Help -> "Open Log").
 
 ## Requirements
@@ -54,18 +54,10 @@ After, a confirmation window should show detailing the IP & MAC address.
 > By default, the listeners will only run for 15 minutes and automatically stop. To change, go to Options -> "Disable Inactive Timer".
 > The listeners will automatically restart on change to apply.
 
-### Some useful tips
-1. After using the IP Reporter for a while, there will be a lot of confirmations left open. You can quickly close all the confirmations by Quit -> "Kill All Confirmations".
-2. You can disable the warning dialog when starting the listeners by Options -> "Disable Warning Dialog".
-3. When Options -> "Always Open in Browser" is checked, the confirmation ip address will be automatically opened in the browser and no confirmation window will be shown.
-4. When ID Table -> "Enable ID Table" is checked, you can disable IP confirmations windows by ID Table -> Table Options -> "Disable IP Confirmations".
-5. If for some reason, nothing is showing when reporting or an error occurrs, You can check out the log. Help -> "Open Log" to see further.
-
-
 ## API Setup for IDing/Locating
-The ID Table uses the respected API Client for the detected miner to retreive/locate.
+The ID Table uses the respected API Client for the detected miner to retreive identifing data or locating.
 
-By default, it will try the default password.
-If you have set an different password for Antminer/Whatsminer, you can set them in the API tab in Settings.
+You can supply alternative API authentication for Antminers/Whatsminers/pbfarmer in the API settings tab in the configuration view. The IP reporter will try these passwords first, then the default authentication. If these settings are left blank, only the default authentication is used.
 
-For pbfarmer firmware support, supply an read/write api key in the API tab in Settings.
+>[!NOTE]
+> See [Configuration](./CONFIGURATION.md) to learn more about configuring the IP reporter.
