@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "BitCapIPR"
-#define MyAppVersion "1.2.1"
+#define MyAppVersion "1.2.2"
 #define MyAppPublisher "Bit Capital Group LLC"
 #define MyAppURL "https://www.bitcap.co"
 #define MyAppExeName "BitCapIPR.exe"
