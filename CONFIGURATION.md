@@ -44,3 +44,35 @@ In the menubar, go to Settings -> "Settings..." to change the current view to th
      - "Max Log Size" : Set the maximum file size for the log file in KB. Default is 1024kb and max limit is 4096kb.
      - "On Max Log Size" : Set the behavior for when the log file reaches the max log size value. "Flush" will flush/empty the current log. "Rotate" will rotate to a new log file, adding a number suffix to the old log file. Default is set to flush/empty the current log.
      - "Flush Interval" : Set the desired flush interval. If set to "Close", the current log file will be flushed/emptied on application close. Default is on max log size.
+
+
+### Default configuration
+```json
+{
+    "general": {
+        "enableSysTray": false,
+        "onWindowClose": 0
+    },
+    "api": {
+        "bitmainAltPasswd": "",
+        "whatsminerAltPasswd": "",
+        "pbfarmerKey": ""
+    },
+    "logs": {
+        "logLevel": "INFO",
+        "maxLogSize": "1024",
+        "onMaxLogSize": 0,
+        "flushInterval": 0
+    },
+    "instance": {
+        "options": {
+            "alwaysOpenIPInBrowser": false,
+            "disableInactiveTimer": false,
+            "autoStartOnLaunch": false
+        },
+        "table": {
+            "enableIDTable": true
+        }
+    }
+}
+```
