@@ -156,7 +156,7 @@ class WhatsminerParser():
 
     def parse_serial(self, obj: dict):
         msg = obj["Msg"]
-        if "minersn" in msg:
+        if "minersn" in msg and msg["minersn"]:
             self.target["serial"] = msg["minersn"]
 
     def parse_subtype(self, obj: dict):
