@@ -9,12 +9,12 @@ A cross-platfrom IP Reporter tool for Antminer, Whatsminer, and IceRiver ASICs.
  - Copy confirmation IP & MAC address to clipboard.
  - Open confirmation IP in web browser.
  - Custom "ID Table" view (ID Table -> "Enable ID Table").
-    - Retrieve identifying information like Serial, Type, Subtype/Model, Algo, Firmware, Platform.
-    - Export table to .CSV file (ID Table -> "Export").
+    - Retrieve identifying information like serial, type, subtype/model, algo, firmware, and platform.
     - API support for stock and custom firmwares (Vnish, pbfarmer).
     - Locate miners by blinking.
+    - Export table to .CSV file (ID Table -> "Export").
  - System Tray support.
- - Logs (Help -> "Open Log").
+ - Logging.
 
 ## Requirements
 A workstation/PC directly connected to main network or VLAN.
@@ -54,10 +54,16 @@ After, a confirmation window should show detailing the IP & MAC address.
 > By default, the listeners will only run for 15 minutes and automatically stop. To change, go to Options -> "Disable Inactive Timer".
 > The listeners will automatically restart on change to apply.
 
-## API Setup for IDing/Locating
-The ID Table uses the respected API Client for the detected miner to retreive identifing data or locating.
+## Configuration
+BitCap IPR supports various configuration settings to customize the behavior to your liking. See [Configuration](./CONFIGURATION.md) for more information.
 
-You can supply alternative API authentication for Antminers/Whatsminers/pbfarmer in the API settings tab in the configuration view. The IP reporter will try these passwords first, then the default authentication. If these settings are left blank, only the default authentication is used.
+### API Setup
+When using the ID Table, IPR will create an API session for the received miner IP and gather miner data.
 
->[!NOTE]
-> See [Configuration](./CONFIGURATION.md) to learn more about configuring the IP reporter.
+By default, it will use the default authentication. If you have an alternative password set, you can supply it to the IP Reporter by going to the API tab in Settings -> "Settings..." from the menubar.
+
+
+## Troubleshooting/Reporting Issues
+If encountering an issue with the IP reporter, take the following steps:
+1. Go to Help -> "Open Log" to get insight on the issue.
+2. If not able to resolve from log, can report an issue on the repo by going to Help -> "Report Issue". Please include log file or snippet in the issue.
