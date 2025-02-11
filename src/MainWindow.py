@@ -395,6 +395,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
         if self.actionEnableIDTable.isChecked():
+            self.populate_table_row(ip, mac, type)
             self.activateWindow()
         else:
             confirm = IPRConfirmation()
@@ -444,40 +445,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 confirm.show()
                 confirm.activateWindow()
-        if self.actionEnableIDTable.isChecked():
-            t_data = self.get_table_data_from_ip(ip, type)
-            logger.info("show_confirm : write table data.")
-            rowPosition = self.tableWidget.rowCount()
-            self.tableWidget.insertRow(rowPosition)
-            actionLocateMiner = QLabel()
-            actionLocateMiner.setPixmap(
-                QPixmap(":theme/icons/rc/flash.png")
-            )
-            actionLocateMiner.setToolTip("Locate Miner")
-            self.tableWidget.setCellWidget(rowPosition, 0, actionLocateMiner)
-            self.tableWidget.setItem(rowPosition, 1, QTableWidgetItem(ip))
-            self.tableWidget.setItem(rowPosition, 2, QTableWidgetItem(mac))
-            self.tableWidget.setItem(
-                rowPosition, 3, QTableWidgetItem(t_data["serial"])
-            )
-            # ASIC TYPE
-            self.tableWidget.setItem(rowPosition, 4, QTableWidgetItem(type))
-            # SUBTYPE
-            self.tableWidget.setItem(
-                rowPosition, 5, QTableWidgetItem(t_data["subtype"])
-            )
-            # ALGO
-            self.tableWidget.setItem(
-                rowPosition, 6, QTableWidgetItem(t_data["algorithm"])
-            )
-            # FIRMWARE
-            self.tableWidget.setItem(
-                rowPosition, 7, QTableWidgetItem(t_data["firmware"])
-            )
-            # PLATFORM
-            self.tableWidget.setItem(
-                rowPosition, 8, QTableWidgetItem(t_data["platform"])
-            )
 
     def show_confirm_from_sys_tray(self, confirm):
         confirm.show()
@@ -489,8 +456,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         lineEdit.copy()
 
     # id table view
-    def get_table_data_from_ip(self, ip, type):
-        logger.info(f" get table data from ip {ip}.")
+    def populate_table_row(self, ip: str, mac: str, type: str):
         client_auth = None
         match type:
             case "antminer":
@@ -498,14 +464,43 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             case "iceriver":
                 client_auth = self.linePbfarmerKey.text()
         self.api_client.create_client_from_type(type, ip, client_auth)
-        client = self.api_client.get_client()
-        if not client:
+        if not self.api_client.client:
             self.iprStatus.showMessage("Status :: Failed to connect or authenticate client.", 5000)
-        result = self.api_client.get_target_data_from_type(type)
-        if client.err:
-            self.iprStatus.showMessage(f"Status :: Failed to retreive miner data: {client.err}", 5000)
+        logger.info(f"populate_table : get target data from ip {ip}.")
+        t_data = self.api_client.get_target_data_from_type(type)
         self.api_client.close_client()
-        return result
+        logger.info("populate_table : write table data.")
+        rowPosition = self.tableWidget.rowCount()
+        self.tableWidget.insertRow(rowPosition)
+        actionLocateMiner = QLabel()
+        actionLocateMiner.setPixmap(
+            QPixmap(":theme/icons/rc/flash.png")
+        )
+        actionLocateMiner.setToolTip("Locate Miner")
+        self.tableWidget.setCellWidget(rowPosition, 0, actionLocateMiner)
+        self.tableWidget.setItem(rowPosition, 1, QTableWidgetItem(ip))
+        self.tableWidget.setItem(rowPosition, 2, QTableWidgetItem(mac))
+        self.tableWidget.setItem(
+            rowPosition, 3, QTableWidgetItem(t_data["serial"])
+        )
+        # ASIC TYPE
+        self.tableWidget.setItem(rowPosition, 4, QTableWidgetItem(type))
+        # SUBTYPE
+        self.tableWidget.setItem(
+            rowPosition, 5, QTableWidgetItem(t_data["subtype"])
+        )
+        # ALGO
+        self.tableWidget.setItem(
+            rowPosition, 6, QTableWidgetItem(t_data["algorithm"])
+        )
+        # FIRMWARE
+        self.tableWidget.setItem(
+            rowPosition, 7, QTableWidgetItem(t_data["firmware"])
+        )
+        # PLATFORM
+        self.tableWidget.setItem(
+            rowPosition, 8, QTableWidgetItem(t_data["platform"])
+        )
 
     def show_table_context(self):
         self.table_context = QMenu()
@@ -536,12 +531,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.api_client.create_client_from_type(miner_type, ip_addr, client_auth)
             client = self.api_client.get_client()
             if not client:
-                self.iprStatus.showMessage("Status :: Failed to connect or authenticate client.", 5000)
+                return self.iprStatus.showMessage("Status :: Failed to connect or authenticate client.", 5000)
             self.api_client.locate_miner(miner_type)
             if client.err:
-                self.iprStatus.showMessage(f"Status :: Failed to locate miner: {client.err}", 5000)
-            else:
-                self.iprStatus.showMessage(f"Status :: Locating miner: {ip_addr}...", 10000)
+                return self.iprStatus.showMessage(f"Status :: Failed to locate miner: {client.err}", 5000)
+            self.iprStatus.showMessage(f"Status :: Locating miner: {ip_addr}...", 10000)
 
     def double_click_item(self, model_index):
         row = model_index.row()
