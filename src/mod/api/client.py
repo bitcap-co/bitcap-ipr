@@ -133,6 +133,8 @@ class APIClient():
             for k in result.keys():
                 result[k] = "Failed"
             return result
+        system_info = self.client.get_system_info()
+        parser.parse_serial(system_info)
         devs = self.client.get_dev_details()
         parser.parse_subtype(devs)
         version_info = self.client.get_version()

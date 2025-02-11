@@ -130,6 +130,11 @@ class WhatsminerRPCClient():
         cmd = {"cmd": "devdetails"}
         return self._do_rpc(cmd)
 
+    def get_system_info(self):
+        cmd = {"cmd": "get_miner_info"}
+        params = {"info": "ip,proto,netmask,gateway,dns,hostname,mac,ledstat,gateway"}
+        return self._do_rpc(cmd, params)
+
     def blink(self):
         cmd = {"cmd": "set_led"}
         params = {"param": "auto"}
@@ -148,6 +153,11 @@ class WhatsminerParser():
 
     def get_target(self):
         return self.target
+
+    def parse_serial(self, obj: dict):
+        msg = obj["Msg"]
+        if "minersn" in msg:
+            self.target["serial"] = msg["minersn"]
 
     def parse_subtype(self, obj: dict):
         dev = obj["DEVDETAILS"][0]
