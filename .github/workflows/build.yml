@@ -32,6 +32,7 @@ jobs:
       matrix:
         config:
           - os: ubuntu-22.04
+          - os: ubuntu-latest
           - os: macos-13
           - os: macos-latest
           - os: windows-latest
@@ -48,6 +49,12 @@ jobs:
     - name: Run build
       run: pyinstaller src/ipr.spec
 
+    - name: Get ImageOS Variable
+      run: echo "Get ImageOS variable from Linux and MacOS runner"
+    - if: runner.os == 'Linux' || runner.os == 'macOS'
+      shell: bash
+      run: echo "OS_NAME=$ImageOS" >> $GITHUB_ENV
+
     - name: Linux - portable & deb package
       run: echo "Packaging portable and .deb with dpkg-deb"
     - if: runner.os == 'Linux'
@@ -55,7 +62,7 @@ jobs:
       run: |
           # package portable
           cp ./README.md dist/BitCapIPR
-          zip -r BitCapIPR-${{ github.ref_name}}-linux-AMD64-portable.zip dist/BitCapIPR
+          zip -r BitCapIPR-${{ github.ref_name }}-${{ env.OS_NAME }}-AMD64-portable.zip dist/BitCapIPR
           rm dist/BitCapIPR/README.md
 
           # deb package
@@ -81,7 +88,7 @@ jobs:
           find package/usr/share -type f -exec chmod 644 -- {} +
           chmod +x package/opt/BitCapIPR/BitCapIPR
 
-          dpkg-deb --build --root-owner-group package "dist/BitCapIPR-${{ github.ref_name }}-linux-AMD64.deb"
+          dpkg-deb --build --root-owner-group package "dist/BitCapIPR-${{ github.ref_name }}-${{ env.OS_NAME }}-AMD64.deb"
     - name: macOS - portable & dmg setup
       run: echo "Packaging portable and .dmg with create-dmg"
     - if: runner.os == 'macOS'
@@ -89,7 +96,7 @@ jobs:
       run: |
         # package portable
         cp ./README.md dist/BitCapIPR.app/Contents
-        zip -9 -y -r BitCapIPR-${{ github.ref_name }}-macos-${{ runner.arch }}-portable.zip dist/BitCapIPR.app
+        zip -9 -y -r BitCapIPR-${{ github.ref_name }}-${{ env.OS_NAME }}-${{ runner.arch }}-portable.zip dist/BitCapIPR.app
         rm dist/BitCapIPR.app/Contents/README.md
 
         # create dmg setup
@@ -114,7 +121,7 @@ jobs:
           --icon "BitCapIPR.app" 175 120 \
           --hide-extension "BitCapIPR.app" \
           --app-drop-link 425 120 \
-          "dist/BitCapIPR-${{ github.ref_name }}-macos-${{ runner.arch }}-setup.dmg" \
+          "dist/BitCapIPR-${{ github.ref_name }}-${{ env.OS_NAME }}-${{ runner.arch }}-setup.dmg" \
           "dist/dmg/"
     - name: Windows - portable & setup.exe
       run: echo "Packaging portable and setup.exe with ISCC"
@@ -123,7 +130,7 @@ jobs:
       run: |
         # package portable
         Copy-Item .\README.md .\dist\BitCapIPR
-        Compress-Archive -Path .\dist\BitCapIPR -DestinationPath BitcapIPR-${{ github.ref_name}}-win-${{ runner.arch }}-portable.zip -Force
+        Compress-Archive -Path .\dist\BitCapIPR -DestinationPath BitcapIPR-${{ github.ref_name }}-win-${{ runner.arch }}-portable.zip -Force
         Remove-Item -Path .\dist\BitCapIPR\README.md
 
         # inno setup
@@ -138,8 +145,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.create_release.outputs.upload_url }}
-        asset_name: BitCapIPR-${{ github.ref_name}}-linux-AMD64-portable.zip
-        asset_path: "./BitCapIPR-${{ github.ref_name}}-linux-AMD64-portable.zip"
+        asset_name: BitCapIPR-${{ github.ref_name }}-${{ env.OS_NAME }}-AMD64-portable.zip
+        asset_path: "./BitCapIPR-${{ github.ref_name }}-${{ env.OS_NAME }}-AMD64-portable.zip"
         asset_content_type: application/zip
     - if: runner.os == 'Linux'
       uses: actions/upload-release-asset@v1
@@ -147,8 +154,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.create_release.outputs.upload_url }}
-        asset_name: BitCapIPR-${{ github.ref_name }}-linux-AMD64.deb
-        asset_path: "dist/BitCapIPR-${{ github.ref_name }}-linux-AMD64.deb"
+        asset_name: BitCapIPR-${{ github.ref_name }}-${{ env.OS_NAME }}-AMD64.deb
+        asset_path: "dist/BitCapIPR-${{ github.ref_name }}-${{ env.OS_NAME }}-AMD64.deb"
         asset_content_type: application/zip
     - if: runner.os == 'macOS'
       uses: actions/upload-release-asset@v1
@@ -156,8 +163,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.create_release.outputs.upload_url }}
-        asset_name: BitCapIPR-${{ github.ref_name}}-macos-${{ runner.arch }}-portable.zip
-        asset_path: "./BitCapIPR-${{ github.ref_name}}-macos-${{ runner.arch }}-portable.zip"
+        asset_name: BitCapIPR-${{ github.ref_name }}-${{ env.OS_NAME }}-${{ runner.arch }}-portable.zip
+        asset_path: "./BitCapIPR-${{ github.ref_name }}-${{ env.OS_NAME }}-${{ runner.arch }}-portable.zip"
         asset_content_type: application/zip
     - if: runner.os == 'macOS'
       uses: actions/upload-release-asset@v1
@@ -165,8 +172,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.create_release.outputs.upload_url }}
-        asset_name: BitCapIPR-${{ github.ref_name }}-macos-${{ runner.arch }}-setup.dmg
-        asset_path: "dist/BitCapIPR-${{ github.ref_name }}-macos-${{ runner.arch }}-setup.dmg"
+        asset_name: BitCapIPR-${{ github.ref_name }}-${{ env.OS_NAME }}-${{ runner.arch }}-setup.dmg
+        asset_path: "dist/BitCapIPR-${{ github.ref_name }}-${{ env.OS_NAME }}-${{ runner.arch }}-setup.dmg"
         asset_content_type: application/octet-stream
     - if: runner.os == 'Windows'
       uses: actions/upload-release-asset@v1
@@ -174,8 +181,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.create_release.outputs.upload_url }}
-        asset_name: BitCapIPR-${{ github.ref_name}}-win-${{ runner.arch }}-portable.zip
-        asset_path: "./BitcapIPR-${{ github.ref_name}}-win-${{ runner.arch }}-portable.zip"
+        asset_name: BitCapIPR-${{ github.ref_name }}-win-${{ runner.arch }}-portable.zip
+        asset_path: "./BitcapIPR-${{ github.ref_name }}-win-${{ runner.arch }}-portable.zip"
         asset_content_type: application/zip
     - if: runner.os == 'Windows'
       uses: actions/upload-release-asset@v1
