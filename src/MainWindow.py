@@ -508,6 +508,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionContextOpenSelectedIPs.triggered.connect(self.open_selected_ips)
         self.actionContextCopySelectedElements = self.table_context.addAction("Copy Selected Elements")
         self.actionContextCopySelectedElements.triggered.connect(self.copy_selected)
+        self.actionContextExport = self.table_context.addAction("Export")
+        self.actionContextExport.triggered.connect(self.export_table)
         self.table_context.exec(QCursor.pos())
 
     def toggle_table_settings(self, enabled: bool):
