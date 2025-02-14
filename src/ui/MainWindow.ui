@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>600</height>
+    <width>550</width>
+    <height>580</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,7 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>600</width>
+      <width>550</width>
       <height>30</height>
      </rect>
     </property>
@@ -51,7 +51,7 @@
      <rect>
       <x>0</x>
       <y>30</y>
-      <width>600</width>
+      <width>550</width>
       <height>26</height>
      </rect>
     </property>
@@ -66,10 +66,10 @@
    <widget class="QWidget" name="vwrapper" native="true">
     <property name="geometry">
      <rect>
-      <x>9</x>
+      <x>10</x>
       <y>60</y>
-      <width>581</width>
-      <height>511</height>
+      <width>530</width>
+      <height>490</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -127,8 +127,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>581</width>
-           <height>349</height>
+           <width>530</width>
+           <height>348</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -164,6 +164,10 @@
          <attribute name="horizontalHeaderDefaultSectionSize">
           <number>105</number>
          </attribute>
+         <column/>
+         <column/>
+         <column/>
+         <column/>
          <column/>
          <column/>
          <column/>
