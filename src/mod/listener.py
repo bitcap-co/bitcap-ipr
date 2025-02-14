@@ -91,6 +91,7 @@ class Listener(QThread):
                             if (
                                 time.time() - _data[1] <= 10.0
                             ):  # prevent duplicate packet data
+                                logger.warning(f"Listener[{self.port}] : duplicate packet.")
                                 break
                             else:
                                 self.emit_received([ip, mac, type])
