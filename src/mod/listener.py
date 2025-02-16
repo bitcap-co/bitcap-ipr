@@ -1,7 +1,12 @@
 import time
 import socket
 import logging
-from PyQt6.QtCore import QObject, QThread, pyqtSignal, pyqtSlot
+from PyQt6.QtCore import (
+    QObject,
+    QThread,
+    pyqtSignal,
+    pyqtSlot,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +59,9 @@ class Listener(QThread):
                         try:
                             ip = self.d_str.split(":")[1]
                         except IndexError:
-                            logger.warning(f"Listener[{self.port}] : Failed to unpack msg! Ignoring...")
+                            logger.warning(
+                                f"Listener[{self.port}] : Failed to unpack msg! Ignoring..."
+                            )
                             continue
                         mac = "ice-river"
                     case 8888:  # Whatsminer
@@ -62,7 +69,9 @@ class Listener(QThread):
                         try:
                             ip, mac = self.d_str.split("M")
                         except ValueError:
-                            logger.warning(f"Listener[{self.port}] : Failed to unpack msg! Ignoring...")
+                            logger.warning(
+                                f"Listener[{self.port}] : Failed to unpack msg! Ignoring..."
+                            )
                             continue
                         ip = ip[3:]
                         mac = mac[3:]
@@ -71,7 +80,9 @@ class Listener(QThread):
                         try:
                             ip, mac = self.d_str.split(",")
                         except ValueError:
-                            logger.warning(f"Listener[{self.port}] : Failed to unpack msg! Ignoring...")
+                            logger.warning(
+                                f"Listener[{self.port}] : Failed to unpack msg! Ignoring..."
+                            )
                             continue
                 logger.debug(f"Listener[{self.port}] : found type {type} from port.")
                 if self.memory.dict:
@@ -91,7 +102,9 @@ class Listener(QThread):
                             if (
                                 time.time() - _data[1] <= 10.0
                             ):  # prevent duplicate packet data
-                                logger.warning(f"Listener[{self.port}] : duplicate packet.")
+                                logger.warning(
+                                    f"Listener[{self.port}] : duplicate packet."
+                                )
                                 break
                             else:
                                 self.emit_received([ip, mac, type])

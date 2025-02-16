@@ -4,15 +4,15 @@ from string import Template
 
 from .errors import (
     FailedConnectionError,
-    MissingAPIKeyError,
 )
 
 logger = logging.getLogger(__name__)
 HOST_URL = Template("${schema}://${ip}/")
 
 
-class IceriverHTTPClient():
+class IceriverHTTPClient:
     """Iceriver HTTP Client with support for pbfarmer"""
+
     def __init__(self, ip_addr: str, pb_key: str):
         self.ip = ip_addr
         self.host = HOST_URL.substitute(schema="http", ip=self.ip)
@@ -35,9 +35,13 @@ class IceriverHTTPClient():
         except (
             requests.exceptions.ConnectionError,
             requests.exceptions.ConnectTimeout,
-            requests.exceptions.ReadTimeout
+            requests.exceptions.ReadTimeout,
         ):
-            self._close_client(FailedConnectionError("Connection Failed: Failed to connect to timeout occurred."))
+            self._close_client(
+                FailedConnectionError(
+                    "Connection Failed: Failed to connect to timeout occurred."
+                )
+            )
 
     def _do_http(self, method: str, path: str, data: dict | None = None):
         headers = {"Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"}
@@ -69,7 +73,9 @@ class IceriverHTTPClient():
 
     # pbfarmer support
     def _is_pbfarmer(self):
-        res = self.session.head(self.host + "api", timeout=5.0, verify=self.session.verify)
+        res = self.session.head(
+            self.host + "api", timeout=5.0, verify=self.session.verify
+        )
         if res.status_code == 301:
             self.host = HOST_URL.substitute(schema="https", ip=self.ip)
             return True
@@ -94,10 +100,7 @@ class IceriverHTTPClient():
 
     def blink(self, enabled: bool):
         if not self.is_custom:
-            data = {
-                "post": 5,
-                "locate": "1" if enabled else "0"
-            }
+            data = {"post": 5, "locate": "1" if enabled else "0"}
             self.run_command("POST", "userpanel", data)
         else:
             self.run_command("POST", "locate")
@@ -109,7 +112,7 @@ class IceriverHTTPClient():
             raise error
 
 
-class IceriverParser():
+class IceriverParser:
     def __init__(self, target: dict):
         self.target = target.copy()
 
@@ -121,7 +124,9 @@ class IceriverParser():
             if obj["model"] == "none":
                 if "softver1" in obj:
                     model = "".join(obj["softver1"].split("_")[-2:])
-                    self.target["subtype"] = model[model.rfind("ks"):model.rfind("miner")].upper()
+                    self.target["subtype"] = model[
+                        model.rfind("ks") : model.rfind("miner")
+                    ].upper()
             else:
                 self.target["subtype"] = obj["model"]
 

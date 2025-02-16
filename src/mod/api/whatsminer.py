@@ -13,14 +13,15 @@ from passlib.hash import md5_crypt
 from .errors import (
     FailedConnectionError,
     AuthenticationError,
-    TokenOverMaxTimesError
+    TokenOverMaxTimesError,
 )
 
 logger = logging.getLogger(__name__)
 
 
-class WhatsminerRPCClient():
+class WhatsminerRPCClient:
     """Whatsminer JSON-RPC API client"""
+
     def __init__(self, ip_addr: str, port: int, passwd: str | None = None):
         self.ip = ip_addr
         self.port = port
@@ -37,7 +38,11 @@ class WhatsminerRPCClient():
             try:
                 s.connect((self.ip, self.port))
             except TimeoutError:
-                self._close_client(FailedConnectionError("Connection Failed: Failed to connect or timeout occurred."))
+                self._close_client(
+                    FailedConnectionError(
+                        "Connection Failed: Failed to connect or timeout occurred."
+                    )
+                )
 
     def _create_token(self):
         """
@@ -58,7 +63,9 @@ class WhatsminerRPCClient():
 
         token_info = json.loads(data)["Msg"]
         if token_info == "over max connect":
-            self._close_client(TokenOverMaxTimesError("Token Creation Failed: token over max times."))
+            self._close_client(
+                TokenOverMaxTimesError("Token Creation Failed: token over max times.")
+            )
 
         # Make encrypted key from passwd and salt
         key = md5_encrypt(self.passwd, token_info["salt"])
@@ -75,10 +82,8 @@ class WhatsminerRPCClient():
         cmd = json.dumps(payload)
         if write:
             enc_str = str(
-                base64.encodebytes(
-                    self.cipher.encrypt(add_to_16(cmd))),
-                encoding="utf8"
-            ).replace('\n', '')
+                base64.encodebytes(self.cipher.encrypt(add_to_16(cmd))), encoding="utf8"
+            ).replace("\n", "")
             data_enc = {"enc": 1}
             data_enc["data"] = enc_str
             cmd = json.dumps(data_enc)
@@ -93,7 +98,9 @@ class WhatsminerRPCClient():
             logger.error(f" {res['Msg']}")
         if write:
             res_ciphertext = b64decode(json.loads(data.decode())["enc"])
-            res_plaintext = self.cipher.decrypt(res_ciphertext).decode().split("\x00")[0]
+            res_plaintext = (
+                self.cipher.decrypt(res_ciphertext).decode().split("\x00")[0]
+            )
             res = json.loads(res_plaintext)
 
         return res
@@ -110,7 +117,11 @@ class WhatsminerRPCClient():
             except KeyError:
                 continue
         if not success:
-            self._close_client(AuthenticationError("Authentication Failed: failed to authenticate to miner."))
+            self._close_client(
+                AuthenticationError(
+                    "Authentication Failed: failed to authenticate to miner."
+                )
+            )
         logger.debug(res)
 
     def enable_write_access(self, passwd: str):
@@ -146,7 +157,7 @@ class WhatsminerRPCClient():
             raise error
 
 
-class WhatsminerParser():
+class WhatsminerParser:
     def __init__(self, target: dict):
         self.target = target.copy()
         self.target["algorithm"] = "SHA256"
@@ -177,7 +188,7 @@ class WhatsminerParser():
 
 def md5_encrypt(word: str, salt: str):
     salt = "$1$" + salt + "$"
-    salt_expr = re.compile('\s*\$(\d+)\$([\w\./]*)\$')
+    salt_expr = re.compile("\s*\$(\d+)\$([\w\./]*)\$")
     is_salt = salt_expr.match(salt)
     if not is_salt:
         raise ValueError("Invalid salt format")
@@ -201,5 +212,5 @@ def recv_all(sock: socket.socket, buf_size: int):
 
 def add_to_16(s: str):
     while len(s) % 16 != 0:
-        s += '\0'
+        s += "\0"
     return str.encode(s)

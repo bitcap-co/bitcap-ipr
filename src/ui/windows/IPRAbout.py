@@ -1,8 +1,13 @@
 from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtWidgets import QDialog, QWidget, QPushButton, QLabel
+from PyQt6.QtWidgets import (
+    QDialog,
+    QWidget,
+    QPushButton,
+    QLabel,
+)
+from ui.GUI import Ui_IPRAbout
 from ui.widgets.TitleBar import TitleBar
 from ui.widgets.SvgLabel import SvgLabel
-from ui.GUI import Ui_IPRAbout
 from util import CURR_PLATFORM
 
 
@@ -14,7 +19,6 @@ class IPRAbout(QDialog, Ui_IPRAbout):
         self.__initUI()
 
     def __initObj(self, parent, title, text):
-
         self._logo = SvgLabel()
         self._logo.setSvgFile(":rc/img/scalable/BitCapIPRCenterLogo.svg")
         self._textLabel = QLabel()
@@ -31,9 +35,9 @@ class IPRAbout(QDialog, Ui_IPRAbout):
         self.setWindowTitle(self._title_str)
         # title bar
         if CURR_PLATFORM == "darwin":
-            self.title_bar = TitleBar(self, self._title_str, ['close'], style="mac")
+            self.title_bar = TitleBar(self, self._title_str, ["close"], style="mac")
         else:
-            self.title_bar = TitleBar(self, self._title_str, ['close'])
+            self.title_bar = TitleBar(self, self._title_str, ["close"])
         self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
         self.title_bar._closeButton.clicked.connect(self.window().close)
         title_bar_widget = self.titlebarwidget.layout()
@@ -42,11 +46,15 @@ class IPRAbout(QDialog, Ui_IPRAbout):
         # central widget
         central_widget = self.centralwidget.layout()
         self._logo.setFixedSize(QSize(150, 150))
-        self._logo.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        self._logo.setAlignment(
+            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
+        )
         central_widget.addWidget(self._logo)
         self._textLabel.setWordWrap(True)
         self._textLabel.setMargin(10)
-        self._textLabel.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        self._textLabel.setAlignment(
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+        )
         self._textLabel.setText(self._about_text)
         central_widget.addWidget(self._textLabel)
 

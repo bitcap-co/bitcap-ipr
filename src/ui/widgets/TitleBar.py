@@ -1,12 +1,25 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QIcon, QPixmap, QColor
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QToolButton, QWidget
+from PyQt6.QtGui import (
+    QIcon,
+    QPixmap,
+    QColor,
+)
+from PyQt6.QtWidgets import (
+    QHBoxLayout,
+    QWidget,
+    QLabel,
+    QToolButton,
+)
 import ui.resources
 
 
 class TitleBar(QWidget):
     def __init__(
-        self, parent: QWidget, title: str, hint: list = ["min", "max", "close"], style: str = "win"
+        self,
+        parent: QWidget,
+        title: str,
+        hint: list = ["min", "max", "close"],
+        style: str = "win",
     ):
         super().__init__(parent)
         self.__initObj(parent, title, hint, style)
@@ -44,13 +57,15 @@ class TitleBar(QWidget):
             self._border_width = self._button_size // 20
             self._border_radius = self._button_size // 2
             self._colors = {
-                "close": '#DD0000',
-                "min": '#AA8800',
-                "max": '#008800',
+                "close": "#DD0000",
+                "min": "#AA8800",
+                "max": "#008800",
             }
             for x in self._hint:
                 if x in self._button_dict:
-                    self._button_dict[x].setFixedSize(self._button_size, self._button_size)
+                    self._button_dict[x].setFixedSize(
+                        self._button_size, self._button_size
+                    )
                     self.setMacButtonStyle(self._button_dict[x], self._colors[x])
                     title_bar_layout.addWidget(self._button_dict[x])
 
@@ -66,7 +81,9 @@ class TitleBar(QWidget):
             title_bar_layout.addWidget(self._iconButton)
 
         # title
-        self._title.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        self._title.setAlignment(
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+        )
         self._title.setText(self._title_str)
         self._title.setStyleSheet("""QLabel {
                                     color: #FFFFFF;

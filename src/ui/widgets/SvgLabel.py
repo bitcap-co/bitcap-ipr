@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import QLabel
 class SvgLabel(QLabel):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.__renderer = ''
+        self.__renderer = ""
 
     def paintEvent(self, event):
         painter = QPainter(self)

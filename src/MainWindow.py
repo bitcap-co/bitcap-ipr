@@ -30,13 +30,13 @@ from PyQt6.QtGui import (
     QCursor,
     QDesktopServices,
 )
-from ui.widgets.TitleBar import TitleBar
-from ui.GUI import Ui_MainWindow
 import ui.resources
+from ui.GUI import Ui_MainWindow
+from ui.widgets.TitleBar import TitleBar
+from ui.windows.IPRConfirmation import IPRConfirmation
+from ui.windows.IPRAbout import IPRAbout
 
 from ListenerManager import ListenerManager
-from IPRConfirmation import IPRConfirmation
-from IPRAbout import IPRAbout
 from mod.api.client import APIClient
 from util import (
     CURR_PLATFORM,
@@ -59,9 +59,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # title bar
         if CURR_PLATFORM == "darwin":
-            self.title_bar = TitleBar(self, "BitCap IPReporter", ['close', 'min'], style="mac")
+            self.title_bar = TitleBar(
+                self, "BitCap IPReporter", ["close", "min"], style="mac"
+            )
         else:
-            self.title_bar = TitleBar(self, "BitCap IPReporter", ['min', 'close'])
+            self.title_bar = TitleBar(self, "BitCap IPReporter", ["min", "close"])
         self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
         self.title_bar._closeButton.clicked.connect(self.close_to_tray_or_exit)
         title_bar_widget = self.titlebarwidget.layout()
@@ -93,26 +95,44 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionVersion.setEnabled(False)
 
         # options
-        self.actionAlwaysOpenIPInBrowser = self.menuOptions.addAction("Always Open IP in Browser")
+        self.actionAlwaysOpenIPInBrowser = self.menuOptions.addAction(
+            "Always Open IP in Browser"
+        )
         self.actionAlwaysOpenIPInBrowser.setCheckable(True)
-        self.actionAlwaysOpenIPInBrowser.setToolTip("Always opens IPs in browser (No IP confirmation)")
-        self.actionDisableInactiveTimer = self.menuOptions.addAction("Disable Inactive Timer")
+        self.actionAlwaysOpenIPInBrowser.setToolTip(
+            "Always opens IPs in browser (No IP confirmation)"
+        )
+        self.actionDisableInactiveTimer = self.menuOptions.addAction(
+            "Disable Inactive Timer"
+        )
         self.actionDisableInactiveTimer.setCheckable(True)
-        self.actionDisableInactiveTimer.setToolTip("Disables inactive timer of 15 minutes (Listens until stopped)")
-        self.actionAutoStartOnLaunch = self.menuOptions.addAction("Auto Start on Launch")
+        self.actionDisableInactiveTimer.setToolTip(
+            "Disables inactive timer of 15 minutes (Listens until stopped)"
+        )
+        self.actionAutoStartOnLaunch = self.menuOptions.addAction(
+            "Auto Start on Launch"
+        )
         self.actionAutoStartOnLaunch.setCheckable(True)
-        self.actionAutoStartOnLaunch.setToolTip("Automatically start listeners on launch (Takes effect on next launch)")
+        self.actionAutoStartOnLaunch.setToolTip(
+            "Automatically start listeners on launch (Takes effect on next launch)"
+        )
 
         # table
         self.actionEnableIDTable = self.menuTable.addAction("Enable ID Table")
         self.actionEnableIDTable.setCheckable(True)
-        self.actionEnableIDTable.setToolTip("Stores identifying information in a table on confirmation")
+        self.actionEnableIDTable.setToolTip(
+            "Stores identifying information in a table on confirmation"
+        )
         self.actionOpenSelectedIPs = self.menuTable.addAction("Open Selected IPs")
         self.actionOpenSelectedIPs.setEnabled(False)
         self.actionOpenSelectedIPs.setToolTip("Open selected IPs in browser")
-        self.actionCopySelectedElements = self.menuTable.addAction("Copy Selected Elements")
+        self.actionCopySelectedElements = self.menuTable.addAction(
+            "Copy Selected Elements"
+        )
         self.actionCopySelectedElements.setEnabled(False)
-        self.actionCopySelectedElements.setToolTip("Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows")
+        self.actionCopySelectedElements.setToolTip(
+            "Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows"
+        )
         self.actionExport = self.menuTable.addAction("Export")
         self.actionExport.setEnabled(False)
         self.actionExport.setToolTip("Export current table as .CSV file")
@@ -122,7 +142,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSettings.setToolTip("Change application settings")
 
         # quit
-        self.actionKillAllConfirmations = self.menuQuit.addAction("Kill All Confirmations")
+        self.actionKillAllConfirmations = self.menuQuit.addAction(
+            "Kill All Confirmations"
+        )
         self.actionKillAllConfirmations.setToolTip("Kills all IP confirmation windows")
         self.actionQuit = self.menuQuit.addAction("Quit")
         self.actionQuit.setToolTip("Quits app")
@@ -130,12 +152,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         menubarwidget = self.menubarwidget.layout()
         menubarwidget.addWidget(self.menu_bar)
 
-        self.label_2.setPixmap(
-            QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg")
-        )
+        self.label_2.setPixmap(QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg"))
 
         self.tableWidget.setHorizontalHeaderLabels(
-            ["", "IP", "MAC", "SERIAL", "TYPE", "SUBTYPE", "ALGORITHM", "FIRMWARE", "PLATFORM"]
+            [
+                "",
+                "IP",
+                "MAC",
+                "SERIAL",
+                "TYPE",
+                "SUBTYPE",
+                "ALGORITHM",
+                "FIRMWARE",
+                "PLATFORM",
+            ]
         )
         self.tableWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tableWidget.customContextMenuRequested.connect(self.show_table_context)
@@ -148,21 +178,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QLineEdit.ActionPosition.TrailingPosition,
         )
         self.actionToggleBitmainPasswd.setToolTip("Show/Hide password")
-        self.actionToggleBitmainPasswd.triggered.connect(lambda: self.toggle_show_passwd(self.lineBitmainPasswd, self.actionToggleBitmainPasswd))
+        self.actionToggleBitmainPasswd.triggered.connect(
+            lambda: self.toggle_show_passwd(
+                self.lineBitmainPasswd, self.actionToggleBitmainPasswd
+            )
+        )
 
         self.actionToggleWhatsminerPasswd = self.lineWhatsminerPasswd.addAction(
             QIcon(":theme/icons/rc/view.png"),
             QLineEdit.ActionPosition.TrailingPosition,
         )
         self.actionToggleWhatsminerPasswd.setToolTip("Show/Hide password")
-        self.actionToggleWhatsminerPasswd.triggered.connect(lambda: self.toggle_show_passwd(self.lineWhatsminerPasswd, self.actionToggleWhatsminerPasswd))
+        self.actionToggleWhatsminerPasswd.triggered.connect(
+            lambda: self.toggle_show_passwd(
+                self.lineWhatsminerPasswd, self.actionToggleWhatsminerPasswd
+            )
+        )
 
         self.actionTogglePbfarmerKey = self.linePbfarmerKey.addAction(
             QIcon(":theme/icons/rc/view.png"),
             QLineEdit.ActionPosition.TrailingPosition,
         )
         self.actionTogglePbfarmerKey.setToolTip("Show/Hide password")
-        self.actionTogglePbfarmerKey.triggered.connect(lambda: self.toggle_show_passwd(self.linePbfarmerKey, self.actionTogglePbfarmerKey))
+        self.actionTogglePbfarmerKey.triggered.connect(
+            lambda: self.toggle_show_passwd(
+                self.linePbfarmerKey, self.actionTogglePbfarmerKey
+            )
+        )
 
         self.children = []
 
@@ -193,9 +235,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if os.path.exists(self.config_path):
             self.config = get_config(Path(self.config_path, "config.json"))
             # general
-            self.checkEnableSysTray.setChecked(
-                self.config["general"]["enableSysTray"]
-            )
+            self.checkEnableSysTray.setChecked(self.config["general"]["enableSysTray"])
             self.comboOnWindowClose.setCurrentIndex(
                 self.config["general"]["onWindowClose"]
             )
@@ -205,13 +245,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.linePbfarmerKey.setText(self.config["api"]["pbfarmerKey"])
 
             # logs
-            self.comboLogLevel.setCurrentText(
-                self.config["logs"]["logLevel"]
-            )
+            self.comboLogLevel.setCurrentText(self.config["logs"]["logLevel"])
             self.lineMaxLogSize.setText(self.config["logs"]["maxLogSize"])
-            self.comboOnMaxLogSize.setCurrentIndex(
-                self.config["logs"]["onMaxLogSize"]
-            )
+            self.comboOnMaxLogSize.setCurrentIndex(self.config["logs"]["onMaxLogSize"])
             self.comboFlushInterval.setCurrentIndex(
                 self.config["logs"]["flushInterval"]
             )
@@ -269,11 +305,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def create_or_destroy_systray(self):
         if self.checkEnableSysTray.isChecked():
-            self.sys_tray = QSystemTrayIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"), self)
+            self.sys_tray = QSystemTrayIcon(
+                QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"), self
+            )
             self.system_tray_menu = QMenu()
             self.system_tray_menu.addAction("Show/Hide", self.toggle_visibility)
-            self.actionSysStartListen = self.system_tray_menu.addAction("Start Listen", self.start_listen)
-            self.actionSysStopListen = self.system_tray_menu.addAction("Stop Listen", self.stop_listen)
+            self.actionSysStartListen = self.system_tray_menu.addAction(
+                "Start Listen", self.start_listen
+            )
+            self.actionSysStopListen = self.system_tray_menu.addAction(
+                "Stop Listen", self.stop_listen
+            )
             self.actionSysStopListen.setEnabled(False)
             self.system_tray_menu.addSeparator()
             self.system_tray_menu.addAction("Quit", self.quit)
@@ -294,7 +336,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def update_status_msg(self):
         if self.listener_thread.listeners and not self.iprStatus.currentMessage():
-            self.iprStatus.showMessage("Status :: UDP listening on 0.0.0.0[:8888,11503,14235]...")
+            self.iprStatus.showMessage(
+                "Status :: UDP listening on 0.0.0.0[:8888,11503,14235]..."
+            )
         if not self.iprStatus.currentMessage():
             self.iprStatus.showMessage("Status :: Ready.")
 
@@ -302,13 +346,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.aboutDialog = IPRAbout(
             self,
             "About",
-            f"{APP_INFO['name']} is a {APP_INFO['desc']}\nVersion {APP_INFO['version']}\n{APP_INFO['author']}\nPowered by {APP_INFO['company']}\n"
+            f"{APP_INFO['name']} is a {APP_INFO['desc']}\nVersion {APP_INFO['version']}\n{APP_INFO['author']}\nPowered by {APP_INFO['company']}\n",
         )
         self.aboutDialog._acceptButton.clicked.connect(self.aboutDialog.window().close)
         self.aboutDialog.show()
 
     def open_log(self):
-        QDesktopServices.openUrl(QUrl(f"file:///{get_log_path()}/ipr.log", QUrl.ParsingMode.TolerantMode))
+        QDesktopServices.openUrl(
+            QUrl(f"file:///{get_log_path()}/ipr.log", QUrl.ParsingMode.TolerantMode)
+        )
 
     def open_issues(self):
         webbrowser.open(f"{APP_INFO['source']}/issues", new=2)
@@ -336,7 +382,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 QSystemTrayIcon.MessageIcon.Information,
                 3000,
             )
-        self.iprStatus.showMessage("Status :: UDP listening on 0.0.0.0[:8888,11503,14235]...")
+        self.iprStatus.showMessage(
+            "Status :: UDP listening on 0.0.0.0[:8888,11503,14235]..."
+        )
 
     def stop_listen(self, timeout=False):
         logger.info(" stop listeners.")
@@ -400,9 +448,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             confirm = IPRConfirmation()
             # IPRConfirmation Signals
-            confirm.actionOpenBrowser.clicked.connect(
-                lambda: self.open_dashboard(ip)
-            )
+            confirm.actionOpenBrowser.clicked.connect(lambda: self.open_dashboard(ip))
             confirm.accept.clicked.connect(confirm.hide)
             # copy action
             confirm.lineIPField.actionCopy = confirm.lineIPField.addAction(
@@ -427,7 +473,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if self.sys_tray.receivers(self.sys_tray.messageClicked) > 0:
                     self.children[-2].show()
                     self.sys_tray.messageClicked.disconnect()
-                self.sys_tray.messageClicked.connect(lambda: self.show_confirm_from_sys_tray(confirm))
+                self.sys_tray.messageClicked.connect(
+                    lambda: self.show_confirm_from_sys_tray(confirm)
+                )
                 if CURR_PLATFORM == "linux":
                     self.sys_tray.showMessage(
                         "Received confirmation",
@@ -465,7 +513,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 client_auth = self.linePbfarmerKey.text()
         self.api_client.create_client_from_type(type, ip, client_auth)
         if not self.api_client.client:
-            self.iprStatus.showMessage("Status :: Failed to connect or authenticate client.", 5000)
+            self.iprStatus.showMessage(
+                "Status :: Failed to connect or authenticate client.", 5000
+            )
         logger.info(f"populate_table : get target data from ip {ip}.")
         t_data = self.api_client.get_target_data_from_type(type)
         self.api_client.close_client()
@@ -473,40 +523,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         rowPosition = self.tableWidget.rowCount()
         self.tableWidget.insertRow(rowPosition)
         actionLocateMiner = QLabel()
-        actionLocateMiner.setPixmap(
-            QPixmap(":theme/icons/rc/flash.png")
-        )
+        actionLocateMiner.setPixmap(QPixmap(":theme/icons/rc/flash.png"))
         actionLocateMiner.setToolTip("Locate Miner")
         self.tableWidget.setCellWidget(rowPosition, 0, actionLocateMiner)
         self.tableWidget.setItem(rowPosition, 1, QTableWidgetItem(ip))
         self.tableWidget.setItem(rowPosition, 2, QTableWidgetItem(mac))
-        self.tableWidget.setItem(
-            rowPosition, 3, QTableWidgetItem(t_data["serial"])
-        )
+        self.tableWidget.setItem(rowPosition, 3, QTableWidgetItem(t_data["serial"]))
         # ASIC TYPE
         self.tableWidget.setItem(rowPosition, 4, QTableWidgetItem(type))
         # SUBTYPE
-        self.tableWidget.setItem(
-            rowPosition, 5, QTableWidgetItem(t_data["subtype"])
-        )
+        self.tableWidget.setItem(rowPosition, 5, QTableWidgetItem(t_data["subtype"]))
         # ALGO
-        self.tableWidget.setItem(
-            rowPosition, 6, QTableWidgetItem(t_data["algorithm"])
-        )
+        self.tableWidget.setItem(rowPosition, 6, QTableWidgetItem(t_data["algorithm"]))
         # FIRMWARE
-        self.tableWidget.setItem(
-            rowPosition, 7, QTableWidgetItem(t_data["firmware"])
-        )
+        self.tableWidget.setItem(rowPosition, 7, QTableWidgetItem(t_data["firmware"]))
         # PLATFORM
-        self.tableWidget.setItem(
-            rowPosition, 8, QTableWidgetItem(t_data["platform"])
-        )
+        self.tableWidget.setItem(rowPosition, 8, QTableWidgetItem(t_data["platform"]))
 
     def show_table_context(self):
         self.table_context = QMenu()
-        self.actionContextOpenSelectedIPs = self.table_context.addAction("Open Selected IPs")
+        self.actionContextOpenSelectedIPs = self.table_context.addAction(
+            "Open Selected IPs"
+        )
         self.actionContextOpenSelectedIPs.triggered.connect(self.open_selected_ips)
-        self.actionContextCopySelectedElements = self.table_context.addAction("Copy Selected Elements")
+        self.actionContextCopySelectedElements = self.table_context.addAction(
+            "Copy Selected Elements"
+        )
         self.actionContextCopySelectedElements.triggered.connect(self.copy_selected)
         self.actionContextExport = self.table_context.addAction("Export")
         self.actionContextExport.triggered.connect(self.export_table)
@@ -533,10 +575,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.api_client.create_client_from_type(miner_type, ip_addr, client_auth)
             client = self.api_client.get_client()
             if not client:
-                return self.iprStatus.showMessage("Status :: Failed to connect or authenticate client.", 5000)
+                return self.iprStatus.showMessage(
+                    "Status :: Failed to connect or authenticate client.", 5000
+                )
             self.api_client.locate_miner(miner_type)
             if client.err:
-                return self.iprStatus.showMessage(f"Status :: Failed to locate miner: {client.err}", 5000)
+                return self.iprStatus.showMessage(
+                    f"Status :: Failed to locate miner: {client.err}", 5000
+                )
             self.iprStatus.showMessage(f"Status :: Locating miner: {ip_addr}...", 10000)
 
     def double_click_item(self, model_index):
@@ -631,7 +677,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def set_logger_level(self):
         logger.manager.root.setLevel(self.comboLogLevel.currentText())
-        logger.log(logger.manager.root.level, f" change logger to level {self.comboLogLevel.currentText()}.")
+        logger.log(
+            logger.manager.root.level,
+            f" change logger to level {self.comboLogLevel.currentText()}.",
+        )
 
     def update_settings(self):
         logger.info(" write settings to config.")
@@ -643,25 +692,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "disableInactiveTimer": self.actionDisableInactiveTimer.isChecked(),
                 "autoStartOnLaunch": self.actionAutoStartOnLaunch.isChecked(),
             },
-            "table": {
-                "enableIDTable": self.actionEnableIDTable.isChecked()
-            },
+            "table": {"enableIDTable": self.actionEnableIDTable.isChecked()},
         }
         config = {
             "general": {
                 "enableSysTray": self.checkEnableSysTray.isChecked(),
-                "onWindowClose": self.comboOnWindowClose.currentIndex()
+                "onWindowClose": self.comboOnWindowClose.currentIndex(),
             },
             "api": {
                 "bitmainAltPasswd": self.lineBitmainPasswd.text(),
                 "whatsminerAltPasswd": self.lineWhatsminerPasswd.text(),
-                "pbfarmerKey": self.linePbfarmerKey.text()
+                "pbfarmerKey": self.linePbfarmerKey.text(),
             },
             "logs": {
                 "logLevel": self.comboLogLevel.currentText(),
                 "maxLogSize": self.lineMaxLogSize.text(),
                 "onMaxLogSize": self.comboOnMaxLogSize.currentIndex(),
-                "flushInterval": self.comboFlushInterval.currentIndex()
+                "flushInterval": self.comboFlushInterval.currentIndex(),
             },
             "instance": instance,
         }
@@ -706,7 +753,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.killall()
         logger.info(" exit app.")
         # flush log on close if set
-        if self.comboOnMaxLogSize.currentIndex() == 0 and self.comboFlushInterval.currentIndex() == 1:
+        if (
+            self.comboOnMaxLogSize.currentIndex() == 0
+            and self.comboFlushInterval.currentIndex() == 1
+        ):
             logger.root.handlers[0].doRollover()
         self.close_root_logger(logger)
         self.close()

@@ -75,6 +75,7 @@ def init_app():
     max_log_size = int(config["logs"]["maxLogSize"]) * 1000
     match config["logs"]["onMaxLogSize"]:
         case 0:
+
             def namer(name):
                 return name
 
@@ -83,9 +84,7 @@ def init_app():
                 flush_log(Path(log_path, "ipr.log"))
 
             rfh = logging.handlers.RotatingFileHandler(
-                Path(log_path, "ipr.log"),
-                maxBytes=max_log_size,
-                backupCount=1
+                Path(log_path, "ipr.log"), maxBytes=max_log_size, backupCount=1
             )
             rfh.rotator = rotator
             rfh.namer = namer
@@ -93,14 +92,14 @@ def init_app():
             rfh = logging.handlers.RotatingFileHandler(
                 Path(log_path, "ipr.log"),
                 maxBytes=max_log_size,
-                backupCount=MAX_ROTATE_LOG_FILES
+                backupCount=MAX_ROTATE_LOG_FILES,
             )
 
     logging.basicConfig(
         format="%(asctime)s - %(levelname)s - %(name)s:%(message)s",
         datefmt="%m/%d/%Y %I:%M:%S%p",
         level=logging.INFO,
-        handlers=[rfh]
+        handlers=[rfh],
     )
 
     logger.manager.root.setLevel(config["logs"]["logLevel"])

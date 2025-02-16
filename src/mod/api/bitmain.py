@@ -6,15 +6,16 @@ from string import Template
 
 from .errors import (
     FailedConnectionError,
-    AuthenticationError
+    AuthenticationError,
 )
 
 logger = logging.getLogger(__name__)
 HOST_URL = Template("http://${ip}/")
 
 
-class BitmainHTTPClient():
+class BitmainHTTPClient:
     """Bitmain/Antminer HTTP Client with support for vnish"""
+
     def __init__(self, ip_addr: str, passwd: str):
         self.ip = ip_addr
         self.url = HOST_URL.substitute(ip=self.ip)
@@ -24,7 +25,7 @@ class BitmainHTTPClient():
         self.is_unlocked = False
         self.command_prefix = {
             "vnish": "api/v1",
-            "stock": Template("cgi-bin/${cmd}.cgi")
+            "stock": Template("cgi-bin/${cmd}.cgi"),
         }
         self.err = None
         self._initialize_session()
@@ -39,9 +40,13 @@ class BitmainHTTPClient():
         except (
             requests.exceptions.ConnectionError,
             requests.exceptions.ConnectTimeout,
-            requests.exceptions.ReadTimeout
+            requests.exceptions.ReadTimeout,
         ):
-            self._close_client(FailedConnectionError("Connection Failed: Failed to connect or timeout occured."))
+            self._close_client(
+                FailedConnectionError(
+                    "Connection Failed: Failed to connect or timeout occured."
+                )
+            )
 
     def _authenticate_session(self):
         passwds = [self.passwd, "root"] if self.passwd != "root" else [self.passwd]
@@ -52,7 +57,11 @@ class BitmainHTTPClient():
                 self.digest = self.session.auth
                 break
         if not self.digest:
-            self._close_client(AuthenticationError("Authentication Failed: Failed to authenticate session."))
+            self._close_client(
+                AuthenticationError(
+                    "Authentication Failed: Failed to authenticate session."
+                )
+            )
 
     def _do_http(self, method: str, path: str, payload: dict | None = None):
         req = requests.Request(
@@ -68,9 +77,7 @@ class BitmainHTTPClient():
         res = self.session.send(r)
         try:
             return res.json()
-        except (
-            requests.exceptions.JSONDecodeError
-        ):
+        except requests.exceptions.JSONDecodeError:
             logger.warning("_do_http : return wrapped plaintext content.")
             return {"plaintext": res.text}
 
@@ -89,10 +96,7 @@ class BitmainHTTPClient():
 
     # Vnish support
     def _is_vnish(self) -> bool:
-        res = self.session.head(
-            self.url + self.command_prefix["vnish"],
-            timeout=3.0
-        )
+        res = self.session.head(self.url + self.command_prefix["vnish"], timeout=3.0)
         if res.status_code == 200:
             # change to vnish default passwd
             if self.passwd == "root":
@@ -104,17 +108,23 @@ class BitmainHTTPClient():
         passwds = [self.passwd, "admin"] if self.passwd != "admin" else [self.passwd]
         for passwd in passwds:
             payload = {"pw": passwd}
-            res = self._do_http("POST", self.command_prefix["vnish"] + "/unlock", payload)
+            res = self._do_http(
+                "POST", self.command_prefix["vnish"] + "/unlock", payload
+            )
             if "token" in res:
                 self.session.headers.update({"Authorization": "Bearer " + res["token"]})
                 self.is_unlocked = True
                 break
         if not self.is_unlocked:
-            self._close_client(AuthenticationError("Authentication Failed: Failed to unlock vnish session."))
+            self._close_client(
+                AuthenticationError(
+                    "Authentication Failed: Failed to unlock vnish session."
+                )
+            )
 
     def get_bitmain_system_log(self):
         resp = self.run_command("GET", "log")
-        resp["plaintext"] = resp["plaintext"][0:resp["plaintext"].find("===")]
+        resp["plaintext"] = resp["plaintext"][0 : resp["plaintext"].find("===")]
         return resp
 
     def get_system_info(self):
@@ -141,14 +151,14 @@ class BitmainHTTPClient():
             raise error
 
 
-class BitmainParser():
+class BitmainParser:
     def __init__(self, target: dict):
         self.target = target.copy()
         self.ctrl_boards = {
-            "xil": r'Zynq|Xilinx|xil',
-            "bb": r'BeagleBone',
-            "aml": r'amlogic|aml',
-            "cv": r'cvitek|CVITEK',
+            "xil": r"Zynq|Xilinx|xil",
+            "bb": r"BeagleBone",
+            "aml": r"amlogic|aml",
+            "cv": r"cvitek|CVITEK",
         }
 
     def get_target(self):

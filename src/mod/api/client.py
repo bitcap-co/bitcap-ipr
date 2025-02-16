@@ -1,11 +1,11 @@
 import logging
 from PyQt6.QtCore import (
     QObject,
-    QTimer
+    QTimer,
 )
 from .errors import (
     FailedConnectionError,
-    AuthenticationError
+    AuthenticationError,
 )
 from .bitmain import BitmainHTTPClient, BitmainParser
 from .iceriver import IceriverHTTPClient, IceriverParser
@@ -14,7 +14,7 @@ from .whatsminer import WhatsminerRPCClient, WhatsminerParser
 logger = logging.getLogger(__name__)
 
 
-class APIClient():
+class APIClient:
     def __init__(self, parent: QObject):
         self.parent = parent
         self.client = None
@@ -23,7 +23,7 @@ class APIClient():
             "subtype": "N/A",
             "algorithm": "N/A",
             "firmware": "N/A",
-            "platform": "N/A"
+            "platform": "N/A",
         }
 
     def get_client(self):
@@ -36,7 +36,7 @@ class APIClient():
             self.client = BitmainHTTPClient(ip_addr, passwd)
         except (
             FailedConnectionError,
-            AuthenticationError
+            AuthenticationError,
         ) as err:
             logger.error(err)
 
@@ -48,7 +48,9 @@ class APIClient():
         except FailedConnectionError as err:
             logger.error(err)
 
-    def create_whatsminer_client(self, ip_addr: str, port: int = 4028, passwd: str | None = None):
+    def create_whatsminer_client(
+        self, ip_addr: str, port: int = 4028, passwd: str | None = None
+    ):
         try:
             self.client = WhatsminerRPCClient(ip_addr, port, passwd)
         except FailedConnectionError as err:
