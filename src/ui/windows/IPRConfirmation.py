@@ -1,12 +1,9 @@
-import logging
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget
 
 from ui.GUI import Ui_IPRConfirmation
 from ui.widgets.TitleBar import TitleBar
 from util import CURR_PLATFORM
-
-logger = logging.getLogger(__name__)
 
 
 class IPRConfirmation(QWidget, Ui_IPRConfirmation):
