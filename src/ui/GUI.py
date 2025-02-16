@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.setFixedSize(QtCore.QSize(550, 580))
+        MainWindow.setFixedSize(QtCore.QSize(550, 550))
         self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
         self.centralwidget.setStyleSheet("QWidget#centralwidget {\n"
 "    background-color:qlineargradient(spread:pad, x1:0.500, y1:0, x2:0.500, y2:1, stop:0.5 rgba(6, 16, 31, 255), stop:1 rgba(0, 0, 0, 255));\n"
@@ -33,7 +33,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
         self.vwrapper = QtWidgets.QWidget(parent=self.centralwidget)
-        self.vwrapper.setGeometry(QtCore.QRect(10, 60, 530, 490))
+        self.vwrapper.setGeometry(QtCore.QRect(10, 60, 531, 460))
         self.vwrapper.setObjectName("vwrapper")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.vwrapper)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
@@ -53,7 +53,7 @@ class Ui_MainWindow(object):
         self.iprIDTable.setObjectName("iprIDTable")
         self.tableWidget = QtWidgets.QTableWidget(parent=self.iprIDTable)
         self.tableWidget.setEnabled(True)
-        self.tableWidget.setGeometry(QtCore.QRect(0, 0, 530, 348))
+        self.tableWidget.setGeometry(QtCore.QRect(0, 0, 531, 343))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
