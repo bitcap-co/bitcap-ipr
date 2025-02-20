@@ -19,7 +19,7 @@
 	background-color:qlineargradient(spread:pad, x1:0.500, y1:0, x2:0.500, y2:1, stop:0.5 rgba(6, 16, 31, 255), stop:1 rgba(0, 0, 0, 255));
 }</string>
    </property>
-   <widget class="QWidget" name="titlebarwidget" native="true">
+   <widget class="QWidget" name="titlebar" native="true">
     <property name="geometry">
      <rect>
       <x>0</x>
@@ -46,7 +46,7 @@
      </property>
     </layout>
    </widget>
-   <widget class="QWidget" name="menubarwidget" native="true">
+   <widget class="QWidget" name="menubar" native="true">
     <property name="geometry">
      <rect>
       <x>0</x>
@@ -69,7 +69,7 @@
       <x>10</x>
       <y>60</y>
       <width>531</width>
-      <height>460</height>
+      <height>462</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -93,10 +93,13 @@
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Minimum</enum>
+       </property>
        <property name="sizeHint" stdset="0">
         <size>
          <width>20</width>
-         <height>40</height>
+         <height>20</height>
         </size>
        </property>
       </spacer>
@@ -118,8 +121,8 @@
        <property name="currentIndex">
         <number>1</number>
        </property>
-       <widget class="QWidget" name="iprIDTable">
-        <widget class="QTableWidget" name="tableWidget">
+       <widget class="QWidget" name="tableView">
+        <widget class="QTableWidget" name="idTable">
          <property name="enabled">
           <bool>true</bool>
          </property>
@@ -128,7 +131,7 @@
            <x>0</x>
            <y>0</y>
            <width>531</width>
-           <height>343</height>
+           <height>370</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -175,10 +178,10 @@
          <column/>
         </widget>
        </widget>
-       <widget class="QWidget" name="iprLogo">
+       <widget class="QWidget" name="logoView">
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
-          <widget class="QLabel" name="label_2">
+          <widget class="QLabel" name="labelLogo">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -201,7 +204,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="iprConfig">
+       <widget class="QWidget" name="configView">
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
           <widget class="QLabel" name="label">
@@ -235,7 +238,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QTabWidget" name="tabWidget">
+          <widget class="QTabWidget" name="configTabs">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>0</horstretch>
@@ -251,7 +254,7 @@
            <property name="currentIndex">
             <number>0</number>
            </property>
-           <widget class="QWidget" name="general">
+           <widget class="QWidget" name="tabGeneral">
             <attribute name="title">
              <string>General</string>
             </attribute>
@@ -260,7 +263,7 @@
             </attribute>
             <layout class="QVBoxLayout" name="verticalLayout_3">
              <item>
-              <widget class="QGroupBox" name="iprSystemTray">
+              <widget class="QGroupBox" name="groupSystemTray">
                <property name="title">
                 <string>System Tray</string>
                </property>
@@ -356,7 +359,7 @@
              </item>
             </layout>
            </widget>
-           <widget class="QWidget" name="api">
+           <widget class="QWidget" name="tabAPI">
             <attribute name="title">
              <string>API</string>
             </attribute>
@@ -365,7 +368,7 @@
             </attribute>
             <layout class="QVBoxLayout" name="verticalLayout_6">
              <item>
-              <widget class="QGroupBox" name="iprBitmain">
+              <widget class="QGroupBox" name="groupBitmain">
                <property name="title">
                 <string>Bitmain/Antminer</string>
                </property>
@@ -419,7 +422,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QGroupBox" name="iprWhatsminer">
+              <widget class="QGroupBox" name="groupWhatsminer">
                <property name="title">
                 <string>Whatsminer</string>
                </property>
@@ -473,7 +476,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QGroupBox" name="iprPbfarmer">
+              <widget class="QGroupBox" name="groupPbfarmer">
                <property name="title">
                 <string>pbfarmer</string>
                </property>
@@ -528,7 +531,7 @@
              </item>
             </layout>
            </widget>
-           <widget class="QWidget" name="logs">
+           <widget class="QWidget" name="tabLogs">
             <attribute name="title">
              <string>Logs</string>
             </attribute>
@@ -537,7 +540,7 @@
             </attribute>
             <layout class="QVBoxLayout" name="verticalLayout_4">
              <item>
-              <widget class="QGroupBox" name="iprLog">
+              <widget class="QGroupBox" name="groupLog">
                <property name="title">
                 <string>Log Settings</string>
                </property>
@@ -876,16 +879,19 @@
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Minimum</enum>
+       </property>
        <property name="sizeHint" stdset="0">
         <size>
          <width>20</width>
-         <height>40</height>
+         <height>20</height>
         </size>
        </property>
       </spacer>
      </item>
      <item>
-      <widget class="QWidget" name="inputIPRButtons" native="true">
+      <widget class="QWidget" name="listenControls" native="true">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
          <widget class="QPushButton" name="actionIPRStart">

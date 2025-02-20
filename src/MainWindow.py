@@ -66,7 +66,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.title_bar = TitleBar(self, "BitCap IPReporter", ["min", "close"])
         self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
         self.title_bar._closeButton.clicked.connect(self.close_to_tray_or_exit)
-        title_bar_widget = self.titlebarwidget.layout()
+        title_bar_widget = self.titlebar.layout()
         title_bar_widget.addWidget(self.title_bar)
 
         # menu bar
@@ -149,12 +149,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionQuit = self.menuQuit.addAction("Quit")
         self.actionQuit.setToolTip("Quits app")
 
-        menubarwidget = self.menubarwidget.layout()
+        menubarwidget = self.menubar.layout()
         menubarwidget.addWidget(self.menu_bar)
 
-        self.label_2.setPixmap(QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg"))
+        self.labelLogo.setPixmap(QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg"))
 
-        self.tableWidget.setHorizontalHeaderLabels(
+        self.idTable.setHorizontalHeaderLabels(
             [
                 "",
                 "IP",
@@ -167,11 +167,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "PLATFORM",
             ]
         )
-        self.tableWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.tableWidget.customContextMenuRequested.connect(self.show_table_context)
-        self.tableWidget.setColumnWidth(0, 15)
-        self.tableWidget.doubleClicked.connect(self.double_click_item)
-        self.tableWidget.cellClicked.connect(self.locate_miner)
+        self.idTable.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.idTable.customContextMenuRequested.connect(self.show_table_context)
+        self.idTable.setColumnWidth(0, 15)
+        self.idTable.doubleClicked.connect(self.double_click_item)
+        self.idTable.cellClicked.connect(self.locate_miner)
 
         self.actionToggleBitmainPasswd = self.lineBitmainPasswd.addAction(
             QIcon(":theme/icons/rc/view.png"),
@@ -408,7 +408,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionSysStartListen.setEnabled(True)
             self.actionSysStopListen.setEnabled(False)
         if self.actionEnableIDTable.isChecked():
-            self.tableWidget.setRowCount(0)
+            self.idTable.setRowCount(0)
         self.actionIPRStart.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
         self.listener_thread.stop_listeners()
@@ -520,25 +520,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         t_data = self.api_client.get_target_data_from_type(type)
         self.api_client.close_client()
         logger.info("populate_table : write table data.")
-        rowPosition = self.tableWidget.rowCount()
-        self.tableWidget.insertRow(rowPosition)
+        rowPosition = self.idTable.rowCount()
+        self.idTable.insertRow(rowPosition)
         actionLocateMiner = QLabel()
         actionLocateMiner.setPixmap(QPixmap(":theme/icons/rc/flash.png"))
         actionLocateMiner.setToolTip("Locate Miner")
-        self.tableWidget.setCellWidget(rowPosition, 0, actionLocateMiner)
-        self.tableWidget.setItem(rowPosition, 1, QTableWidgetItem(ip))
-        self.tableWidget.setItem(rowPosition, 2, QTableWidgetItem(mac))
-        self.tableWidget.setItem(rowPosition, 3, QTableWidgetItem(t_data["serial"]))
+        self.idTable.setCellWidget(rowPosition, 0, actionLocateMiner)
+        self.idTable.setItem(rowPosition, 1, QTableWidgetItem(ip))
+        self.idTable.setItem(rowPosition, 2, QTableWidgetItem(mac))
+        self.idTable.setItem(rowPosition, 3, QTableWidgetItem(t_data["serial"]))
         # ASIC TYPE
-        self.tableWidget.setItem(rowPosition, 4, QTableWidgetItem(type))
+        self.idTable.setItem(rowPosition, 4, QTableWidgetItem(type))
         # SUBTYPE
-        self.tableWidget.setItem(rowPosition, 5, QTableWidgetItem(t_data["subtype"]))
+        self.idTable.setItem(rowPosition, 5, QTableWidgetItem(t_data["subtype"]))
         # ALGO
-        self.tableWidget.setItem(rowPosition, 6, QTableWidgetItem(t_data["algorithm"]))
+        self.idTable.setItem(rowPosition, 6, QTableWidgetItem(t_data["algorithm"]))
         # FIRMWARE
-        self.tableWidget.setItem(rowPosition, 7, QTableWidgetItem(t_data["firmware"]))
+        self.idTable.setItem(rowPosition, 7, QTableWidgetItem(t_data["firmware"]))
         # PLATFORM
-        self.tableWidget.setItem(rowPosition, 8, QTableWidgetItem(t_data["platform"]))
+        self.idTable.setItem(rowPosition, 8, QTableWidgetItem(t_data["platform"]))
 
     def show_table_context(self):
         self.table_context = QMenu()
@@ -561,8 +561,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def locate_miner(self, row: int, col: int):
         if col == 0:
-            miner_type = self.tableWidget.item(row, 4).text()
-            ip_addr = self.tableWidget.item(row, 1).text()
+            miner_type = self.idTable.item(row, 4).text()
+            ip_addr = self.idTable.item(row, 1).text()
             logger.info(f" locate miner {ip_addr}.")
             client_auth = None
             match miner_type:
@@ -590,31 +590,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         col = model_index.column()
         # ip
         if col == 1:
-            self.open_dashboard(self.tableWidget.item(row, col).text())
+            self.open_dashboard(self.idTable.item(row, col).text())
         # serial
         if col == 3:
-            self.tableWidget.editItem(self.tableWidget.item(row, col))
+            self.idTable.editItem(self.idTable.item(row, col))
 
     def open_selected_ips(self):
-        rows = self.tableWidget.rowCount()
+        rows = self.idTable.rowCount()
         if rows:
             for r in range(rows):
-                if self.tableWidget.item(r, 1).isSelected():
-                    self.open_dashboard(self.tableWidget.item(r, 1).text())
+                if self.idTable.item(r, 1).isSelected():
+                    self.open_dashboard(self.idTable.item(r, 1).text())
 
     def copy_selected(self):
         logger.info(" copy selected elements.")
-        rows = self.tableWidget.rowCount()
-        cols = self.tableWidget.columnCount()
+        rows = self.idTable.rowCount()
+        cols = self.idTable.columnCount()
         out = ""
-        if len(self.tableWidget.selectedItems()) == 1:
-            out += self.tableWidget.selectedItems()[0].text()
+        if len(self.idTable.selectedItems()) == 1:
+            out += self.idTable.selectedItems()[0].text()
             out += "\n"
         else:
             for i in range(rows):
                 for j in range(1, cols):
-                    if self.tableWidget.item(i, j).isSelected():
-                        out += self.tableWidget.item(i, j).text()
+                    if self.idTable.item(i, j).isSelected():
+                        out += self.idTable.item(i, j).text()
                         out += ","
                 out += "\n"
         logger.info("copy_selected : copy elements to clipboard.")
@@ -625,12 +625,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def export_table(self):
         logger.info("export table.")
-        rows = self.tableWidget.rowCount()
-        cols = self.tableWidget.columnCount()
+        rows = self.idTable.rowCount()
+        cols = self.idTable.columnCount()
         out = "IP, MAC, SERIAL, TYPE, SUBTYPE, ALGORITHM, FIRMWARE, PLATFORM \n"
         for i in range(rows):
             for j in range(1, cols):
-                out += self.tableWidget.item(i, j).text()
+                out += self.idTable.item(i, j).text()
                 out += ","
             out += "\n"
 
