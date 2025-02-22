@@ -12,7 +12,9 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.setFixedSize(QtCore.QSize(550, 550))
+        MainWindow.resize(550, 550)
+        MainWindow.setMinimumSize(QtCore.QSize(550, 550))
+        MainWindow.setMaximumSize(QtCore.QSize(1200, 800))
         self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
         self.centralwidget.setStyleSheet("QWidget#centralwidget {\n"
 "    background-color:qlineargradient(spread:pad, x1:0.500, y1:0, x2:0.500, y2:1, stop:0.5 rgba(6, 16, 31, 255), stop:1 rgba(0, 0, 0, 255));\n"
