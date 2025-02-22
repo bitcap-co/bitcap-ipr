@@ -41,7 +41,6 @@ from mod.api.client import APIClient
 from util import (
     CURR_PLATFORM,
     APP_INFO,
-    MAX_LOG_SIZE_LIMIT,
     get_log_path,
     get_config_path,
     get_config,
@@ -246,7 +245,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             # logs
             self.comboLogLevel.setCurrentText(self.config["logs"]["logLevel"])
-            self.lineMaxLogSize.setText(self.config["logs"]["maxLogSize"])
+            self.spinMaxLogSize.setValue(self.config["logs"]["maxLogSize"])
             self.comboOnMaxLogSize.setCurrentIndex(self.config["logs"]["onMaxLogSize"])
             self.comboFlushInterval.setCurrentIndex(
                 self.config["logs"]["flushInterval"]
@@ -684,8 +683,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def update_settings(self):
         logger.info(" write settings to config.")
-        if int(self.lineMaxLogSize.text()) > MAX_LOG_SIZE_LIMIT:
-            self.lineMaxLogSize.setText(f"{MAX_LOG_SIZE_LIMIT}")
         instance = {
             "options": {
                 "alwaysOpenIPInBrowser": self.actionAlwaysOpenIPInBrowser.isChecked(),
@@ -706,7 +703,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             },
             "logs": {
                 "logLevel": self.comboLogLevel.currentText(),
-                "maxLogSize": self.lineMaxLogSize.text(),
+                "maxLogSize": self.spinMaxLogSize.value(),
                 "onMaxLogSize": self.comboOnMaxLogSize.currentIndex(),
                 "flushInterval": self.comboFlushInterval.currentIndex(),
             },

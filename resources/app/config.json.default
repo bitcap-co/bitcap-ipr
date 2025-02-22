@@ -10,7 +10,7 @@
     },
     "logs": {
         "logLevel": "INFO",
-        "maxLogSize": "1024",
+        "maxLogSize": 1024,
         "onMaxLogSize": 0,
         "flushInterval": 0
     },

@@ -17,7 +17,6 @@ APP_INFO = {
     "desc": "cross-platform IP reporter that listens for AntMiner, IceRiver, and Whatsminer ASICs.",
 }
 MAX_ROTATE_LOG_FILES = 4
-MAX_LOG_SIZE_LIMIT = 4096
 
 
 def get_default_config():
