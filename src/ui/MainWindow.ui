@@ -953,9 +953,6 @@
    <property name="toolTip">
     <string>Current IPR Status</string>
    </property>
-   <property name="sizeGripEnabled">
-    <bool>false</bool>
-   </property>
   </widget>
  </widget>
  <resources/>

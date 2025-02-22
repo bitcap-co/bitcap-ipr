@@ -384,7 +384,6 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(10)
         self.iprStatus.setFont(font)
-        self.iprStatus.setSizeGripEnabled(False)
         self.iprStatus.setObjectName("iprStatus")
         MainWindow.setStatusBar(self.iprStatus)
 
