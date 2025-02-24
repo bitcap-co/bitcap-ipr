@@ -342,7 +342,6 @@ QAbstractSpinBox {
   padding-bottom: 2px;
   padding-left: 4px;
   padding-right: 4px;
-  border-radius: 4px;
   /* min-width: 5px; removed to fix 109 */
 }
 
