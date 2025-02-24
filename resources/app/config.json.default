@@ -1,7 +1,15 @@
 {
     "general": {
         "enableSysTray": false,
-        "onWindowClose": 0
+        "onWindowClose": 0,
+        "listenFor": {
+            "antminer": true,
+            "whatsminer": true,
+            "iceriver": true,
+            "additional": {
+                "volcminer": false
+            }
+        }
     },
     "api": {
         "bitmainAltPasswd": "",

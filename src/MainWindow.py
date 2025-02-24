@@ -238,6 +238,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.comboOnWindowClose.setCurrentIndex(
                 self.config["general"]["onWindowClose"]
             )
+            # listeners
+            self.checkListenAntminer.setChecked(self.config["general"]["listenFor"]["antminer"])
+            self.checkListenWhatsminer.setChecked(self.config["general"]["listenFor"]["whatsminer"])
+            self.checkListenIceRiver.setChecked(self.config["general"]["listenFor"]["iceriver"])
+
             # api
             self.lineBitmainPasswd.setText(self.config["api"]["bitmainAltPasswd"])
             self.lineWhatsminerPasswd.setText(self.config["api"]["whatsminerAltPasswd"])
@@ -695,6 +700,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "general": {
                 "enableSysTray": self.checkEnableSysTray.isChecked(),
                 "onWindowClose": self.comboOnWindowClose.currentIndex(),
+                "listenFor": {
+                    "antminer": self.checkListenAntminer.isChecked(),
+                    "whatsminer": self.checkListenWhatsminer.isChecked(),
+                    "iceriver": self.checkListenIceRiver.isChecked(),
+                }
             },
             "api": {
                 "bitmainAltPasswd": self.lineBitmainPasswd.text(),
