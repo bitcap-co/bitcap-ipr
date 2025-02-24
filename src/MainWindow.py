@@ -242,6 +242,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.checkListenAntminer.setChecked(self.config["general"]["listenFor"]["antminer"])
             self.checkListenWhatsminer.setChecked(self.config["general"]["listenFor"]["whatsminer"])
             self.checkListenIceRiver.setChecked(self.config["general"]["listenFor"]["iceriver"])
+            # additional listeners
+            self.checkListenVolcminer.setChecked(self.config["general"]["listenFor"]["additional"]["volcminer"])
 
             # api
             self.lineBitmainPasswd.setText(self.config["api"]["bitmainAltPasswd"])
@@ -375,6 +377,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "antminer": self.checkListenAntminer.isChecked(),
             "whatsminer": self.checkListenWhatsminer.isChecked(),
             "iceriver": self.checkListenIceRiver.isChecked(),
+            "volcminer": self.checkListenVolcminer.isChecked(),
         }
         if not any(enabled for _, enabled in listener_config.items()):
             logger.error("start_listen: no listeners configured. at least one needs to be checked.")
@@ -714,6 +717,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     "antminer": self.checkListenAntminer.isChecked(),
                     "whatsminer": self.checkListenWhatsminer.isChecked(),
                     "iceriver": self.checkListenIceRiver.isChecked(),
+                    "additional": {
+                        "volcminer": self.checkListenVolcminer.isChecked(),
+                    }
                 }
             },
             "api": {

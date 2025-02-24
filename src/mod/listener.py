@@ -51,7 +51,7 @@ class Listener(QObject):
 
     def validate_msg(self, type: str) -> bool:
         match type:
-            case "antminer":
+            case "antminer" | "volcminer":
                 if re.match(msg_patterns["common"], self.msg):
                     return True
             case "whatsminer":
@@ -65,7 +65,7 @@ class Listener(QObject):
 
     def parse_msg(self, type: str) -> tuple:
         match type:
-            case "antminer":
+            case "antminer" | "volcminer":
                 ip, mac = self.msg.split(",")
             case "whatsminer":
                 ip, mac = self.msg.split("M")
@@ -95,6 +95,8 @@ class Listener(QObject):
                     type = "iceriver"
                 case 8888:
                     type = "whatsminer"
+                case 14236:
+                    type = "volcminer"
             logger.debug(
                 f"Listener[{self.port}] : found type {type} from port."
             )
