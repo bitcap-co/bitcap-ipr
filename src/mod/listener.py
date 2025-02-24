@@ -1,17 +1,23 @@
 import time
-import socket
+import re
 import logging
-from PyQt6.QtCore import (
-    QObject,
-    QThread,
-    pyqtSignal,
-    pyqtSlot,
-)
+
+from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
+from PyQt6.QtNetwork import QUdpSocket, QHostAddress
+
 
 logger = logging.getLogger(__name__)
 
+reg_ip = r"((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}"
+reg_mac = r"([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})"
+msg_patterns = {
+    "common": re.compile(f"^{reg_ip},{reg_mac}"),
+    "ir": re.compile(f"^addr:{reg_ip}"),
+    "bt": re.compile(f"^IP:{reg_ip}MAC:{reg_mac}"),
+}
 
-class Memory:
+
+class Record:
     def __init__(self, size: int):
         self.size = size
         self.dict = {}
@@ -25,110 +31,114 @@ class Memory:
         return self.dict[key]
 
 
-class ListenerSignals(QObject):
+class Listener(QObject):
     result = pyqtSignal()
     error = pyqtSignal()
 
-
-class Listener(QThread):
-    def __init__(self, port: int):
-        super().__init__()
-        self.signals = ListenerSignals()
-        self.bufsize = 40
+    def __init__(self, parent: QObject, port: int):
+        super().__init__(parent)
         self.port = port
-        self.memory = Memory(size=10)
-        self.d_str = ""
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.bind(("0.0.0.0", self.port))
+        self.max_buf = 40
+        self.record = Record(size=10)
+        self.msg = ""
+        self.addr = QHostAddress()
+        self.addr.setAddress(QHostAddress.SpecialAddress.AnyIPv4)
+        self.sock = QUdpSocket()
+        self.sock.bind(self.addr, self.port)
+
+        self.sock.errorOccurred.connect(self.emit_error)
+        self.sock.readyRead.connect(self.process_datagram)
+
+    def validate_msg(self, type: str) -> bool:
+        match type:
+            case "antminer":
+                if re.match(msg_patterns["common"], self.msg):
+                    return True
+            case "whatsminer":
+                if re.match(msg_patterns["bt"], self.msg):
+                    return True
+            case "iceriver":
+                if re.match(msg_patterns["ir"], self.msg):
+                    return True
+        logger.warning(f"Listener[{self.port}] : Failed to validate msg. Ignoring...")
+        return False
+
+    def parse_msg(self, type: str) -> tuple:
+        match type:
+            case "antminer":
+                ip, mac = self.msg.split(",")
+            case "whatsminer":
+                ip, mac = self.msg.split("M")
+                ip = ip[3:]
+                mac = mac[3:]
+            case "iceriver":
+                ip = self.msg.split(":")[1]
+                mac = "ice-river"
+        return ip, mac
 
     @pyqtSlot()
-    def run(self):
-        while True:
-            try:
-                self.d = self.sock.recv(self.bufsize)
-            except Exception:
-                break
-            self.d_str = self.d.decode("ascii")
-            if self.d_str:
-                logger.info(f"Listener[{self.port}] : received msg.")
-                logger.debug(f"Listener[{self.port}] : d_str {self.d_str}")
-                match self.port:
-                    case 11503:  # IceRiver
-                        type = "iceriver"
-                        try:
-                            ip = self.d_str.split(":")[1]
-                        except IndexError:
-                            logger.warning(
-                                f"Listener[{self.port}] : Failed to unpack msg! Ignoring..."
-                            )
-                            continue
-                        mac = "ice-river"
-                    case 8888:  # Whatsminer
-                        type = "whatsminer"
-                        try:
-                            ip, mac = self.d_str.split("M")
-                        except ValueError:
-                            logger.warning(
-                                f"Listener[{self.port}] : Failed to unpack msg! Ignoring..."
-                            )
-                            continue
-                        ip = ip[3:]
-                        mac = mac[3:]
-                    case 14235:  # AntMiner
-                        type = "antminer"
-                        try:
-                            ip, mac = self.d_str.split(",")
-                        except ValueError:
-                            logger.warning(
-                                f"Listener[{self.port}] : Failed to unpack msg! Ignoring..."
-                            )
-                            continue
-                logger.debug(f"Listener[{self.port}] : found type {type} from port.")
-                if self.memory.dict:
+    def process_datagram(self):
+        while self.sock.hasPendingDatagrams():
+            datagram = self.sock.receiveDatagram(self.max_buf)
+            if not datagram.isValid():
+                return
+            self.msg = datagram.data().data().decode()
+            if not self.msg:
+                logger.warning(f"Listener[{self.port}] : msg empty. Ignoring...")
+                return
+            logger.info(f"Listener[{self.port}] : received msg.")
+            logger.debug(f"Listener[{self.port}] : decoded {self.msg}")
+            match self.port:
+                case 14235:
+                    type = "antminer"
+                case 11503:
+                    type = "iceriver"
+                case 8888:
+                    type = "whatsminer"
+            logger.debug(
+                f"Listener[{self.port}] : found type {type} from port."
+            )
+            if self.validate_msg(type):
+                ip, mac = self.parse_msg(type)
+                if self.record.dict:
                     prev_entry = False
-                    # sort by timestamp descending
-                    self.memory.dict = dict(
+                    self.record.dict = dict(
                         sorted(
-                            self.memory.dict.items(),
+                            self.record.dict.items(),
                             reverse=True,
                             key=lambda item: float(item[1][1]),
                         )
                     )
-                    for entry in self.memory.dict.keys():
-                        _data = self.memory.dict.get(entry)
-                        if ip == entry and self.d == _data[0]:
+                    for record in self.record.dict.keys():
+                        data = self.record.dict.get(record)
+                        if ip == record and self.msg == data[0]:
                             prev_entry = True
                             if (
-                                time.time() - _data[1] <= 10.0
-                            ):  # prevent duplicate packet data
+                                time.time() - data[1] <= 10.0
+                            ):
                                 logger.warning(
                                     f"Listener[{self.port}] : duplicate packet."
                                 )
                                 break
                             else:
-                                self.emit_received([ip, mac, type])
+                                self.emit_result([ip, mac, type])
                     if not prev_entry:
-                        self.emit_received([ip, mac, type])
+                        self.emit_result([ip, mac, type])
                 else:
-                    # first entry
-                    self.emit_received([ip, mac, type])
-            else:
-                logger.warning(f"Listener[{self.port}] : d_str empty! Ignoring.")
+                    self.emit_result([ip, mac, type])
 
-    def emit_received(self, received):
-        logger.info(f"Listener[{self.port}] : emit received.")
-        self.memory[received[0]] = [self.d, time.time()]
-        self.d_str = ",".join(received)
-        # signal that we received a buffer
-        self.signals.result.emit()
+    def emit_result(self, received):
+        logger.info(f"Listener[{self.port}] : emit result.")
+        self.record[received[0]] = [self.msg, time.time()]
+        self.msg = ",".join(received)
+        self.result.emit()
 
     def emit_error(self, err):
         logger.error(f"Listener[{self.port}] : emit error! got {err}")
-        self.signals.error.emit()
+        self.error.emit()
 
     def close(self):
         logger.info(f"Listener[{self.port}] : close socket.")
-        self.memory.dict = {}  # clear memory
+        self.record.dict = {}  # clear record
         self.sock.close()
-        self.sock = None
+        del self.sock

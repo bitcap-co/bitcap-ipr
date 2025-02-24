@@ -1,6 +1,6 @@
 import logging
 from PyQt6.QtCore import (
-    QThread,
+    QObject,
     pyqtSignal,
     pyqtSlot,
 )
@@ -9,49 +9,47 @@ from mod.listener import Listener
 logger = logging.getLogger(__name__)
 
 
-class ListenerManager(QThread):
-    completed = pyqtSignal()
-    failed = pyqtSignal()
+class ListenerManager(QObject):
+    listen_complete = pyqtSignal()
+    listen_error = pyqtSignal()
 
-    def __init__(self):
-        super().__init__()
-        self.data = None
+    def __init__(self, parent: QObject):
+        super().__init__(parent)
+        self.result = ""
         self.listeners = []
 
     def start_listeners(self):
         logger.info(" start listening on 0.0.0.0:14235.")
-        self.listeners.append(Listener(14235))
+        self.listeners.append(Listener(self, 14235))
         logger.info(" start listening on 0.0.0.0:11503.")
-        self.listeners.append(Listener(11503))
+        self.listeners.append(Listener(self, 11503))
         logger.info(" start listening on 0.0.0.0:8888.")
-        self.listeners.append(Listener(8888))
+        self.listeners.append(Listener(self, 8888))
         for listener in self.listeners:
-            listener.signals.result.connect(self.listen_complete)
-            listener.signals.error.connect(self.listen_error)
-            listener.start()
+            listener.result.connect(self.emit_listen_complete)
+            listener.error.connect(self.emit_listen_error)
 
     def stop_listeners(self):
         logger.info(" close listeners.")
         if len(self.listeners):
             for listener in self.listeners:
                 listener.close()
-                listener.exit()
         self.listeners = []
 
     @pyqtSlot()
-    def run(self):
+    def start(self):
         # default action (start listeners)
         self.start_listeners()
 
-    def listen_complete(self):
+    def emit_listen_complete(self):
         logger.info(" listen_complete signal result.")
-        self.data = ""
+        self.result = ""
         for listener in self.listeners:
-            self.data += listener.d_str
-            listener.d_str = ""
-        logger.info(" send completed.")
-        self.completed.emit()
+            self.result += listener.msg
+            listener.msg = ""
+        logger.debug(f" result: {self.result}.")
+        self.listen_complete.emit()
 
-    def listen_error(self):
-        logger.error(" listen_error signal result! Restart listeners.")
-        self.failed.emit()
+    def emit_listen_error(self):
+        logger.error(" listen_error signal result!")
+        self.listen_error.emit()

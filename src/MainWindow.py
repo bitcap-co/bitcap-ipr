@@ -272,11 +272,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.sys_tray = None
         self.create_or_destroy_systray()
 
-        logger.info(" init ListenerManager thread.")
-        self.listener_thread = ListenerManager()
-        self.listener_thread.completed.connect(self.show_confirm)
+        logger.info(" init ListenerManager().")
+        self.lm = ListenerManager(self)
+        self.lm.listen_complete.connect(self.show_confirm)
         # restart listeners on fail
-        self.listener_thread.failed.connect(self.restart_listen)
+        self.lm.listen_error.connect(self.restart_listen)
 
         logger.info(" init inactive timer for 900000ms.")
         self.inactive = QTimer()
@@ -334,7 +334,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.stackedWidget.setCurrentIndex(1)
 
     def update_status_msg(self):
-        if self.listener_thread.listeners and not self.iprStatus.currentMessage():
+        if self.lm.listeners and not self.iprStatus.currentMessage():
             self.iprStatus.showMessage(
                 "Status :: UDP listening on 0.0.0.0[:8888,11503,14235]..."
             )
@@ -373,7 +373,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionSysStopListen.setEnabled(True)
         self.actionIPRStart.setEnabled(False)
         self.actionIPRStop.setEnabled(True)
-        self.listener_thread.start()
+        self.lm.start()
         if self.sys_tray and not self.isVisible():
             self.sys_tray.showMessage(
                 "IPR Listener: Start",
@@ -410,7 +410,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.idTable.setRowCount(0)
         self.actionIPRStart.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
-        self.listener_thread.stop_listeners()
+        self.lm.stop_listeners()
         if self.sys_tray and not self.isVisible():
             self.sys_tray.showMessage(
                 "IPR Listener: Stop",
@@ -421,7 +421,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.iprStatus.clearMessage()
 
     def restart_listen(self):
-        if self.listener_thread.listeners:
+        if self.lm.listeners:
             logger.info(" restart listeners.")
             self.stop_listen()
             self.start_listen()
@@ -431,8 +431,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logger.info(" show IP confirmation.")
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
-        ip, mac, type = self.listener_thread.data.split(",")
-        logger.info(f"show_confirm : got {ip},{mac},{type} from listener thread.")
+        ip, mac, type = self.lm.result.split(",")
+        logger.info(f"show_confirm : got {ip},{mac},{type} from listener.")
         if type == "iceriver":
             self.api_client.create_iceriver_client(ip, self.linePbfarmerKey.text())
             mac = self.api_client.get_iceriver_mac_addr()
@@ -745,8 +745,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def quit(self):
         if self.sys_tray and not self.isVisible():
             self.toggle_visibility()
-        self.listener_thread.stop_listeners()
-        self.listener_thread.exit()
+        self.lm.stop_listeners()
         self.killall()
         logger.info(" exit app.")
         # flush log on close if set
