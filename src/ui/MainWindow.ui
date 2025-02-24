@@ -505,7 +505,135 @@
                    </widget>
                   </item>
                   <item>
-                   <spacer name="verticalSpacer_4">
+                   <widget class="QGroupBox" name="groupListeners">
+                    <property name="title">
+                     <string>Listener Configuraion</string>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_11">
+                     <item>
+                      <widget class="QWidget" name="hwrapper_9" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_20">
+                        <property name="leftMargin">
+                         <number>9</number>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                         <number>9</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
+                        <item alignment="Qt::AlignHCenter">
+                         <widget class="QCheckBox" name="checkListenAntminer">
+                          <property name="toolTip">
+                           <string>Enable listening for Antminers</string>
+                          </property>
+                          <property name="text">
+                           <string>Antminer</string>
+                          </property>
+                          <property name="checked">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item alignment="Qt::AlignHCenter">
+                         <widget class="QCheckBox" name="checkListenWhatsminer">
+                          <property name="toolTip">
+                           <string>Enable listening for Whatsminers</string>
+                          </property>
+                          <property name="text">
+                           <string>Whatsminer</string>
+                          </property>
+                          <property name="checked">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item alignment="Qt::AlignHCenter">
+                         <widget class="QCheckBox" name="checkListenIceRiver">
+                          <property name="toolTip">
+                           <string>Enable listening for Icerivers</string>
+                          </property>
+                          <property name="text">
+                           <string>IceRiver</string>
+                          </property>
+                          <property name="checked">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QGroupBox" name="groupAdditional">
+                       <property name="title">
+                        <string>Additional Miners</string>
+                       </property>
+                       <layout class="QVBoxLayout" name="verticalLayout_12">
+                        <property name="leftMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
+                        <item>
+                         <widget class="QWidget" name="hwrapper_8" native="true">
+                          <layout class="QHBoxLayout" name="horizontalLayout_21">
+                           <property name="leftMargin">
+                            <number>9</number>
+                           </property>
+                           <property name="topMargin">
+                            <number>9</number>
+                           </property>
+                           <property name="rightMargin">
+                            <number>9</number>
+                           </property>
+                           <property name="bottomMargin">
+                            <number>9</number>
+                           </property>
+                           <item>
+                            <widget class="QCheckBox" name="checkListenVolcminer">
+                             <property name="toolTip">
+                              <string>Enable listening for Volcminers</string>
+                             </property>
+                             <property name="text">
+                              <string>Volcminer</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <spacer name="horizontalSpacer_9">
+                             <property name="orientation">
+                              <enum>Qt::Horizontal</enum>
+                             </property>
+                             <property name="sizeHint" stdset="0">
+                              <size>
+                               <width>40</width>
+                               <height>20</height>
+                              </size>
+                             </property>
+                            </spacer>
+                           </item>
+                          </layout>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="verticalSpacer_3">
                     <property name="orientation">
                      <enum>Qt::Vertical</enum>
                     </property>
