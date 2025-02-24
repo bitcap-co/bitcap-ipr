@@ -194,6 +194,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
         )
 
+        self.actionToggleVolcminerPasswd = self.lineVolcminerPasswd.addAction(
+            QIcon(":theme/icons/rc/view.png"),
+            QLineEdit.ActionPosition.TrailingPosition,
+        )
+        self.actionToggleVolcminerPasswd.setToolTip("Show/Hide password")
+        self.actionToggleVolcminerPasswd.triggered.connect(
+            lambda: self.toggle_show_passwd(
+                self.lineVolcminerPasswd, self.actionToggleVolcminerPasswd
+            )
+        )
+
         self.actionTogglePbfarmerKey = self.linePbfarmerKey.addAction(
             QIcon(":theme/icons/rc/view.png"),
             QLineEdit.ActionPosition.TrailingPosition,
@@ -248,6 +259,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # api
             self.lineBitmainPasswd.setText(self.config["api"]["bitmainAltPasswd"])
             self.lineWhatsminerPasswd.setText(self.config["api"]["whatsminerAltPasswd"])
+            self.lineVolcminerPasswd.setText(self.config["api"]["volcminerAltPasswd"])
             self.linePbfarmerKey.setText(self.config["api"]["pbfarmerKey"])
 
             # logs
@@ -526,6 +538,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         match type:
             case "antminer":
                 client_auth = self.lineBitmainPasswd.text()
+            case "volcminer":
+                client_auth = self.lineVolcminerPasswd.text()
             case "iceriver":
                 client_auth = self.linePbfarmerKey.text()
         self.api_client.create_client_from_type(type, ip, client_auth)
@@ -585,6 +599,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             match miner_type:
                 case "antminer":
                     client_auth = self.lineBitmainPasswd.text()
+                case "volcminer":
+                    client_auth = self.lineVolcminerPasswd.text()
                 case "iceriver":
                     client_auth = self.linePbfarmerKey.text()
                 case "whatsminer":
@@ -725,6 +741,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             "api": {
                 "bitmainAltPasswd": self.lineBitmainPasswd.text(),
                 "whatsminerAltPasswd": self.lineWhatsminerPasswd.text(),
+                "volcminerAltPasswd": self.lineVolcminerPasswd.text(),
                 "pbfarmerKey": self.linePbfarmerKey.text(),
             },
             "logs": {

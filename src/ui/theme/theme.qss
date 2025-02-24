@@ -242,6 +242,11 @@ QTableView::item:!selected:hover {
   background-color: #5c9dff;
 }
 
+QScrollArea QWidget QWidget#scrollAreaWidgetContents {
+  background-color: qlineargradient(spread:pad, x1:0.500, y1:0, x2:0.500, y2:1, stop:0.5 rgba(6, 16, 31, 255), stop:1 rgba(2, 6, 12, 255));
+  color: #FFFFFF;
+}
+
 QScrollBar:horizontal {
   background-color: #383e46;
   color: #828282;
