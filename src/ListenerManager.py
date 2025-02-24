@@ -18,13 +18,21 @@ class ListenerManager(QObject):
         self.result = ""
         self.listeners = []
 
-    def start_listeners(self):
-        logger.info(" start listening on 0.0.0.0:14235.")
-        self.listeners.append(Listener(self, 14235))
-        logger.info(" start listening on 0.0.0.0:11503.")
-        self.listeners.append(Listener(self, 11503))
-        logger.info(" start listening on 0.0.0.0:8888.")
-        self.listeners.append(Listener(self, 8888))
+    def start_listeners(self, conf: dict):
+        for type, enabled in conf.items():
+            match type:
+                case "antminer":
+                    if enabled:
+                        logger.info(" start listening on 0.0.0.0:14235.")
+                        self.listeners.append(Listener(self, 14235))
+                case "iceriver":
+                    if enabled:
+                        logger.info(" start listening on 0.0.0.0:11503.")
+                        self.listeners.append(Listener(self, 11503))
+                case "whatsminer":
+                    if enabled:
+                        logger.info(" start listening on 0.0.0.0:8888.")
+                        self.listeners.append(Listener(self, 8888))
         for listener in self.listeners:
             listener.result.connect(self.emit_listen_complete)
             listener.error.connect(self.emit_listen_error)
@@ -37,9 +45,9 @@ class ListenerManager(QObject):
         self.listeners = []
 
     @pyqtSlot()
-    def start(self):
+    def start(self, conf: dict):
         # default action (start listeners)
-        self.start_listeners()
+        self.start_listeners(conf)
 
     def emit_listen_complete(self):
         logger.info(" listen_complete signal result.")

@@ -371,6 +371,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def start_listen(self):
         logger.info(" start listeners.")
+        listener_config = {
+            "antminer": self.checkListenAntminer.isChecked(),
+            "whatsminer": self.checkListenWhatsminer.isChecked(),
+            "iceriver": self.checkListenIceRiver.isChecked(),
+        }
+        if not any(enabled for _, enabled in listener_config.items()):
+            logger.error("start_listen: no listeners configured. at least one needs to be checked.")
+            self.iprStatus.showMessage("Status :: Failed to start listeners. No listeners configured", 5000)
+            return
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
         if self.sys_tray:
@@ -378,6 +387,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionSysStopListen.setEnabled(True)
         self.actionIPRStart.setEnabled(False)
         self.actionIPRStop.setEnabled(True)
+        self.lm.start(listener_config)
         self.lm.start()
         if self.sys_tray and not self.isVisible():
             self.sys_tray.showMessage(
