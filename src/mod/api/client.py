@@ -10,6 +10,7 @@ from .errors import (
 from .bitmain import BitmainHTTPClient, BitmainParser
 from .iceriver import IceriverHTTPClient, IceriverParser
 from .whatsminer import WhatsminerRPCClient, WhatsminerParser
+from .volcminer import VolcminerHTTPClient, VolcminerParser
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,17 @@ class APIClient:
         except FailedConnectionError as err:
             logger.error(err)
 
+    def create_volcminer_client(self, ip_addr: str, passwd: str):
+        if not passwd:
+            passwd = "ltc@dog"
+        try:
+            self.client = VolcminerHTTPClient(ip_addr, passwd)
+        except (
+            FailedConnectionError,
+            AuthenticationError
+        ) as err:
+            logger.error(err)
+
     def create_client_from_type(self, miner_type: str, ip_addr: str, auth_str: str):
         match miner_type:
             case "antminer":
@@ -64,6 +76,8 @@ class APIClient:
                 self.create_iceriver_client(ip_addr, auth_str)
             case "whatsminer":
                 self.create_whatsminer_client(ip_addr, passwd=auth_str)
+            case "volcminer":
+                self.create_volcminer_client(ip_addr, auth_str)
 
     def locate_miner(self, miner_type: str):
         locate_duration = QTimer(self.parent)
@@ -71,7 +85,7 @@ class APIClient:
         locate_duration.timeout.connect(self.stop_locate)
         logger.info(" locate miner for 10000ms.")
         match miner_type:
-            case "antminer":
+            case "antminer" | "volcminer":
                 try:
                     self.client.blink(True)
                     locate_duration.start(10000)
@@ -144,6 +158,18 @@ class APIClient:
         parser.parse_platform(version_info)
         return parser.get_target()
 
+    def get_volcminer_target_data(self):
+        parser = VolcminerParser(self.target_info)
+        result = parser.get_target()
+        if not self.client:
+            for k in result.keys():
+                result[k] = "Failed"
+            return result
+        system_info = self.client.get_system_info()
+        parser.parse_firmware(system_info)
+        parser.parse_subtype(system_info)
+        return parser.get_target()
+
     def get_target_data_from_type(self, miner_type: str):
         match miner_type:
             case "antminer":
@@ -152,6 +178,8 @@ class APIClient:
                 return self.get_iceriver_target_data()
             case "whatsminer":
                 return self.get_whatsminer_target_data()
+            case "volcminer":
+                return self.get_volcminer_target_data()
 
     def close_client(self):
         if self.client:
