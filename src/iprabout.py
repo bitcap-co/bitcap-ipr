@@ -1,19 +1,19 @@
-from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtWidgets import (
     QDialog,
     QWidget,
     QPushButton,
     QLabel,
 )
-from ui.GUI import Ui_IPRAbout
-from ui.widgets.TitleBar import TitleBar
-from ui.widgets.SvgLabel import SvgLabel
-from util import CURR_PLATFORM
+from ui.About import Ui_IPRAbout
+from ui.widgets.titlebar import TitleBar
+from ui.widgets.svglabel import SvgLabel
+from utils import CURR_PLATFORM
 
 
 class IPRAbout(QDialog, Ui_IPRAbout):
     def __init__(self, parent: QWidget, title: str, text: str):
-        super().__init__(flags=Qt.WindowType.FramelessWindowHint)
+        super().__init__(f=Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
         self.__initObj(parent, title, text)
         self.__initUI()

@@ -1,5 +1,5 @@
 import logging
-from PyQt6.QtCore import (
+from PySide6.QtCore import (
     QObject,
     QTimer,
 )

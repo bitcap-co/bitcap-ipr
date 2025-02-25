@@ -4,8 +4,6 @@ import json
 from pathlib import Path
 from platformdirs import user_data_dir, user_log_dir
 
-BASEDIR = os.path.dirname(__file__)
-CURR_PLATFORM = sys.platform
 APP_INFO = {
     "name": "BitCap IPReporter",
     "appname": "BitCapIPR",
@@ -16,7 +14,13 @@ APP_INFO = {
     "company": "Bit Capital Group",
     "desc": "cross-platform IP reporter that listens for AntMiner, IceRiver, and Whatsminer ASICs.",
 }
+BASEDIR = os.path.dirname(__file__)
+CURR_PLATFORM = sys.platform
 MAX_ROTATE_LOG_FILES = 4
+
+
+def get_stylesheet():
+    return Path(BASEDIR, "ui", "theme.qss")
 
 
 def get_default_config():
@@ -33,8 +37,8 @@ def get_config_path():
 
 def get_config(cp: Path):
     with open(cp, "r") as f:
-        config = json.load(f)
-    return config
+        c = json.load(f)
+    return c
 
 
 def get_log_path():

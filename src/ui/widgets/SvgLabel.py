@@ -1,7 +1,7 @@
-from PyQt6.QtCore import QResource
-from PyQt6.QtGui import QPainter
-from PyQt6.QtSvg import QSvgRenderer
-from PyQt6.QtWidgets import QLabel
+from PySide6.QtCore import QResource
+from PySide6.QtGui import QPainter
+from PySide6.QtSvg import QSvgRenderer
+from PySide6.QtWidgets import QLabel
 
 
 class SvgLabel(QLabel):

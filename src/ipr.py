@@ -5,7 +5,7 @@ import logging
 import webbrowser
 from datetime import datetime
 from pathlib import Path
-from PyQt6.QtCore import (
+from PySide6.QtCore import (
     Qt,
     QTimer,
     QFile,
@@ -13,7 +13,7 @@ from PyQt6.QtCore import (
     QTextStream,
     QUrl,
 )
-from PyQt6.QtWidgets import (
+from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
     QSystemTrayIcon,
@@ -24,21 +24,21 @@ from PyQt6.QtWidgets import (
     QMenuBar,
     QMenu,
 )
-from PyQt6.QtGui import (
+from PySide6.QtGui import (
     QPixmap,
     QIcon,
     QCursor,
     QDesktopServices,
 )
 import ui.resources
-from ui.GUI import Ui_MainWindow
-from ui.widgets.TitleBar import TitleBar
-from ui.windows.IPRConfirmation import IPRConfirmation
-from ui.windows.IPRAbout import IPRAbout
+from ui.MainWindow import Ui_MainWindow
+from ui.widgets.titlebar import TitleBar
+from iprconfirmation import IPRConfirmation
+from iprabout import IPRAbout
 
-from ListenerManager import ListenerManager
+from mod.lm import ListenerManager
 from mod.api.client import APIClient
-from util import (
+from utils import (
     CURR_PLATFORM,
     APP_INFO,
     get_log_path,
@@ -50,9 +50,9 @@ from util import (
 logger = logging.getLogger(__name__)
 
 
-class MainWindow(QMainWindow, Ui_MainWindow):
+class IPR(QMainWindow, Ui_MainWindow):
     def __init__(self):
-        logger.info(" start MainWindow() init.")
+        logger.info(" start IPR() init.")
         super().__init__(flags=Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
 

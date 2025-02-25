@@ -2,8 +2,8 @@ import time
 import re
 import logging
 
-from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
-from PyQt6.QtNetwork import QUdpSocket, QHostAddress
+from PySide6.QtCore import QObject, Signal, Slot
+from PySide6.QtNetwork import QUdpSocket, QHostAddress
 
 
 logger = logging.getLogger(__name__)
@@ -32,8 +32,8 @@ class Record:
 
 
 class Listener(QObject):
-    result = pyqtSignal()
-    error = pyqtSignal()
+    result = Signal()
+    error = Signal()
 
     def __init__(self, parent: QObject, port: int):
         super().__init__(parent)
@@ -76,7 +76,7 @@ class Listener(QObject):
                 mac = "ice-river"
         return ip, mac
 
-    @pyqtSlot()
+    @Slot()
     def process_datagram(self):
         while self.sock.hasPendingDatagrams():
             datagram = self.sock.receiveDatagram(self.max_buf)

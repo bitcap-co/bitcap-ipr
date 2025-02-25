@@ -6,20 +6,17 @@ import logging.handlers
 import traceback
 from pathlib import Path
 
-from PyQt6.QtCore import (
-    QSystemSemaphore,
-    QSharedMemory,
-)
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import QSystemSemaphore, QSharedMemory
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import (
     QApplication,
     QMessageBox,
 )
-from PyQt6.QtGui import QIcon
-from MainWindow import MainWindow
-from util import (
-    BASEDIR,
+from ipr import IPR
+from utils import (
     CURR_PLATFORM,
     MAX_ROTATE_LOG_FILES,
+    get_stylesheet,
     get_default_config,
     get_config_path,
     get_log_path,
@@ -112,7 +109,7 @@ def launch_app():
     logger.info("launch_app : start app.")
 
     app = QApplication(sys.argv)
-    with open(Path(BASEDIR, "ui", "theme", "theme.qss")) as theme:
+    with open(get_stylesheet()) as theme:
         app.setStyleSheet(theme.read())
 
     # Here we are making sure that only one instance is running at a time
@@ -149,7 +146,7 @@ def launch_app():
     app.setWindowIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"))
     app.setStyle("Fusion")
 
-    w = MainWindow()
+    w = IPR()
     w.show()
     sys.excepthook = exception_hook
     sys.exit(app.exec())

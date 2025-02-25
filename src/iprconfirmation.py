@@ -1,14 +1,14 @@
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QWidget
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QWidget
 
-from ui.GUI import Ui_IPRConfirmation
-from ui.widgets.TitleBar import TitleBar
-from util import CURR_PLATFORM
+from ui.Confirmation import Ui_IPRConfirmation
+from ui.widgets.titlebar import TitleBar
+from utils import CURR_PLATFORM
 
 
 class IPRConfirmation(QWidget, Ui_IPRConfirmation):
     def __init__(self):
-        super().__init__(flags=Qt.WindowType.FramelessWindowHint)
+        super().__init__(f=Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
 
         # title bar

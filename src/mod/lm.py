@@ -1,8 +1,8 @@
 import logging
-from PyQt6.QtCore import (
+from PySide6.QtCore import (
     QObject,
-    pyqtSignal,
-    pyqtSlot,
+    Signal,
+    Slot,
 )
 from mod.listener import Listener
 
@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class ListenerManager(QObject):
-    listen_complete = pyqtSignal()
-    listen_error = pyqtSignal()
+    listen_complete = Signal()
+    listen_error = Signal()
 
     def __init__(self, parent: QObject):
         super().__init__(parent)
@@ -48,7 +48,7 @@ class ListenerManager(QObject):
                 listener.close()
         self.listeners = []
 
-    @pyqtSlot()
+    @Slot()
     def start(self, conf: dict):
         # default action (start listeners)
         self.start_listeners(conf)
