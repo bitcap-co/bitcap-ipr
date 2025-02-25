@@ -3,11 +3,14 @@ import sys
 import json
 from pathlib import Path
 from platformdirs import user_data_dir, user_log_dir
+from PySide6.QtCore import __version__ as QT_VERSION
 
 APP_INFO = {
     "name": "BitCap IPReporter",
     "appname": "BitCapIPR",
-    "version": "1.2.2",
+    "appversion": "1.2.2",
+    "qt": QT_VERSION,
+    "python": ".".join(map(str, sys.version_info[:3])),
     "appauthor": "BitCap",
     "author": "MatthewWertman",
     "source": "https://github.com/bitcap-co/bitcap-ipr",
