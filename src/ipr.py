@@ -287,10 +287,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         if self.actionEnableIDTable.isChecked():
             self.toggle_table_settings(True)
 
-        logger.info(" init systray.")
-        self.sys_tray = None
-        self.create_or_destroy_systray()
-
         logger.info(" init ListenerManager().")
         self.lm = ListenerManager(self)
         self.lm.listen_complete.connect(self.show_confirm)
@@ -304,6 +300,10 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         logger.info(" init APIClient().")
         self.api_client = APIClient(self)
+
+        logger.info(" init systray.")
+        self.sys_tray = None
+        self.create_or_destroy_systray()
 
         self.actionDisableInactiveTimer.changed.connect(self.restart_listen)
         self.actionEnableIDTable.changed.connect(
@@ -337,6 +337,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.actionSysStopListen.setEnabled(False)
             self.system_tray_menu.addSeparator()
             self.system_tray_menu.addAction("Quit", self.quit)
+            if self.lm.listeners:
+                self.actionSysStartListen.setEnabled(False)
+                self.actionSysStopListen.setEnabled(True)
             self.sys_tray.setContextMenu(self.system_tray_menu)
             if self.comboOnWindowClose.currentIndex() == 0:
                 self.sys_tray.show()
