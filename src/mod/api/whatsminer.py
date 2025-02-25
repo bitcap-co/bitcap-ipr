@@ -188,7 +188,7 @@ class WhatsminerParser:
 
 def md5_encrypt(word: str, salt: str):
     salt = "$1$" + salt + "$"
-    salt_expr = re.compile("\s*\$(\d+)\$([\w\./]*)\$")
+    salt_expr = re.compile(r'\s*\$(\d+)\$([\w\./]*)\$')
     is_salt = salt_expr.match(salt)
     if not is_salt:
         raise ValueError("Invalid salt format")
