@@ -14,7 +14,6 @@ from PySide6.QtWidgets import (
 )
 from ipr import IPR
 from utils import (
-    CURR_PLATFORM,
     MAX_ROTATE_LOG_FILES,
     get_stylesheet,
     get_default_config,
@@ -118,7 +117,7 @@ def launch_app():
     semaphore = QSystemSemaphore(window_key, 1)
     semaphore.acquire()
 
-    if CURR_PLATFORM != "win32":
+    if os.name == "posix":
         # manually destroy shared memory if on unix
         unix_fix_shared_mem = QSharedMemory(shared_mem_key)
         if unix_fix_shared_mem.attach():
