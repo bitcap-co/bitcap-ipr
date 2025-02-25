@@ -12,6 +12,7 @@ from PySide6.QtCore import (
     QIODevice,
     QTextStream,
     QUrl,
+    QMetaMethod,
 )
 from PySide6.QtWidgets import (
     QApplication,
@@ -90,7 +91,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionReportIssue.setToolTip("Report a new issue on GitHub")
         self.actionSourceCode = self.menuHelp.addAction("Source Code")
         self.actionSourceCode.setToolTip("Opens the GitHub repo in browser")
-        self.actionVersion = self.menuHelp.addAction(f"Version {APP_INFO['version']}")
+        self.actionVersion = self.menuHelp.addAction(
+            f"Version {APP_INFO['appversion']}"
+        )
         self.actionVersion.setEnabled(False)
 
         # options
@@ -216,7 +219,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
         )
 
-        self.children = []
+        self.confirms = []
 
         # menu_bar signals
         self.actionAbout.triggered.connect(self.about)
@@ -250,11 +253,19 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.config["general"]["onWindowClose"]
             )
             # listeners
-            self.checkListenAntminer.setChecked(self.config["general"]["listenFor"]["antminer"])
-            self.checkListenWhatsminer.setChecked(self.config["general"]["listenFor"]["whatsminer"])
-            self.checkListenIceRiver.setChecked(self.config["general"]["listenFor"]["iceriver"])
+            self.checkListenAntminer.setChecked(
+                self.config["general"]["listenFor"]["antminer"]
+            )
+            self.checkListenWhatsminer.setChecked(
+                self.config["general"]["listenFor"]["whatsminer"]
+            )
+            self.checkListenIceRiver.setChecked(
+                self.config["general"]["listenFor"]["iceriver"]
+            )
             # additional listeners
-            self.checkListenVolcminer.setChecked(self.config["general"]["listenFor"]["additional"]["volcminer"])
+            self.checkListenVolcminer.setChecked(
+                self.config["general"]["listenFor"]["additional"]["volcminer"]
+            )
 
             # api
             self.lineBitmainPasswd.setText(self.config["api"]["bitmainAltPasswd"])
@@ -367,7 +378,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.aboutDialog = IPRAbout(
             self,
             "About",
-            f"{APP_INFO['name']} is a {APP_INFO['desc']}\nVersion {APP_INFO['version']}\n{APP_INFO['author']}\nPowered by {APP_INFO['company']}\n",
+            f"{APP_INFO['name']} is a {APP_INFO['desc']}\nVersion {APP_INFO['appversion']}\nQt Version {APP_INFO['qt']}\nPython Version {APP_INFO['python']}\n{APP_INFO['author']}\nPowered by {APP_INFO['company']}\n",
         )
         self.aboutDialog._acceptButton.clicked.connect(self.aboutDialog.window().close)
         self.aboutDialog.show()
@@ -395,8 +406,12 @@ class IPR(QMainWindow, Ui_MainWindow):
             "volcminer": self.checkListenVolcminer.isChecked(),
         }
         if not any(enabled for _, enabled in listener_config.items()):
-            logger.error("start_listen: no listeners configured. at least one needs to be checked.")
-            self.iprStatus.showMessage("Status :: Failed to start listeners. No listeners configured", 5000)
+            logger.error(
+                "start_listen: no listeners configured. at least one needs to be checked."
+            )
+            self.iprStatus.showMessage(
+                "Status :: Failed to start listeners. No listeners configured", 5000
+            )
             return
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
@@ -406,7 +421,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionIPRStart.setEnabled(False)
         self.actionIPRStop.setEnabled(True)
         self.lm.start(listener_config)
-        self.active_ports = ",".join([str(listener.port) for listener in self.lm.listeners])
+        self.active_ports = ",".join(
+            [str(listener.port) for listener in self.lm.listeners]
+        )
         if self.sys_tray and not self.isVisible():
             self.sys_tray.showMessage(
                 "IPR Listener: Start",
@@ -500,14 +517,17 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.info("show_confirm : show IPRConfirmation.")
             confirm.lineIPField.setText(ip)
             confirm.lineMACField.setText(mac)
-            self.children.append(confirm)
+            self.confirms.append(confirm)
             if self.sys_tray and not self.isVisible():
-                if self.sys_tray.receivers(self.sys_tray.messageClicked) > 0:
-                    self.children[-2].show()
+                if self.sys_tray.isSignalConnected(
+                    QMetaMethod().fromSignal(self.sys_tray.messageClicked)
+                ):
+                    self.confirms[-2].show()
                     self.sys_tray.messageClicked.disconnect()
                 self.sys_tray.messageClicked.connect(
                     lambda: self.show_confirm_from_sys_tray(confirm)
                 )
+                # workaround for clickable notification on linux
                 if CURR_PLATFORM == "linux":
                     self.sys_tray.showMessage(
                         "Received confirmation",
@@ -738,8 +758,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "iceriver": self.checkListenIceRiver.isChecked(),
                     "additional": {
                         "volcminer": self.checkListenVolcminer.isChecked(),
-                    }
-                }
+                    },
+                },
             },
             "api": {
                 "bitmainAltPasswd": self.lineBitmainPasswd.text(),
@@ -779,7 +799,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def killall(self):
         logger.info(" kill all confirmations.")
-        for c in self.children:
+        for c in self.confirms:
             c.close()
         self.iprStatus.showMessage("Status :: Killed all confirmations.", 3000)
 
