@@ -31,13 +31,13 @@ from PySide6.QtGui import (
     QCursor,
     QDesktopServices,
 )
-import ui.resources
+import ui.resources  # noqa F401
 from ui.MainWindow import Ui_MainWindow
 from ui.widgets.titlebar import TitleBar
 from iprconfirmation import IPRConfirmation
 from iprabout import IPRAbout
 
-from mod.lm import ListenerManager
+from mod.listenermanager import ListenerManager
 from mod.api.client import APIClient
 from utils import (
     CURR_PLATFORM,

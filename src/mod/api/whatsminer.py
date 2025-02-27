@@ -6,7 +6,7 @@ import base64
 import socket
 import json
 
-from base64 import b64encode, b64decode
+from base64 import b64encode, b64decode  # noqa: F401
 from Crypto.Cipher import AES
 from passlib.hash import md5_crypt
 
@@ -188,7 +188,7 @@ class WhatsminerParser:
 
 def md5_encrypt(word: str, salt: str):
     salt = "$1$" + salt + "$"
-    salt_expr = re.compile(r'\s*\$(\d+)\$([\w\./]*)\$')
+    salt_expr = re.compile(r"\s*\$(\d+)\$([\w\./]*)\$")
     is_salt = salt_expr.match(salt)
     if not is_salt:
         raise ValueError("Invalid salt format")

@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QToolButton,
 )
-import ui.resources
+import ui.resources  # noqa: F401
 
 
 class TitleBar(QWidget):
