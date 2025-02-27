@@ -653,15 +653,18 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def open_selected_ips(self):
         rows = self.idTable.rowCount()
-        if rows:
-            for r in range(rows):
-                if self.idTable.item(r, 1).isSelected():
-                    self.open_dashboard(self.idTable.item(r, 1).text())
+        if not rows:
+            return
+        for r in range(rows):
+            if self.idTable.item(r, 1).isSelected():
+                self.open_dashboard(self.idTable.item(r, 1).text())
 
     def copy_selected(self):
         logger.info(" copy selected elements.")
         rows = self.idTable.rowCount()
         cols = self.idTable.columnCount()
+        if not rows:
+            return
         out = ""
         if len(self.idTable.selectedItems()) == 1:
             out += self.idTable.selectedItems()[0].text()
@@ -683,6 +686,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info("export table.")
         rows = self.idTable.rowCount()
         cols = self.idTable.columnCount()
+        if not rows:
+            return
         out = "IP, MAC, SERIAL, TYPE, SUBTYPE, ALGORITHM, FIRMWARE, PLATFORM \n"
         for i in range(rows):
             for j in range(1, cols):
