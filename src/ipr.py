@@ -197,16 +197,16 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
         )
 
-        self.actionToggleVolcminerPasswd = self.lineVolcminerPasswd.addAction(
-            QIcon(":theme/icons/rc/view.png"),
-            QLineEdit.ActionPosition.TrailingPosition,
-        )
-        self.actionToggleVolcminerPasswd.setToolTip("Show/Hide password")
-        self.actionToggleVolcminerPasswd.triggered.connect(
-            lambda: self.toggle_show_passwd(
-                self.lineVolcminerPasswd, self.actionToggleVolcminerPasswd
-            )
-        )
+        # self.actionToggleVolcminerPasswd = self.lineVolcminerPasswd.addAction(
+        #     QIcon(":theme/icons/rc/view.png"),
+        #     QLineEdit.ActionPosition.TrailingPosition,
+        # )
+        # self.actionToggleVolcminerPasswd.setToolTip("Show/Hide password")
+        # self.actionToggleVolcminerPasswd.triggered.connect(
+        #     lambda: self.toggle_show_passwd(
+        #         self.lineVolcminerPasswd, self.actionToggleVolcminerPasswd
+        #     )
+        # )
 
         self.actionTogglePbfarmerKey = self.linePbfarmerKey.addAction(
             QIcon(":theme/icons/rc/view.png"),
@@ -263,14 +263,14 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.config["general"]["listenFor"]["iceriver"]
             )
             # additional listeners
-            self.checkListenVolcminer.setChecked(
-                self.config["general"]["listenFor"]["additional"]["volcminer"]
-            )
+            # self.checkListenVolcminer.setChecked(
+            #     self.config["general"]["listenFor"]["additional"]["volcminer"]
+            # )
 
             # api
             self.lineBitmainPasswd.setText(self.config["api"]["bitmainAltPasswd"])
             self.lineWhatsminerPasswd.setText(self.config["api"]["whatsminerAltPasswd"])
-            self.lineVolcminerPasswd.setText(self.config["api"]["volcminerAltPasswd"])
+            # self.lineVolcminerPasswd.setText(self.config["api"]["volcminerAltPasswd"])
             self.linePbfarmerKey.setText(self.config["api"]["pbfarmerKey"])
 
             # logs
@@ -403,7 +403,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             "antminer": self.checkListenAntminer.isChecked(),
             "whatsminer": self.checkListenWhatsminer.isChecked(),
             "iceriver": self.checkListenIceRiver.isChecked(),
-            "volcminer": self.checkListenVolcminer.isChecked(),
         }
         if not any(enabled for _, enabled in listener_config.items()):
             logger.error(
@@ -561,8 +560,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         match type:
             case "antminer":
                 client_auth = self.lineBitmainPasswd.text()
-            case "volcminer":
-                client_auth = self.lineVolcminerPasswd.text()
             case "iceriver":
                 client_auth = self.linePbfarmerKey.text()
         self.api_client.create_client_from_type(type, ip, client_auth)
@@ -622,8 +619,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             match miner_type:
                 case "antminer":
                     client_auth = self.lineBitmainPasswd.text()
-                case "volcminer":
-                    client_auth = self.lineVolcminerPasswd.text()
                 case "iceriver":
                     client_auth = self.linePbfarmerKey.text()
                 case "whatsminer":
@@ -761,15 +756,11 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "antminer": self.checkListenAntminer.isChecked(),
                     "whatsminer": self.checkListenWhatsminer.isChecked(),
                     "iceriver": self.checkListenIceRiver.isChecked(),
-                    "additional": {
-                        "volcminer": self.checkListenVolcminer.isChecked(),
-                    },
                 },
             },
             "api": {
                 "bitmainAltPasswd": self.lineBitmainPasswd.text(),
                 "whatsminerAltPasswd": self.lineWhatsminerPasswd.text(),
-                "volcminerAltPasswd": self.lineVolcminerPasswd.text(),
                 "pbfarmerKey": self.linePbfarmerKey.text(),
             },
             "logs": {

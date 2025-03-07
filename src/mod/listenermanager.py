@@ -33,10 +33,6 @@ class ListenerManager(QObject):
                     if enabled:
                         logger.info(" start listening on 0.0.0.0:8888.")
                         self.listeners.append(Listener(self, 8888))
-                case "volcminer":
-                    if enabled:
-                        logger.info(" start listening on 0.0.0.0:14236.")
-                        self.listeners.append(Listener(self, 14236))
         for listener in self.listeners:
             listener.result.connect(self.emit_listen_complete)
             listener.error.connect(self.emit_listen_error)

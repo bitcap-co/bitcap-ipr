@@ -5,16 +5,12 @@
         "listenFor": {
             "antminer": true,
             "whatsminer": true,
-            "iceriver": true,
-            "additional": {
-                "volcminer": false
-            }
+            "iceriver": true
         }
     },
     "api": {
         "bitmainAltPasswd": "",
         "whatsminerAltPasswd": "",
-        "volcminerAltPasswd": "",
         "pbfarmerKey": ""
     },
     "logs": {

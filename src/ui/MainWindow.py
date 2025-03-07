@@ -120,8 +120,8 @@ class Ui_MainWindow(object):
         self.idTable.setEnabled(True)
         sizePolicy1.setHeightForWidth(self.idTable.sizePolicy().hasHeightForWidth())
         self.idTable.setSizePolicy(sizePolicy1)
-        self.idTable.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.idTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.idTable.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.idTable.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.idTable.setProperty(u"showDropIndicator", False)
         self.idTable.setAlternatingRowColors(False)
         self.idTable.setShowGrid(False)
@@ -145,7 +145,7 @@ class Ui_MainWindow(object):
         sizePolicy2.setHeightForWidth(self.labelLogo.sizePolicy().hasHeightForWidth())
         self.labelLogo.setSizePolicy(sizePolicy2)
         self.labelLogo.setMinimumSize(QSize(256, 256))
-        self.labelLogo.setAlignment(Qt.AlignCenter)
+        self.labelLogo.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.horizontalLayout_6.addWidget(self.labelLogo)
 
@@ -163,7 +163,7 @@ class Ui_MainWindow(object):
         font.setPointSize(14)
         font.setBold(True)
         self.label.setFont(font)
-        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_3.addWidget(self.label)
 
@@ -259,31 +259,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_11.addWidget(self.hwrapper_9)
 
-        self.groupAdditional = QGroupBox(self.groupListeners)
-        self.groupAdditional.setObjectName(u"groupAdditional")
-        self.verticalLayout_12 = QVBoxLayout(self.groupAdditional)
-        self.verticalLayout_12.setObjectName(u"verticalLayout_12")
-        self.verticalLayout_12.setContentsMargins(0, 0, 0, 0)
-        self.hwrapper_8 = QWidget(self.groupAdditional)
-        self.hwrapper_8.setObjectName(u"hwrapper_8")
-        self.horizontalLayout_21 = QHBoxLayout(self.hwrapper_8)
-        self.horizontalLayout_21.setObjectName(u"horizontalLayout_21")
-        self.horizontalLayout_21.setContentsMargins(9, 9, 9, 9)
-        self.checkListenVolcminer = QCheckBox(self.hwrapper_8)
-        self.checkListenVolcminer.setObjectName(u"checkListenVolcminer")
-
-        self.horizontalLayout_21.addWidget(self.checkListenVolcminer)
-
-        self.horizontalSpacer_9 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_21.addItem(self.horizontalSpacer_9)
-
-
-        self.verticalLayout_12.addWidget(self.hwrapper_8)
-
-
-        self.verticalLayout_11.addWidget(self.groupAdditional)
-
 
         self.verticalLayout_4.addWidget(self.groupListeners)
 
@@ -299,12 +274,12 @@ class Ui_MainWindow(object):
         self.scrollArea = QScrollArea(self.tabAPI)
         self.scrollArea.setObjectName(u"scrollArea")
         self.scrollArea.setAutoFillBackground(True)
-        self.scrollArea.setFrameShape(QFrame.NoFrame)
-        self.scrollArea.setFrameShadow(QFrame.Plain)
+        self.scrollArea.setFrameShape(QFrame.Shape.NoFrame)
+        self.scrollArea.setFrameShadow(QFrame.Shadow.Plain)
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, -27, 472, 276))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 491, 262))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
         self.verticalLayout_13.setContentsMargins(9, 9, 9, 9)
@@ -323,8 +298,8 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.lineBitmainPasswd.sizePolicy().hasHeightForWidth())
         self.lineBitmainPasswd.setSizePolicy(sizePolicy)
         self.lineBitmainPasswd.setFont(font1)
-        self.lineBitmainPasswd.setEchoMode(QLineEdit.Password)
-        self.lineBitmainPasswd.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
+        self.lineBitmainPasswd.setEchoMode(QLineEdit.EchoMode.Password)
+        self.lineBitmainPasswd.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
 
         self.horizontalLayout_12.addWidget(self.lineBitmainPasswd)
 
@@ -347,35 +322,13 @@ class Ui_MainWindow(object):
         self.lineWhatsminerPasswd.setSizePolicy(sizePolicy)
         self.lineWhatsminerPasswd.setMinimumSize(QSize(180, 25))
         self.lineWhatsminerPasswd.setFont(font1)
-        self.lineWhatsminerPasswd.setEchoMode(QLineEdit.Password)
-        self.lineWhatsminerPasswd.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
+        self.lineWhatsminerPasswd.setEchoMode(QLineEdit.EchoMode.Password)
+        self.lineWhatsminerPasswd.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
 
         self.horizontalLayout_8.addWidget(self.lineWhatsminerPasswd)
 
 
         self.verticalLayout_13.addWidget(self.groupWhatsminer)
-
-        self.groupVolcminer = QGroupBox(self.scrollAreaWidgetContents)
-        self.groupVolcminer.setObjectName(u"groupVolcminer")
-        self.horizontalLayout_22 = QHBoxLayout(self.groupVolcminer)
-        self.horizontalLayout_22.setObjectName(u"horizontalLayout_22")
-        self.label_2 = QLabel(self.groupVolcminer)
-        self.label_2.setObjectName(u"label_2")
-        self.label_2.setFont(font1)
-
-        self.horizontalLayout_22.addWidget(self.label_2)
-
-        self.lineVolcminerPasswd = QLineEdit(self.groupVolcminer)
-        self.lineVolcminerPasswd.setObjectName(u"lineVolcminerPasswd")
-        sizePolicy.setHeightForWidth(self.lineVolcminerPasswd.sizePolicy().hasHeightForWidth())
-        self.lineVolcminerPasswd.setSizePolicy(sizePolicy)
-        self.lineVolcminerPasswd.setFont(font1)
-        self.lineVolcminerPasswd.setEchoMode(QLineEdit.Password)
-
-        self.horizontalLayout_22.addWidget(self.lineVolcminerPasswd)
-
-
-        self.verticalLayout_13.addWidget(self.groupVolcminer)
 
         self.groupPbfarmer = QGroupBox(self.scrollAreaWidgetContents)
         self.groupPbfarmer.setObjectName(u"groupPbfarmer")
@@ -393,8 +346,8 @@ class Ui_MainWindow(object):
         self.linePbfarmerKey.setSizePolicy(sizePolicy)
         self.linePbfarmerKey.setMinimumSize(QSize(180, 25))
         self.linePbfarmerKey.setFont(font1)
-        self.linePbfarmerKey.setEchoMode(QLineEdit.Password)
-        self.linePbfarmerKey.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
+        self.linePbfarmerKey.setEchoMode(QLineEdit.EchoMode.Password)
+        self.linePbfarmerKey.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
 
         self.horizontalLayout_13.addWidget(self.linePbfarmerKey)
 
@@ -472,8 +425,8 @@ class Ui_MainWindow(object):
         self.spinMaxLogSize.setObjectName(u"spinMaxLogSize")
         self.spinMaxLogSize.setMinimumSize(QSize(180, 0))
         self.spinMaxLogSize.setMaximumSize(QSize(250, 16777215))
-        self.spinMaxLogSize.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-        self.spinMaxLogSize.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.spinMaxLogSize.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.spinMaxLogSize.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
         self.spinMaxLogSize.setProperty(u"showGroupSeparator", True)
         self.spinMaxLogSize.setMinimum(1)
         self.spinMaxLogSize.setMaximum(4096)
@@ -679,11 +632,6 @@ class Ui_MainWindow(object):
         self.checkListenIceRiver.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Icerivers", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenIceRiver.setText(QCoreApplication.translate("MainWindow", u"IceRiver", None))
-        self.groupAdditional.setTitle(QCoreApplication.translate("MainWindow", u"Additional Miners", None))
-#if QT_CONFIG(tooltip)
-        self.checkListenVolcminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Volcminers", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkListenVolcminer.setText(QCoreApplication.translate("MainWindow", u"Volcminer", None))
         self.configTabs.setTabText(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
 #if QT_CONFIG(tooltip)
         self.configTabs.setTabToolTip(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))
@@ -699,11 +647,6 @@ class Ui_MainWindow(object):
         self.label_11.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
 #if QT_CONFIG(tooltip)
         self.lineWhatsminerPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative login password for Whatsminer. Default: \"admin\"", None))
-#endif // QT_CONFIG(tooltip)
-        self.groupVolcminer.setTitle(QCoreApplication.translate("MainWindow", u"Volcminer", None))
-        self.label_2.setText(QCoreApplication.translate("MainWindow", u"Set Login Password:", None))
-#if QT_CONFIG(tooltip)
-        self.lineVolcminerPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative login password for Volcminers. Default \"ltc@dog\"", None))
 #endif // QT_CONFIG(tooltip)
         self.groupPbfarmer.setTitle(QCoreApplication.translate("MainWindow", u"pbfarmer", None))
         self.label_12.setText(QCoreApplication.translate("MainWindow", u"Set API Key:", None))
