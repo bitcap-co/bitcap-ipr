@@ -82,7 +82,7 @@ class Listener(QObject):
             datagram = self.sock.receiveDatagram(self.max_buf)
             if not datagram.isValid():
                 return
-            self.msg = datagram.data().data().decode()
+            self.msg = datagram.data().data().decode().rstrip("\x00")
             if not self.msg:
                 logger.warning(f"Listener[{self.port}] : msg empty. Ignoring...")
                 return
@@ -95,9 +95,7 @@ class Listener(QObject):
                     type = "iceriver"
                 case 8888:
                     type = "whatsminer"
-            logger.debug(
-                f"Listener[{self.port}] : found type {type} from port."
-            )
+            logger.debug(f"Listener[{self.port}] : found type {type} from port.")
             if self.validate_msg(type):
                 ip, mac = self.parse_msg(type)
                 if self.record.dict:
@@ -113,9 +111,7 @@ class Listener(QObject):
                         data = self.record.dict.get(record)
                         if ip == record and self.msg == data[0]:
                             prev_entry = True
-                            if (
-                                time.time() - data[1] <= 10.0
-                            ):
+                            if time.time() - data[1] <= 10.0:
                                 logger.warning(
                                     f"Listener[{self.port}] : duplicate packet."
                                 )
