@@ -259,6 +259,26 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_11.addWidget(self.hwrapper_9)
 
+        self.groupAdditional = QGroupBox(self.groupListeners)
+        self.groupAdditional.setObjectName(u"groupAdditional")
+        self.verticalLayout_12 = QVBoxLayout(self.groupAdditional)
+        self.verticalLayout_12.setObjectName(u"verticalLayout_12")
+        self.verticalLayout_12.setContentsMargins(0, 0, 0, 0)
+        self.hwrapper_8 = QWidget(self.groupAdditional)
+        self.hwrapper_8.setObjectName(u"hwrapper_8")
+        self.horizontalLayout_22 = QHBoxLayout(self.hwrapper_8)
+        self.horizontalLayout_22.setObjectName(u"horizontalLayout_22")
+        self.checkListenVolcminer = QCheckBox(self.hwrapper_8)
+        self.checkListenVolcminer.setObjectName(u"checkListenVolcminer")
+
+        self.horizontalLayout_22.addWidget(self.checkListenVolcminer)
+
+
+        self.verticalLayout_12.addWidget(self.hwrapper_8)
+
+
+        self.verticalLayout_11.addWidget(self.groupAdditional)
+
 
         self.verticalLayout_4.addWidget(self.groupListeners)
 
@@ -279,7 +299,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 491, 262))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 477, 302))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
         self.verticalLayout_13.setContentsMargins(9, 9, 9, 9)
@@ -329,6 +349,30 @@ class Ui_MainWindow(object):
 
 
         self.verticalLayout_13.addWidget(self.groupWhatsminer)
+
+        self.groupVolcminer = QGroupBox(self.scrollAreaWidgetContents)
+        self.groupVolcminer.setObjectName(u"groupVolcminer")
+        self.horizontalLayout_21 = QHBoxLayout(self.groupVolcminer)
+        self.horizontalLayout_21.setObjectName(u"horizontalLayout_21")
+        self.label_13 = QLabel(self.groupVolcminer)
+        self.label_13.setObjectName(u"label_13")
+        self.label_13.setFont(font1)
+
+        self.horizontalLayout_21.addWidget(self.label_13)
+
+        self.lineVolcminerPasswd = QLineEdit(self.groupVolcminer)
+        self.lineVolcminerPasswd.setObjectName(u"lineVolcminerPasswd")
+        sizePolicy.setHeightForWidth(self.lineVolcminerPasswd.sizePolicy().hasHeightForWidth())
+        self.lineVolcminerPasswd.setSizePolicy(sizePolicy)
+        self.lineVolcminerPasswd.setMinimumSize(QSize(180, 25))
+        self.lineVolcminerPasswd.setFont(font1)
+        self.lineVolcminerPasswd.setEchoMode(QLineEdit.EchoMode.Password)
+        self.lineVolcminerPasswd.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
+
+        self.horizontalLayout_21.addWidget(self.lineVolcminerPasswd)
+
+
+        self.verticalLayout_13.addWidget(self.groupVolcminer)
 
         self.groupPbfarmer = QGroupBox(self.scrollAreaWidgetContents)
         self.groupPbfarmer.setObjectName(u"groupPbfarmer")
@@ -632,6 +676,11 @@ class Ui_MainWindow(object):
         self.checkListenIceRiver.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Icerivers", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenIceRiver.setText(QCoreApplication.translate("MainWindow", u"IceRiver", None))
+        self.groupAdditional.setTitle(QCoreApplication.translate("MainWindow", u"Additional Miners", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenVolcminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Volcminers", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenVolcminer.setText(QCoreApplication.translate("MainWindow", u"Volcminer", None))
         self.configTabs.setTabText(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
 #if QT_CONFIG(tooltip)
         self.configTabs.setTabToolTip(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))
@@ -647,6 +696,12 @@ class Ui_MainWindow(object):
         self.label_11.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
 #if QT_CONFIG(tooltip)
         self.lineWhatsminerPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative login password for Whatsminer. Default: \"admin\"", None))
+#endif // QT_CONFIG(tooltip)
+        self.groupVolcminer.setTitle(QCoreApplication.translate("MainWindow", u"Volcminer", None))
+        self.label_13.setText(QCoreApplication.translate("MainWindow", u"Set Login Password:", None))
+        self.label_13.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.lineVolcminerPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative login password for Volcminer. Default: \"ltc@dog\"", None))
 #endif // QT_CONFIG(tooltip)
         self.groupPbfarmer.setTitle(QCoreApplication.translate("MainWindow", u"pbfarmer", None))
         self.label_12.setText(QCoreApplication.translate("MainWindow", u"Set API Key:", None))

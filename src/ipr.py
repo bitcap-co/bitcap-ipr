@@ -197,16 +197,16 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
         )
 
-        # self.actionToggleVolcminerPasswd = self.lineVolcminerPasswd.addAction(
-        #     QIcon(":theme/icons/rc/view.png"),
-        #     QLineEdit.ActionPosition.TrailingPosition,
-        # )
-        # self.actionToggleVolcminerPasswd.setToolTip("Show/Hide password")
-        # self.actionToggleVolcminerPasswd.triggered.connect(
-        #     lambda: self.toggle_show_passwd(
-        #         self.lineVolcminerPasswd, self.actionToggleVolcminerPasswd
-        #     )
-        # )
+        self.actionToggleVolcminerPasswd = self.lineVolcminerPasswd.addAction(
+            QIcon(":theme/icons/rc/view.png"),
+            QLineEdit.ActionPosition.TrailingPosition,
+        )
+        self.actionToggleVolcminerPasswd.setToolTip("Show/Hide password")
+        self.actionToggleVolcminerPasswd.triggered.connect(
+            lambda: self.toggle_show_passwd(
+                self.lineVolcminerPasswd, self.actionToggleVolcminerPasswd
+            )
+        )
 
         self.actionTogglePbfarmerKey = self.linePbfarmerKey.addAction(
             QIcon(":theme/icons/rc/view.png"),
@@ -262,15 +262,15 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.checkListenIceRiver.setChecked(
                 self.config["general"]["listenFor"]["iceriver"]
             )
-            # additional listeners
-            # self.checkListenVolcminer.setChecked(
-            #     self.config["general"]["listenFor"]["additional"]["volcminer"]
-            # )
+            #additional listeners
+            self.checkListenVolcminer.setChecked(
+                self.config["general"]["listenFor"]["additional"]["volcminer"]
+            )
 
             # api
             self.lineBitmainPasswd.setText(self.config["api"]["bitmainAltPasswd"])
             self.lineWhatsminerPasswd.setText(self.config["api"]["whatsminerAltPasswd"])
-            # self.lineVolcminerPasswd.setText(self.config["api"]["volcminerAltPasswd"])
+            self.lineVolcminerPasswd.setText(self.config["api"]["volcminerAltPasswd"])
             self.linePbfarmerKey.setText(self.config["api"]["pbfarmerKey"])
 
             # logs
@@ -481,6 +481,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
         ip, mac, type = self.lm.result.split(",")
+        if type == "antminer" and self.checkListenVolcminer.isChecked():
+            self.api_client.create_volcminer_client(ip, self.lineVolcminerPasswd.text())
+            if self.api_client.is_volcminer():
+                type = "volcminer"
+            self.api_client.close_client()
         logger.info(f"show_confirm : got {ip},{mac},{type} from listener.")
         if type == "iceriver":
             self.api_client.create_iceriver_client(ip, self.linePbfarmerKey.text())
@@ -560,6 +565,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         match type:
             case "antminer":
                 client_auth = self.lineBitmainPasswd.text()
+            case "volcminer":
+                client_auth = self.lineVolcminerPasswd.text()
             case "iceriver":
                 client_auth = self.linePbfarmerKey.text()
         self.api_client.create_client_from_type(type, ip, client_auth)
@@ -619,6 +626,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             match miner_type:
                 case "antminer":
                     client_auth = self.lineBitmainPasswd.text()
+                case "volcminer":
+                    client_auth = self.lineVolcminerPasswd.text()
                 case "iceriver":
                     client_auth = self.linePbfarmerKey.text()
                 case "whatsminer":
@@ -756,11 +765,15 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "antminer": self.checkListenAntminer.isChecked(),
                     "whatsminer": self.checkListenWhatsminer.isChecked(),
                     "iceriver": self.checkListenIceRiver.isChecked(),
+                    "additional": {
+                        "volcminer": self.checkListenVolcminer.isChecked(),
+                    }
                 },
             },
             "api": {
                 "bitmainAltPasswd": self.lineBitmainPasswd.text(),
                 "whatsminerAltPasswd": self.lineWhatsminerPasswd.text(),
+                "volcminerAltPasswd": self.lineVolcminerPasswd.text(),
                 "pbfarmerKey": self.linePbfarmerKey.text(),
             },
             "logs": {
