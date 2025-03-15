@@ -23,7 +23,7 @@ A workstation/PC directly connected to main network or VLAN.
 > For WhatsMiners on DHCP, need to be plugged in to same VLAN/network as miner.
 
 ## Installation
-BitCapIPR is supported on Debian Linux (AMD64), Windows (X64), and MacOS (X64/ARM).
+BitCapIPR is supported on Debian Linux (X64), Windows (X64), and MacOS (X64/ARM).
 
 Download the latest installer for your OS and Arch from [Releases](https://github.com/bitcap-co/bitcap-ipr/releases).
 
@@ -37,8 +37,9 @@ OPTIONAL: python3-venv
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip3 install -r ./requirements.txt
-pyinstaller src/ipr.spec --noconfirm
+pip install -r ./requirements.txt
+pip install pyinstaller
+pyinstaller src/ipr.spec
 # move the readme into dist to create local files
 cp ./README.md ./dist/BitCapIPR
 ```
@@ -61,7 +62,8 @@ BitCap IPR supports various configuration settings to customize the behavior to 
 When using the ID Table, IPR will create an API session for the received miner IP and gather miner data.
 
 By default, it will use the default authentication. If you have an alternative password set, you can supply it to the IP Reporter by going to the API tab in Settings -> "Settings..." from the menubar.
-
+> [!NOTE]
+> On MacOS, go to "Preferences..." (Command + ,)
 
 ## Troubleshooting/Reporting Issues
 If encountering an issue with the IP reporter, take the following steps:
