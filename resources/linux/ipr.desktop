@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=BitCap IPReporter
-Comment=Internal BitCap IP reporter tool
+Comment=Cross-platform IP Reporter for ASICs
 Path=/opt/BitCapIPR
-Exec=/opt/BitCapIPR/BitCapIPR
+Exec=/opt/BitCapIPR/ipr/BitCapIPR
 Icon=BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png
