@@ -1,13 +1,15 @@
 ## Configuration
 
 ### Menubar Options
-Options - This menu contains listener settings:
-   - "Always Open IP in Browser" : When this option is checked, the receieved IP address will automatically open in your default browser and no IP Confirmation will be shown.
-   - "Disable Inactive Timer" : When this option is checked, The listener will run until manually stopped instead of the default timeout of 15 minutes.
-   - "Auto Start on Launch" : When this option is checked, the listener will automatically start on application launch (Effective next launch on changed).
+#### "Options" Menu
+listener behavior options:
+   - "Always Open IP in Browser" Checkbox : When checked, the received IP address will automatically open in your default web browser. No IP confirmation window will be shown.
+   - "Disable Inactive Timer" : When checked, the listener will run until manually stopped instead of the default timeout of 15 minutes.
+   - "Auto Start on Launch" : When checked, the listener will automatically start on application launch (Effective next launch on changed).
 
-ID Table - This menu contains settings relating to the ID Table:
-   - "Enable ID Table" : When this option is checked, it will update the current view to a table view. The IP reporter will now retrieve and store the following identifying miner data directly from it's API:
+#### "ID Table" Menu
+This menu contains settings relating to the ID Table:
+   - "Enable ID Table" : When checked, updates the current view to a table view. The IP reporter will now retrieve and store the following identifying miner data directly from it's API:
    ```
       SERIAL - miner serial number if available
       SUBTYPE - miner model
@@ -19,12 +21,24 @@ ID Table - This menu contains settings relating to the ID Table:
    - "Copy Selected Elements" : Once triggered, all selected elements in the table will be copied to the clipboard (seperated by comma).
    - "Export" : Once triggered, the current data in the table will be exported to a .CSV file located in system's documents path.
 
-### Application Settings
-In the menubar, go to Settings -> "Settings..." to change the current view to the configuration view. Here is where you can change General, API, and log settings in their respective tabs.
+#### "Settings" Menu
+Application settings:
+   - "Settings..." : When triggered, updates the current view to the configuration view.
+
+### Application Settings ("Settings" Menu)
+In the menubar, go to Settings -> "Settings..." to change the current view to the configuration view.
+> [!NOTE]
+> On MacOS, go to "Preferences..." (Command + ,)
+
+Here is where you can change general, API, and log settings in their respective tabs.
    #### "General" tab
    - System Tray:
       - "Enable System Tray" : When checked, the system tray icon is created. From the icon, you can show/hide the main window, start/stop listening and quit the application. If the main window is hidden, you will get information messages and confirmations as system notifications.
       - "On Window Close" : When "Enable System Tray" is checked, you can change the window close behavior ("X" button clicked) to "Close" (default) or "Minimize to tray" to minimize the application to the system tray.
+   - Listener Configuration:
+      - "Antminer" : When checked, enable listening for Antminers. Checked by default.
+      - "Whatminer" : When checked, enable listening for Whatsminers. Checked by default.
+      - "IceRiver" : When checked, enable listening for IceRivers. Checked by default.
    #### "API" tab
    - Bitmain/Antminer:
      - "Set Login Password" : Set alternative login password for Antminers. If blank, "root" is used for default authentication.
@@ -51,7 +65,12 @@ In the menubar, go to Settings -> "Settings..." to change the current view to th
 {
     "general": {
         "enableSysTray": false,
-        "onWindowClose": 0
+        "onWindowClose": 0,
+        "listenFor": {
+            "antminer": true,
+            "whatsminer": true,
+            "iceriver": true
+        }
     },
     "api": {
         "bitmainAltPasswd": "",
@@ -60,7 +79,7 @@ In the menubar, go to Settings -> "Settings..." to change the current view to th
     },
     "logs": {
         "logLevel": "INFO",
-        "maxLogSize": "1024",
+        "maxLogSize": 1024,
         "onMaxLogSize": 0,
         "flushInterval": 0
     },
@@ -71,7 +90,7 @@ In the menubar, go to Settings -> "Settings..." to change the current view to th
             "autoStartOnLaunch": false
         },
         "table": {
-            "enableIDTable": true
+            "enableIDTable": false
         }
     }
 }
