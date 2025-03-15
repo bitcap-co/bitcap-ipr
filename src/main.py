@@ -1,3 +1,13 @@
+# nuitka-project: --include-package=passlib.handlers.md5_crypt
+# nuitka-project: --include-data-dir=resources/app=resources/app
+# nuitka-project: --include-data-files=src/ui/theme.qss=ui/theme.qss
+# nuitka-project: --noinclude-dlls=*.cpp.o
+# nuitka-project: --noinclude-dlls=*.qsb
+# nuitka-project: --noinclude-qt-translations
+# nuitka-project: --follow-imports
+# nuitka-project: --enable-plugin=pyside6
+# nuitka-project: --remove-output
+
 import os
 import sys
 import json
