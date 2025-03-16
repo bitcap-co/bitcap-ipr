@@ -33,6 +33,7 @@ jobs:
         run: |
           pip install -U pip
           pip install -r requirements.txt
+          pip install pyinstaller
 
       - name: Linux - Build standalone binary
         uses: Nuitka/Nuitka-Action@main
@@ -79,33 +80,39 @@ jobs:
           dpkg-deb --build --root-owner-group package "dist/BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}.deb"
         if: runner.os == 'Linux'
 
-      - name: MacOS - Remove problematic brew libs
-        run: |
-          brew remove --force --ignore-dependencies openssl@3
-          brew cleanup openssl@3
-        if: runner.os == 'macOS' && runner.arch == 'X64'
+      # - name: MacOS - Remove problematic brew libs
+      #   run: |
+      #     brew remove --force --ignore-dependencies openssl@3
+      #     brew cleanup openssl@3
+      #   if: runner.os == 'macOS' && runner.arch == 'X64'
+
+      # - name: MacOS - Build app bundle
+      #   uses: Nuitka/Nuitka-Action@main
+      #   with:
+      #     script-name: src/main.py
+      #     output-file: BitCapIPR
+      #     output-dir: dist
+      #     macos-app-icon: resources/app/icons/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.icns
+      #   if: runner.os == 'macOS'
 
       - name: MacOS - Build app bundle
-        uses: Nuitka/Nuitka-Action@main
-        with:
-          script-name: src/main.py
-          output-file: BitCapIPR
-          output-dir: dist
-          macos-app-icon: resources/app/icons/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.icns
+        shell: bash
+        run: |
+          pyinstaller src/ipr.spec
         if: runner.os == 'macOS'
 
       - name: MacOS - Run build script
         shell: bash
         run: |
           # package portable zip archive
-          cp README.md dist/main.app/Contents
-          zip -9 -y -r dist/BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}-portable.zip dist/main.app
-          rm dist/main.app/Contents/README.md
+          cp README.md dist/BitCapIPR.app/Contents
+          zip -9 -y -r dist/BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}-portable.zip dist/BitCapIPR.app
+          rm dist/BitCapIPR.app/Contents/README.md
 
           # package .dmg with create-dmg
           brew install create-dmg
           mkdir -p dist/dmg
-          cp -r dist/main.app dist/dmg
+          cp -r dist/BitCapIPR.app dist/dmg
           DMG_FS="HFS+"
           if [[ "$ImageOS" == "macos13" ]]; then DMG_FS="APFS"; fi
           create-dmg \
@@ -115,8 +122,8 @@ jobs:
             --window-pos 200 120 \
             --window-size 600 300 \
             --icon-size 100 \
-            --icon "main.app" 175 120 \
-            --hide-extension "main.app" \
+            --icon "BitCapIPR.app" 175 120 \
+            --hide-extension "BitCapIPR.app" \
             --app-drop-link 425 120 \
             "dist/BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}-setup.dmg" \
             "dist/dmg/"
