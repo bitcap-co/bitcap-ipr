@@ -627,7 +627,10 @@ class IPR(QMainWindow, Ui_MainWindow):
                 case "antminer":
                     client_auth = self.lineBitmainPasswd.text()
                 case "volcminer":
-                    client_auth = self.lineVolcminerPasswd.text()
+                    #client_auth = self.lineVolcminerPasswd.text()
+                    return self.iprStatus.showMessage(
+                        "Status :: Failed to locate miner: VolcMiner is currently not supported.", 5000
+                    )
                 case "iceriver":
                     client_auth = self.linePbfarmerKey.text()
                 case "whatsminer":
