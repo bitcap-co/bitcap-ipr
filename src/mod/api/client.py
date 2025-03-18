@@ -112,6 +112,16 @@ class APIClient:
             mac = self.client.get_mac_addr()
             return mac
         return "ice-river"
+    
+    def is_volcminer(self):
+        if self.client:
+            system_info = self.client.get_system_info()
+            if "minertype" in system_info:
+                miner_type = system_info["minertype"][:10].strip()
+                if miner_type == "VolcMiner":
+                    logger.debug(f" found volcminer.")
+                    return True
+        return False
 
     def get_antminer_target_data(self):
         parser = BitmainParser(self.target_info)
