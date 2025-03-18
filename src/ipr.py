@@ -238,7 +238,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         # app config signals
         self.checkEnableSysTray.toggled.connect(self.toggle_app_config)
         self.actionIPRCancelConfig.clicked.connect(self.update_stacked_widget)
-        self.actionIPRSaveConfig.clicked.connect(self.save_settings)
+        self.actionIPRSaveConfig.clicked.connect(self.update_settings)
         # listener signals
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
@@ -739,19 +739,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             line.setEchoMode(QLineEdit.EchoMode.Password)
             action.setIcon(QIcon(":theme/icons/rc/view.png"))
 
-    def save_settings(self):
-        self.update_settings()
-        self.iprStatus.showMessage("Status :: Wrote settings to config.", 3000)
-
-    def set_logger_level(self):
-        logger.manager.root.setLevel(self.comboLogLevel.currentText())
-        logger.log(
-            logger.manager.root.level,
-            f" change logger to level {self.comboLogLevel.currentText()}.",
-        )
-
     def update_settings(self):
-        logger.info(" write settings to config.")
+        logger.info(" update settings to config.")
         instance = {
             "options": {
                 "alwaysOpenIPInBrowser": self.actionAlwaysOpenIPInBrowser.isChecked(),
@@ -787,11 +776,21 @@ class IPR(QMainWindow, Ui_MainWindow):
             },
             "instance": instance,
         }
-        self.config_json = json.dumps(config, indent=4)
-        with open(Path(self.config_path, "config.json"), "w") as f:
-            f.write(self.config_json)
+        self.config = config
         self.update_stacked_widget()
         self.iprStatus.showMessage("Status :: Updated settings to config.", 1000)
+
+    def write_settings(self):
+        config_json = json.dumps(self.config, indent=4)
+        with open(Path(self.config_path, "config.json"), "w") as f:
+            f.write(config_json)
+
+    def set_logger_level(self):
+        logger.manager.root.setLevel(self.comboLogLevel.currentText())
+        logger.log(
+            logger.manager.root.level,
+            f" change logger to level {self.comboLogLevel.currentText()}.",
+        )
 
     def toggle_visibility(self):
         self.setVisible(not self.isVisible())
@@ -825,6 +824,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.toggle_visibility()
         self.lm.stop_listeners()
         self.killall()
+        logger.info(" write settings to disk.")
+        self.write_settings()
         logger.info(" exit app.")
         # flush log on close if set
         if (
