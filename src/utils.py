@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import collections.abc
 from pathlib import Path
 from platformdirs import user_data_dir, user_log_dir
 from PySide6.QtCore import __version__ as QT_VERSION
@@ -20,6 +21,17 @@ APP_INFO = {
 BASEDIR = os.path.dirname(__file__)
 CURR_PLATFORM = sys.platform
 MAX_ROTATE_LOG_FILES = 4
+
+
+def deep_update(d: dict, u: dict) -> dict:
+    for k, v in u.items():
+        if isinstance(v, collections.abc.Mapping):
+            d[k] = deep_update(d.get(k, {}), v)
+        # elif isinstance(v, list):
+        #     d[k] = (d.get(k, []) + v)
+        else:
+            d[k] = v
+    return d
 
 
 def get_stylesheet():

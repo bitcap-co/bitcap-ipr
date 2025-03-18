@@ -30,6 +30,7 @@ from utils import (
     get_config_path,
     get_log_path,
     get_config,
+    deep_update,
     flush_log,
 )
 
@@ -72,7 +73,7 @@ def init_app():
             f.write(config_json)
     else:
         curr_config = get_config(Path(config_path, "config.json"))
-        config.update(curr_config)
+        config = deep_update(config, curr_config)
         config_json = json.dumps(config, indent=4)
         with open(Path(config_path, "config.json"), "w") as f:
             f.write(config_json)
