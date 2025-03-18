@@ -119,7 +119,7 @@ class APIClient:
             if "minertype" in system_info:
                 miner_type = system_info["minertype"][:10].strip()
                 if miner_type == "VolcMiner":
-                    logger.debug(f" found volcminer.")
+                    logger.debug(" found VolcMiner.")
                     return True
         return False
 
