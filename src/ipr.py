@@ -248,6 +248,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         if os.path.exists(self.config_path):
             self.config = get_config(Path(self.config_path, "config.json"))
             # general
+            if self.config["general"]["mainwindow"]["geometry"]:
+                self.setGeometry(*self.config["general"]["mainwindow"]["geometry"])
             self.checkEnableSysTray.setChecked(self.config["general"]["enableSysTray"])
             self.comboOnWindowClose.setCurrentIndex(
                 self.config["general"]["onWindowClose"]
@@ -751,6 +753,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         }
         config = {
             "general": {
+                "mainwindow": {
+                    "geometry": [
+                        self.geometry().x(), 
+                        self.geometry().y(), 
+                        self.geometry().width(), 
+                        self.geometry().height()
+                    ]
+                },
                 "enableSysTray": self.checkEnableSysTray.isChecked(),
                 "onWindowClose": self.comboOnWindowClose.currentIndex(),
                 "listenFor": {

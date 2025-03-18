@@ -1,5 +1,8 @@
 {
     "general": {
+        "mainwindow": {
+            "geometry": []
+        },
         "enableSysTray": false,
         "onWindowClose": 0,
         "listenFor": {
