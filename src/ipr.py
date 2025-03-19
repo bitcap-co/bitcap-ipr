@@ -807,7 +807,10 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def close_to_tray_or_exit(self):
         if self.sys_tray and self.comboOnWindowClose.currentIndex() == 1:
-            self.toggle_visibility()
+            # force disable ID table option
+            self.actionEnableIDTable.setChecked(False)
+            self.update_stacked_widget()
+            self.setVisible(False)
             self.sys_tray.show()
             self.sys_tray.showMessage(
                 "Minimized to tray",
