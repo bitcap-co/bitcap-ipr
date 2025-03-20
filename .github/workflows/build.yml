@@ -33,7 +33,6 @@ jobs:
         run: |
           pip install -U pip
           pip install -r requirements.txt
-          pip install pyinstaller
 
       - name: Linux - Build standalone binary
         uses: Nuitka/Nuitka-Action@main
@@ -44,18 +43,23 @@ jobs:
           mode: standalone
         if: runner.os == 'Linux'
 
-      - name: Linux - Run build script
+      - name: Linux - Strip
+        run: |
+          find dist/BitCapIPR/main.dist -iname "*.so*" -type f -exec strip --strip-all {} \;
+          strip --strip-all dist/BitCapIPR/main.dist/BitCapIPR
+        if: runner.os == 'Linux'
+
+      - name: Linux - Run package script
         shell: bash
         run: |
           mv dist/BitCapIPR/main.dist dist/BitCapIPR/ipr
-
           # package portable zip archive
           cp README.md dist/BitCapIPR
           zip -r dist/BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}-portable.zip dist/BitCapIPR
           rm dist/BitCapIPR/README.md
 
           # package .deb archive with dpkg-deb
-          [ -e package ] && rm -r package
+          [ -e package ] && rm -rf package
           mkdir -p package/DEBIAN
           mkdir -p package/opt
           mkdir -p package/usr/share/applications
@@ -80,30 +84,34 @@ jobs:
           dpkg-deb --build --root-owner-group package "dist/BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}.deb"
         if: runner.os == 'Linux'
 
-      # - name: MacOS - Remove problematic brew libs
-      #   run: |
-      #     brew remove --force --ignore-dependencies openssl@3
-      #     brew cleanup openssl@3
-      #   if: runner.os == 'macOS' && runner.arch == 'X64'
-
-      # - name: MacOS - Build app bundle
-      #   uses: Nuitka/Nuitka-Action@main
-      #   with:
-      #     script-name: src/main.py
-      #     output-file: BitCapIPR
-      #     output-dir: dist
-      #     macos-app-icon: resources/app/icons/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.icns
-      #   if: runner.os == 'macOS'
+      - name: MacOS - Remove problematic brew libs
+        run: |
+          brew remove --force --ignore-dependencies openssl@3
+          brew cleanup openssl@3
+        if: runner.os == 'macOS' && runner.arch == 'X64'
 
       - name: MacOS - Build app bundle
-        shell: bash
-        run: |
-          pyinstaller src/ipr.spec
+        uses: Nuitka/Nuitka-Action@main
+        with:
+          script-name: src/main.py
+          output-file: BitCapIPR.bin
+          output-dir: dist
+          mode: standalone
+          macos-app-name: BitCapIPR
+          macos-app-icon: resources/app/icons/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.icns
         if: runner.os == 'macOS'
 
-      - name: MacOS - Run build script
+      - name: MacOS - Strip
+        run: |
+          find dist/main.app -iname "*.so*" -type f -exec strip {} \;
+          find dist/main.app -iname "*.dylib" -type f -exec strip {} \;
+          find dist/main.app -iname "*.bin" -type f -exec strip {} \;
+        if: runner.os == 'macOS'
+
+      - name: MacOS - Run package script
         shell: bash
         run: |
+          mv dist/main.app dist/BitCapIPR.app
           # package portable zip archive
           cp README.md dist/BitCapIPR.app/Contents
           zip -9 -y -r dist/BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}-portable.zip dist/BitCapIPR.app
@@ -140,7 +148,7 @@ jobs:
           windows-icon-from-ico: resources/app/icons/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.ico
         if: runner.os == 'Windows'
 
-      - name: Windows - Run build script
+      - name: Windows - Run package script
         shell: pwsh
         run: |
           Rename-Item -Path .\dist\BitCapIPR\main.dist -NewName ipr

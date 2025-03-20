@@ -1,12 +1,26 @@
+# nuitka-project: --lto=no
+# nuitka-project: --jobs=4
+# nuitka-project: --static-libpython=no
+# nuitka-project: --enable-plugin=pyside6
+# nuitka-project: --follow-imports
+# nuitka-project: --nofollow-import-to="*.tests"
+# nuitka-project: --nofollow-import-to="*.distutils"
+# nuitka-project: --nofollow-import-to="distutils"
+# nuitka-project: --nofollow-import-to="unittest"
+# nuitka-project: --nofollow-import-to="pydoc"
+# nuitka-project: --nofollow-import-to="tkinter"
+# nuitka-project: --nofollow-import-to="test"
 # nuitka-project: --include-package=passlib.handlers.md5_crypt
 # nuitka-project: --include-data-dir=resources/app=resources/app
 # nuitka-project: --include-data-files=src/ui/theme.qss=ui/theme.qss
 # nuitka-project: --noinclude-dlls=*.cpp.o
 # nuitka-project: --noinclude-dlls=*.qsb
 # nuitka-project: --noinclude-qt-translations
-# nuitka-project: --follow-imports
-# nuitka-project: --enable-plugin=pyside6
-# nuitka-project: --remove-output
+# nuitka-project: --company-name="Bit Capital Group"
+# nuitka-project: --product-name="BitCap IPReporter"
+# nuitka-project: --file-version=0.0.0.0
+# nuitka-project: --product-version=0.0.0.0
+
 
 import os
 import sys
