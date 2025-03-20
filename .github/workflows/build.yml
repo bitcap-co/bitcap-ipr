@@ -96,7 +96,6 @@ jobs:
           script-name: src/main.py
           output-file: BitCapIPR.bin
           output-dir: dist
-          mode: standalone
           macos-app-name: BitCapIPR
           macos-app-icon: resources/app/icons/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.icns
         if: runner.os == 'macOS'
