@@ -43,11 +43,11 @@ jobs:
           mode: standalone
         if: runner.os == 'Linux'
 
-      - name: Linux - Strip
-        run: |
-          find dist/BitCapIPR/main.dist -iname "*.so*" -type f -exec strip --strip-all {} \;
-          strip --strip-all dist/BitCapIPR/main.dist/BitCapIPR
-        if: runner.os == 'Linux'
+      # - name: Linux - Strip
+      #   run: |
+      #     find dist/BitCapIPR/main.dist -iname "*.so*" -type f -exec strip --strip-all {} \;
+      #     strip --strip-all dist/BitCapIPR/main.dist/BitCapIPR
+      #   if: runner.os == 'Linux'
 
       - name: Linux - Run package script
         shell: bash
@@ -94,18 +94,18 @@ jobs:
         uses: Nuitka/Nuitka-Action@main
         with:
           script-name: src/main.py
-          output-file: BitCapIPR.bin
+          output-file: BitCapIPR
           output-dir: dist
           macos-app-name: BitCapIPR
           macos-app-icon: resources/app/icons/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.icns
         if: runner.os == 'macOS'
 
-      - name: MacOS - Strip
-        run: |
-          find dist/main.app -iname "*.so*" -type f -exec strip {} \;
-          find dist/main.app -iname "*.dylib" -type f -exec strip {} \;
-          find dist/main.app -iname "*.bin" -type f -exec strip {} \;
-        if: runner.os == 'macOS'
+      # - name: MacOS - Strip
+      #   run: |
+      #     find dist/main.app -iname "*.so*" -type f -exec strip {} \;
+      #     find dist/main.app -iname "*.dylib" -type f -exec strip {} \;
+      #     find dist/main.app -iname "*.bin" -type f -exec strip {} \;
+      #   if: runner.os == 'macOS'
 
       - name: MacOS - Run package script
         shell: bash
