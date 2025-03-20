@@ -10,12 +10,13 @@
 # nuitka-project: --nofollow-import-to="pydoc"
 # nuitka-project: --nofollow-import-to="tkinter"
 # nuitka-project: --nofollow-import-to="test"
-# nuitka-project: --include-package=passlib.handlers.md5_crypt
-# nuitka-project: --include-data-dir=resources/app=resources/app
-# nuitka-project: --include-data-files=src/ui/theme.qss=ui/theme.qss
 # nuitka-project: --noinclude-dlls=*.cpp.o
 # nuitka-project: --noinclude-dlls=*.qsb
 # nuitka-project: --noinclude-qt-translations
+# nuitka-project: --include-package=passlib.handlers.md5_crypt
+# nuitka-project: --include-data-dir=resources/app=resources/app
+# nuitka-project: --include-data-files=src/ui/theme.qss=ui/theme.qss
+# nuitka-project: --remove-output
 # nuitka-project: --company-name="Bit Capital Group"
 # nuitka-project: --product-name="BitCap IPReporter"
 # nuitka-project: --file-version=0.0.0.0
