@@ -62,10 +62,7 @@ class APIClient:
             passwd = "ltc@dog"
         try:
             self.client = VolcminerHTTPClient(ip_addr, passwd)
-        except (
-            FailedConnectionError,
-            AuthenticationError
-        ) as err:
+        except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
     def create_client_from_type(self, miner_type: str, ip_addr: str, auth_str: str):
@@ -112,7 +109,7 @@ class APIClient:
             mac = self.client.get_mac_addr()
             return mac
         return "ice-river"
-    
+
     def is_volcminer(self):
         if self.client:
             system_info = self.client.get_system_info()

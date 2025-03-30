@@ -18,10 +18,7 @@ class IceriverHTTPClient:
         self.host = HOST_URL.substitute(schema="http", ip=self.ip)
         self.pb_key = pb_key
         self.is_custom = False
-        self.command_prefix = {
-            "pb": "api/",
-            "stock": "user/"
-        }
+        self.command_prefix = {"pb": "api/", "stock": "user/"}
         self.err = None
         self._initialize_session()
 
@@ -47,11 +44,7 @@ class IceriverHTTPClient:
         headers = {"Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"}
         if self.is_custom:
             headers.update({"Authorization": "Bearer " + self.pb_key})
-        req = requests.Request(
-            method=method,
-            url=self.host + path,
-            headers=headers
-        )
+        req = requests.Request(method=method, url=self.host + path, headers=headers)
         if data:
             req.data = data
         r = req.prepare()

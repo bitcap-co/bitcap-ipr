@@ -65,9 +65,7 @@ class BitmainHTTPClient:
 
     def _do_http(self, method: str, path: str, payload: dict | None = None):
         req = requests.Request(
-            method=method,
-            url=self.url + path,
-            headers=self.session.headers
+            method=method, url=self.url + path, headers=self.session.headers
         )
         if self.digest:
             req.auth = self.digest
