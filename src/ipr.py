@@ -264,7 +264,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.checkListenIceRiver.setChecked(
                 self.config["general"]["listenFor"]["iceriver"]
             )
-            #additional listeners
+            # additional listeners
             self.checkListenVolcminer.setChecked(
                 self.config["general"]["listenFor"]["additional"]["volcminer"]
             )
@@ -629,9 +629,10 @@ class IPR(QMainWindow, Ui_MainWindow):
                 case "antminer":
                     client_auth = self.lineBitmainPasswd.text()
                 case "volcminer":
-                    #client_auth = self.lineVolcminerPasswd.text()
+                    # client_auth = self.lineVolcminerPasswd.text()
                     return self.iprStatus.showMessage(
-                        "Status :: Failed to locate miner: VolcMiner is currently not supported.", 5000
+                        "Status :: Failed to locate miner: VolcMiner is currently not supported.",
+                        5000,
                     )
                 case "iceriver":
                     client_auth = self.linePbfarmerKey.text()
@@ -755,10 +756,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             "general": {
                 "mainwindow": {
                     "geometry": [
-                        self.geometry().x(), 
-                        self.geometry().y(), 
-                        self.geometry().width(), 
-                        self.geometry().height()
+                        self.geometry().x(),
+                        self.geometry().y(),
+                        self.geometry().width(),
+                        self.geometry().height(),
                     ]
                 },
                 "enableSysTray": self.checkEnableSysTray.isChecked(),
@@ -769,7 +770,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "iceriver": self.checkListenIceRiver.isChecked(),
                     "additional": {
                         "volcminer": self.checkListenVolcminer.isChecked(),
-                    }
+                    },
                 },
             },
             "api": {
