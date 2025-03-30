@@ -792,6 +792,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprStatus.showMessage("Status :: Updated settings to config.", 1000)
 
     def write_settings(self):
+        self.update_settings()
         config_json = json.dumps(self.config, indent=4)
         with open(Path(self.config_path, "config.json"), "w") as f:
             f.write(config_json)
