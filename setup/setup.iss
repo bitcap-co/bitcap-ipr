@@ -24,6 +24,7 @@ DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 OutputBaseFilename=BitCapIPR-setup
 SetupIconFile=..\resources\app\icons\BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.ico
+UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
