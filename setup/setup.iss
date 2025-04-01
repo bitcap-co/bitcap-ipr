@@ -53,8 +53,8 @@ procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
     if CurUninstallStep = usUninstall then
     begin
-        ShellExec('open', 'taskkill.exe', '/f /im {#MyAppExeName}', '',SW_HIDE,ewNoWait,ErrorCode);
-        ShellExec('open', 'tskill.exe', ' {#MyAppName}', '',SW_HIDE,ewNoWait,ErrorCode);
+        ShellExec('open', 'taskkill.exe', '/f /im {#MyAppExeName}', '',SW_HIDE,ewWaitUntilTerminated,ErrorCode);
+        ShellExec('open', 'tskill.exe', ' {#MyAppName}', '',SW_HIDE,ewWaitUntilTerminated,ErrorCode);
     end;
 end;
 
