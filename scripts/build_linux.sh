@@ -28,7 +28,7 @@ shift $(( OPTIND - 1 ))
 
 [[ -z "$VERSION" ]] && echo "ERROR: Supply version string." && exit 1
 
-python3 -m nuitka src/main.py --standalone --output-file=BitCapIPR --output-dir=dist/BitCapIPR
+python3 -m nuitka src/main.py --assume-yes-for-downloads --standalone --output-file=BitCapIPR --output-dir=dist/BitCapIPR
 
 mv dist/BitCapIPR/main.dist dist/BitCapIPR/ipr
 cp README.md dist/BitCapIPR
