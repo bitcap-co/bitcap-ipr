@@ -134,6 +134,7 @@ class APIClient:
             log = self.client.get_bitmain_system_log()
             parser.parse_platform(log)
         else:
+            parser.parse_vnish_algorithm(system_info)
             parser.parse_platform(system_info)
         parser.parse_common(system_info)
         return parser.get_target()

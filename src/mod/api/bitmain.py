@@ -173,7 +173,11 @@ class BitmainParser:
         if "Algorithm" in obj:
             self.target["algorithm"] = obj["Algorithm"]
         else:
-            self.target["algorithm"] = "SHA256"
+            self.target["algorithm"] = "sha256d"
+
+    def parse_vnish_algorithm(self, obj: dict):
+        if "algorithm" in obj:
+            self.target["algorithm"] = obj["algorithm"]
 
     def parse_firmware(self, obj: dict):
         if "fw_name" in obj:
