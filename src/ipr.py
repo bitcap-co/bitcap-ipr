@@ -24,6 +24,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QMenuBar,
     QMenu,
+    QButtonGroup,
 )
 from PySide6.QtGui import (
     QPixmap,
@@ -317,6 +318,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info(" init systray.")
         self.sys_tray = None
         self.create_or_destroy_systray()
+
+        self.listenerConfig = QButtonGroup(exclusive=False)
+        self.listenerConfig.addButton(self.checkListenAntminer, 1)
+        self.listenerConfig.addButton(self.checkListenIceRiver, 2)
+        self.listenerConfig.addButton(self.checkListenWhatsminer, 3)
+        self.listenerConfig.addButton(self.checkListenVolcminer, 4)
+        self.listenerConfig.buttonClicked.connect(self.restart_listen)
 
         self.actionDisableInactiveTimer.changed.connect(self.restart_listen)
         self.actionEnableIDTable.changed.connect(
