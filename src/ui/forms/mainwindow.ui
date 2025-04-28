@@ -167,10 +167,10 @@
        <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
+          <enum>Qt::Horizontal</enum>
          </property>
          <property name="sizeType">
-          <enum>QSizePolicy::Policy::Preferred</enum>
+          <enum>QSizePolicy::Preferred</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -213,10 +213,10 @@
           <item>
            <spacer name="verticalSpacer">
             <property name="orientation">
-             <enum>Qt::Orientation::Vertical</enum>
+             <enum>Qt::Vertical</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Policy::Preferred</enum>
+             <enum>QSizePolicy::Preferred</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -272,10 +272,10 @@
                  </sizepolicy>
                 </property>
                 <property name="horizontalScrollBarPolicy">
-                 <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
+                 <enum>Qt::ScrollBarAlwaysOn</enum>
                 </property>
                 <property name="editTriggers">
-                 <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+                 <set>QAbstractItemView::NoEditTriggers</set>
                 </property>
                 <property name="showDropIndicator" stdset="0">
                  <bool>false</bool>
@@ -331,7 +331,7 @@
                  <string/>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignCenter</set>
+                 <set>Qt::AlignCenter</set>
                 </property>
                </widget>
               </item>
@@ -363,7 +363,7 @@
                  <string>Configuration</string>
                 </property>
                 <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignCenter</set>
+                 <set>Qt::AlignCenter</set>
                 </property>
                 <property name="StyleClass" stdset="0">
                  <string>setText</string>
@@ -482,10 +482,10 @@
                            <item>
                             <spacer name="horizontalSpacer_8">
                              <property name="orientation">
-                              <enum>Qt::Orientation::Horizontal</enum>
+                              <enum>Qt::Horizontal</enum>
                              </property>
                              <property name="sizeType">
-                              <enum>QSizePolicy::Policy::Preferred</enum>
+                              <enum>QSizePolicy::Preferred</enum>
                              </property>
                              <property name="sizeHint" stdset="0">
                               <size>
@@ -610,7 +610,7 @@
                   <item>
                    <spacer name="verticalSpacer_3">
                     <property name="orientation">
-                     <enum>Qt::Orientation::Vertical</enum>
+                     <enum>Qt::Vertical</enum>
                     </property>
                     <property name="sizeHint" stdset="0">
                      <size>
@@ -636,10 +636,10 @@
                      <bool>true</bool>
                     </property>
                     <property name="frameShape">
-                     <enum>QFrame::Shape::NoFrame</enum>
+                     <enum>QFrame::NoFrame</enum>
                     </property>
                     <property name="frameShadow">
-                     <enum>QFrame::Shadow::Plain</enum>
+                     <enum>QFrame::Plain</enum>
                     </property>
                     <property name="widgetResizable">
                      <bool>true</bool>
@@ -704,10 +704,10 @@
                             <string>Set alternative login password for Antminers. Default: &quot;root&quot;</string>
                            </property>
                            <property name="echoMode">
-                            <enum>QLineEdit::EchoMode::Password</enum>
+                            <enum>QLineEdit::Password</enum>
                            </property>
                            <property name="alignment">
-                            <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                            </property>
                           </widget>
                          </item>
@@ -758,10 +758,10 @@
                             <string>Set alternative login password for Whatsminer. Default: &quot;admin&quot;</string>
                            </property>
                            <property name="echoMode">
-                            <enum>QLineEdit::EchoMode::Password</enum>
+                            <enum>QLineEdit::Password</enum>
                            </property>
                            <property name="alignment">
-                            <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                            </property>
                           </widget>
                          </item>
@@ -812,10 +812,10 @@
                             <string>Set alternative login password for Volcminer. Default: &quot;ltc@dog&quot;</string>
                            </property>
                            <property name="echoMode">
-                            <enum>QLineEdit::EchoMode::Password</enum>
+                            <enum>QLineEdit::Password</enum>
                            </property>
                            <property name="alignment">
-                            <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                            </property>
                           </widget>
                          </item>
@@ -866,10 +866,10 @@
                             <string>Set alternative API Key for pbfarmer. Default API key is supplied if blank</string>
                            </property>
                            <property name="echoMode">
-                            <enum>QLineEdit::EchoMode::Password</enum>
+                            <enum>QLineEdit::Password</enum>
                            </property>
                            <property name="alignment">
-                            <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                            </property>
                           </widget>
                          </item>
@@ -985,10 +985,10 @@
                            <item>
                             <spacer name="horizontalSpacer_7">
                              <property name="orientation">
-                              <enum>Qt::Orientation::Horizontal</enum>
+                              <enum>Qt::Horizontal</enum>
                              </property>
                              <property name="sizeType">
-                              <enum>QSizePolicy::Policy::Preferred</enum>
+                              <enum>QSizePolicy::Preferred</enum>
                              </property>
                              <property name="sizeHint" stdset="0">
                               <size>
@@ -1064,10 +1064,10 @@
                               <string>Set maximum log file size (Max limit 4096kb)</string>
                              </property>
                              <property name="alignment">
-                              <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                              </property>
                              <property name="buttonSymbols">
-                              <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
+                              <enum>QAbstractSpinBox::NoButtons</enum>
                              </property>
                              <property name="showGroupSeparator" stdset="0">
                               <bool>true</bool>
@@ -1089,10 +1089,10 @@
                            <item>
                             <spacer name="horizontalSpacer_6">
                              <property name="orientation">
-                              <enum>Qt::Orientation::Horizontal</enum>
+                              <enum>Qt::Horizontal</enum>
                              </property>
                              <property name="sizeType">
-                              <enum>QSizePolicy::Policy::Preferred</enum>
+                              <enum>QSizePolicy::Preferred</enum>
                              </property>
                              <property name="sizeHint" stdset="0">
                               <size>
@@ -1185,10 +1185,10 @@
                            <item>
                             <spacer name="horizontalSpacer_5">
                              <property name="orientation">
-                              <enum>Qt::Orientation::Horizontal</enum>
+                              <enum>Qt::Horizontal</enum>
                              </property>
                              <property name="sizeType">
-                              <enum>QSizePolicy::Policy::Preferred</enum>
+                              <enum>QSizePolicy::Preferred</enum>
                              </property>
                              <property name="sizeHint" stdset="0">
                               <size>
@@ -1287,10 +1287,10 @@
                            <item>
                             <spacer name="horizontalSpacer_4">
                              <property name="orientation">
-                              <enum>Qt::Orientation::Horizontal</enum>
+                              <enum>Qt::Horizontal</enum>
                              </property>
                              <property name="sizeType">
-                              <enum>QSizePolicy::Policy::Preferred</enum>
+                              <enum>QSizePolicy::Preferred</enum>
                              </property>
                              <property name="sizeHint" stdset="0">
                               <size>
@@ -1352,10 +1352,10 @@
           <item>
            <spacer name="verticalSpacer_2">
             <property name="orientation">
-             <enum>Qt::Orientation::Vertical</enum>
+             <enum>Qt::Vertical</enum>
             </property>
             <property name="sizeType">
-             <enum>QSizePolicy::Policy::Preferred</enum>
+             <enum>QSizePolicy::Preferred</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -1390,7 +1390,7 @@
              <item>
               <spacer name="horizontalSpacer_3">
                <property name="orientation">
-                <enum>Qt::Orientation::Horizontal</enum>
+                <enum>Qt::Horizontal</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -1425,10 +1425,10 @@
        <item>
         <spacer name="horizontalSpacer_2">
          <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
+          <enum>Qt::Horizontal</enum>
          </property>
          <property name="sizeType">
-          <enum>QSizePolicy::Policy::Preferred</enum>
+          <enum>QSizePolicy::Preferred</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
