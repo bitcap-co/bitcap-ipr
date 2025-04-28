@@ -1,8 +1,5 @@
 {
     "general": {
-        "mainwindow": {
-            "geometry": []
-        },
         "enableSysTray": false,
         "onWindowClose": 0,
         "listenFor": {
@@ -27,6 +24,9 @@
         "flushInterval": 0
     },
     "instance": {
+        "geometry": {
+            "mainWindow": []
+        },
         "options": {
             "alwaysOpenIPInBrowser": false,
             "disableInactiveTimer": false,

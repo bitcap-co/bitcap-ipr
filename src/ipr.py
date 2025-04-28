@@ -251,8 +251,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         if os.path.exists(self.config_path):
             self.config = get_config(Path(self.config_path, "config.json"))
             # general
-            if self.config["general"]["mainwindow"]["geometry"]:
-                self.setGeometry(*self.config["general"]["mainwindow"]["geometry"])
             self.checkEnableSysTray.setChecked(self.config["general"]["enableSysTray"])
             self.comboOnWindowClose.setCurrentIndex(
                 self.config["general"]["onWindowClose"]
@@ -287,6 +285,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
 
             # instance
+            window = self.config["instance"]["geometry"]["mainWindow"]
+            if window:
+                self.setGeometry(*window)
+
             self.actionAlwaysOpenIPInBrowser.setChecked(
                 self.config["instance"]["options"]["alwaysOpenIPInBrowser"]
             )
@@ -752,6 +754,14 @@ class IPR(QMainWindow, Ui_MainWindow):
     def update_settings(self):
         logger.info(" update settings to config.")
         instance = {
+            "geometry": {
+                "mainWindow": [
+                    self.geometry().x(),
+                    self.geometry().y(),
+                    self.geometry().width(),
+                    self.geometry().height(),
+                ]
+            },
             "options": {
                 "alwaysOpenIPInBrowser": self.actionAlwaysOpenIPInBrowser.isChecked(),
                 "disableInactiveTimer": self.actionDisableInactiveTimer.isChecked(),
@@ -761,14 +771,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         }
         config = {
             "general": {
-                "mainwindow": {
-                    "geometry": [
-                        self.geometry().x(),
-                        self.geometry().y(),
-                        self.geometry().width(),
-                        self.geometry().height(),
-                    ]
-                },
                 "enableSysTray": self.checkEnableSysTray.isChecked(),
                 "onWindowClose": self.comboOnWindowClose.currentIndex(),
                 "listenFor": {
