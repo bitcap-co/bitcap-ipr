@@ -4,6 +4,7 @@ from PySide6.QtCore import (
     Signal,
     Slot,
 )
+from PySide6.QtWidgets import QButtonGroup
 from mod.listener import Listener
 
 logger = logging.getLogger(__name__)
@@ -18,19 +19,19 @@ class ListenerManager(QObject):
         self.result = ""
         self.listeners = []
 
-    def start_listeners(self, conf: dict):
-        for type, enabled in conf.items():
-            match type:
-                case "antminer":
-                    if enabled:
+    def start_listeners(self, conf: QButtonGroup):
+        for listenFor in conf.buttons():
+            match conf.id(listenFor):
+                case 1:  # antminer
+                    if listenFor.isChecked():
                         logger.info(" start listening on 0.0.0.0:14235.")
                         self.listeners.append(Listener(self, 14235))
-                case "iceriver":
-                    if enabled:
+                case 2:  # iceriver
+                    if listenFor.isChecked():
                         logger.info(" start listening on 0.0.0.0:11503.")
                         self.listeners.append(Listener(self, 11503))
-                case "whatsminer":
-                    if enabled:
+                case 3:  # whatsminer
+                    if listenFor.isChecked():
                         logger.info(" start listening on 0.0.0.0:8888.")
                         self.listeners.append(Listener(self, 8888))
         for listener in self.listeners:
@@ -45,9 +46,9 @@ class ListenerManager(QObject):
         self.listeners = []
 
     @Slot()
-    def start(self, conf: dict):
+    def start(self, listenConfig: QButtonGroup):
         # default action (start listeners)
-        self.start_listeners(conf)
+        self.start_listeners(listenConfig)
 
     def emit_listen_complete(self):
         logger.info(" listen_complete signal result.")

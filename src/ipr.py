@@ -409,14 +409,11 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def start_listen(self):
         logger.info(" start listeners.")
-        listener_config = {
-            "antminer": self.checkListenAntminer.isChecked(),
-            "whatsminer": self.checkListenWhatsminer.isChecked(),
-            "iceriver": self.checkListenIceRiver.isChecked(),
-        }
-        if not any(enabled for _, enabled in listener_config.items()):
+        if not any(
+            listenFor.isChecked() for listenFor in self.listenerConfig.buttons()
+        ):
             logger.error(
-                "start_listen: no listeners configured. at least one needs to be checked."
+                "start_listen : no listeners configured. at least one listener needs to be checked."
             )
             self.iprStatus.showMessage(
                 "Status :: Failed to start listeners. No listeners configured", 5000
@@ -429,7 +426,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.actionSysStopListen.setEnabled(True)
         self.actionIPRStart.setEnabled(False)
         self.actionIPRStop.setEnabled(True)
-        self.lm.start(listener_config)
+        self.lm.start(self.listenerConfig)
         self.active_ports = ",".join(
             [str(listener.port) for listener in self.lm.listeners]
         )
