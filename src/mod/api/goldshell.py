@@ -56,7 +56,7 @@ class GoldshellHTTPClient:
         try:
             return res.json()
         except requests.exceptions.JSONDecodeError:
-            return res.status_code
+            return res
 
     def __authenticate_session(self):
         self.__do_http("GET", "/user/logout")
@@ -68,7 +68,12 @@ class GoldshellHTTPClient:
                 "cipher": "false"
             }
             res = self.__do_http("GET", "/user/login", query)
-            if res and res["JWT Token"]:
+            if res.status_code == 500:
+                # login failed, try with encrypted password
+                query["password"] = "bbad7537f4c8b6ea31eea0b3d760e257"
+                query["cipher"] = "true"
+                res = self.__do_http("GET", "/user/login", query)
+            if res["JWT Token"]:
                 self.token = res["JWT Token"]
                 break
         if not self.token:
