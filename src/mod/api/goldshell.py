@@ -102,8 +102,8 @@ class GoldshellHTTPClient:
 
     def blink(self, enabled: bool):
         settings = self.get_settings()
-        settings["ledcontrol"] = f"{enabled}"
-        self.__do_http("PUT", "setting", payload=settings)
+        settings["ledcontrol"] = enabled
+        self.run_command("PUT", "setting", payload=settings)
 
     def _close_client(self, error: Exception | None = None):
         self.session.close()
