@@ -11,6 +11,7 @@ from .bitmain import BitmainHTTPClient, BitmainParser
 from .iceriver import IceriverHTTPClient, IceriverParser
 from .whatsminer import WhatsminerRPCClient, WhatsminerParser
 from .volcminer import VolcminerHTTPClient, VolcminerParser
+from .goldshell import GoldshellHTTPClient, GoldshellParser
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +66,14 @@ class APIClient:
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
+    def create_goldshell_client(self, ip_addr: str, passwd: str):
+        if not passwd:
+            passwd = "123456789"
+        try:
+            self.client = GoldshellHTTPClient(ip_addr, passwd)
+        except (FailedConnectionError, AuthenticationError) as err:
+            logger.error(err)
+
     def create_client_from_type(self, miner_type: str, ip_addr: str, auth_str: str):
         match miner_type:
             case "antminer":
@@ -75,6 +84,8 @@ class APIClient:
                 self.create_whatsminer_client(ip_addr, passwd=auth_str)
             case "volcminer":
                 self.create_volcminer_client(ip_addr, auth_str)
+            case "goldshell":
+                self.create_goldshell_client(ip_addr, auth_str)
 
     def locate_miner(self, miner_type: str):
         locate_duration = QTimer(self.parent)
@@ -82,7 +93,7 @@ class APIClient:
         locate_duration.timeout.connect(self.stop_locate)
         logger.info(" locate miner for 10000ms.")
         match miner_type:
-            case "antminer" | "volcminer":
+            case "antminer" | "volcminer" | "goldshell":
                 try:
                     self.client.blink(True)
                     locate_duration.start(10000)
@@ -178,6 +189,20 @@ class APIClient:
         parser.parse_subtype(system_info)
         return parser.get_target()
 
+    def get_goldshell_target_data(self):
+        parser = GoldshellParser(self.target_info)
+        result = parser.get_target()
+        if not self.client:
+            for k in result.keys():
+                result[k] = "Failed"
+            return result
+        system_info = self.client.get_status()
+        parser.parse_firmware(system_info)
+        parser.parse_subtype(system_info)
+        algo = self.client.get_algo_settings()
+        parser.parse_algorithm(algo)
+        return parser.get_target()
+
     def get_target_data_from_type(self, miner_type: str):
         match miner_type:
             case "antminer":
@@ -188,6 +213,8 @@ class APIClient:
                 return self.get_whatsminer_target_data()
             case "volcminer":
                 return self.get_volcminer_target_data()
+            case "goldshell":
+                return self.get_goldshell_target_data()
 
     def close_client(self):
         if self.client:
