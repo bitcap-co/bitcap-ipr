@@ -7,7 +7,8 @@
             "whatsminer": true,
             "iceriver": true,
             "additional": {
-                "volcminer": false
+                "volcminer": false,
+                "goldshell": false
             }
         }
     },

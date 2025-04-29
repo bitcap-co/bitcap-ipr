@@ -269,6 +269,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.checkListenVolcminer.setChecked(
                 self.config["general"]["listenFor"]["additional"]["volcminer"]
             )
+            self.checkListenGoldshell.setChecked(
+                self.config["general"]["listenFor"]["additional"]["goldshell"]
+            )
 
             # api
             self.lineBitmainPasswd.setText(self.config["api"]["bitmainAltPasswd"])
@@ -328,6 +331,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.listenerConfig.addButton(self.checkListenIceRiver, 2)
         self.listenerConfig.addButton(self.checkListenWhatsminer, 3)
         self.listenerConfig.addButton(self.checkListenVolcminer, 4)
+        self.listenerConfig.addButton(self.checkListenGoldshell, 5)
         self.listenerConfig.buttonClicked.connect(self.restart_listen)
 
         self.actionDisableInactiveTimer.changed.connect(self.restart_listen)
@@ -779,6 +783,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "iceriver": self.checkListenIceRiver.isChecked(),
                     "additional": {
                         "volcminer": self.checkListenVolcminer.isChecked(),
+                        "goldshell": self.checkListenGoldshell.isChecked(),
                     },
                 },
             },
