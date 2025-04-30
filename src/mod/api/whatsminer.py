@@ -10,6 +10,7 @@ from base64 import b64encode, b64decode  # noqa: F401
 from Crypto.Cipher import AES
 from passlib.hash import md5_crypt
 
+from .parser import Parser
 from .errors import (
     FailedConnectionError,
     AuthenticationError,
@@ -30,9 +31,9 @@ class WhatsminerRPCClient:
             if self.passwd == "":
                 self.passwd = "admin"
         self.err = None
-        self._test_connection()
+        self.__test_connection()
 
-    def _test_connection(self):
+    def __test_connection(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.settimeout(3.0)
             try:
@@ -44,7 +45,7 @@ class WhatsminerRPCClient:
                     )
                 )
 
-    def _create_token(self):
+    def __create_token(self):
         """
         Encryption algorithm:
         Ciphertext = aes256(plaintext), ECB mode
@@ -76,7 +77,7 @@ class WhatsminerRPCClient:
 
         self.sign = md5_encrypt(key + token_info["time"], token_info["newsalt"])
 
-    def _do_rpc(self, payload: dict, params: dict | None = None, write: bool = False):
+    def __do_rpc(self, payload: dict, params: dict | None = None, write: bool = False):
         if params:
             payload.update(params)
         cmd = json.dumps(payload)
@@ -105,14 +106,14 @@ class WhatsminerRPCClient:
 
         return res
 
-    def _exec_authenticated_command(self, command: dict, params: dict | None = None):
+    def __exec_authenticated_command(self, command: dict, params: dict | None = None):
         success = False
         passwds = [self.passwd, "admin"] if self.passwd != "admin" else [self.passwd]
         for passwd in passwds:
             self.enable_write_access(passwd)
             command.update({"token": self.sign})
             try:
-                res = self._do_rpc(command, params, True)
+                res = self.__do_rpc(command, params, True)
                 success = True
             except KeyError:
                 continue
@@ -126,7 +127,7 @@ class WhatsminerRPCClient:
 
     def enable_write_access(self, passwd: str):
         self.passwd = passwd
-        self._create_token()
+        self.__create_token()
 
     def has_write_access(self):
         if not self.passwd:
@@ -135,21 +136,21 @@ class WhatsminerRPCClient:
 
     def get_version(self):
         cmd = {"cmd": "get_version"}
-        return self._do_rpc(cmd)
+        return self.__do_rpc(cmd)
 
     def get_dev_details(self):
         cmd = {"cmd": "devdetails"}
-        return self._do_rpc(cmd)
+        return self.__do_rpc(cmd)
 
     def get_system_info(self):
         cmd = {"cmd": "get_miner_info"}
         params = {"info": "ip,proto,netmask,gateway,dns,hostname,mac,ledstat,gateway"}
-        return self._do_rpc(cmd, params)
+        return self.__do_rpc(cmd, params)
 
     def blink(self):
         cmd = {"cmd": "set_led"}
         params = {"param": "auto"}
-        self._exec_authenticated_command(cmd, params)
+        self.__exec_authenticated_command(cmd, params)
 
     def _close_client(self, error: Exception | None = None):
         if error:
@@ -157,13 +158,10 @@ class WhatsminerRPCClient:
             raise error
 
 
-class WhatsminerParser:
+class WhatsminerParser(Parser):
     def __init__(self, target: dict):
-        self.target = target.copy()
+        super().__init__(target)
         self.target["algorithm"] = "SHA256"
-
-    def get_target(self):
-        return self.target
 
     def parse_serial(self, obj: dict):
         msg = obj["Msg"]

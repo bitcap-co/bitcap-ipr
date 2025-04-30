@@ -147,7 +147,8 @@ class APIClient:
         else:
             parser.parse_vnish_algorithm(system_info)
             parser.parse_platform(system_info)
-        parser.parse_common(system_info)
+        parser.parse_subtype(system_info)
+        parser.parse_serial(system_info)
         return parser.get_target()
 
     def get_iceriver_target_data(self):

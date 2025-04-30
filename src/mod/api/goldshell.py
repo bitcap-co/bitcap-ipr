@@ -1,7 +1,7 @@
-import logging
 import requests
 from string import Template
 
+from .http import BaseHTTPClient
 from .parser import Parser
 from .errors import (
     FailedConnectionError,
@@ -9,27 +9,25 @@ from .errors import (
 )
 
 
-class GoldshellHTTPClient:
-    """Goldshell miner HTTP Client"""
+class GoldshellHTTPClient(BaseHTTPClient):
+    """Goldshell HTTP Client"""
 
     def __init__(self, ip_addr: str, passwd: str):
-        self.ip = ip_addr
-        self.host = f"http://{self.ip}/"
+        super().__init__(ip_addr)
+        self.url = f"http://{self.ip}:{self.port}/"
+        self.username = "admin"
         self.passwd = passwd
-        self.token = None
         self.command_format = Template("/mcb/${cmd}")
-        self.err = None
 
-        self.__initialize_session()
+        self._initialize_session()
 
-    def __initialize_session(self):
-        self.session = requests.Session()
+    def _initialize_session(self):
         self.session.headers = {
             "Accept": "application/json, text/plain, */*",
             "Content-Type": "application/json",
         }
         try:
-            self.__authenticate_session()
+            self._authenticate_session()
         except (
             requests.exceptions.ConnectionError,
             requests.exceptions.ConnectTimeout,
@@ -41,51 +39,39 @@ class GoldshellHTTPClient:
                 )
             )
 
-    def __do_http(self, method: str, path: str, query: dict | None = None, payload: dict | None = None):
-        if self.token:
-            self.session.headers.update({"Authorization": "Bearer " + self.token})
-        req = requests.Request(
-            method=method, url=self.host + path, headers=self.session.headers
+    def _authenticate_session(self):
+        self._do_http("GET", "/user/logout")
+        passwds = (
+            [self.passwd, "123456789"] if self.passwd != "123456789" else [self.passwd]
         )
-        if query:
-            req.params = query
-        if payload:
-            req.json = payload
-        r = req.prepare()
-        res = self.session.send(r, timeout=3.0)
-        try:
-            return res.json()
-        except requests.exceptions.JSONDecodeError:
-            return res
-
-    def __authenticate_session(self):
-        self.__do_http("GET", "/user/logout")
-        passwds = [self.passwd, "123456789"] if self.passwd != "123456789" else [self.passwd]
-        for pw in passwds:
-            query = {
-                "username": "admin",
-                "password": pw,
-                "cipher": "false"
-            }
-            res = self.__do_http("GET", "/user/login", query)
+        for passwd in passwds:
+            params = {"username": self.username, "password": passwd, "cipher": "false"}
+            res = self._do_http("GET", "/user/login", params=params)
             if res.status_code == 500:
                 # login failed, try with encrypted password
-                query["password"] = "bbad7537f4c8b6ea31eea0b3d760e257"
-                query["cipher"] = "true"
-                res = self.__do_http("GET", "/user/login", query)
+                params["password"] = "bbad7537f4c8b6ea31eea0b3d760e257"
+                params["cipher"] = "true"
+                res = self._do_http("GET", "/user/login", params=params)
             if res["JWT Token"]:
-                self.token = res["JWT Token"]
+                self.bearer = res["JWT Token"]
                 break
-        if not self.token:
+        if not self.bearer:
             self._close_client(
                 AuthenticationError(
                     "Authentication Failed: Failed to authenticate session"
                 )
             )
 
-    def run_command(self, method: str, command: str, params: dict | None = None, payload: dict | None = None):
+    def run_command(
+        self,
+        method: str,
+        command: str,
+        params: dict | None = None,
+        payload: dict | None = None,
+        data: dict | None = None,
+    ):
         path = self.command_format.substitute(cmd=command)
-        return self.__do_http(method, path, params, payload)
+        return self._do_http(method, path, params=params, payload=payload)
 
     def get_status(self):
         return self.run_command("GET", "status")
@@ -104,12 +90,6 @@ class GoldshellHTTPClient:
         settings = self.get_settings()
         settings["ledcontrol"] = enabled
         self.run_command("PUT", "setting", payload=settings)
-
-    def _close_client(self, error: Exception | None = None):
-        self.session.close()
-        if error:
-            self.err = error
-            raise error
 
 
 class GoldshellParser(Parser):

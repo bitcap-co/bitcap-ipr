@@ -658,9 +658,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "Status :: Failed to connect or authenticate client.", 5000
                 )
             self.api_client.locate_miner(miner_type)
-            if client.err:
+            if client._error:
                 return self.iprStatus.showMessage(
-                    f"Status :: Failed to locate miner: {client.err}", 5000
+                    f"Status :: Failed to locate miner: {client._error}", 5000
                 )
             self.iprStatus.showMessage(f"Status :: Locating miner: {ip_addr}...", 10000)
 
