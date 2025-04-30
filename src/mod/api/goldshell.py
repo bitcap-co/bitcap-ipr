@@ -52,8 +52,14 @@ class GoldshellHTTPClient(BaseHTTPClient):
                 params["password"] = "bbad7537f4c8b6ea31eea0b3d760e257"
                 params["cipher"] = "true"
                 res = self._do_http("GET", "/user/login", params=params)
-            if res["JWT Token"]:
-                self.bearer = res["JWT Token"]
+                if res.status_code == 500:
+                    break
+            try:
+                resj = res.json()
+            except requests.exceptions.JSONDecodeError:
+                break
+            if resj["JWT Token"]:
+                self.bearer = resj["JWT Token"]
                 break
         if not self.bearer:
             self._close_client(
@@ -71,7 +77,12 @@ class GoldshellHTTPClient(BaseHTTPClient):
         data: dict | None = None,
     ):
         path = self.command_format.substitute(cmd=command)
-        return self._do_http(method, path, params=params, payload=payload)
+        res = self._do_http(method, path, params=params, payload=payload)
+        try:
+            resj = res.json()
+        except requests.exceptions.JSONDecodeError:
+            resj = {}
+        return resj
 
     def get_status(self):
         return self.run_command("GET", "status")

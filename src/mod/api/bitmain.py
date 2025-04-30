@@ -76,7 +76,12 @@ class BitmainHTTPClient(BaseHTTPClient):
                 case "blink":
                     command = "/find-miner"
             path = self.command_format["vnish"] + command
-        return self._do_http(method=method, path=path, payload=payload)
+        res = self._do_http(method=method, path=path, payload=payload)
+        try:
+            resj = res.json()
+        except requests.exceptions.JSONDecodeError:
+            resj = {"plaintext": res.text}
+        return resj
 
     # Vnish support
     def __is_vnish(self) -> bool:
@@ -97,8 +102,12 @@ class BitmainHTTPClient(BaseHTTPClient):
                 path=self.command_format["vnish"] + "/unlock",
                 payload=payload,
             )
-            if "token" in res:
-                self.session.headers.update({"Authorization": "Bearer " + res["token"]})
+            try:
+                resj = res.json()
+            except requests.exceptions.JSONDecodeError:
+                break
+            if "token" in resj:
+                self.session.headers.update({"Authorization": "Bearer " + resj["token"]})
                 self.is_unlocked = True
                 break
         if not self.is_unlocked:
@@ -109,12 +118,9 @@ class BitmainHTTPClient(BaseHTTPClient):
             )
 
     def get_bitmain_system_log(self) -> dict:
-        res, is_ok = self.run_command("GET", "log")
-        if is_ok == 200:
-            resj = {"plaintext": res.text}
-            resj["plaintext"] = resj["plaintext"][0 : resj["plaintext"].find("===")]
-            return resj
-        return {}
+        resp = self.run_command("GET", "log")
+        resp["plaintext"] = resp["plaintext"][0 : resp["plaintext"].find("===")]
+        return resp
 
     def get_system_info(self) -> dict:
         return self.run_command("GET", "get_system_info")

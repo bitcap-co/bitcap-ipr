@@ -63,7 +63,12 @@ class IceriverHTTPClient(BaseHTTPClient):
                 case "locate":
                     command = "machine/locate"
             path = self.command_format["pb"].substitute(cmd=command)
-        return self._do_http(method=method, path=path, data=data, timeout=10.0)
+        res = self._do_http(method=method, path=path, data=data, timeout=10.0)
+        try:
+            resj = res.json()
+        except requests.exceptions.JSONDecodeError:
+            resj = {}
+        return resj
 
     # pbfarmer support
     def __is_pbfarmer(self):

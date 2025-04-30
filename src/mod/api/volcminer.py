@@ -63,7 +63,12 @@ class VolcminerHTTPClient(BaseHTTPClient):
         data: dict | None = None,
     ):
         path = self.command_format.substitute(cmd=command)
-        return self._do_http(method, path, data=data)
+        res = self._do_http(method, path, data=data)
+        try:
+            resj = res.json()
+        except requests.exceptions.JSONDecodeError:
+            resj = {}
+        return resj
 
     def get_system_info(self):
         return self.run_command("GET", "get_system_info")

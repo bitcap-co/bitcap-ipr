@@ -45,7 +45,7 @@ class BaseHTTPClient(ABC):
         payload: dict | None = None,
         data: dict | None = None,
         timeout: float = 3.0,
-    ) -> dict | tuple[requests.Response, int]:
+    ) -> requests.Response:
         if self.bearer:
             self.session.headers.update({"Authorization": "Bearer " + self.bearer})
         req = requests.Request(
@@ -63,10 +63,7 @@ class BaseHTTPClient(ABC):
             req.data = data
         r = req.prepare()
         res = self.session.send(r, timeout=timeout, verify=self.session.verify)
-        try:
-            return res.json()
-        except requests.exceptions.JSONDecodeError:
-            return (res, res.status_code)
+        return res
 
     @abstractmethod
     def run_command(
