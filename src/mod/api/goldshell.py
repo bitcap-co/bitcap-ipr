@@ -1,5 +1,6 @@
 import requests
 from string import Template
+from Crypto.Cipher import AES
 
 from .http import BaseHTTPClient
 from .parser import Parser
@@ -49,7 +50,7 @@ class GoldshellHTTPClient(BaseHTTPClient):
             res = self._do_http("GET", "/user/login", params=params)
             if res.status_code == 500:
                 # login failed, try with encrypted password
-                params["password"] = "bbad7537f4c8b6ea31eea0b3d760e257"
+                params["password"] = encrypt_to_hex(passwd)
                 params["cipher"] = "true"
                 res = self._do_http("GET", "/user/login", params=params)
                 if res.status_code == 500:
@@ -117,3 +118,25 @@ class GoldshellParser(Parser):
     def parse_firmware(self, obj: dict):
         if "firmware" in obj:
             self.target["firmware"] = obj["firmware"]
+
+
+def zero_pad(data: bytes, block_size: int) -> bytes:
+    padding_len = block_size - len(data) % block_size
+    padding = bytes([0]) * padding_len
+    return data + padding
+
+
+def unpad(padded_data: bytes, block_size: int) -> bytes:
+    pdata_len = len(padded_data)
+    padding_len = pdata_len - padded_data.rfind(bytes([0]))
+    return padded_data[:-padding_len]
+
+
+def encrypt_to_hex(plain: str) -> str:
+    cipher = AES.new(
+        b"!!!!!!!!!!!!!!!!",
+        AES.MODE_CBC,
+        iv=bytes([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+    )
+    b = zero_pad(plain.encode("UTF-8"), 16)
+    return cipher.encrypt(b).hex()
