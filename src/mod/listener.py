@@ -71,6 +71,7 @@ class Listener(QObject):
         return False
 
     def parse_msg(self, type: str) -> tuple:
+        sn = ""
         match type:
             case "antminer":
                 ip, mac = self.msg.split(",")
@@ -84,7 +85,9 @@ class Listener(QObject):
             case "goldshell":
                 ip = self.msg["ip"]
                 mac = self.msg["mac"]
-        return ip, mac
+                if "boxsn" in self.msg:
+                    sn = self.msg["boxsn"]
+        return ip, mac, sn
 
     @Slot()
     def process_datagram(self):
@@ -109,7 +112,7 @@ class Listener(QObject):
                     type = "goldshell"
             logger.debug(f"Listener[{self.port}] : found type {type} from port.")
             if self.validate_msg(type):
-                ip, mac = self.parse_msg(type)
+                ip, mac, sn = self.parse_msg(type)
                 if self.record.dict:
                     prev_entry = False
                     self.record.dict = dict(
@@ -129,11 +132,11 @@ class Listener(QObject):
                                 )
                                 break
                             else:
-                                self.emit_result([ip, mac, type])
+                                self.emit_result([ip, mac, sn, type])
                     if not prev_entry:
-                        self.emit_result([ip, mac, type])
+                        self.emit_result([ip, mac, sn, type])
                 else:
-                    self.emit_result([ip, mac, type])
+                    self.emit_result([ip, mac, sn, type])
 
     def emit_result(self, received):
         logger.info(f"Listener[{self.port}] : emit result.")

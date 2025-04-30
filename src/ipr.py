@@ -495,13 +495,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info(" show IP confirmation.")
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
-        ip, mac, type = self.lm.result.split(",")
+        ip, mac, sn, type = self.lm.result.split(",")
         if type == "antminer" and self.checkListenVolcminer.isChecked():
             self.api_client.create_volcminer_client(ip, self.lineVolcminerPasswd.text())
             if self.api_client.is_volcminer():
                 type = "volcminer"
             self.api_client.close_client()
-        logger.info(f"show_confirm : got {ip},{mac},{type} from listener.")
+        logger.info(f"show_confirm : got {ip},{mac}, {sn}, {type} from listener.")
         if type == "iceriver":
             self.api_client.create_iceriver_client(ip, self.linePbfarmerKey.text())
             mac = self.api_client.get_iceriver_mac_addr()
@@ -511,7 +511,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         if self.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
         if self.actionEnableIDTable.isChecked():
-            self.populate_table_row(ip, mac, type)
+            self.populate_table_row(ip, mac, sn, type)
             self.activateWindow()
         else:
             confirm = IPRConfirmation()
@@ -575,7 +575,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         lineEdit.copy()
 
     # id table view
-    def populate_table_row(self, ip: str, mac: str, type: str):
+    def populate_table_row(self, ip: str, mac: str, sn: str, type: str):
         client_auth = None
         match type:
             case "antminer":
@@ -601,7 +601,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.idTable.setCellWidget(rowPosition, 0, actionLocateMiner)
         self.idTable.setItem(rowPosition, 1, QTableWidgetItem(ip))
         self.idTable.setItem(rowPosition, 2, QTableWidgetItem(mac))
-        self.idTable.setItem(rowPosition, 3, QTableWidgetItem(t_data["serial"]))
+        if sn:
+            self.idTable.setItem(rowPosition, 3, QTableWidgetItem(sn))
+        else:
+            self.idTable.setItem(rowPosition, 3, QTableWidgetItem(t_data["serial"]))
         # ASIC TYPE
         self.idTable.setItem(rowPosition, 4, QTableWidgetItem(type))
         # SUBTYPE
