@@ -66,7 +66,9 @@ class Listener(QObject):
                     self.msg = json.loads(self.msg)
                     return True
                 except json.JSONDecodeError:
-                    logger.warning(f"Listener[{self.port}] : Failed to decode json msg.")
+                    logger.warning(
+                        f"Listener[{self.port}] : Failed to decode json msg."
+                    )
         logger.warning(f"Listener[{self.port}] : Failed to validate msg. Ignoring...")
         return False
 
@@ -88,6 +90,27 @@ class Listener(QObject):
                 if "boxsn" in self.msg:
                     sn = self.msg["boxsn"]
         return ip, mac, sn
+
+    def is_dup_packet(self, ip: str) -> bool:
+        prev_entry = False
+        self.record.dict = dict(
+            sorted(
+                self.record.dict.items(),
+                reverse=True,
+                key=lambda item: float(item[1][1]),
+            )
+        )
+        for rec in self.record.dict.keys():
+            entry = self.record.dict.get(rec)
+            if ip == rec and self.msg == entry[0]:
+                prev_entry = True
+                if time.time() - entry[1] <= 10.0:
+                    logger.warning(f"Listener[{self.port}] : duplicate packet.")
+                    return True
+                else:
+                    return False
+        if not prev_entry:
+            return False
 
     @Slot()
     def process_datagram(self):
@@ -114,31 +137,12 @@ class Listener(QObject):
             if self.validate_msg(type):
                 ip, mac, sn = self.parse_msg(type)
                 if self.record.dict:
-                    prev_entry = False
-                    self.record.dict = dict(
-                        sorted(
-                            self.record.dict.items(),
-                            reverse=True,
-                            key=lambda item: float(item[1][1]),
-                        )
-                    )
-                    for record in self.record.dict.keys():
-                        data = self.record.dict.get(record)
-                        if ip == record and self.msg == data[0]:
-                            prev_entry = True
-                            if time.time() - data[1] <= 10.0:
-                                logger.warning(
-                                    f"Listener[{self.port}] : duplicate packet."
-                                )
-                                break
-                            else:
-                                self.emit_result([ip, mac, sn, type])
-                    if not prev_entry:
-                        self.emit_result([ip, mac, sn, type])
+                    if not self.is_dup_packet(ip):
+                        self.emit_result(ip, mac, type, sn)
                 else:
-                    self.emit_result([ip, mac, sn, type])
+                    self.emit_result(ip, mac, type, sn)
 
-    def emit_result(self, received):
+    def emit_result(self, *received):
         logger.info(f"Listener[{self.port}] : emit result.")
         self.record[received[0]] = [self.msg, time.time()]
         self.msg = ",".join(received)

@@ -468,13 +468,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info(" show IP confirmation.")
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
-        ip, mac, sn, type = self.lm.result.split(",")
+        ip, mac, type, sn = self.lm.result.split(",")
         if type == "antminer" and self.checkListenVolcminer.isChecked():
             self.api_client.create_volcminer_client(ip, self.lineVolcminerPasswd.text())
             if self.api_client.is_volcminer():
                 type = "volcminer"
             self.api_client.close_client()
-        logger.info(f"show_confirm : got {ip},{mac}, {sn}, {type} from listener.")
+        logger.info(f"show_confirm : got {ip},{mac},{sn},{type} from listener.")
         if type == "iceriver":
             self.api_client.create_iceriver_client(ip, self.linePbfarmerKey.text())
             mac = self.api_client.get_iceriver_mac_addr()
@@ -548,7 +548,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         lineEdit.copy()
 
     # id table view
-    def populate_table_row(self, ip: str, mac: str, sn: str, type: str):
+    def populate_table_row(self, ip: str, mac: str, sn: str, type: str) -> None:
         client_auth = None
         match type:
             case "antminer":
