@@ -45,7 +45,7 @@ class Listener(QObject):
         self.addr = QHostAddress()
         self.addr.setAddress(QHostAddress.SpecialAddress.AnyIPv4)
         self.sock = QUdpSocket()
-        self.sock.bind(self.addr, self.port)
+        self.bound = self.sock.bind(self.addr, self.port)
 
         self.sock.errorOccurred.connect(self.emit_error)
         self.sock.readyRead.connect(self.process_datagram)

@@ -19,25 +19,27 @@ class ListenerManager(QObject):
         self.result = ""
         self.listeners = []
 
+    def append_listener(self, port: int):
+        listener = Listener(self, port)
+        if listener.bound:
+            logger.info(f" start listening on 0.0.0.0:{port}")
+            self.listeners.append(listener)
+
     def start_listeners(self, conf: QButtonGroup):
         for listenFor in conf.buttons():
             match conf.id(listenFor):
-                case 1:  # antminer
+                case 1 | 4:  # antminer | volcminer
                     if listenFor.isChecked():
-                        logger.info(" start listening on 0.0.0.0:14235.")
-                        self.listeners.append(Listener(self, 14235))
+                        self.append_listener(14235)
                 case 2:  # iceriver
                     if listenFor.isChecked():
-                        logger.info(" start listening on 0.0.0.0:11503.")
-                        self.listeners.append(Listener(self, 11503))
+                        self.append_listener(11503)
                 case 3:  # whatsminer
                     if listenFor.isChecked():
-                        logger.info(" start listening on 0.0.0.0:8888.")
-                        self.listeners.append(Listener(self, 8888))
+                        self.append_listener(8888)
                 case 5:  # goldshell
                     if listenFor.isChecked():
-                        logger.info(" start listening on 0.0.0.0:1314.")
-                        self.listeners.append(Listener(self, 1314))
+                        self.append_listener(1314)
         for listener in self.listeners:
             listener.result.connect(self.emit_listen_complete)
             listener.error.connect(self.emit_listen_error)
