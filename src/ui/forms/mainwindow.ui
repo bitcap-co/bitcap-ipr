@@ -658,9 +658,9 @@
                      <property name="geometry">
                       <rect>
                        <x>0</x>
-                       <y>0</y>
-                       <width>344</width>
-                       <height>302</height>
+                       <y>-79</y>
+                       <width>477</width>
+                       <height>373</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_13">
@@ -820,6 +820,60 @@
                            </property>
                            <property name="toolTip">
                             <string>Set alternative login password for Volcminer. Default: &quot;ltc@dog&quot;</string>
+                           </property>
+                           <property name="echoMode">
+                            <enum>QLineEdit::EchoMode::Password</enum>
+                           </property>
+                           <property name="alignment">
+                            <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QGroupBox" name="groupGoldshell">
+                        <property name="title">
+                         <string>Goldshell</string>
+                        </property>
+                        <layout class="QHBoxLayout" name="horizontalLayout_23">
+                         <item>
+                          <widget class="QLabel" name="label_14">
+                           <property name="font">
+                            <font>
+                             <pointsize>10</pointsize>
+                            </font>
+                           </property>
+                           <property name="text">
+                            <string>Set Login Password:</string>
+                           </property>
+                           <property name="StyleClass" stdset="0">
+                            <string>setText</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QLineEdit" name="lineGoldshellPasswd">
+                           <property name="sizePolicy">
+                            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                             <horstretch>0</horstretch>
+                             <verstretch>0</verstretch>
+                            </sizepolicy>
+                           </property>
+                           <property name="minimumSize">
+                            <size>
+                             <width>0</width>
+                             <height>0</height>
+                            </size>
+                           </property>
+                           <property name="font">
+                            <font>
+                             <pointsize>10</pointsize>
+                            </font>
+                           </property>
+                           <property name="toolTip">
+                            <string>Set alternative login password for Goldshell. Default: &quot;123456789&quot;</string>
                            </property>
                            <property name="echoMode">
                             <enum>QLineEdit::EchoMode::Password</enum>

@@ -304,7 +304,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 344, 302))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, -79, 477, 373))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
         self.verticalLayout_13.setContentsMargins(9, 9, 9, 9)
@@ -378,6 +378,30 @@ class Ui_MainWindow(object):
 
 
         self.verticalLayout_13.addWidget(self.groupVolcminer)
+
+        self.groupGoldshell = QGroupBox(self.scrollAreaWidgetContents)
+        self.groupGoldshell.setObjectName(u"groupGoldshell")
+        self.horizontalLayout_23 = QHBoxLayout(self.groupGoldshell)
+        self.horizontalLayout_23.setObjectName(u"horizontalLayout_23")
+        self.label_14 = QLabel(self.groupGoldshell)
+        self.label_14.setObjectName(u"label_14")
+        self.label_14.setFont(font1)
+
+        self.horizontalLayout_23.addWidget(self.label_14)
+
+        self.lineGoldshellPasswd = QLineEdit(self.groupGoldshell)
+        self.lineGoldshellPasswd.setObjectName(u"lineGoldshellPasswd")
+        sizePolicy.setHeightForWidth(self.lineGoldshellPasswd.sizePolicy().hasHeightForWidth())
+        self.lineGoldshellPasswd.setSizePolicy(sizePolicy)
+        self.lineGoldshellPasswd.setMinimumSize(QSize(0, 0))
+        self.lineGoldshellPasswd.setFont(font1)
+        self.lineGoldshellPasswd.setEchoMode(QLineEdit.EchoMode.Password)
+        self.lineGoldshellPasswd.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
+
+        self.horizontalLayout_23.addWidget(self.lineGoldshellPasswd)
+
+
+        self.verticalLayout_13.addWidget(self.groupGoldshell)
 
         self.groupPbfarmer = QGroupBox(self.scrollAreaWidgetContents)
         self.groupPbfarmer.setObjectName(u"groupPbfarmer")
@@ -711,6 +735,12 @@ class Ui_MainWindow(object):
         self.label_13.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
 #if QT_CONFIG(tooltip)
         self.lineVolcminerPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative login password for Volcminer. Default: \"ltc@dog\"", None))
+#endif // QT_CONFIG(tooltip)
+        self.groupGoldshell.setTitle(QCoreApplication.translate("MainWindow", u"Goldshell", None))
+        self.label_14.setText(QCoreApplication.translate("MainWindow", u"Set Login Password:", None))
+        self.label_14.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.lineGoldshellPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative login password for Goldshell. Default: \"123456789\"", None))
 #endif // QT_CONFIG(tooltip)
         self.groupPbfarmer.setTitle(QCoreApplication.translate("MainWindow", u"pbfarmer", None))
         self.label_12.setText(QCoreApplication.translate("MainWindow", u"Set API Key:", None))
