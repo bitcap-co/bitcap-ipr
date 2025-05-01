@@ -492,20 +492,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             confirm.actionOpenBrowser.clicked.connect(lambda: self.open_dashboard(ip))
             confirm.accept.clicked.connect(confirm.hide)
             # copy action
-            confirm.lineIPField.actionCopy = confirm.lineIPField.addAction(
-                QIcon(":theme/icons/rc/copy.png"),
-                QLineEdit.ActionPosition.TrailingPosition,
-            )
-            confirm.lineIPField.actionCopy.triggered.connect(
-                lambda: self.copy_text(confirm.lineIPField)
-            )
-            confirm.lineMACField.actionCopy = confirm.lineMACField.addAction(
-                QIcon(":theme/icons/rc/copy.png"),
-                QLineEdit.ActionPosition.TrailingPosition,
-            )
-            confirm.lineMACField.actionCopy.triggered.connect(
-                lambda: self.copy_text(confirm.lineMACField)
-            )
+            confirm.lineIPField.actionCopy = self.create_copy_text_action(confirm.lineIPField)
+            confirm.lineMACField.actionCopy = self.create_copy_text_action(confirm.lineMACField)
             logger.info("show_confirm : show IPRConfirmation.")
             confirm.lineIPField.setText(ip)
             confirm.lineMACField.setText(mac)
@@ -542,6 +530,16 @@ class IPR(QMainWindow, Ui_MainWindow):
         confirm.show()
         confirm.activateWindow()
         self.sys_tray.messageClicked.disconnect()
+
+    def create_copy_text_action(self, line: QLineEdit):
+        copy_action = line.addAction(
+            QIcon(":theme/icons/rc/copy.png"),
+            QLineEdit.ActionPosition.TrailingPosition,
+        )
+        copy_action.triggered.connect(
+            lambda: self.copy_text(line)
+        )
+        return copy_action
 
     def copy_text(self, lineEdit):
         lineEdit.selectAll()
