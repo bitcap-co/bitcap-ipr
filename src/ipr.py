@@ -178,48 +178,20 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.idTable.doubleClicked.connect(self.double_click_item)
         self.idTable.cellClicked.connect(self.locate_miner)
 
-        self.actionToggleBitmainPasswd = self.lineBitmainPasswd.addAction(
-            QIcon(":theme/icons/rc/view.png"),
-            QLineEdit.ActionPosition.TrailingPosition,
+        self.actionToggleBitmainPasswd = self.create_passwd_toggle_action(
+            self.lineBitmainPasswd
         )
-        self.actionToggleBitmainPasswd.setToolTip("Show/Hide password")
-        self.actionToggleBitmainPasswd.triggered.connect(
-            lambda: self.toggle_show_passwd(
-                self.lineBitmainPasswd, self.actionToggleBitmainPasswd
-            )
+        self.actionToggleWhatsminerPasswd = self.create_passwd_toggle_action(
+            self.lineWhatsminerPasswd
         )
-
-        self.actionToggleWhatsminerPasswd = self.lineWhatsminerPasswd.addAction(
-            QIcon(":theme/icons/rc/view.png"),
-            QLineEdit.ActionPosition.TrailingPosition,
+        self.actionToggleVolcminerPasswd = self.create_passwd_toggle_action(
+            self.lineVolcminerPasswd
         )
-        self.actionToggleWhatsminerPasswd.setToolTip("Show/Hide password")
-        self.actionToggleWhatsminerPasswd.triggered.connect(
-            lambda: self.toggle_show_passwd(
-                self.lineWhatsminerPasswd, self.actionToggleWhatsminerPasswd
-            )
+        self.actionToggleGoldshellPasswd = self.create_passwd_toggle_action(
+            self.lineGoldshellPasswd
         )
-
-        self.actionToggleVolcminerPasswd = self.lineVolcminerPasswd.addAction(
-            QIcon(":theme/icons/rc/view.png"),
-            QLineEdit.ActionPosition.TrailingPosition,
-        )
-        self.actionToggleVolcminerPasswd.setToolTip("Show/Hide password")
-        self.actionToggleVolcminerPasswd.triggered.connect(
-            lambda: self.toggle_show_passwd(
-                self.lineVolcminerPasswd, self.actionToggleVolcminerPasswd
-            )
-        )
-
-        self.actionTogglePbfarmerKey = self.linePbfarmerKey.addAction(
-            QIcon(":theme/icons/rc/view.png"),
-            QLineEdit.ActionPosition.TrailingPosition,
-        )
-        self.actionTogglePbfarmerKey.setToolTip("Show/Hide password")
-        self.actionTogglePbfarmerKey.triggered.connect(
-            lambda: self.toggle_show_passwd(
-                self.linePbfarmerKey, self.actionTogglePbfarmerKey
-            )
+        self.actionTogglePbfarmerKey = self.create_passwd_toggle_action(
+            self.linePbfarmerKey
         )
 
         self.confirms = []
@@ -269,11 +241,15 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.checkListenVolcminer.setChecked(
                 self.config["general"]["listenFor"]["additional"]["volcminer"]
             )
+            self.checkListenGoldshell.setChecked(
+                self.config["general"]["listenFor"]["additional"]["goldshell"]
+            )
 
             # api
             self.lineBitmainPasswd.setText(self.config["api"]["bitmainAltPasswd"])
             self.lineWhatsminerPasswd.setText(self.config["api"]["whatsminerAltPasswd"])
             self.lineVolcminerPasswd.setText(self.config["api"]["volcminerAltPasswd"])
+            self.lineGoldshellPasswd.setText(self.config["api"]["goldshellAltPasswd"])
             self.linePbfarmerKey.setText(self.config["api"]["pbfarmerKey"])
 
             # logs
@@ -328,6 +304,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.listenerConfig.addButton(self.checkListenIceRiver, 2)
         self.listenerConfig.addButton(self.checkListenWhatsminer, 3)
         self.listenerConfig.addButton(self.checkListenVolcminer, 4)
+        self.listenerConfig.addButton(self.checkListenGoldshell, 5)
         self.listenerConfig.buttonClicked.connect(self.restart_listen)
 
         self.actionDisableInactiveTimer.changed.connect(self.restart_listen)
@@ -491,13 +468,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info(" show IP confirmation.")
         if not self.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
-        ip, mac, type = self.lm.result.split(",")
+        ip, mac, sn, type = self.lm.result.split(",")
         if type == "antminer" and self.checkListenVolcminer.isChecked():
             self.api_client.create_volcminer_client(ip, self.lineVolcminerPasswd.text())
             if self.api_client.is_volcminer():
                 type = "volcminer"
             self.api_client.close_client()
-        logger.info(f"show_confirm : got {ip},{mac},{type} from listener.")
+        logger.info(f"show_confirm : got {ip},{mac}, {sn}, {type} from listener.")
         if type == "iceriver":
             self.api_client.create_iceriver_client(ip, self.linePbfarmerKey.text())
             mac = self.api_client.get_iceriver_mac_addr()
@@ -507,7 +484,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         if self.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
         if self.actionEnableIDTable.isChecked():
-            self.populate_table_row(ip, mac, type)
+            self.populate_table_row(ip, mac, sn, type)
             self.activateWindow()
         else:
             confirm = IPRConfirmation()
@@ -571,13 +548,15 @@ class IPR(QMainWindow, Ui_MainWindow):
         lineEdit.copy()
 
     # id table view
-    def populate_table_row(self, ip: str, mac: str, type: str):
+    def populate_table_row(self, ip: str, mac: str, sn: str, type: str):
         client_auth = None
         match type:
             case "antminer":
                 client_auth = self.lineBitmainPasswd.text()
             case "volcminer":
                 client_auth = self.lineVolcminerPasswd.text()
+            case "goldshell":
+                client_auth = self.lineGoldshellPasswd.text()
             case "iceriver":
                 client_auth = self.linePbfarmerKey.text()
         self.api_client.create_client_from_type(type, ip, client_auth)
@@ -597,7 +576,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.idTable.setCellWidget(rowPosition, 0, actionLocateMiner)
         self.idTable.setItem(rowPosition, 1, QTableWidgetItem(ip))
         self.idTable.setItem(rowPosition, 2, QTableWidgetItem(mac))
-        self.idTable.setItem(rowPosition, 3, QTableWidgetItem(t_data["serial"]))
+        if sn:
+            self.idTable.setItem(rowPosition, 3, QTableWidgetItem(sn))
+        else:
+            self.idTable.setItem(rowPosition, 3, QTableWidgetItem(t_data["serial"]))
         # ASIC TYPE
         self.idTable.setItem(rowPosition, 4, QTableWidgetItem(type))
         # SUBTYPE
@@ -647,6 +629,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                     client_auth = self.linePbfarmerKey.text()
                 case "whatsminer":
                     client_auth = self.lineWhatsminerPasswd.text()
+                case "goldshell":
+                    client_auth = self.lineGoldshellPasswd.text()
             self.api_client.create_client_from_type(miner_type, ip_addr, client_auth)
             client = self.api_client.get_client()
             if not client:
@@ -654,9 +638,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "Status :: Failed to connect or authenticate client.", 5000
                 )
             self.api_client.locate_miner(miner_type)
-            if client.err:
+            if client._error:
                 return self.iprStatus.showMessage(
-                    f"Status :: Failed to locate miner: {client.err}", 5000
+                    f"Status :: Failed to locate miner: {client._error}", 5000
                 )
             self.iprStatus.showMessage(f"Status :: Locating miner: {ip_addr}...", 10000)
 
@@ -743,6 +727,17 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.comboOnWindowClose.setCurrentIndex(0)
             self.comboOnWindowClose.setEnabled(False)
 
+    def create_passwd_toggle_action(self, line: QLineEdit):
+        passwd_action = line.addAction(
+            QIcon(":theme/icons/rc/view.png"),
+            QLineEdit.ActionPosition.TrailingPosition,
+        )
+        passwd_action.setToolTip("Show/Hide password")
+        passwd_action.triggered.connect(
+            lambda: self.toggle_show_passwd(line, passwd_action)
+        )
+        return passwd_action
+
     def toggle_show_passwd(self, line: QLineEdit, action):
         if line.echoMode() == QLineEdit.EchoMode.Password:
             line.setEchoMode(QLineEdit.EchoMode.Normal)
@@ -779,6 +774,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "iceriver": self.checkListenIceRiver.isChecked(),
                     "additional": {
                         "volcminer": self.checkListenVolcminer.isChecked(),
+                        "goldshell": self.checkListenGoldshell.isChecked(),
                     },
                 },
             },
@@ -786,6 +782,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "bitmainAltPasswd": self.lineBitmainPasswd.text(),
                 "whatsminerAltPasswd": self.lineWhatsminerPasswd.text(),
                 "volcminerAltPasswd": self.lineVolcminerPasswd.text(),
+                "goldshellAltPasswd": self.lineGoldshellPasswd.text(),
                 "pbfarmerKey": self.linePbfarmerKey.text(),
             },
             "logs": {

@@ -1,34 +1,36 @@
-import logging
 import requests
 from string import Template
 
+from .http import BaseHTTPClient
+from .parser import Parser
 from .errors import (
     FailedConnectionError,
 )
 
-logger = logging.getLogger(__name__)
-HOST_URL = Template("${schema}://${ip}/")
 
-
-class IceriverHTTPClient:
+class IceriverHTTPClient(BaseHTTPClient):
     """Iceriver HTTP Client with support for pbfarmer"""
 
     def __init__(self, ip_addr: str, pb_key: str):
-        self.ip = ip_addr
-        self.host = HOST_URL.substitute(schema="http", ip=self.ip)
-        self.pb_key = pb_key
-        self.is_custom = False
-        self.command_prefix = {"pb": "api/", "stock": "user/"}
-        self.err = None
+        super().__init__(ip_addr)
+        self.url = f"http://{self.ip}:{self.port}/"
+        self.bearer = pb_key
+        self.command_format = {
+            "pb": Template("api/${cmd}"),
+            "stock": Template("user/${cmd}"),
+        }
+
         self._initialize_session()
 
-    def _initialize_session(self):
-        self.session = requests.Session()
+    def _initialize_session(self) -> None:
+        self.session.headers = {
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+        }
         self.session.verify = False
         try:
-            self.is_custom = self._is_pbfarmer()
+            self.is_custom = self.__is_pbfarmer()
             if not self.is_custom:
-                self.session.head(self.host, timeout=5.0, verify=self.session.verify)
+                self.session.head(self.url, timeout=5.0, verify=self.session.verify)
         except (
             requests.exceptions.ConnectionError,
             requests.exceptions.ConnectTimeout,
@@ -40,19 +42,18 @@ class IceriverHTTPClient:
                 )
             )
 
-    def _do_http(self, method: str, path: str, data: dict | None = None):
-        headers = {"Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"}
-        if self.is_custom:
-            headers.update({"Authorization": "Bearer " + self.pb_key})
-        req = requests.Request(method=method, url=self.host + path, headers=headers)
-        if data:
-            req.data = data
-        r = req.prepare()
-        res = self.session.send(r, timeout=10.0, verify=self.session.verify)
-        return res.json()
+    def _authenticate_session(self) -> None:
+        pass
 
-    def run_command(self, method: str, command: str, data: dict | None = None):
-        path = self.command_prefix["stock"] + command
+    def run_command(
+        self,
+        method: str,
+        command: str,
+        params: dict | None = None,
+        payload: dict | None = None,
+        data: dict | None = None,
+    ):
+        path = self.command_format["stock"].substitute(cmd=command)
         if self.is_custom:
             match command:
                 case "ipconfig":
@@ -61,22 +62,27 @@ class IceriverHTTPClient:
                     command = "overview"
                 case "locate":
                     command = "machine/locate"
-            path = self.command_prefix["pb"] + command
-        return self._do_http(method, path, data)
+            path = self.command_format["pb"].substitute(cmd=command)
+        res = self._do_http(method=method, path=path, data=data, timeout=10.0)
+        try:
+            resj = res.json()
+        except requests.exceptions.JSONDecodeError:
+            resj = {}
+        return resj
 
     # pbfarmer support
-    def _is_pbfarmer(self):
+    def __is_pbfarmer(self):
         res = self.session.head(
-            self.host + "api", timeout=5.0, verify=self.session.verify
+            self.url + "api", timeout=5.0, verify=self.session.verify
         )
         if res.status_code == 301:
-            self.host = HOST_URL.substitute(schema="https", ip=self.ip)
+            self.url = f"https://{self.ip}:{self.port}/"
             return True
         return False
 
     def get_mac_addr(self):
         data = {"post": 1}
-        resp = self.run_command("POST", "ipconfig", data)
+        resp = self.run_command("POST", "ipconfig", data=data)
         for k in resp.keys():
             if k in ["data", "network"]:
                 if "mac" in resp[k]:
@@ -84,7 +90,7 @@ class IceriverHTTPClient:
 
     def get_system_info(self):
         data = {"post": 4}
-        resp = self.run_command("POST", "userpanel", data)
+        resp = self.run_command("POST", "userpanel", data=data)
         return resp["data"]
 
     def get_blink_status(self):
@@ -94,24 +100,12 @@ class IceriverHTTPClient:
     def blink(self, enabled: bool):
         if not self.is_custom:
             data = {"post": 5, "locate": "1" if enabled else "0"}
-            self.run_command("POST", "userpanel", data)
+            self.run_command("POST", "userpanel", data=data)
         else:
             self.run_command("POST", "locate")
 
-    def _close_client(self, error: Exception | None = None):
-        self.session.close()
-        if error:
-            self.err = error
-            raise error
 
-
-class IceriverParser:
-    def __init__(self, target: dict):
-        self.target = target.copy()
-
-    def get_target(self):
-        return self.target
-
+class IceriverParser(Parser):
     def parse_subtype(self, obj: dict):
         if "model" in obj:
             if obj["model"] == "none":

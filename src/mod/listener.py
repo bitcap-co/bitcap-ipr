@@ -1,6 +1,7 @@
 import time
 import re
 import logging
+import json
 
 from PySide6.QtCore import QObject, Signal, Slot
 from PySide6.QtNetwork import QUdpSocket, QHostAddress
@@ -38,7 +39,7 @@ class Listener(QObject):
     def __init__(self, parent: QObject, port: int):
         super().__init__(parent)
         self.port = port
-        self.max_buf = 40
+        self.max_buf = 1024
         self.record = Record(size=10)
         self.msg = ""
         self.addr = QHostAddress()
@@ -60,10 +61,17 @@ class Listener(QObject):
             case "iceriver":
                 if re.match(msg_patterns["ir"], self.msg):
                     return True
+            case "goldshell":
+                try:
+                    self.msg = json.loads(self.msg)
+                    return True
+                except json.JSONDecodeError:
+                    logger.warning(f"Listener[{self.port}] : Failed to decode json msg.")
         logger.warning(f"Listener[{self.port}] : Failed to validate msg. Ignoring...")
         return False
 
     def parse_msg(self, type: str) -> tuple:
+        sn = ""
         match type:
             case "antminer":
                 ip, mac = self.msg.split(",")
@@ -74,7 +82,12 @@ class Listener(QObject):
             case "iceriver":
                 ip = self.msg.split(":")[1]
                 mac = "ice-river"
-        return ip, mac
+            case "goldshell":
+                ip = self.msg["ip"]
+                mac = self.msg["mac"]
+                if "boxsn" in self.msg:
+                    sn = self.msg["boxsn"]
+        return ip, mac, sn
 
     @Slot()
     def process_datagram(self):
@@ -95,9 +108,11 @@ class Listener(QObject):
                     type = "iceriver"
                 case 8888:
                     type = "whatsminer"
+                case 1314:
+                    type = "goldshell"
             logger.debug(f"Listener[{self.port}] : found type {type} from port.")
             if self.validate_msg(type):
-                ip, mac = self.parse_msg(type)
+                ip, mac, sn = self.parse_msg(type)
                 if self.record.dict:
                     prev_entry = False
                     self.record.dict = dict(
@@ -117,11 +132,11 @@ class Listener(QObject):
                                 )
                                 break
                             else:
-                                self.emit_result([ip, mac, type])
+                                self.emit_result([ip, mac, sn, type])
                     if not prev_entry:
-                        self.emit_result([ip, mac, type])
+                        self.emit_result([ip, mac, sn, type])
                 else:
-                    self.emit_result([ip, mac, type])
+                    self.emit_result([ip, mac, sn, type])
 
     def emit_result(self, received):
         logger.info(f"Listener[{self.port}] : emit result.")

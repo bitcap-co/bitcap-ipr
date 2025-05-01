@@ -1,40 +1,35 @@
-import logging
 import re
 import requests
 from requests.auth import HTTPDigestAuth
 from string import Template
 
+from .http import BaseHTTPClient
+from .parser import Parser
 from .errors import (
     FailedConnectionError,
     AuthenticationError,
 )
 
-logger = logging.getLogger(__name__)
-HOST_URL = Template("http://${ip}/")
 
-
-class BitmainHTTPClient:
+class BitmainHTTPClient(BaseHTTPClient):
     """Bitmain/Antminer HTTP Client with support for vnish"""
 
     def __init__(self, ip_addr: str, passwd: str):
-        self.ip = ip_addr
-        self.url = HOST_URL.substitute(ip=self.ip)
+        super().__init__(ip_addr)
+        self.url = f"http://{self.ip}:{self.port}/"
+        self.username = "root"
         self.passwd = passwd
-        self.digest = None
-        self.is_custom = False
-        self.is_unlocked = False
-        self.command_prefix = {
+        self.command_format = {
             "vnish": "api/v1",
             "stock": Template("cgi-bin/${cmd}.cgi"),
         }
-        self.err = None
+
         self._initialize_session()
 
-    def _initialize_session(self):
-        self.session = requests.Session()
+    def _initialize_session(self) -> None:
         self.session.headers = {"Content-Type": "application/json"}
         try:
-            self.is_custom = self._is_vnish()
+            self.is_custom = self.__is_vnish()
             if not self.is_custom:
                 self._authenticate_session()
         except (
@@ -48,39 +43,30 @@ class BitmainHTTPClient:
                 )
             )
 
-    def _authenticate_session(self):
+    def _authenticate_session(self) -> None:
         passwds = [self.passwd, "root"] if self.passwd != "root" else [self.passwd]
         for passwd in passwds:
-            self.session.auth = HTTPDigestAuth("root", passwd)
+            self.session.auth = HTTPDigestAuth(self.username, passwd)
             res = self.session.head(self.url, timeout=3.0)
             if res.status_code == 200:
-                self.digest = self.session.auth
+                self.auth = self.session.auth
                 break
-        if not self.digest:
+        if not self.auth:
             self._close_client(
                 AuthenticationError(
                     "Authentication Failed: Failed to authenticate session."
                 )
             )
 
-    def _do_http(self, method: str, path: str, payload: dict | None = None):
-        req = requests.Request(
-            method=method, url=self.url + path, headers=self.session.headers
-        )
-        if self.digest:
-            req.auth = self.digest
-        if payload:
-            req.json = payload
-        r = req.prepare()
-        res = self.session.send(r)
-        try:
-            return res.json()
-        except requests.exceptions.JSONDecodeError:
-            logger.warning("_do_http : return wrapped plaintext content.")
-            return {"plaintext": res.text}
-
-    def run_command(self, method: str, command: str, payload: dict | None = None):
-        path = self.command_prefix["stock"].substitute(cmd=command)
+    def run_command(
+        self,
+        method: str,
+        command: str,
+        params: dict | None = None,
+        payload: dict | None = None,
+        data: dict | None = None,
+    ):
+        path = self.command_format["stock"].substitute(cmd=command)
         if self.is_custom:
             match command:
                 case "get_system_info":
@@ -89,12 +75,17 @@ class BitmainHTTPClient:
                     command = "/status"
                 case "blink":
                     command = "/find-miner"
-            path = self.command_prefix["vnish"] + command
-        return self._do_http(method, path, payload)
+            path = self.command_format["vnish"] + command
+        res = self._do_http(method=method, path=path, payload=payload)
+        try:
+            resj = res.json()
+        except requests.exceptions.JSONDecodeError:
+            resj = {"plaintext": res.text}
+        return resj
 
     # Vnish support
-    def _is_vnish(self) -> bool:
-        res = self.session.head(self.url + self.command_prefix["vnish"], timeout=3.0)
+    def __is_vnish(self) -> bool:
+        res = self.session.head(self.url + self.command_format["vnish"], timeout=3.0)
         if res.status_code == 200:
             # change to vnish default passwd
             if self.passwd == "root":
@@ -107,10 +98,16 @@ class BitmainHTTPClient:
         for passwd in passwds:
             payload = {"pw": passwd}
             res = self._do_http(
-                "POST", self.command_prefix["vnish"] + "/unlock", payload
+                method="POST",
+                path=self.command_format["vnish"] + "/unlock",
+                payload=payload,
             )
-            if "token" in res:
-                self.session.headers.update({"Authorization": "Bearer " + res["token"]})
+            try:
+                resj = res.json()
+            except requests.exceptions.JSONDecodeError:
+                break
+            if "token" in resj:
+                self.session.headers.update({"Authorization": "Bearer " + resj["token"]})
                 self.is_unlocked = True
                 break
         if not self.is_unlocked:
@@ -120,21 +117,21 @@ class BitmainHTTPClient:
                 )
             )
 
-    def get_bitmain_system_log(self):
+    def get_bitmain_system_log(self) -> dict:
         resp = self.run_command("GET", "log")
         resp["plaintext"] = resp["plaintext"][0 : resp["plaintext"].find("===")]
         return resp
 
-    def get_system_info(self):
+    def get_system_info(self) -> dict:
         return self.run_command("GET", "get_system_info")
 
-    def get_blink_status(self):
+    def get_blink_status(self) -> bool:
         resp = self.run_command("GET", "get_blink_status")
         if "find-miner" in resp:
             return resp["find-miner"]
         return resp["blink"]
 
-    def blink(self, enabled: bool):
+    def blink(self, enabled: bool) -> None:
         if self.is_custom and not self.is_unlocked:
             self.unlock_vnish_session()
         if self.is_custom:
@@ -142,16 +139,10 @@ class BitmainHTTPClient:
         else:
             self.run_command("POST", "blink", {"blink": enabled})
 
-    def _close_client(self, error: Exception | None = None):
-        self.session.close()
-        if error:
-            self.err = error
-            raise error
 
-
-class BitmainParser:
+class BitmainParser(Parser):
     def __init__(self, target: dict):
-        self.target = target.copy()
+        super().__init__(target)
         self.ctrl_boards = {
             "xil": r"Zynq|Xilinx|xil",
             "bb": r"BeagleBone",
@@ -159,15 +150,17 @@ class BitmainParser:
             "cv": r"cvitek|CVITEK",
         }
 
-    def get_target(self):
-        return self.target
-
-    def parse_common(self, obj: dict):
+    def parse_serial(self, obj: dict) -> None:
         for k in obj.keys():
             if k in ["serial", "serinum"]:
                 self.target["serial"] = obj[k]
+                break
+
+    def parse_subtype(self, obj: dict) -> None:
+        for k in obj.keys():
             if k in ["miner", "minertype"]:
                 self.target["subtype"] = obj[k][9:]
+                break
 
     def parse_algorithm(self, obj: dict):
         if "Algorithm" in obj:

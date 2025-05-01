@@ -34,6 +34,10 @@ class ListenerManager(QObject):
                     if listenFor.isChecked():
                         logger.info(" start listening on 0.0.0.0:8888.")
                         self.listeners.append(Listener(self, 8888))
+                case 5:  # goldshell
+                    if listenFor.isChecked():
+                        logger.info(" start listening on 0.0.0.0:1314.")
+                        self.listeners.append(Listener(self, 1314))
         for listener in self.listeners:
             listener.result.connect(self.emit_listen_complete)
             listener.error.connect(self.emit_listen_error)
