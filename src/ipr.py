@@ -22,7 +22,6 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
     QLabel,
     QLineEdit,
-    QMenuBar,
     QMenu,
     QButtonGroup,
 )
@@ -35,6 +34,7 @@ from PySide6.QtGui import (
 import ui.resources  # noqa F401
 from ui.MainWindow import Ui_MainWindow
 from ui.widgets.titlebar import TitleBar
+from ui.widgets.ipr.menubar import IPR_Menubar
 from iprconfirmation import IPRConfirmation
 from iprabout import IPRAbout
 
@@ -71,87 +71,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         title_bar_widget.addWidget(self.title_bar)
 
         # menu bar
-        self.menu_bar = QMenuBar()
-        self.menuHelp = self.menu_bar.addMenu("Help")
-        self.menuHelp.setToolTipsVisible(True)
-        self.menuOptions = self.menu_bar.addMenu("Options")
-        self.menuOptions.setToolTipsVisible(True)
-        self.menuTable = self.menu_bar.addMenu("ID Table")
-        self.menuTable.setToolTipsVisible(True)
-        self.menuSettings = self.menu_bar.addMenu("Settings")
-        self.menuSettings.setToolTipsVisible(True)
-        self.menuQuit = self.menu_bar.addMenu("Quit")
-        self.menuQuit.setToolTipsVisible(True)
-
-        # help
-        self.actionAbout = self.menuHelp.addAction("About")
-        self.actionAbout.setToolTip("Opens the about dialog")
-        self.actionOpenLog = self.menuHelp.addAction("Open Log")
-        self.actionOpenLog.setToolTip("Opens log file")
-        self.actionReportIssue = self.menuHelp.addAction("Report Issue")
-        self.actionReportIssue.setToolTip("Report a new issue on GitHub")
-        self.actionSourceCode = self.menuHelp.addAction("Source Code")
-        self.actionSourceCode.setToolTip("Opens the GitHub repo in browser")
-        self.actionVersion = self.menuHelp.addAction(
-            f"Version {APP_INFO['appversion']}"
-        )
-        self.actionVersion.setEnabled(False)
-
-        # options
-        self.actionAlwaysOpenIPInBrowser = self.menuOptions.addAction(
-            "Always Open IP in Browser"
-        )
-        self.actionAlwaysOpenIPInBrowser.setCheckable(True)
-        self.actionAlwaysOpenIPInBrowser.setToolTip(
-            "Always opens IPs in browser (No IP confirmation)"
-        )
-        self.actionDisableInactiveTimer = self.menuOptions.addAction(
-            "Disable Inactive Timer"
-        )
-        self.actionDisableInactiveTimer.setCheckable(True)
-        self.actionDisableInactiveTimer.setToolTip(
-            "Disables inactive timer of 15 minutes (Listens until stopped)"
-        )
-        self.actionAutoStartOnLaunch = self.menuOptions.addAction(
-            "Auto Start on Launch"
-        )
-        self.actionAutoStartOnLaunch.setCheckable(True)
-        self.actionAutoStartOnLaunch.setToolTip(
-            "Automatically start listeners on launch (Takes effect on next launch)"
-        )
-
-        # table
-        self.actionEnableIDTable = self.menuTable.addAction("Enable ID Table")
-        self.actionEnableIDTable.setCheckable(True)
-        self.actionEnableIDTable.setToolTip(
-            "Stores identifying information in a table on confirmation"
-        )
-        self.actionOpenSelectedIPs = self.menuTable.addAction("Open Selected IPs")
-        self.actionOpenSelectedIPs.setEnabled(False)
-        self.actionOpenSelectedIPs.setToolTip("Open selected IPs in browser")
-        self.actionCopySelectedElements = self.menuTable.addAction(
-            "Copy Selected Elements"
-        )
-        self.actionCopySelectedElements.setEnabled(False)
-        self.actionCopySelectedElements.setToolTip(
-            "Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows"
-        )
-        self.actionExport = self.menuTable.addAction("Export")
-        self.actionExport.setEnabled(False)
-        self.actionExport.setToolTip("Export current table as .CSV file")
-
-        # settings
-        self.actionSettings = self.menuSettings.addAction("Settings...")
-        self.actionSettings.setToolTip("Change application settings")
-
-        # quit
-        self.actionKillAllConfirmations = self.menuQuit.addAction(
-            "Kill All Confirmations"
-        )
-        self.actionKillAllConfirmations.setToolTip("Kills all IP confirmation windows")
-        self.actionQuit = self.menuQuit.addAction("Quit")
-        self.actionQuit.setToolTip("Quits app")
-
+        self.menu_bar = IPR_Menubar()
         menubarwidget = self.menubar.layout()
         menubarwidget.addWidget(self.menu_bar)
 
@@ -198,19 +118,19 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.confirms = []
 
         # menu_bar signals
-        self.actionAbout.triggered.connect(self.about)
-        self.actionOpenLog.triggered.connect(self.open_log)
-        self.actionReportIssue.triggered.connect(self.open_issues)
-        self.actionSourceCode.triggered.connect(self.open_source)
-        self.actionKillAllConfirmations.triggered.connect(self.killall)
-        self.actionQuit.triggered.connect(self.quit)
-        self.menuOptions.triggered.connect(self.update_settings)
-        self.menuTable.triggered.connect(self.update_settings)
-        self.actionEnableIDTable.triggered.connect(self.update_stacked_widget)
-        self.actionOpenSelectedIPs.triggered.connect(self.open_selected_ips)
-        self.actionCopySelectedElements.triggered.connect(self.copy_selected)
-        self.actionExport.triggered.connect(self.export_table)
-        self.actionSettings.triggered.connect(self.show_app_config)
+        self.menu_bar.actionAbout.triggered.connect(self.about)
+        self.menu_bar.actionOpenLog.triggered.connect(self.open_log)
+        self.menu_bar.actionReportIssue.triggered.connect(self.open_issues)
+        self.menu_bar.actionSourceCode.triggered.connect(self.open_source)
+        self.menu_bar.actionKillAllConfirmations.triggered.connect(self.killall)
+        self.menu_bar.actionQuit.triggered.connect(self.quit)
+        self.menu_bar.menuOptions.triggered.connect(self.update_settings)
+        self.menu_bar.menuTable.triggered.connect(self.update_settings)
+        self.menu_bar.actionEnableIDTable.triggered.connect(self.update_stacked_widget)
+        self.menu_bar.actionOpenSelectedIPs.triggered.connect(self.open_selected_ips)
+        self.menu_bar.actionCopySelectedElements.triggered.connect(self.copy_selected)
+        self.menu_bar.actionExport.triggered.connect(self.export_table)
+        self.menu_bar.actionSettings.triggered.connect(self.show_app_config)
         # app config signals
         self.checkEnableSysTray.toggled.connect(self.toggle_app_config)
         self.actionIPRCancelConfig.clicked.connect(self.update_stacked_widget)
@@ -266,20 +186,20 @@ class IPR(QMainWindow, Ui_MainWindow):
             if window:
                 self.setGeometry(*window)
 
-            self.actionAlwaysOpenIPInBrowser.setChecked(
+            self.menu_bar.actionAlwaysOpenIPInBrowser.setChecked(
                 self.config["instance"]["options"]["alwaysOpenIPInBrowser"]
             )
-            self.actionDisableInactiveTimer.setChecked(
+            self.menu_bar.actionDisableInactiveTimer.setChecked(
                 self.config["instance"]["options"]["disableInactiveTimer"]
             )
-            self.actionAutoStartOnLaunch.setChecked(
+            self.menu_bar.actionAutoStartOnLaunch.setChecked(
                 self.config["instance"]["options"]["autoStartOnLaunch"]
             )
-            self.actionEnableIDTable.setChecked(
+            self.menu_bar.actionEnableIDTable.setChecked(
                 self.config["instance"]["table"]["enableIDTable"]
             )
 
-        if self.actionEnableIDTable.isChecked():
+        if self.menu_bar.actionEnableIDTable.isChecked():
             self.toggle_table_settings(True)
 
         logger.info(" init ListenerManager().")
@@ -308,9 +228,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.listenerConfig.addButton(self.checkListenGoldshell, 5)
         self.listenerConfig.buttonClicked.connect(self.restart_listen)
 
-        self.actionDisableInactiveTimer.changed.connect(self.restart_listen)
-        self.actionEnableIDTable.changed.connect(
-            lambda: self.toggle_table_settings(self.actionEnableIDTable.isChecked())
+        self.menu_bar.actionDisableInactiveTimer.changed.connect(self.restart_listen)
+        self.menu_bar.actionEnableIDTable.changed.connect(
+            lambda: self.toggle_table_settings(
+                self.menu_bar.actionEnableIDTable.isChecked()
+            )
         )
         self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
         self.comboLogLevel.currentIndexChanged.connect(self.set_logger_level)
@@ -321,7 +243,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         self.update_stacked_widget()
 
-        if self.actionAutoStartOnLaunch.isChecked():
+        if self.menu_bar.actionAutoStartOnLaunch.isChecked():
             self.start_listen()
 
     def create_or_destroy_systray(self):
@@ -353,7 +275,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def update_stacked_widget(self):
         logger.info(" update view.")
-        if self.actionEnableIDTable.isChecked():
+        if self.menu_bar.actionEnableIDTable.isChecked():
             self.stackedWidget.setCurrentIndex(0)
         else:
             self.stackedWidget.setCurrentIndex(1)
@@ -401,7 +323,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "Status :: Failed to start listeners. No listeners configured", 5000
             )
             return
-        if not self.actionDisableInactiveTimer.isChecked():
+        if not self.menu_bar.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
         if self.sys_tray:
             self.actionSysStartListen.setEnabled(False)
@@ -444,7 +366,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         if self.sys_tray:
             self.actionSysStartListen.setEnabled(True)
             self.actionSysStopListen.setEnabled(False)
-        if self.actionEnableIDTable.isChecked():
+        if self.menu_bar.actionEnableIDTable.isChecked():
             self.idTable.setRowCount(0)
         self.actionIPRStart.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
@@ -467,7 +389,7 @@ class IPR(QMainWindow, Ui_MainWindow):
     # confirm
     def show_confirm(self):
         logger.info(" show IP confirmation.")
-        if not self.actionDisableInactiveTimer.isChecked():
+        if not self.menu_bar.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
         ip, mac, type, sn = self.lm.result.split(",")
         if type == "antminer" and self.checkListenVolcminer.isChecked():
@@ -482,9 +404,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.api_client.close_client()
             logger.info(f"show_confirm : got iceriver mac addr : {mac}")
         self.iprStatus.showMessage(f"Status :: Got {type}: IP:{ip} MAC:{mac}", 3000)
-        if self.actionAlwaysOpenIPInBrowser.isChecked():
+        if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
-        if self.actionEnableIDTable.isChecked():
+        if self.menu_bar.actionEnableIDTable.isChecked():
             self.populate_table_row(ip, mac, sn, type)
             self.activateWindow()
         else:
@@ -493,8 +415,12 @@ class IPR(QMainWindow, Ui_MainWindow):
             confirm.actionOpenBrowser.clicked.connect(lambda: self.open_dashboard(ip))
             confirm.accept.clicked.connect(confirm.hide)
             # copy action
-            confirm.lineIPField.actionCopy = self.create_copy_text_action(confirm.lineIPField)
-            confirm.lineMACField.actionCopy = self.create_copy_text_action(confirm.lineMACField)
+            confirm.lineIPField.actionCopy = self.create_copy_text_action(
+                confirm.lineIPField
+            )
+            confirm.lineMACField.actionCopy = self.create_copy_text_action(
+                confirm.lineMACField
+            )
             logger.info("show_confirm : show IPRConfirmation.")
             confirm.lineIPField.setText(ip)
             confirm.lineMACField.setText(mac)
@@ -537,9 +463,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             QIcon(":theme/icons/rc/copy.png"),
             QLineEdit.ActionPosition.TrailingPosition,
         )
-        copy_action.triggered.connect(
-            lambda: self.copy_text(line)
-        )
+        copy_action.triggered.connect(lambda: self.copy_text(line))
         return copy_action
 
     def copy_text(self, lineEdit):
@@ -605,9 +529,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.table_context.exec(QCursor.pos())
 
     def toggle_table_settings(self, enabled: bool):
-        self.actionOpenSelectedIPs.setEnabled(enabled)
-        self.actionCopySelectedElements.setEnabled(enabled)
-        self.actionExport.setEnabled(enabled)
+        self.menu_bar.actionOpenSelectedIPs.setEnabled(enabled)
+        self.menu_bar.actionCopySelectedElements.setEnabled(enabled)
+        self.menu_bar.actionExport.setEnabled(enabled)
 
     def locate_miner(self, row: int, col: int):
         if col == 0:
@@ -757,11 +681,11 @@ class IPR(QMainWindow, Ui_MainWindow):
                 ]
             },
             "options": {
-                "alwaysOpenIPInBrowser": self.actionAlwaysOpenIPInBrowser.isChecked(),
-                "disableInactiveTimer": self.actionDisableInactiveTimer.isChecked(),
-                "autoStartOnLaunch": self.actionAutoStartOnLaunch.isChecked(),
+                "alwaysOpenIPInBrowser": self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked(),
+                "disableInactiveTimer": self.menu_bar.actionDisableInactiveTimer.isChecked(),
+                "autoStartOnLaunch": self.menu_bar.actionAutoStartOnLaunch.isChecked(),
             },
-            "table": {"enableIDTable": self.actionEnableIDTable.isChecked()},
+            "table": {"enableIDTable": self.menu_bar.actionEnableIDTable.isChecked()},
         }
         config = {
             "general": {
@@ -815,7 +739,7 @@ class IPR(QMainWindow, Ui_MainWindow):
     def close_to_tray_or_exit(self):
         if self.sys_tray and self.comboOnWindowClose.currentIndex() == 1:
             # force disable ID table option
-            self.actionEnableIDTable.setChecked(False)
+            self.menu_bar.actionEnableIDTable.setChecked(False)
             self.update_stacked_widget()
             self.setVisible(False)
             self.sys_tray.show()
