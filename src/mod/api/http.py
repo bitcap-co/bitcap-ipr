@@ -52,6 +52,7 @@ class BaseHTTPClient(ABC):
             method=method,
             url=self.url + path,
             headers=self.session.headers,
+            cookies=self.session.cookies
         )
         if self.auth:
             req.auth = self.auth
