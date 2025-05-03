@@ -79,6 +79,10 @@ class VolcminerHTTPClient(BaseHTTPClient):
 
 
 class VolcminerParser(Parser):
+    def __init__(self, target: dict):
+        super().__init__(target)
+        self.target["algorithm"] = "SCRYPT"
+
     def parse_subtype(self, obj: dict):
         if "minertype" in obj:
             self.target["subtype"] = obj["minertype"][10:]
