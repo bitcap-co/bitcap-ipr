@@ -14,6 +14,7 @@ from .iceriver import IceriverHTTPClient, IceriverParser
 from .whatsminer import WhatsminerRPCClient, WhatsminerParser
 from .volcminer import VolcminerHTTPClient, VolcminerParser
 from .goldshell import GoldshellHTTPClient, GoldshellParser
+from .sealminer import SealminerHTTPClient, SealminerParser
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +77,14 @@ class APIClient:
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
+    def create_sealminer_client(self, ip_addr: str, passwd: str):
+        if not passwd:
+            passwd = "seal"
+        try:
+            self.client = SealminerHTTPClient(ip_addr, passwd)
+        except (FailedConnectionError, AuthenticationError) as err:
+            logger.error(err)
+
     def create_client_from_type(self, miner_type: str, ip_addr: str, auth_str: str):
         match miner_type:
             case "antminer":
@@ -88,6 +97,8 @@ class APIClient:
                 self.create_volcminer_client(ip_addr, auth_str)
             case "goldshell":
                 self.create_goldshell_client(ip_addr, auth_str)
+            case "sealminer":
+                self.create_sealminer_client(ip_addr, auth_str)
 
     def locate_miner(self, miner_type: str):
         locate_duration = QTimer(self.parent)
@@ -150,6 +161,7 @@ class APIClient:
         elif (
             isinstance(parser, IceriverParser)
             or isinstance(parser, VolcminerParser)
+            or isinstance(parser, SealminerParser)
         ):
             parser.parse_all(sys)
         elif isinstance(parser, GoldshellParser):
@@ -176,6 +188,8 @@ class APIClient:
                 return self.get_target_info(VolcminerParser(self.target_info))
             case "goldshell":
                 return self.get_target_info(GoldshellParser(self.target_info))
+            case "sealminer":
+                return self.get_target_info(SealminerParser(self.target_info))
 
     def close_client(self):
         if self.client:
