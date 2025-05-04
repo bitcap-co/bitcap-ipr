@@ -10,7 +10,9 @@ def parse_arguments():
     group.add_argument("-l", "--local", action="store_true")
     group.add_argument("-b", "--broadcast", action="store_true")
     parser.add_argument("-p", "--port", action="store", type=int, required=True)
-    parser.add_argument("-m", "--msg", action="store", type=str, required=True)
+    group2 = parser.add_mutually_exclusive_group(required=True)
+    group2.add_argument("-m", "--msg", action="store", type=str)
+    group2.add_argument("-s", "--hex", action="store", type=str)
     parser.add_argument("-r", "--repeat", action="store", type=int)
     return parser.parse_args()
 
@@ -25,7 +27,10 @@ if __name__ == "__main__":
         ip_addr = "255.255.255.255"
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
-    sock.sendto(bytes(args.msg, "utf-8"), (ip_addr, args.port))
+    if args.hex:
+        sock.sendto(bytes.fromhex(args.hex), (ip_addr, args.port))
+    else:
+        sock.sendto(bytes(args.msg, "utf-8"), (ip_addr, args.port))
 
     if args.repeat:
         for _ in range(args.repeat):
