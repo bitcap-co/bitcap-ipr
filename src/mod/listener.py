@@ -2,6 +2,7 @@ import time
 import re
 import logging
 import json
+import zlib
 
 from PySide6.QtCore import QObject, Signal, Slot
 from PySide6.QtNetwork import QUdpSocket, QHostAddress
@@ -16,6 +17,7 @@ msg_patterns = {
     "ir": re.compile(f"^addr:{reg_ip}"),
     "bt": re.compile(f"^IP:{reg_ip}MAC:{reg_mac}"),
 }
+ZLIB_DEFAULT_MAGIC = b"\x78\x9c"
 
 
 class Record:
@@ -61,7 +63,7 @@ class Listener(QObject):
             case "iceriver":
                 if re.match(msg_patterns["ir"], self.msg):
                     return True
-            case "goldshell":
+            case "goldshell" | "sealminer":
                 try:
                     self.msg = json.loads(self.msg)
                     return True
@@ -89,6 +91,9 @@ class Listener(QObject):
                 mac = self.msg["mac"]
                 if "boxsn" in self.msg:
                     sn = self.msg["boxsn"]
+            case "sealminer":
+                ip = self.msg[3]["IPV4"]
+                mac = self.msg[1]["MAC"]
         return ip, mac, sn
 
     def is_dup_packet(self, ip: str) -> bool:
@@ -112,13 +117,37 @@ class Listener(QObject):
         if not prev_entry:
             return False
 
+    def is_zlib_compressed(self, data: bytes) -> bool:
+        if ZLIB_DEFAULT_MAGIC in data:
+            return True
+        return False
+
+    def decompress_data(self, data: bytes, header: bytes):
+        data_start = data.find(header)
+        data = data[data_start:]
+        try:
+            out = zlib.decompress(data)
+        except Exception as e:
+            logger.error(f"Listener[{self.port}]: Failed to decompress msg data: {e}.")
+            return
+        # clean up data
+        out = out.replace(b"\x00", b"")
+        out = out.replace(b"}{", b"}, {")
+        out = b"[" + out + b"]"
+        return out
+
     @Slot()
     def process_datagram(self):
         while self.sock.hasPendingDatagrams():
             datagram = self.sock.receiveDatagram(self.max_buf)
             if not datagram.isValid():
                 return
-            self.msg = datagram.data().data().decode().rstrip("\x00")
+            if self.is_zlib_compressed(datagram.data().data()):
+                self.msg = self.decompress_data(
+                    datagram.data().data(), ZLIB_DEFAULT_MAGIC
+                )
+            else:
+                self.msg = datagram.data().data().decode().rstrip("\x00")
             if not self.msg:
                 logger.warning(f"Listener[{self.port}] : msg empty. Ignoring...")
                 return
@@ -133,6 +162,8 @@ class Listener(QObject):
                     type = "whatsminer"
                 case 1314:
                     type = "goldshell"
+                case 18650:
+                    type = "sealminer"
             logger.debug(f"Listener[{self.port}] : found type {type} from port.")
             if self.validate_msg(type):
                 ip, mac, sn = self.parse_msg(type)
