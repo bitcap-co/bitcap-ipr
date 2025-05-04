@@ -85,7 +85,7 @@ class GoldshellHTTPClient(BaseHTTPClient):
             resj = {}
         return resj
 
-    def get_status(self):
+    def get_system_info(self):
         return self.run_command("GET", "status")
 
     def get_settings(self):
@@ -118,6 +118,10 @@ class GoldshellParser(Parser):
     def parse_firmware(self, obj: dict):
         if "firmware" in obj:
             self.target["firmware"] = obj["firmware"]
+
+    def parse_system_info(self, obj: dict):
+        self.parse_firmware(obj)
+        self.parse_subtype(obj)
 
 
 def zero_pad(data: bytes, block_size: int) -> bytes:

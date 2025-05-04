@@ -143,6 +143,7 @@ class BitmainHTTPClient(BaseHTTPClient):
 class BitmainParser(Parser):
     def __init__(self, target: dict):
         super().__init__(target)
+        self.target["algorithm"] = "sha256d"
         self.ctrl_boards = {
             "xil": r"Zynq|Xilinx|xil",
             "bb": r"BeagleBone",
@@ -163,14 +164,9 @@ class BitmainParser(Parser):
                 break
 
     def parse_algorithm(self, obj: dict):
-        if "Algorithm" in obj:
-            self.target["algorithm"] = obj["Algorithm"]
-        else:
-            self.target["algorithm"] = "sha256d"
-
-    def parse_vnish_algorithm(self, obj: dict):
-        if "algorithm" in obj:
-            self.target["algorithm"] = obj["algorithm"]
+        for k in obj.keys():
+            if k in ["algorithm", "Algorithm"]:
+                self.target["algorithm"] = obj[k]
 
     def parse_firmware(self, obj: dict):
         if "fw_name" in obj:
@@ -186,3 +182,9 @@ class BitmainParser(Parser):
                 if re.search(pattern, obj["plaintext"]):
                     self.target["platform"] = cb
                     break
+
+    def parse_system_info(self, obj: dict):
+        self.parse_algorithm(obj)
+        self.parse_firmware(obj)
+        self.parse_subtype(obj)
+        self.parse_serial(obj)

@@ -3,6 +3,8 @@ from PySide6.QtCore import (
     QObject,
     QTimer,
 )
+
+from .parser import Parser
 from .errors import (
     FailedConnectionError,
     AuthenticationError,
@@ -131,91 +133,49 @@ class APIClient:
                     return True
         return False
 
-    def get_antminer_target_data(self):
-        parser = BitmainParser(self.target_info)
+    def get_target_info(self, parser: Parser):
         result = parser.get_target()
         if not self.client:
             for k in result.keys():
                 result[k] = "Failed"
             return result
-        system_info = self.client.get_system_info()
-        parser.parse_firmware(system_info)
-        if not self.client.is_custom:
-            parser.parse_algorithm(system_info)
-            log = self.client.get_bitmain_system_log()
-            parser.parse_platform(log)
-        else:
-            parser.parse_vnish_algorithm(system_info)
-            parser.parse_platform(system_info)
-        parser.parse_subtype(system_info)
-        parser.parse_serial(system_info)
-        return parser.get_target()
-
-    def get_iceriver_target_data(self):
-        parser = IceriverParser(self.target_info)
-        result = parser.get_target()
-        if not self.client:
-            for k in result.keys():
-                result[k] = "Failed"
-            return result
-        system_info = self.client.get_system_info()
-        parser.parse_all(system_info)
-        return parser.get_target()
-
-    def get_whatsminer_target_data(self):
-        parser = WhatsminerParser(self.target_info)
-        result = parser.get_target()
-        if not self.client:
-            for k in result.keys():
-                result[k] = "Failed"
-            return result
-        system_info = self.client.get_system_info()
-        parser.parse_serial(system_info)
-        devs = self.client.get_dev_details()
-        parser.parse_subtype(devs)
-        version_info = self.client.get_version()
-        parser.parse_firmware(version_info)
-        parser.parse_platform(version_info)
-        return parser.get_target()
-
-    def get_volcminer_target_data(self):
-        parser = VolcminerParser(self.target_info)
-        result = parser.get_target()
-        if not self.client:
-            for k in result.keys():
-                result[k] = "Failed"
-            return result
-        system_info = self.client.get_system_info()
-        parser.parse_firmware(system_info)
-        parser.parse_subtype(system_info)
-        return parser.get_target()
-
-    def get_goldshell_target_data(self):
-        parser = GoldshellParser(self.target_info)
-        result = parser.get_target()
-        if not self.client:
-            for k in result.keys():
-                result[k] = "Failed"
-            return result
-        system_info = self.client.get_status()
-        parser.parse_firmware(system_info)
-        parser.parse_subtype(system_info)
-        algo = self.client.get_algo_settings()
-        parser.parse_algorithm(algo)
+        sys = self.client.get_system_info()
+        if isinstance(parser, BitmainParser):
+            if not self.client.is_custom:
+                log = self.client.get_bitmain_system_log()
+                parser.parse_platform(log)
+            else:
+                parser.parse_platform(sys)
+            parser.parse_system_info(sys)
+        elif (
+            isinstance(parser, IceriverParser)
+            or isinstance(parser, VolcminerParser)
+        ):
+            parser.parse_all(sys)
+        elif isinstance(parser, GoldshellParser):
+            parser.parse_system_info(sys)
+            algo = self.client.get_algo_settings()
+            parser.parse_algorithm(algo)
+        elif isinstance(parser, WhatsminerParser):
+            parser.parse_serial(sys)
+            devs = self.client.get_dev_details()
+            parser.parse_subtype(devs)
+            ver = self.client.get_version()
+            parser.parse_version_info(ver)
         return parser.get_target()
 
     def get_target_data_from_type(self, miner_type: str):
         match miner_type:
             case "antminer":
-                return self.get_antminer_target_data()
+                return self.get_target_info(BitmainParser(self.target_info))
             case "iceriver":
-                return self.get_iceriver_target_data()
+                return self.get_target_info(IceriverParser(self.target_info))
             case "whatsminer":
-                return self.get_whatsminer_target_data()
+                return self.get_target_info(WhatsminerParser(self.target_info))
             case "volcminer":
-                return self.get_volcminer_target_data()
+                return self.get_target_info(VolcminerParser(self.target_info))
             case "goldshell":
-                return self.get_goldshell_target_data()
+                return self.get_target_info(GoldshellParser(self.target_info))
 
     def close_client(self):
         if self.client:
