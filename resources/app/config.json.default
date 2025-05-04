@@ -8,7 +8,8 @@
             "iceriver": true,
             "additional": {
                 "volcminer": false,
-                "goldshell": false
+                "goldshell": false,
+                "sealminer": false
             }
         }
     },
@@ -17,6 +18,7 @@
         "whatsminerAltPasswd": "",
         "volcminerAltPasswd": "",
         "goldshellAltPasswd": "",
+        "bitdeerAltPasswd": "",
         "pbfarmerKey": ""
     },
     "logs": {
