@@ -236,22 +236,26 @@ class Ui_MainWindow(object):
         self.hwrapper_9 = QWidget(self.groupListeners)
         self.hwrapper_9.setObjectName(u"hwrapper_9")
         self.horizontalLayout_20 = QHBoxLayout(self.hwrapper_9)
+        self.horizontalLayout_20.setSpacing(100)
         self.horizontalLayout_20.setObjectName(u"horizontalLayout_20")
         self.horizontalLayout_20.setContentsMargins(9, 9, 9, 9)
         self.checkListenAntminer = QCheckBox(self.hwrapper_9)
         self.checkListenAntminer.setObjectName(u"checkListenAntminer")
+        self.checkListenAntminer.setMaximumSize(QSize(100, 22))
         self.checkListenAntminer.setChecked(True)
 
         self.horizontalLayout_20.addWidget(self.checkListenAntminer)
 
         self.checkListenWhatsminer = QCheckBox(self.hwrapper_9)
         self.checkListenWhatsminer.setObjectName(u"checkListenWhatsminer")
+        self.checkListenWhatsminer.setMaximumSize(QSize(100, 22))
         self.checkListenWhatsminer.setChecked(True)
 
         self.horizontalLayout_20.addWidget(self.checkListenWhatsminer)
 
         self.checkListenIceRiver = QCheckBox(self.hwrapper_9)
         self.checkListenIceRiver.setObjectName(u"checkListenIceRiver")
+        self.checkListenIceRiver.setMaximumSize(QSize(100, 22))
         self.checkListenIceRiver.setChecked(True)
 
         self.horizontalLayout_20.addWidget(self.checkListenIceRiver)
@@ -263,28 +267,49 @@ class Ui_MainWindow(object):
         self.groupAdditional.setObjectName(u"groupAdditional")
         self.verticalLayout_12 = QVBoxLayout(self.groupAdditional)
         self.verticalLayout_12.setObjectName(u"verticalLayout_12")
-        self.verticalLayout_12.setContentsMargins(0, 0, 0, 0)
-        self.hwrapper_8 = QWidget(self.groupAdditional)
+        self.verticalLayout_12.setContentsMargins(0, 2, 0, 0)
+        self.scrollArea_2 = QScrollArea(self.groupAdditional)
+        self.scrollArea_2.setObjectName(u"scrollArea_2")
+        self.scrollArea_2.setFrameShape(QFrame.Shape.NoFrame)
+        self.scrollArea_2.setFrameShadow(QFrame.Shadow.Plain)
+        self.scrollArea_2.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scrollArea_2.setWidgetResizable(True)
+        self.scrollAdditional = QWidget()
+        self.scrollAdditional.setObjectName(u"scrollAdditional")
+        self.scrollAdditional.setGeometry(QRect(0, 0, 447, 22))
+        self.verticalLayout_14 = QVBoxLayout(self.scrollAdditional)
+        self.verticalLayout_14.setObjectName(u"verticalLayout_14")
+        self.verticalLayout_14.setContentsMargins(0, 0, 0, 0)
+        self.hwrapper_8 = QWidget(self.scrollAdditional)
         self.hwrapper_8.setObjectName(u"hwrapper_8")
         self.horizontalLayout_22 = QHBoxLayout(self.hwrapper_8)
+        self.horizontalLayout_22.setSpacing(100)
         self.horizontalLayout_22.setObjectName(u"horizontalLayout_22")
-        self.checkListenVolcminer = QCheckBox(self.hwrapper_8)
-        self.checkListenVolcminer.setObjectName(u"checkListenVolcminer")
-
-        self.horizontalLayout_22.addWidget(self.checkListenVolcminer)
-
+        self.horizontalLayout_22.setContentsMargins(9, 0, -1, 0)
         self.checkListenGoldshell = QCheckBox(self.hwrapper_8)
         self.checkListenGoldshell.setObjectName(u"checkListenGoldshell")
+        self.checkListenGoldshell.setMaximumSize(QSize(100, 22))
 
         self.horizontalLayout_22.addWidget(self.checkListenGoldshell)
 
+        self.checkListenVolcminer = QCheckBox(self.hwrapper_8)
+        self.checkListenVolcminer.setObjectName(u"checkListenVolcminer")
+        self.checkListenVolcminer.setMaximumSize(QSize(100, 22))
+
+        self.horizontalLayout_22.addWidget(self.checkListenVolcminer)
+
+
+        self.verticalLayout_14.addWidget(self.hwrapper_8)
+
         self.checkListenSealminer = QCheckBox(self.hwrapper_8)
         self.checkListenSealminer.setObjectName(u"checkListenSealminer")
+        self.checkListenSealminer.setMaximumSize(QSize(100, 22))
 
         self.horizontalLayout_22.addWidget(self.checkListenSealminer)
 
+        self.scrollArea_2.setWidget(self.scrollAdditional)
 
-        self.verticalLayout_12.addWidget(self.hwrapper_8)
+        self.verticalLayout_12.addWidget(self.scrollArea_2)
 
 
         self.verticalLayout_11.addWidget(self.groupAdditional)
@@ -292,7 +317,12 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_4.addWidget(self.groupListeners)
 
-        self.verticalSpacer_3 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.actionIPRResetConfig = QPushButton(self.tabGeneral)
+        self.actionIPRResetConfig.setObjectName(u"actionIPRResetConfig")
+
+        self.verticalLayout_4.addWidget(self.actionIPRResetConfig)
+
+        self.verticalSpacer_3 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
 
         self.verticalLayout_4.addItem(self.verticalSpacer_3)
 
@@ -307,13 +337,13 @@ class Ui_MainWindow(object):
         self.scrollArea.setFrameShape(QFrame.Shape.NoFrame)
         self.scrollArea.setFrameShadow(QFrame.Shadow.Plain)
         self.scrollArea.setWidgetResizable(True)
-        self.scrollAreaWidgetContents = QWidget()
-        self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, -182, 477, 444))
-        self.verticalLayout_13 = QVBoxLayout(self.scrollAreaWidgetContents)
+        self.scrollAPI = QWidget()
+        self.scrollAPI.setObjectName(u"scrollAPI")
+        self.scrollAPI.setGeometry(QRect(0, 0, 477, 373))
+        self.verticalLayout_13 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
         self.verticalLayout_13.setContentsMargins(9, 9, 9, 9)
-        self.groupBitmain = QGroupBox(self.scrollAreaWidgetContents)
+        self.groupBitmain = QGroupBox(self.scrollAPI)
         self.groupBitmain.setObjectName(u"groupBitmain")
         self.horizontalLayout_12 = QHBoxLayout(self.groupBitmain)
         self.horizontalLayout_12.setObjectName(u"horizontalLayout_12")
@@ -336,7 +366,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_13.addWidget(self.groupBitmain)
 
-        self.groupWhatsminer = QGroupBox(self.scrollAreaWidgetContents)
+        self.groupWhatsminer = QGroupBox(self.scrollAPI)
         self.groupWhatsminer.setObjectName(u"groupWhatsminer")
         self.horizontalLayout_8 = QHBoxLayout(self.groupWhatsminer)
         self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
@@ -360,7 +390,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_13.addWidget(self.groupWhatsminer)
 
-        self.groupVolcminer = QGroupBox(self.scrollAreaWidgetContents)
+        self.groupVolcminer = QGroupBox(self.scrollAPI)
         self.groupVolcminer.setObjectName(u"groupVolcminer")
         self.horizontalLayout_21 = QHBoxLayout(self.groupVolcminer)
         self.horizontalLayout_21.setObjectName(u"horizontalLayout_21")
@@ -384,7 +414,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_13.addWidget(self.groupVolcminer)
 
-        self.groupGoldshell = QGroupBox(self.scrollAreaWidgetContents)
+        self.groupGoldshell = QGroupBox(self.scrollAPI)
         self.groupGoldshell.setObjectName(u"groupGoldshell")
         self.horizontalLayout_23 = QHBoxLayout(self.groupGoldshell)
         self.horizontalLayout_23.setObjectName(u"horizontalLayout_23")
@@ -408,7 +438,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_13.addWidget(self.groupGoldshell)
 
-        self.groupSealminer = QGroupBox(self.scrollAreaWidgetContents)
+        self.groupSealminer = QGroupBox(self.scrollAPI)
         self.groupSealminer.setObjectName(u"groupSealminer")
         self.horizontalLayout_24 = QHBoxLayout(self.groupSealminer)
         self.horizontalLayout_24.setObjectName(u"horizontalLayout_24")
@@ -432,7 +462,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_13.addWidget(self.groupSealminer)
 
-        self.groupPbfarmer = QGroupBox(self.scrollAreaWidgetContents)
+        self.groupPbfarmer = QGroupBox(self.scrollAPI)
         self.groupPbfarmer.setObjectName(u"groupPbfarmer")
         self.horizontalLayout_13 = QHBoxLayout(self.groupPbfarmer)
         self.horizontalLayout_13.setObjectName(u"horizontalLayout_13")
@@ -456,7 +486,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_13.addWidget(self.groupPbfarmer)
 
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        self.scrollArea.setWidget(self.scrollAPI)
 
         self.verticalLayout_6.addWidget(self.scrollArea)
 
@@ -747,6 +777,7 @@ class Ui_MainWindow(object):
         self.checkListenSealminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Sealminers (Experimental)", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenSealminer.setText(QCoreApplication.translate("MainWindow", u"Sealminer", None))
+        self.actionIPRResetConfig.setText(QCoreApplication.translate("MainWindow", u"Reset Settings to Default", None))
         self.configTabs.setTabText(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
 #if QT_CONFIG(tooltip)
         self.configTabs.setTabToolTip(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))
