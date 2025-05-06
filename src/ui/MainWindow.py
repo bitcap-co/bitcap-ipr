@@ -276,7 +276,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollAdditional = QWidget()
         self.scrollAdditional.setObjectName(u"scrollAdditional")
-        self.scrollAdditional.setGeometry(QRect(0, 0, 447, 22))
+        self.scrollAdditional.setGeometry(QRect(0, 0, 470, 22))
         self.verticalLayout_14 = QVBoxLayout(self.scrollAdditional)
         self.verticalLayout_14.setObjectName(u"verticalLayout_14")
         self.verticalLayout_14.setContentsMargins(0, 0, 0, 0)
@@ -298,14 +298,14 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_22.addWidget(self.checkListenVolcminer)
 
-
-        self.verticalLayout_14.addWidget(self.hwrapper_8)
-
         self.checkListenSealminer = QCheckBox(self.hwrapper_8)
         self.checkListenSealminer.setObjectName(u"checkListenSealminer")
         self.checkListenSealminer.setMaximumSize(QSize(100, 22))
 
         self.horizontalLayout_22.addWidget(self.checkListenSealminer)
+
+
+        self.verticalLayout_14.addWidget(self.hwrapper_8)
 
         self.scrollArea_2.setWidget(self.scrollAdditional)
 
@@ -339,7 +339,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 477, 373))
+        self.scrollAPI.setGeometry(QRect(0, 0, 477, 444))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
         self.verticalLayout_13.setContentsMargins(9, 9, 9, 9)
@@ -766,13 +766,13 @@ class Ui_MainWindow(object):
         self.checkListenIceRiver.setText(QCoreApplication.translate("MainWindow", u"IceRiver", None))
         self.groupAdditional.setTitle(QCoreApplication.translate("MainWindow", u"Additional Miners", None))
 #if QT_CONFIG(tooltip)
-        self.checkListenVolcminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Volcminers", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkListenVolcminer.setText(QCoreApplication.translate("MainWindow", u"Volcminer", None))
-#if QT_CONFIG(tooltip)
         self.checkListenGoldshell.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Goldshells", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenGoldshell.setText(QCoreApplication.translate("MainWindow", u"Goldshell", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenVolcminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Volcminers", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenVolcminer.setText(QCoreApplication.translate("MainWindow", u"Volcminer", None))
 #if QT_CONFIG(tooltip)
         self.checkListenSealminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Sealminers (Experimental)", None))
 #endif // QT_CONFIG(tooltip)

@@ -625,7 +625,7 @@
                             <rect>
                              <x>0</x>
                              <y>0</y>
-                             <width>447</width>
+                             <width>470</width>
                              <height>22</height>
                             </rect>
                            </property>
@@ -691,6 +691,12 @@
                                </item>
                                <item>
                                 <widget class="QCheckBox" name="checkListenSealminer">
+                                 <property name="maximumSize">
+                                  <size>
+                                   <width>100</width>
+                                   <height>22</height>
+                                  </size>
+                                 </property>
                                  <property name="toolTip">
                                   <string>Enable listening for Sealminers (Experimental)</string>
                                  </property>
