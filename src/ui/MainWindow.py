@@ -276,7 +276,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollAdditional = QWidget()
         self.scrollAdditional.setObjectName(u"scrollAdditional")
-        self.scrollAdditional.setGeometry(QRect(0, 0, 447, 22))
+        self.scrollAdditional.setGeometry(QRect(0, 0, 470, 22))
         self.verticalLayout_14 = QVBoxLayout(self.scrollAdditional)
         self.verticalLayout_14.setObjectName(u"verticalLayout_14")
         self.verticalLayout_14.setContentsMargins(0, 0, 0, 0)
@@ -297,6 +297,12 @@ class Ui_MainWindow(object):
         self.checkListenVolcminer.setMaximumSize(QSize(100, 22))
 
         self.horizontalLayout_22.addWidget(self.checkListenVolcminer)
+
+        self.checkListenSealminer = QCheckBox(self.hwrapper_8)
+        self.checkListenSealminer.setObjectName(u"checkListenSealminer")
+        self.checkListenSealminer.setMaximumSize(QSize(100, 22))
+
+        self.horizontalLayout_22.addWidget(self.checkListenSealminer)
 
 
         self.verticalLayout_14.addWidget(self.hwrapper_8)
@@ -333,7 +339,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 477, 373))
+        self.scrollAPI.setGeometry(QRect(0, 0, 477, 444))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
         self.verticalLayout_13.setContentsMargins(9, 9, 9, 9)
@@ -431,6 +437,30 @@ class Ui_MainWindow(object):
 
 
         self.verticalLayout_13.addWidget(self.groupGoldshell)
+
+        self.groupSealminer = QGroupBox(self.scrollAPI)
+        self.groupSealminer.setObjectName(u"groupSealminer")
+        self.horizontalLayout_24 = QHBoxLayout(self.groupSealminer)
+        self.horizontalLayout_24.setObjectName(u"horizontalLayout_24")
+        self.label_15 = QLabel(self.groupSealminer)
+        self.label_15.setObjectName(u"label_15")
+        self.label_15.setFont(font1)
+
+        self.horizontalLayout_24.addWidget(self.label_15)
+
+        self.lineSealminerPasswd = QLineEdit(self.groupSealminer)
+        self.lineSealminerPasswd.setObjectName(u"lineSealminerPasswd")
+        sizePolicy.setHeightForWidth(self.lineSealminerPasswd.sizePolicy().hasHeightForWidth())
+        self.lineSealminerPasswd.setSizePolicy(sizePolicy)
+        self.lineSealminerPasswd.setMinimumSize(QSize(0, 0))
+        self.lineSealminerPasswd.setFont(font1)
+        self.lineSealminerPasswd.setEchoMode(QLineEdit.EchoMode.Password)
+        self.lineSealminerPasswd.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
+
+        self.horizontalLayout_24.addWidget(self.lineSealminerPasswd)
+
+
+        self.verticalLayout_13.addWidget(self.groupSealminer)
 
         self.groupPbfarmer = QGroupBox(self.scrollAPI)
         self.groupPbfarmer.setObjectName(u"groupPbfarmer")
@@ -743,6 +773,10 @@ class Ui_MainWindow(object):
         self.checkListenVolcminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Volcminers", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenVolcminer.setText(QCoreApplication.translate("MainWindow", u"Volcminer", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenSealminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Sealminers (Experimental)", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenSealminer.setText(QCoreApplication.translate("MainWindow", u"Sealminer", None))
         self.actionIPRResetConfig.setText(QCoreApplication.translate("MainWindow", u"Reset Settings to Default", None))
         self.configTabs.setTabText(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
 #if QT_CONFIG(tooltip)
@@ -771,6 +805,12 @@ class Ui_MainWindow(object):
         self.label_14.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
 #if QT_CONFIG(tooltip)
         self.lineGoldshellPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative login password for Goldshell. Default: \"123456789\"", None))
+#endif // QT_CONFIG(tooltip)
+        self.groupSealminer.setTitle(QCoreApplication.translate("MainWindow", u"Bitdeer/Sealminer", None))
+        self.label_15.setText(QCoreApplication.translate("MainWindow", u"Set Login Password:", None))
+        self.label_15.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.lineSealminerPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative login password for Sealminer. Default: \"seal\"", None))
 #endif // QT_CONFIG(tooltip)
         self.groupPbfarmer.setTitle(QCoreApplication.translate("MainWindow", u"pbfarmer", None))
         self.label_12.setText(QCoreApplication.translate("MainWindow", u"Set API Key:", None))

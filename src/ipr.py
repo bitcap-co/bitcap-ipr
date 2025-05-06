@@ -112,6 +112,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionToggleGoldshellPasswd = self.create_passwd_toggle_action(
             self.lineGoldshellPasswd
         )
+        self.actionToggleSealminerPasswd = self.create_passwd_toggle_action(
+            self.lineSealminerPasswd
+        )
         self.actionTogglePbfarmerKey = self.create_passwd_toggle_action(
             self.linePbfarmerKey
         )
@@ -170,6 +173,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.listenerConfig.addButton(self.checkListenWhatsminer, 3)
         self.listenerConfig.addButton(self.checkListenVolcminer, 4)
         self.listenerConfig.addButton(self.checkListenGoldshell, 5)
+        self.listenerConfig.addButton(self.checkListenSealminer, 6)
         self.listenerConfig.buttonClicked.connect(self.restart_listen)
 
         self.menu_bar.actionDisableInactiveTimer.changed.connect(self.restart_listen)
@@ -426,6 +430,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                 client_auth = self.lineGoldshellPasswd.text()
             case "iceriver":
                 client_auth = self.linePbfarmerKey.text()
+            case "sealminer":
+                client_auth = self.lineSealminerPasswd.text()
         self.api_client.create_client_from_type(type, ip, client_auth)
         if not self.api_client.client:
             self.iprStatus.showMessage(
@@ -703,6 +709,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "additional": {
                         "volcminer": self.checkListenVolcminer.isChecked(),
                         "goldshell": self.checkListenGoldshell.isChecked(),
+                        "sealminer": self.checkListenSealminer.isChecked(),
                     },
                 },
             },
@@ -711,6 +718,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "whatsminerAltPasswd": self.lineWhatsminerPasswd.text(),
                 "volcminerAltPasswd": self.lineVolcminerPasswd.text(),
                 "goldshellAltPasswd": self.lineGoldshellPasswd.text(),
+                "bitdeerAltPasswd": self.lineSealminerPasswd.text(),
                 "pbfarmerKey": self.linePbfarmerKey.text(),
             },
             "logs": {

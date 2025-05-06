@@ -625,7 +625,7 @@
                             <rect>
                              <x>0</x>
                              <y>0</y>
-                             <width>447</width>
+                             <width>470</width>
                              <height>22</height>
                             </rect>
                            </property>
@@ -686,6 +686,22 @@
                                  </property>
                                  <property name="text">
                                   <string>Volcminer</string>
+                                 </property>
+                                </widget>
+                               </item>
+                               <item>
+                                <widget class="QCheckBox" name="checkListenSealminer">
+                                 <property name="maximumSize">
+                                  <size>
+                                   <width>100</width>
+                                   <height>22</height>
+                                  </size>
+                                 </property>
+                                 <property name="toolTip">
+                                  <string>Enable listening for Sealminers (Experimental)</string>
+                                 </property>
+                                 <property name="text">
+                                  <string>Sealminer</string>
                                  </property>
                                 </widget>
                                </item>
@@ -755,7 +771,7 @@
                        <x>0</x>
                        <y>0</y>
                        <width>477</width>
-                       <height>373</height>
+                       <height>444</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_13">
@@ -969,6 +985,60 @@
                            </property>
                            <property name="toolTip">
                             <string>Set alternative login password for Goldshell. Default: &quot;123456789&quot;</string>
+                           </property>
+                           <property name="echoMode">
+                            <enum>QLineEdit::EchoMode::Password</enum>
+                           </property>
+                           <property name="alignment">
+                            <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QGroupBox" name="groupSealminer">
+                        <property name="title">
+                         <string>Bitdeer/Sealminer</string>
+                        </property>
+                        <layout class="QHBoxLayout" name="horizontalLayout_24">
+                         <item>
+                          <widget class="QLabel" name="label_15">
+                           <property name="font">
+                            <font>
+                             <pointsize>10</pointsize>
+                            </font>
+                           </property>
+                           <property name="text">
+                            <string>Set Login Password:</string>
+                           </property>
+                           <property name="StyleClass" stdset="0">
+                            <string>setText</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QLineEdit" name="lineSealminerPasswd">
+                           <property name="sizePolicy">
+                            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                             <horstretch>0</horstretch>
+                             <verstretch>0</verstretch>
+                            </sizepolicy>
+                           </property>
+                           <property name="minimumSize">
+                            <size>
+                             <width>0</width>
+                             <height>0</height>
+                            </size>
+                           </property>
+                           <property name="font">
+                            <font>
+                             <pointsize>10</pointsize>
+                            </font>
+                           </property>
+                           <property name="toolTip">
+                            <string>Set alternative login password for Sealminer. Default: &quot;seal&quot;</string>
                            </property>
                            <property name="echoMode">
                             <enum>QLineEdit::EchoMode::Password</enum>
