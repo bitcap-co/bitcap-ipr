@@ -513,6 +513,9 @@
                      <item>
                       <widget class="QWidget" name="hwrapper_9" native="true">
                        <layout class="QHBoxLayout" name="horizontalLayout_20">
+                        <property name="spacing">
+                         <number>100</number>
+                        </property>
                         <property name="leftMargin">
                          <number>9</number>
                         </property>
@@ -527,6 +530,12 @@
                         </property>
                         <item>
                          <widget class="QCheckBox" name="checkListenAntminer">
+                          <property name="maximumSize">
+                           <size>
+                            <width>100</width>
+                            <height>22</height>
+                           </size>
+                          </property>
                           <property name="toolTip">
                            <string>Enable listening for Antminers</string>
                           </property>
@@ -540,6 +549,12 @@
                         </item>
                         <item>
                          <widget class="QCheckBox" name="checkListenWhatsminer">
+                          <property name="maximumSize">
+                           <size>
+                            <width>100</width>
+                            <height>22</height>
+                           </size>
+                          </property>
                           <property name="toolTip">
                            <string>Enable listening for Whatsminers</string>
                           </property>
@@ -553,6 +568,12 @@
                         </item>
                         <item>
                          <widget class="QCheckBox" name="checkListenIceRiver">
+                          <property name="maximumSize">
+                           <size>
+                            <width>100</width>
+                            <height>22</height>
+                           </size>
+                          </property>
                           <property name="toolTip">
                            <string>Enable listening for Icerivers</string>
                           </property>
@@ -577,7 +598,7 @@
                          <number>0</number>
                         </property>
                         <property name="topMargin">
-                         <number>0</number>
+                         <number>2</number>
                         </property>
                         <property name="rightMargin">
                          <number>0</number>
@@ -586,29 +607,93 @@
                          <number>0</number>
                         </property>
                         <item>
-                         <widget class="QWidget" name="hwrapper_8" native="true">
-                          <layout class="QHBoxLayout" name="horizontalLayout_22">
-                           <item>
-                            <widget class="QCheckBox" name="checkListenVolcminer">
-                             <property name="toolTip">
-                              <string>Enable listening for Volcminers (Experimental)</string>
-                             </property>
-                             <property name="text">
-                              <string>Volcminer</string>
-                             </property>
-                            </widget>
-                           </item>
-                           <item>
-                            <widget class="QCheckBox" name="checkListenGoldshell">
-                             <property name="toolTip">
-                              <string>Enable listening for Goldshells</string>
-                             </property>
-                             <property name="text">
-                              <string>Goldshell</string>
-                             </property>
-                            </widget>
-                           </item>
-                          </layout>
+                         <widget class="QScrollArea" name="scrollArea_2">
+                          <property name="frameShape">
+                           <enum>QFrame::Shape::NoFrame</enum>
+                          </property>
+                          <property name="frameShadow">
+                           <enum>QFrame::Shadow::Plain</enum>
+                          </property>
+                          <property name="horizontalScrollBarPolicy">
+                           <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+                          </property>
+                          <property name="widgetResizable">
+                           <bool>true</bool>
+                          </property>
+                          <widget class="QWidget" name="scrollAdditional">
+                           <property name="geometry">
+                            <rect>
+                             <x>0</x>
+                             <y>0</y>
+                             <width>461</width>
+                             <height>36</height>
+                            </rect>
+                           </property>
+                           <layout class="QVBoxLayout" name="verticalLayout_14">
+                            <property name="leftMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="topMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="rightMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="bottomMargin">
+                             <number>0</number>
+                            </property>
+                            <item>
+                             <widget class="QWidget" name="hwrapper_8" native="true">
+                              <layout class="QHBoxLayout" name="horizontalLayout_22">
+                               <property name="spacing">
+                                <number>100</number>
+                               </property>
+                               <property name="leftMargin">
+                                <number>9</number>
+                               </property>
+                               <property name="topMargin">
+                                <number>0</number>
+                               </property>
+                               <property name="bottomMargin">
+                                <number>0</number>
+                               </property>
+                               <item>
+                                <widget class="QCheckBox" name="checkListenGoldshell">
+                                 <property name="maximumSize">
+                                  <size>
+                                   <width>100</width>
+                                   <height>22</height>
+                                  </size>
+                                 </property>
+                                 <property name="toolTip">
+                                  <string>Enable listening for Goldshells</string>
+                                 </property>
+                                 <property name="text">
+                                  <string>Goldshell</string>
+                                 </property>
+                                </widget>
+                               </item>
+                               <item>
+                                <widget class="QCheckBox" name="checkListenVolcminer">
+                                 <property name="maximumSize">
+                                  <size>
+                                   <width>100</width>
+                                   <height>22</height>
+                                  </size>
+                                 </property>
+                                 <property name="toolTip">
+                                  <string>Enable listening for Volcminers</string>
+                                 </property>
+                                 <property name="text">
+                                  <string>Volcminer</string>
+                                 </property>
+                                </widget>
+                               </item>
+                              </layout>
+                             </widget>
+                            </item>
+                           </layout>
+                          </widget>
                          </widget>
                         </item>
                        </layout>
@@ -654,11 +739,11 @@
                     <property name="widgetResizable">
                      <bool>true</bool>
                     </property>
-                    <widget class="QWidget" name="scrollAreaWidgetContents">
+                    <widget class="QWidget" name="scrollAPI">
                      <property name="geometry">
                       <rect>
                        <x>0</x>
-                       <y>-79</y>
+                       <y>0</y>
                        <width>477</width>
                        <height>373</height>
                       </rect>
