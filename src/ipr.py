@@ -46,6 +46,7 @@ from utils import (
     get_log_path,
     get_config_path,
     get_config,
+    get_default_config,
 )
 
 # logger
@@ -135,69 +136,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.checkEnableSysTray.toggled.connect(self.toggle_app_config)
         self.actionIPRCancelConfig.clicked.connect(self.update_stacked_widget)
         self.actionIPRSaveConfig.clicked.connect(self.update_settings)
+        self.actionIPRResetConfig.clicked.connect(self.reset_settings)
         # listener signals
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
 
-        logger.info(" read config.")
-        self.config_path = get_config_path()
-        if os.path.exists(self.config_path):
-            self.config = get_config(Path(self.config_path, "config.json"))
-            # general
-            self.checkEnableSysTray.setChecked(self.config["general"]["enableSysTray"])
-            self.comboOnWindowClose.setCurrentIndex(
-                self.config["general"]["onWindowClose"]
-            )
-            # listeners
-            self.checkListenAntminer.setChecked(
-                self.config["general"]["listenFor"]["antminer"]
-            )
-            self.checkListenWhatsminer.setChecked(
-                self.config["general"]["listenFor"]["whatsminer"]
-            )
-            self.checkListenIceRiver.setChecked(
-                self.config["general"]["listenFor"]["iceriver"]
-            )
-            # additional listeners
-            self.checkListenVolcminer.setChecked(
-                self.config["general"]["listenFor"]["additional"]["volcminer"]
-            )
-            self.checkListenGoldshell.setChecked(
-                self.config["general"]["listenFor"]["additional"]["goldshell"]
-            )
-
-            # api
-            self.lineBitmainPasswd.setText(self.config["api"]["bitmainAltPasswd"])
-            self.lineWhatsminerPasswd.setText(self.config["api"]["whatsminerAltPasswd"])
-            self.lineVolcminerPasswd.setText(self.config["api"]["volcminerAltPasswd"])
-            self.lineGoldshellPasswd.setText(self.config["api"]["goldshellAltPasswd"])
-            self.linePbfarmerKey.setText(self.config["api"]["pbfarmerKey"])
-
-            # logs
-            self.comboLogLevel.setCurrentText(self.config["logs"]["logLevel"])
-            self.spinMaxLogSize.setValue(self.config["logs"]["maxLogSize"])
-            self.comboOnMaxLogSize.setCurrentIndex(self.config["logs"]["onMaxLogSize"])
-            self.comboFlushInterval.setCurrentIndex(
-                self.config["logs"]["flushInterval"]
-            )
-
-            # instance
-            window = self.config["instance"]["geometry"]["mainWindow"]
-            if window:
-                self.setGeometry(*window)
-
-            self.menu_bar.actionAlwaysOpenIPInBrowser.setChecked(
-                self.config["instance"]["options"]["alwaysOpenIPInBrowser"]
-            )
-            self.menu_bar.actionDisableInactiveTimer.setChecked(
-                self.config["instance"]["options"]["disableInactiveTimer"]
-            )
-            self.menu_bar.actionAutoStartOnLaunch.setChecked(
-                self.config["instance"]["options"]["autoStartOnLaunch"]
-            )
-            self.menu_bar.actionEnableIDTable.setChecked(
-                self.config["instance"]["table"]["enableIDTable"]
-            )
+        self.read_config()
 
         if self.menu_bar.actionEnableIDTable.isChecked():
             self.toggle_table_settings(True)
@@ -669,6 +613,67 @@ class IPR(QMainWindow, Ui_MainWindow):
             line.setEchoMode(QLineEdit.EchoMode.Password)
             action.setIcon(QIcon(":theme/icons/rc/view.png"))
 
+    def read_config(self):
+        logger.info(" read config.")
+        self.config_path = get_config_path()
+        if os.path.exists(self.config_path):
+            self.config = get_config(Path(self.config_path, "config.json"))
+            # general
+            self.checkEnableSysTray.setChecked(self.config["general"]["enableSysTray"])
+            self.comboOnWindowClose.setCurrentIndex(
+                self.config["general"]["onWindowClose"]
+            )
+            # listeners
+            self.checkListenAntminer.setChecked(
+                self.config["general"]["listenFor"]["antminer"]
+            )
+            self.checkListenWhatsminer.setChecked(
+                self.config["general"]["listenFor"]["whatsminer"]
+            )
+            self.checkListenIceRiver.setChecked(
+                self.config["general"]["listenFor"]["iceriver"]
+            )
+            # additional listeners
+            self.checkListenVolcminer.setChecked(
+                self.config["general"]["listenFor"]["additional"]["volcminer"]
+            )
+            self.checkListenGoldshell.setChecked(
+                self.config["general"]["listenFor"]["additional"]["goldshell"]
+            )
+
+            # api
+            self.lineBitmainPasswd.setText(self.config["api"]["bitmainAltPasswd"])
+            self.lineWhatsminerPasswd.setText(self.config["api"]["whatsminerAltPasswd"])
+            self.lineVolcminerPasswd.setText(self.config["api"]["volcminerAltPasswd"])
+            self.lineGoldshellPasswd.setText(self.config["api"]["goldshellAltPasswd"])
+            self.linePbfarmerKey.setText(self.config["api"]["pbfarmerKey"])
+
+            # logs
+            self.comboLogLevel.setCurrentText(self.config["logs"]["logLevel"])
+            self.spinMaxLogSize.setValue(self.config["logs"]["maxLogSize"])
+            self.comboOnMaxLogSize.setCurrentIndex(self.config["logs"]["onMaxLogSize"])
+            self.comboFlushInterval.setCurrentIndex(
+                self.config["logs"]["flushInterval"]
+            )
+
+            # instance
+            window = self.config["instance"]["geometry"]["mainWindow"]
+            if window:
+                self.setGeometry(*window)
+
+            self.menu_bar.actionAlwaysOpenIPInBrowser.setChecked(
+                self.config["instance"]["options"]["alwaysOpenIPInBrowser"]
+            )
+            self.menu_bar.actionDisableInactiveTimer.setChecked(
+                self.config["instance"]["options"]["disableInactiveTimer"]
+            )
+            self.menu_bar.actionAutoStartOnLaunch.setChecked(
+                self.config["instance"]["options"]["autoStartOnLaunch"]
+            )
+            self.menu_bar.actionEnableIDTable.setChecked(
+                self.config["instance"]["table"]["enableIDTable"]
+            )
+
     def update_settings(self):
         logger.info(" update settings to config.")
         instance = {
@@ -719,6 +724,24 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.config = config
         self.update_stacked_widget()
         self.iprStatus.showMessage("Status :: Updated settings to config.", 1000)
+
+    def reset_settings(self):
+        ok = QMessageBox.warning(
+            self,
+            "Confirm Reset Setting",
+            "Are you sure you want to reset configuration to default?",
+            buttons=QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Ok,
+        )
+        if ok == QMessageBox.StandardButton.Ok:
+            default_config = get_default_config()
+            config = get_config(default_config)
+            config_json = json.dumps(config, indent=4)
+            with open(Path(self.config_path, "config.json"), "w") as f:
+                f.write(config_json)
+            self.read_config()
+            self.iprStatus.showMessage(
+                "Status :: Successfully reverted back to default settings.", 5000
+            )
 
     def write_settings(self):
         self.update_settings()

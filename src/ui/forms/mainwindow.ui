@@ -625,8 +625,8 @@
                             <rect>
                              <x>0</x>
                              <y>0</y>
-                             <width>461</width>
-                             <height>36</height>
+                             <width>447</width>
+                             <height>22</height>
                             </rect>
                            </property>
                            <layout class="QVBoxLayout" name="verticalLayout_14">
@@ -703,9 +703,19 @@
                    </widget>
                   </item>
                   <item>
+                   <widget class="QPushButton" name="actionIPRResetConfig">
+                    <property name="text">
+                     <string>Reset Settings to Default</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
                    <spacer name="verticalSpacer_3">
                     <property name="orientation">
                      <enum>Qt::Orientation::Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                     <enum>QSizePolicy::Policy::Preferred</enum>
                     </property>
                     <property name="sizeHint" stdset="0">
                      <size>

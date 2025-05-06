@@ -276,7 +276,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollAdditional = QWidget()
         self.scrollAdditional.setObjectName(u"scrollAdditional")
-        self.scrollAdditional.setGeometry(QRect(0, 0, 461, 36))
+        self.scrollAdditional.setGeometry(QRect(0, 0, 447, 22))
         self.verticalLayout_14 = QVBoxLayout(self.scrollAdditional)
         self.verticalLayout_14.setObjectName(u"verticalLayout_14")
         self.verticalLayout_14.setContentsMargins(0, 0, 0, 0)
@@ -311,7 +311,12 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_4.addWidget(self.groupListeners)
 
-        self.verticalSpacer_3 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.actionIPRResetConfig = QPushButton(self.tabGeneral)
+        self.actionIPRResetConfig.setObjectName(u"actionIPRResetConfig")
+
+        self.verticalLayout_4.addWidget(self.actionIPRResetConfig)
+
+        self.verticalSpacer_3 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
 
         self.verticalLayout_4.addItem(self.verticalSpacer_3)
 
@@ -738,6 +743,7 @@ class Ui_MainWindow(object):
         self.checkListenVolcminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Volcminers", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenVolcminer.setText(QCoreApplication.translate("MainWindow", u"Volcminer", None))
+        self.actionIPRResetConfig.setText(QCoreApplication.translate("MainWindow", u"Reset Settings to Default", None))
         self.configTabs.setTabText(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
 #if QT_CONFIG(tooltip)
         self.configTabs.setTabToolTip(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))
