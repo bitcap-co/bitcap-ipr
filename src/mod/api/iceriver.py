@@ -23,9 +23,6 @@ class IceriverHTTPClient(BaseHTTPClient):
         self._initialize_session()
 
     def _initialize_session(self) -> None:
-        self.session.headers = {
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-        }
         self.session.verify = False
         try:
             self.is_custom = self.__is_pbfarmer()

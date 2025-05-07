@@ -20,10 +20,6 @@ class VolcminerHTTPClient(BaseHTTPClient):
         self._initialize_session()
 
     def _initialize_session(self):
-        self.session.headers = {
-            "Accept": "application/json, text/plain, */*",
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        }
         try:
             self._authenticate_session()
         except (

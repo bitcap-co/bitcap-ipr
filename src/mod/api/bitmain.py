@@ -27,7 +27,6 @@ class BitmainHTTPClient(BaseHTTPClient):
         self._initialize_session()
 
     def _initialize_session(self) -> None:
-        self.session.headers = {"Content-Type": "application/json"}
         try:
             self.is_custom = self.__is_vnish()
             if not self.is_custom:

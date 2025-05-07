@@ -59,8 +59,10 @@ class BaseHTTPClient(ABC):
         if params:
             req.params = params
         if payload:
+            self.session.headers.update({"Content-Type": "application/json"})
             req.json = payload
         if data:
+            self.session.headers.update({"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"})
             req.data = data
         r = req.prepare()
         res = self.session.send(r, timeout=timeout, verify=self.session.verify)

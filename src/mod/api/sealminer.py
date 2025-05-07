@@ -22,10 +22,6 @@ class SealminerHTTPClient(BaseHTTPClient):
         self._initialize_session()
 
     def _initialize_session(self):
-        self.session.headers = {
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-            "Accept": "application/json, text/javascript, */*; q=0.01"
-        }
         try:
             self._authenticate_session()
         except (
