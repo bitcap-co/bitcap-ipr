@@ -52,6 +52,16 @@ class Listener(QObject):
         self.sock.errorOccurred.connect(self.emit_error)
         self.sock.readyRead.connect(self.process_datagram)
 
+    def validate_json(self) -> bool:
+        try:
+            self.msg = json.loads(self.msg)
+            return True
+        except json.JSONDecodeError:
+            logger.error(
+                f"Listener[{self.port}] : Failed to decode json msg."
+            )
+            return False
+
     def validate_msg(self, type: str) -> bool:
         match type:
             case "antminer":
@@ -63,14 +73,14 @@ class Listener(QObject):
             case "iceriver":
                 if re.match(msg_patterns["ir"], self.msg):
                     return True
-            case "goldshell" | "sealminer":
-                try:
-                    self.msg = json.loads(self.msg)
-                    return True
-                except json.JSONDecodeError:
-                    logger.warning(
-                        f"Listener[{self.port}] : Failed to decode json msg."
-                    )
+            case "goldshell":
+                if self.validate_json():
+                    if re.match(reg_ip, self.msg["ip"]) and re.match(reg_mac, self.msg["mac"]):
+                        return True
+            case "sealminer":
+                if self.validate_json():
+                    if re.match(reg_ip, self.msg[3]["IPV4"]) and re.match(reg_mac, self.msg[1]["MAC"]):
+                        return True
         logger.warning(f"Listener[{self.port}] : Failed to validate msg. Ignoring...")
         return False
 
