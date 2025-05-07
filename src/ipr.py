@@ -646,6 +646,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.checkListenGoldshell.setChecked(
                 self.config["general"]["listenFor"]["additional"]["goldshell"]
             )
+            self.checkListenSealminer.setChecked(
+                self.config["general"]["listenFor"]["additional"]["sealminer"]
+            )
 
             # api
             self.lineBitmainPasswd.setText(self.config["api"]["bitmainAltPasswd"])
