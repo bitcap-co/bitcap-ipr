@@ -296,21 +296,6 @@ class IPR(QMainWindow, Ui_MainWindow):
     def stop_listen(self, timeout=False):
         logger.info(" stop listeners.")
         self.inactive.stop()
-        if timeout:
-            logger.warning("stop_listen : timeout.")
-            if self.sys_tray and not self.isVisible():
-                self.sys_tray.showMessage(
-                    "IPR Listener: Inactive timeout!",
-                    "Timeout exceeded. Stopping listeners...",
-                    QSystemTrayIcon.MessageIcon.Warning,
-                    3000,
-                )
-            else:
-                QMessageBox.warning(
-                    self,
-                    "Timeout",
-                    "Inactive timeout exceeded! Stopping listeners...",
-                )
         if self.sys_tray:
             self.actionSysStartListen.setEnabled(True)
             self.actionSysStopListen.setEnabled(False)
@@ -319,6 +304,21 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionIPRStart.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
         self.lm.stop_listeners()
+        if timeout:
+            logger.warning("stop_listen : timeout.")
+            if self.sys_tray and not self.isVisible():
+                self.sys_tray.showMessage(
+                    "IPR Listener: Inactive timeout!",
+                    "Timeout exceeded. Stopped listeners...",
+                    QSystemTrayIcon.MessageIcon.Warning,
+                    3000,
+                )
+            else:
+                QMessageBox.warning(
+                    self,
+                    "Timeout",
+                    "Inactive timeout exceeded! Stopped listeners...",
+                )
         if self.sys_tray and not self.isVisible():
             self.sys_tray.showMessage(
                 "IPR Listener: Stop",
