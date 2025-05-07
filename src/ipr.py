@@ -736,7 +736,7 @@ class IPR(QMainWindow, Ui_MainWindow):
     def reset_settings(self):
         ok = QMessageBox.warning(
             self,
-            "Confirm Reset Setting",
+            "Confirm Reset Settings",
             "Are you sure you want to reset configuration to default?",
             buttons=QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Ok,
         )
@@ -748,7 +748,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 f.write(config_json)
             self.read_config()
             self.iprStatus.showMessage(
-                "Status :: Successfully reverted back to default settings.", 5000
+                "Status :: Successfully restored to default settings.", 5000
             )
 
     def write_settings(self):
