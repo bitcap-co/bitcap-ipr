@@ -106,14 +106,14 @@ class APIClient:
         locate_duration.timeout.connect(self.stop_locate)
         logger.info(" locate miner for 10000ms.")
         match miner_type:
-            case "antminer" | "volcminer" | "goldshell":
+            case "antminer":
                 try:
                     self.client.blink(True)
                     locate_duration.start(10000)
                 except AuthenticationError as err:
                     logger.error(err)
                     self.close_client()
-            case "iceriver":
+            case "iceriver" | "volcminer" | "goldshell" | "sealminer":
                 self.client.blink(True)
                 locate_duration.start(10000)
             case "whatsminer":

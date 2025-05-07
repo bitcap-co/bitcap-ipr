@@ -504,6 +504,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                     client_auth = self.lineWhatsminerPasswd.text()
                 case "goldshell":
                     client_auth = self.lineGoldshellPasswd.text()
+                case "sealminer":
+                    client_auth = self.lineSealminerPasswd.text()
             self.api_client.create_client_from_type(miner_type, ip_addr, client_auth)
             client = self.api_client.get_client()
             if not client:
