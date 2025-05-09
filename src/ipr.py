@@ -201,6 +201,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
             self.system_tray_menu = QMenu()
             self.system_tray_menu.addAction("Show/Hide", self.toggle_visibility)
+            self.system_tray_menu.addAction("Open Log", self.open_log)
             self.actionSysStartListen = self.system_tray_menu.addAction(
                 "Start Listen", self.start_listen
             )
@@ -209,6 +210,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
             self.actionSysStopListen.setEnabled(False)
             self.system_tray_menu.addSeparator()
+            self.system_tray_menu.addAction("Settings", self.show_app_config)
             self.system_tray_menu.addAction("Quit", self.quit)
             if self.lm.listeners:
                 self.actionSysStartListen.setEnabled(False)
@@ -593,6 +595,8 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     # app config view
     def show_app_config(self):
+        if self.sys_tray and not self.isVisible():
+            self.toggle_visibility()
         self.stackedWidget.setCurrentIndex(2)
 
     def toggle_app_config(self):
