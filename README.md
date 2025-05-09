@@ -9,6 +9,7 @@
 
 ## Included Features
  - Listen for Antminers, IceRivers, and Whatsminers concurrently!
+   - With additional support for Goldshell, VolcMiner, and Sealminers.
  - Copy confirmation IP & MAC addresses to clipboard.
  - Open confirmation IP addresses in web browser.
  - Custom "ID Table" view for retrieving identifying information from miners (i.e. SN, type, subtype/model, algorithm, firmware, and platform).
@@ -35,7 +36,7 @@ Portable artifacts are also available!
 > [!NOTE]
 > macOS binaries are not signed. Due to this, the IP Reporter will probably fail to launch and get an error stating the the app is from an unknown source.
 > To Fix: Manully allow through System Settings -> `Security and Privacy`.
-> 
+>
 > If macOS complains that the app is damaged, run the following command:
 > ```
 > sudo xattr -dr com.apple.quarantine /path/to/BitCapIPR.app
