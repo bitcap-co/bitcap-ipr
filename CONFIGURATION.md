@@ -1,21 +1,24 @@
-## Configuration
+## IPR Configuration
+BitCap IPR offers a lot of configuration out of the box, letting you control exactly what you want to do with the messages that it receives.
 
-### Menubar Options
+### Top Menubar Options
+Along the top of the window, is the main interaction with the configuration of the app. From left to right, you have "Help", "Options", "ID Table", "Settings", and "Quit" menus that facilitate relating options for each catogory.
 #### "Options" Menu
-listener behavior options:
+The "Options" menu contains settings relating to the core listener functionality.
+Listener Behavior options:
    - "Always Open IP in Browser" Checkbox : When checked, the received IP address will automatically open in your default web browser. No IP confirmation window will be shown.
    - "Disable Inactive Timer" : When checked, the listener will run until manually stopped instead of the default timeout of 15 minutes.
    - "Auto Start on Launch" : When checked, the listener will automatically start on application launch (Effective next launch on changed).
 
 #### "ID Table" Menu
-This menu contains settings relating to the ID Table:
+This menu contains settings relating to the ID Table view:
    - "Enable ID Table" : When checked, updates the current view to a table view. The IP reporter will now retrieve and store the following identifying miner data directly from it's API:
    ```
-      SERIAL - miner serial number if available
-      SUBTYPE - miner model
-      ALGORITHM - miner algorithm if available
+      SERIAL - miner serial number (N/A if not available)
+      SUBTYPE - miner model i.e "S19 XP"
+      ALGORITHM - miner algorithm (N/A if not available)
       FIRMWARE - installed firmware version
-      PLATFORM - installed control board if available
+      PLATFORM - installed control board (N/A if not available)
    ```
    - "Open Selected IPs" : Once triggered, all selected IP addresses in the "IP" column will be opened in the default browser.
    - "Copy Selected Elements" : Once triggered, all selected elements in the table will be copied to the clipboard (seperated by comma).
@@ -39,13 +42,25 @@ Here is where you can change general, API, and log settings in their respective 
       - "Antminer" : When checked, enable listening for Antminers. Checked by default.
       - "Whatminer" : When checked, enable listening for Whatsminers. Checked by default.
       - "IceRiver" : When checked, enable listening for IceRivers. Checked by default.
+      - Additional Miners (disabled by default):
+         - "Goldshell": When checked, enable listening for Goldshell miners.
+         - "Volcminer":  When checked, enable listening for VolcMiners.
+         - "Sealminers": When checked, enable listening for Sealminers.
    #### "API" tab
+   If you have an alternative password other then the default, you can set it here for the respective miner type to be able use with the ID Table view:
    - Bitmain/Antminer:
-     - "Set Login Password" : Set alternative login password for Antminers. If blank, "root" is used for default authentication.
+     - "Set Login Password" : Set alternative login password for Antminers. If blank, "root" is used for authentication.
    - Whatsminer:
-     - "Set Login Password" : Set alternative login password for Whatsminers. If blank, "admin" is used for default authentication.
+     - "Set Login Password" : Set alternative login password for Whatsminers. If blank, "admin" is used for authentication.
+   - Volcminer:
+     - "Set Login Password": Set alternative login password for Volcminers. If blank, "ltc@dog" is used for authentication.
+   - Goldshell
+     - "Set Login Password": Set alternative login for Goldshell miners. If blank, "123456789" is used for authentication.
+   - Bitdeer/Sealminer:
+     - "Set Login Password": Set alternative login for Sealminers. if blank, "seal" is used for authentication.
    - pbfarmer:
      - "Set API Key" : Set alternative API Key to access IceRivers using pbfarmer firmware. If blank, the default API key is used for authentication.
+
    #### "Logs" tab
    - Log settings:
      - "Log Level" : Set the desired base log level for the logger. The log file will only record that level and greater. Below are the available levels:
@@ -69,12 +84,20 @@ Here is where you can change general, API, and log settings in their respective 
         "listenFor": {
             "antminer": true,
             "whatsminer": true,
-            "iceriver": true
+            "iceriver": true,
+            "additional": {
+                "volcminer": false,
+                "goldshell": false,
+                "sealminer": false
+            }
         }
     },
     "api": {
         "bitmainAltPasswd": "",
         "whatsminerAltPasswd": "",
+        "volcminerAltPasswd": "",
+        "goldshellAltPasswd": "",
+        "bitdeerAltPasswd": "",
         "pbfarmerKey": ""
     },
     "logs": {
@@ -84,6 +107,9 @@ Here is where you can change general, API, and log settings in their respective 
         "flushInterval": 0
     },
     "instance": {
+        "geometry": {
+            "mainWindow": []
+        },
         "options": {
             "alwaysOpenIPInBrowser": false,
             "disableInactiveTimer": false,
