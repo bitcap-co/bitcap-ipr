@@ -136,7 +136,7 @@ class BitmainHTTPClient(BaseHTTPClient):
         if self.is_custom:
             self.run_command("POST", "blink")
         else:
-            self.run_command("POST", "blink", {"blink": enabled})
+            self.run_command("POST", "blink", payload={"blink": enabled})
 
 
 class BitmainParser(Parser):
