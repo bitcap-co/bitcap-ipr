@@ -357,7 +357,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprStatus.showMessage(f"Status :: Got {type}: IP:{ip} MAC:{mac}", 3000)
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
-        if self.menu_bar.actionEnableIDTable.isChecked():
+        if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
             self.populate_table_row(ip, mac, sn, type)
             self.activateWindow()
         else:
