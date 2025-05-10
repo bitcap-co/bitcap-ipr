@@ -94,7 +94,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.idTable.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.idTable.customContextMenuRequested.connect(self.show_table_context)
         self.idTable.setColumnWidth(0, 15)
-        self.idTable.setColumnWidth(1, 120)
+        self.idTable.setColumnWidth(2, 120)
         self.idTable.setColumnWidth(3, 135)
         self.idTable.setColumnWidth(5, 130)
         self.idTable.setColumnWidth(7, 180)
