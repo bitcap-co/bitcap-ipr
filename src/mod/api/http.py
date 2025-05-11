@@ -1,5 +1,11 @@
+import random
+import time
 import requests
 from abc import ABC, abstractmethod
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class BaseHTTPClient(ABC):
@@ -21,6 +27,9 @@ class BaseHTTPClient(ABC):
 
         self._error = None
 
+        self.__max_retries = 3
+        self.__max_delay = 5
+
     def __new__(cls, *args, **kwargs):
         if cls is BaseHTTPClient:
             raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
@@ -29,6 +38,16 @@ class BaseHTTPClient(ABC):
     def __repr__(self):
         return f"{self.__class__.__name__}: {str(self.ip)}"
 
+    def __delay_times(self, backoff_factor: int, jitter: bool = False):
+        delay_times = []
+        for retry in range(self.__max_retries):
+            delay_time = backoff_factor * (2 ** (self.__max_retries - 1))
+            if jitter:
+                delay_time *= random.uniform(0.5, 1.5)
+            effective_delay = min(delay_time, self.__max_delay)
+            delay_times.append(effective_delay)
+        return delay_times
+
     @abstractmethod
     def _initialize_session(self) -> None:
         pass
@@ -36,6 +55,24 @@ class BaseHTTPClient(ABC):
     @abstractmethod
     def _authenticate_session(self) -> None:
         pass
+
+    def __retry_send(self, req: requests.Request, **kwargs):
+        success = False
+        backoff = self.__delay_times(1, jitter=True)
+        for delay in backoff:
+            try:
+                res = self.session.send(req, **kwargs)
+                success = True
+                return res
+            except (
+                requests.exceptions.ReadTimeout,
+                requests.exceptions.ChunkedEncodingError
+            ) as e:
+                logger.warning(f" __retry_send : {e}. retry request in {delay} seconds.")
+                time.sleep(delay)
+        if not success:
+            logger.error(" __retry_send : request failed after max retries.")
+            return requests.Response()
 
     def _do_http(
         self,
@@ -65,7 +102,7 @@ class BaseHTTPClient(ABC):
             self.session.headers.update({"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"})
             req.data = data
         r = req.prepare()
-        res = self.session.send(r, timeout=timeout, verify=self.session.verify)
+        res = self.retry_send(r, timeout=timeout, verify=self.session.verify)
         return res
 
     @abstractmethod
