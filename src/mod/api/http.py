@@ -102,7 +102,7 @@ class BaseHTTPClient(ABC):
             self.session.headers.update({"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"})
             req.data = data
         r = req.prepare()
-        res = self.retry_send(r, timeout=timeout, verify=self.session.verify)
+        res = self.__retry_send(r, timeout=timeout, verify=self.session.verify)
         return res
 
     @abstractmethod
