@@ -103,7 +103,7 @@ class SealminerParser(Parser):
 
     def parse_platform(self, obj: dict) -> None:
         if "ctrl_version" in obj:
-            self.target["platform"] = obj["ctrl_verison"]
+            self.target["platform"] = obj["ctrl_version"]
 
     def parse_all(self, obj: dict) -> None:
         self.parse_subtype(obj)
