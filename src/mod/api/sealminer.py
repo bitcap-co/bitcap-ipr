@@ -81,10 +81,7 @@ class SealminerHTTPClient(BaseHTTPClient):
         return True if sys["led"] == "on" else False
 
     def blink(self, enabled: bool):
-        data = {
-            "key": "led",
-            "value": "on" if enabled else "off"
-        }
+        data = '{"key":"led","value": "%s"}' % ("on" if enabled else "off")
         self.run_command("POST", "led_conf", data=data)
 
 
