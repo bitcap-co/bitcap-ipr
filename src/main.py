@@ -29,8 +29,8 @@ import logging
 import logging.handlers
 import traceback
 
-from PySide6.QtCore import QSystemSemaphore, QSharedMemory
-from PySide6.QtGui import QIcon
+from PySide6.QtCore import QSystemSemaphore, QSharedMemory, QUrl
+from PySide6.QtGui import QIcon, QDesktopServices
 from PySide6.QtWidgets import (
     QApplication,
     QMessageBox,
@@ -64,14 +64,19 @@ except ImportError:
 
 
 def exception_hook(exc_type, exc_value, exc_tb):
-    QMessageBox.critical(
-        None,
-        "BitCap IPR - Critical Error",
-        f"Application has encounter an error!\nSee output log at {Path(get_log_path(), 'ipr.log')}.",
-    )
     tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
     logger.critical("exception_hook : exception caught!")
     logger.critical(f"exception_hook : {tb}")
+    input = QMessageBox.critical(
+        None,
+        "BitCap IPR - Critical Error",
+        f"Application has encounter an error!\nSee output log at {get_log_file_path().resolve()}.",
+        buttons=QMessageBox.StandardButton.Open | QMessageBox.StandardButton.Ok
+    )
+    if input == QMessageBox.StandardButton.Open:
+        QDesktopServices.openUrl(
+            QUrl(f"file:///{get_log_dir()}/ipr.log", QUrl.ParsingMode.TolerantMode)
+        )
     QApplication.exit(0)
 
 
