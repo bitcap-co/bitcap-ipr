@@ -25,11 +25,9 @@
 
 import os
 import sys
-import json
 import logging
 import logging.handlers
 import traceback
-from pathlib import Path
 
 from PySide6.QtCore import QSystemSemaphore, QSharedMemory
 from PySide6.QtGui import QIcon
@@ -39,14 +37,17 @@ from PySide6.QtWidgets import (
 )
 from ipr import IPR
 from utils import (
-    MAX_ROTATE_LOG_FILES,
     get_stylesheet,
-    get_default_config,
-    get_config_path,
-    get_log_path,
-    get_config,
-    deep_update,
+    MAX_ROTATE_LOG_FILES,
+    get_log_dir,
+    get_log_file_path,
     flush_log,
+    get_default_config,
+    get_config_dir,
+    get_config_file_path,
+    read_config,
+    write_config,
+    deep_update
 )
 
 # logger
@@ -75,23 +76,18 @@ def exception_hook(exc_type, exc_value, exc_tb):
 
 
 def init_app():
-    default_config = get_default_config()
-    config_path = get_config_path()
-    log_path = get_log_path()
-    os.makedirs(config_path, exist_ok=True)
-    os.makedirs(log_path, exist_ok=True)
+    config_path = get_config_file_path()
+    log_path = get_log_file_path()
+    os.makedirs(get_config_dir(), exist_ok=True)
+    os.makedirs(get_log_dir(), exist_ok=True)
 
-    config = get_config(default_config)
-    if not os.path.exists(Path(config_path, "config.json")):
-        config_json = json.dumps(config, indent=4)
-        with open(Path(config_path, "config.json"), "w") as f:
-            f.write(config_json)
+    config = read_config(get_default_config())
+    if not os.path.exists(config_path):
+        write_config(config_path, config)
     else:
-        curr_config = get_config(Path(config_path, "config.json"))
+        curr_config = read_config(config_path)
         config = deep_update(config, curr_config)
-        config_json = json.dumps(config, indent=4)
-        with open(Path(config_path, "config.json"), "w") as f:
-            f.write(config_json)
+        write_config(config_path, config)
 
     # init logger
     max_log_size = int(config["logs"]["maxLogSize"]) * 1000
@@ -103,16 +99,16 @@ def init_app():
 
             def rotator(source, dest):
                 # override rotator to clear log instead
-                flush_log(Path(log_path, "ipr.log"))
+                flush_log()
 
             rfh = logging.handlers.RotatingFileHandler(
-                Path(log_path, "ipr.log"), maxBytes=max_log_size, backupCount=1
+                log_path, maxBytes=max_log_size, backupCount=1
             )
             rfh.rotator = rotator
             rfh.namer = namer
         case 1:
             rfh = logging.handlers.RotatingFileHandler(
-                Path(log_path, "ipr.log"),
+                log_path,
                 maxBytes=max_log_size,
                 backupCount=MAX_ROTATE_LOG_FILES,
             )

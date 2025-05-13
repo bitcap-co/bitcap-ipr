@@ -42,29 +42,43 @@ def get_default_config():
     return Path(BASEDIR, "resources", "app", "config.json.default")
 
 
-def get_config_path():
+def get_config_dir() -> str:
     if os.path.exists(Path(BASEDIR, "..", "README.md")):
-        cp = Path(BASEDIR, "..").as_posix()
+        cd = Path(BASEDIR, "..").as_posix()
     else:
-        cp = user_data_dir(APP_INFO["appname"], APP_INFO["appauthor"])
-    return cp
+        cd = user_data_dir(APP_INFO["appname"], APP_INFO["appauthor"])
+    return cd
 
 
-def get_config(cp: Path) -> dict:
+def get_config_file_path() -> Path:
+    return Path(get_config_dir(), "config.json")
+
+
+def read_config(cp: Path) -> dict:
     with open(cp, "r") as f:
         c = json.load(f)
     return c
 
 
-def get_log_path():
+def write_config(cp: Path, content: dict):
+    config = json.dumps(content, indent=4)
+    with open(cp, "w") as f:
+        f.write(config)
+
+
+def get_log_dir() -> str:
     if os.path.exists(Path(BASEDIR, "..", "README.md")):
-        lp = Path(BASEDIR, "..", "Logs").as_posix()
+        ld = Path(BASEDIR, "..", "Logs").as_posix()
     else:
-        lp = user_log_dir(APP_INFO["appname"], APP_INFO["appauthor"])
-    return lp
+        ld = user_log_dir(APP_INFO["appname"], APP_INFO["appauthor"])
+    return ld
 
 
-def flush_log(p: Path):
-    with open(p, "r+") as f:
+def get_log_file_path() -> Path:
+    return Path(get_log_dir(), "ipr.log")
+
+
+def flush_log():
+    with open(get_log_file_path(), "r+") as f:
         f.truncate(0)
         f.seek(0)

@@ -1,6 +1,5 @@
 import os
 import time
-import json
 import logging
 import webbrowser
 from datetime import datetime
@@ -43,10 +42,11 @@ from mod.api.client import APIClient
 from utils import (
     CURR_PLATFORM,
     APP_INFO,
-    get_log_path,
-    get_config_path,
-    get_config,
     get_default_config,
+    get_log_dir,
+    get_config_file_path,
+    read_config,
+    write_config
 )
 
 # logger
@@ -145,7 +145,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
 
-        self.read_config()
+        self.read_settings()
 
         if self.menu_bar.actionEnableIDTable.isChecked():
             self.toggle_table_settings(True)
@@ -250,7 +250,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def open_log(self):
         QDesktopServices.openUrl(
-            QUrl(f"file:///{get_log_path()}/ipr.log", QUrl.ParsingMode.TolerantMode)
+            QUrl(f"file:///{get_log_dir()}/ipr.log", QUrl.ParsingMode.TolerantMode)
         )
 
     def open_issues(self):
@@ -626,11 +626,11 @@ class IPR(QMainWindow, Ui_MainWindow):
             line.setEchoMode(QLineEdit.EchoMode.Password)
             action.setIcon(QIcon(":theme/icons/rc/view.png"))
 
-    def read_config(self):
+    def read_settings(self):
         logger.info(" read config.")
-        self.config_path = get_config_path()
+        self.config_path = get_config_file_path()
         if os.path.exists(self.config_path):
-            self.config = get_config(Path(self.config_path, "config.json"))
+            self.config = read_config(self.config_path)
             # general
             self.checkEnableSysTray.setChecked(self.config["general"]["enableSysTray"])
             self.comboOnWindowClose.setCurrentIndex(
@@ -751,21 +751,16 @@ class IPR(QMainWindow, Ui_MainWindow):
             buttons=QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Ok,
         )
         if ok == QMessageBox.StandardButton.Ok:
-            default_config = get_default_config()
-            config = get_config(default_config)
-            config_json = json.dumps(config, indent=4)
-            with open(Path(self.config_path, "config.json"), "w") as f:
-                f.write(config_json)
-            self.read_config()
+            config = read_config(get_default_config())
+            write_config(self.config_path, config)
+            self.read_settings()
             self.iprStatus.showMessage(
                 "Status :: Successfully restored to default settings.", 5000
             )
 
     def write_settings(self):
         self.update_settings()
-        config_json = json.dumps(self.config, indent=4)
-        with open(Path(self.config_path, "config.json"), "w") as f:
-            f.write(config_json)
+        write_config(self.config_path, self.config)
 
     def set_logger_level(self):
         logger.manager.root.setLevel(self.comboLogLevel.currentText())
