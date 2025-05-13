@@ -698,7 +698,7 @@
                                   </size>
                                  </property>
                                  <property name="toolTip">
-                                  <string>Enable listening for Sealminers (Experimental)</string>
+                                  <string>Enable listening for Sealminers</string>
                                  </property>
                                  <property name="text">
                                   <string>Sealminer</string>
