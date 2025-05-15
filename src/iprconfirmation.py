@@ -1,5 +1,6 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget
+from PySide6.QtGui import QPixmap
 
 from ui.Confirmation import Ui_IPRConfirmation
 from ui.widgets.titlebar import TitleBar
@@ -22,3 +23,11 @@ class IPRConfirmation(QWidget, Ui_IPRConfirmation):
         self.title_bar._closeButton.clicked.connect(self.window().hide)
         title_bar_widget = self.titlebarwidget.layout()
         title_bar_widget.addWidget(self.title_bar)
+
+        self.ipLogo.setPixmap(
+            QPixmap(":theme/icons/rc/wifi.png")
+        )
+
+        self.macLogo.setPixmap(
+            QPixmap(":theme/icons/rc/stack.png")
+        )
