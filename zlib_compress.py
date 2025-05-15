@@ -17,7 +17,7 @@ if __name__ == "__main__":
     args = parse_arguments()
 
     if args.file:
-        with open(Path(args.file), 'rb') as f:
+        with open(Path(args.file).resolve(), 'rb') as f:
             data = f.read()
 
     if args.msg:
