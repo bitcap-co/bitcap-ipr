@@ -75,7 +75,7 @@ source .venv/bin/activate
 pip install -r ./requirements.txt
 pip install pyinstaller
 pyinstaller src/ipr.spec
-# move the readme into dist to create files locally
+# move the readme into dist to create files and run locally
 cp ./README.md ./dist/BitCapIPR
 ```
 
