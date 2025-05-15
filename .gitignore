@@ -23,6 +23,7 @@ venv
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 
+.debug/
 config.json
 Logs
 src/resources
