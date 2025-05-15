@@ -112,7 +112,6 @@ class Ui_IPRConfirmation(object):
         self.ipLogo.setObjectName(u"ipLogo")
         sizePolicy1.setHeightForWidth(self.ipLogo.sizePolicy().hasHeightForWidth())
         self.ipLogo.setSizePolicy(sizePolicy1)
-        self.ipLogo.setAlignment(Qt.AlignmentFlag.AlignJustify|Qt.AlignmentFlag.AlignVCenter)
 
         self.horizontalLayout.addWidget(self.ipLogo)
 
