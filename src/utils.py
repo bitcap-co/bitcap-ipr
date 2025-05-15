@@ -9,7 +9,7 @@ from PySide6.QtCore import __version__ as QT_VERSION
 APP_INFO = {
     "name": "BitCap IPReporter",
     "appname": "BitCapIPR",
-    "appversion": "1.2.4",
+    "appversion": "1.2.5",
     "qt": QT_VERSION,
     "python": ".".join(map(str, sys.version_info[:3])),
     "appauthor": "BitCap",
