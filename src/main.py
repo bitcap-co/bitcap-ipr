@@ -63,120 +63,140 @@ except ImportError:
     pass
 
 
-def exception_hook(exc_type, exc_value, exc_tb):
-    tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
-    logger.critical("exception_hook : exception caught!")
-    logger.critical(f"exception_hook : {tb}")
-    input = QMessageBox.critical(
-        None,
-        "BitCap IPR - Critical Error",
-        f"Application has encounter an error!\nSee output log at {get_log_file_path().resolve()}.",
-        buttons=QMessageBox.StandardButton.Open | QMessageBox.StandardButton.Ok
-    )
-    if input == QMessageBox.StandardButton.Open:
-        QDesktopServices.openUrl(
-            QUrl(f"file:///{get_log_dir()}/ipr.log", QUrl.ParsingMode.TolerantMode)
+class main:
+    def __init__(self, args: list = []):
+        self.args = args
+        self.config_dir = get_config_dir()
+        self.log_dir = get_log_dir()
+        self.default_config = get_default_config()
+        self.config_path = get_config_file_path()
+        self.log_path = get_log_file_path()
+        self.stylesheet = get_stylesheet()
+
+        self.config = None
+
+        self.init_configuration()
+        self.init_logger()
+        self.app = None
+        self.is_running = False
+        self.main_window = None
+        self.init_app(self.args)
+        self.launch_app()
+
+    def init_configuration(self):
+        os.makedirs(self.config_dir, exist_ok=True)
+        os.makedirs(self.log_dir, exist_ok=True)
+
+        config = read_config(self.default_config)
+        if not os.path.exists(self.config_path):
+            self.config = config
+            write_config(self.config_path, config)
+        else:
+            curr_config = read_config(self.config_path)
+            config = deep_update(config, curr_config)
+            self.config = config
+            write_config(self.config_path, config)
+
+    def init_logger(self):
+        max_log_size = int(self.config["logs"]["maxLogSize"]) * 1000
+        match self.config["logs"]["onMaxLogSize"]:
+            case 0:
+
+                def namer(name):
+                    return name
+
+                def rotator(source, dest):
+                    # override rotator to clear log instead
+                    flush_log()
+
+                rfh = logging.handlers.RotatingFileHandler(
+                    self.log_path, maxBytes=max_log_size, backupCount=1
+                )
+                rfh.rotator = rotator
+                rfh.namer = namer
+            case 1:
+                rfh = logging.handlers.RotatingFileHandler(
+                    self.log_path,
+                    maxBytes=max_log_size,
+                    backupCount=MAX_ROTATE_LOG_FILES,
+                )
+
+        logging.basicConfig(
+            format="%(asctime)s - %(levelname)s - %(name)s:%(message)s",
+            datefmt="%m/%d/%Y %I:%M:%S%p",
+            level=logging.INFO,
+            handlers=[rfh],
         )
-    QApplication.exit(0)
 
+        logger.info("init_logger : init finished.")
 
-def init_app():
-    config_path = get_config_file_path()
-    log_path = get_log_file_path()
-    os.makedirs(get_config_dir(), exist_ok=True)
-    os.makedirs(get_log_dir(), exist_ok=True)
+        logger.manager.root.setLevel(self.config["logs"]["logLevel"])
+        logger.info(f"init_logger : set logger to log level {self.config['logs']['logLevel']}.")
 
-    config = read_config(get_default_config())
-    if not os.path.exists(config_path):
-        write_config(config_path, config)
-    else:
-        curr_config = read_config(config_path)
-        config = deep_update(config, curr_config)
-        write_config(config_path, config)
+    def init_app(self, args: list = []):
+        logger.info("init_app : start application init.")
+        self.app = QApplication(args)
+        with open(self.stylesheet) as theme:
+            self.app.setStyleSheet(theme.read())
 
-    # init logger
-    max_log_size = int(config["logs"]["maxLogSize"]) * 1000
-    match config["logs"]["onMaxLogSize"]:
-        case 0:
+        window_key = "BitCapIPR"
+        shared_mem_key = "IPRSharedMemory"
+        semaphore = QSystemSemaphore(window_key, 1)
+        semaphore.acquire()
 
-            def namer(name):
-                return name
+        if os.name == "posix":
+            # manually destroy shared memory if on unix
+            unix_fix_shared_mem = QSharedMemory(shared_mem_key)
+            if unix_fix_shared_mem.attach():
+                unix_fix_shared_mem.detach()
 
-            def rotator(source, dest):
-                # override rotator to clear log instead
-                flush_log()
+        shared_mem = QSharedMemory(shared_mem_key)
 
-            rfh = logging.handlers.RotatingFileHandler(
-                log_path, maxBytes=max_log_size, backupCount=1
+        if shared_mem.attach():
+            self.is_running = True
+        else:
+            shared_mem.create(1)
+            self.is_running = False
+
+        semaphore.release()
+
+        if self.is_running:
+            # if already running, send warning dialog and close app
+            QMessageBox.warning(
+                None,
+                "BitCapIPR - Application already running",
+                "One instance of the application is already running.",
             )
-            rfh.rotator = rotator
-            rfh.namer = namer
-        case 1:
-            rfh = logging.handlers.RotatingFileHandler(
-                log_path,
-                maxBytes=max_log_size,
-                backupCount=MAX_ROTATE_LOG_FILES,
-            )
+            return
 
-    logging.basicConfig(
-        format="%(asctime)s - %(levelname)s - %(name)s:%(message)s",
-        datefmt="%m/%d/%Y %I:%M:%S%p",
-        level=logging.INFO,
-        handlers=[rfh],
-    )
+        self.app.setWindowIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"))
+        self.app.setStyle("Fusion")
+        logger.info("init_app : finished init.")
 
-    logger.manager.root.setLevel(config["logs"]["logLevel"])
-    logger.info(f"init_app : set logger to log level {config['logs']['logLevel']}.")
+    def launch_app(self):
+        logger.info("launch_app: start app.")
+        self.main_window = IPR()
+        self.main_window.show()
 
+        sys.excepthook = self.exception_hook
+        sys.exit(self.app.exec())
 
-def launch_app():
-    init_app()
-    logger.info("launch_app : finish init.")
-    logger.info("launch_app : start app.")
-
-    app = QApplication(sys.argv)
-    with open(get_stylesheet()) as theme:
-        app.setStyleSheet(theme.read())
-
-    # Here we are making sure that only one instance is running at a time
-    window_key = "BitCapIPR"
-    shared_mem_key = "IPRSharedMemory"
-    semaphore = QSystemSemaphore(window_key, 1)
-    semaphore.acquire()
-
-    if os.name == "posix":
-        # manually destroy shared memory if on unix
-        unix_fix_shared_mem = QSharedMemory(shared_mem_key)
-        if unix_fix_shared_mem.attach():
-            unix_fix_shared_mem.detach()
-
-    shared_mem = QSharedMemory(shared_mem_key)
-
-    if shared_mem.attach():
-        is_running = True
-    else:
-        shared_mem.create(1)
-        is_running = False
-
-    semaphore.release()
-
-    if is_running:
-        # if already running, send warning dialog and close app
-        QMessageBox.warning(
+    def exception_hook(self, exc_type, exc_value, exc_tb):
+        tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+        logger.critical("exception_hook : exception caught!")
+        logger.critical(f"exception_hook : {tb}")
+        input = QMessageBox.critical(
             None,
-            "BitCapIPR - Application already running",
-            "One instance of the application is already running.",
+            "BitCap IPR - Critical Error",
+            f"Application has encounter an error!\nSee output log at {self.log_path.resolve()}.",
+            buttons=QMessageBox.StandardButton.Open | QMessageBox.StandardButton.Ok
         )
-        return
-
-    app.setWindowIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"))
-    app.setStyle("Fusion")
-
-    w = IPR()
-    w.show()
-    sys.excepthook = exception_hook
-    sys.exit(app.exec())
+        if input == QMessageBox.StandardButton.Open:
+            QDesktopServices.openUrl(
+                QUrl(f"file:///{self.log_path.resolve()}", QUrl.ParsingMode.TolerantMode)
+            )
+        QApplication.exit(1)
 
 
 if __name__ == "__main__":
-    launch_app()
+    main(sys.argv)
