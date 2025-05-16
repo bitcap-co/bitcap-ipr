@@ -46,7 +46,7 @@ from utils import (
     get_log_dir,
     get_config_file_path,
     read_config,
-    write_config
+    write_config,
 )
 
 # logger
@@ -309,6 +309,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.lm.stop_listeners()
         if timeout:
             logger.warning("stop_listen : timeout.")
+            self.iprStatus.showMessage(
+                "Status :: Inactive timeout. Stopped listeners", 5000
+            )
             if self.sys_tray and not self.isVisible():
                 self.sys_tray.showMessage(
                     "IPR Listener: Inactive timeout!",
