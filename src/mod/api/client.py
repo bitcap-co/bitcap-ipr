@@ -23,6 +23,7 @@ class APIClient:
     def __init__(self, parent: QObject):
         self.parent = parent
         self.client = None
+        self.locate_duration = None
         self.target_info = {
             "serial": "N/A",
             "subtype": "N/A",
@@ -101,21 +102,21 @@ class APIClient:
                 self.create_sealminer_client(ip_addr, auth_str)
 
     def locate_miner(self, miner_type: str):
-        locate_duration = QTimer(self.parent)
-        locate_duration.setSingleShot(True)
-        locate_duration.timeout.connect(self.stop_locate)
+        self.locate_duration = QTimer(self.parent)
+        self.locate_duration.setSingleShot(True)
+        self.locate_duration.timeout.connect(self.stop_locate)
         logger.info(" locate miner for 10000ms.")
         match miner_type:
             case "antminer":
                 try:
                     self.client.blink(True)
-                    locate_duration.start(10000)
+                    self.locate_duration.start(10000)
                 except AuthenticationError as err:
                     logger.error(err)
                     self.close_client()
             case "iceriver" | "volcminer" | "goldshell" | "sealminer":
                 self.client.blink(True)
-                locate_duration.start(10000)
+                self.locate_duration.start(10000)
             case "whatsminer":
                 try:
                     self.client.blink()

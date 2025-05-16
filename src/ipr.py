@@ -490,6 +490,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         if col == 0:
             miner_type = self.idTable.item(row, 4).text()
             ip_addr = self.idTable.item(row, 1).text()
+            if (
+                self.api_client.locate_duration
+                and self.api_client.locate_duration.isActive()
+            ):
+                return logger.warning(
+                    "locate_miner : already locating a miner. Ignoring..."
+                )
             logger.info(f" locate miner {ip_addr}.")
             client_auth = None
             match miner_type:
