@@ -47,7 +47,7 @@ from utils import (
     get_config_file_path,
     read_config,
     write_config,
-    deep_update
+    deep_update,
 )
 
 # logger
@@ -131,7 +131,9 @@ class main:
         logger.info("init_logger : init finished.")
 
         logger.manager.root.setLevel(self.config["logs"]["logLevel"])
-        logger.info(f"init_logger : set logger to log level {self.config['logs']['logLevel']}.")
+        logger.info(
+            f"init_logger : set logger to log level {self.config['logs']['logLevel']}."
+        )
 
     def init_app(self, args: list = []):
         logger.info("init_app : start application init.")
@@ -185,16 +187,27 @@ class main:
         tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
         logger.critical("exception_hook : exception caught!")
         logger.critical(f"exception_hook : {tb}")
+        logger.info("exception_hook : store any unsaved data.")
+        if (
+            self.main_window.menu_bar.actionEnableIDTable.isChecked()
+            and self.main_window.idTable.rowCount() > 0
+        ):
+            logger.info("exception_hook: export current table.")
+            self.main_window.export_table()
         input = QMessageBox.critical(
             None,
             "BitCap IPR - Critical Error",
             f"Application has encounter an error!\nSee output log at {self.log_path.resolve()}.",
-            buttons=QMessageBox.StandardButton.Open | QMessageBox.StandardButton.Ok
+            buttons=QMessageBox.StandardButton.Open | QMessageBox.StandardButton.Ok,
         )
         if input == QMessageBox.StandardButton.Open:
             QDesktopServices.openUrl(
-                QUrl(f"file:///{self.log_path.resolve()}", QUrl.ParsingMode.TolerantMode)
+                QUrl(
+                    f"file:///{self.log_path.resolve()}", QUrl.ParsingMode.TolerantMode
+                )
             )
+        # graceful exit
+        self.main_window.quit()
         QApplication.exit(1)
 
 
