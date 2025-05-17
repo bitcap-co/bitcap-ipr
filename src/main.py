@@ -80,8 +80,7 @@ class main:
         self.app = None
         self.is_running = False
         self.main_window = None
-        self.init_app(self.args)
-        self.launch_app()
+        self.launch_app(self.args)
 
     def init_configuration(self):
         os.makedirs(self.config_dir, exist_ok=True)
@@ -135,8 +134,8 @@ class main:
             f"init_logger : set logger to log level {self.config['logs']['logLevel']}."
         )
 
-    def init_app(self, args: list = []):
-        logger.info("init_app : start application init.")
+    def launch_app(self, args: list = []):
+        logger.info("launch_app: start app.")
         self.app = QApplication(args)
         with open(self.stylesheet) as theme:
             self.app.setStyleSheet(theme.read())
@@ -173,10 +172,7 @@ class main:
 
         self.app.setWindowIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"))
         self.app.setStyle("Fusion")
-        logger.info("init_app : finished init.")
 
-    def launch_app(self):
-        logger.info("launch_app: start app.")
         self.main_window = IPR()
         self.main_window.show()
 
@@ -194,6 +190,8 @@ class main:
         ):
             logger.info("exception_hook: export current table.")
             self.main_window.export_table()
+        # graceful exit
+        self.main_window.quit()
         input = QMessageBox.critical(
             None,
             "BitCap IPR - Critical Error",
@@ -206,9 +204,7 @@ class main:
                     f"file:///{self.log_path.resolve()}", QUrl.ParsingMode.TolerantMode
                 )
             )
-        # graceful exit
-        self.main_window.quit()
-        QApplication.exit(1)
+        self.app.exit(1)
 
 
 if __name__ == "__main__":
