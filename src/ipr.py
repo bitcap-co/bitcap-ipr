@@ -533,22 +533,23 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.iprStatus.showMessage(f"Status :: Locating miner: {ip_addr}...", 10000)
 
     def double_click_item(self, model_index):
-        row = model_index.row()
-        col = model_index.column()
-        # ip
-        if col == 1:
-            self.open_dashboard(self.idTable.item(row, col).text())
-        # serial
-        if col == 3:
-            self.idTable.editItem(self.idTable.item(row, col))
+        item = self.idTable.itemFromIndex(model_index)
+        match item.column():
+            case 1:  # ip column
+                self.open_dashboard(item.text())
+            case 3:  # serial column
+                self.idTable.editItem(item)
+            case _:
+                return
 
     def open_selected_ips(self):
         rows = self.idTable.rowCount()
         if not rows:
             return
-        for r in range(rows):
-            if self.idTable.item(r, 1).isSelected():
-                self.open_dashboard(self.idTable.item(r, 1).text())
+        selected_ips = [x for x in self.idTable.selectedIndexes() if x.column() == 1]
+        for index in selected_ips:
+            item = self.idTable.itemFromIndex(index)
+            self.open_dashboard(item.text())
 
     def copy_selected(self):
         logger.info(" copy selected elements.")
