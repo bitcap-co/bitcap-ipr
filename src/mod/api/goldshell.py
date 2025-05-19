@@ -50,7 +50,7 @@ class GoldshellHTTPClient(BaseHTTPClient):
                 params["cipher"] = "true"
                 res = self._do_http("GET", "/user/login", params=params)
                 if res.status_code == 500:
-                    break
+                    continue
             try:
                 resj = res.json()
             except requests.exceptions.JSONDecodeError:
