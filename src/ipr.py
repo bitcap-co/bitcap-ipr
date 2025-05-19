@@ -68,13 +68,15 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.title_bar = TitleBar(self, "BitCap IPReporter", ["min", "close"])
         self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
         self.title_bar._closeButton.clicked.connect(self.close_to_tray_or_exit)
-        title_bar_widget = self.titlebar.layout()
-        title_bar_widget.addWidget(self.title_bar)
+        titlebarwidget = self.titlebar.layout()
+        if titlebarwidget:
+            titlebarwidget.addWidget(self.title_bar)
 
         # menu bar
         self.menu_bar = IPR_Menubar()
         menubarwidget = self.menubar.layout()
-        menubarwidget.addWidget(self.menu_bar)
+        if menubarwidget:
+            menubarwidget.addWidget(self.menu_bar)
 
         self.labelLogo.setPixmap(QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg"))
 
@@ -426,7 +428,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     # id table view
     def populate_table_row(self, ip: str, mac: str, sn: str, type: str) -> None:
-        client_auth = None
+        client_auth = ""
         match type:
             case "antminer":
                 client_auth = self.lineBitmainPasswd.text()
@@ -501,7 +503,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "locate_miner : already locating a miner. Ignoring..."
                 )
             logger.info(f" locate miner {ip_addr}.")
-            client_auth = None
+            client_auth = ""
             match miner_type:
                 case "antminer":
                     client_auth = self.lineBitmainPasswd.text()

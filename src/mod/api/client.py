@@ -55,10 +55,12 @@ class APIClient:
             logger.error(err)
 
     def create_whatsminer_client(
-        self, ip_addr: str, port: int = 4028, passwd: str | None = None
+        self, ip_addr: str, passwd: str, port: int = 4028,
     ):
+        if not passwd:
+            passwd = "admin"
         try:
-            self.client = WhatsminerRPCClient(ip_addr, port, passwd)
+            self.client = WhatsminerRPCClient(ip_addr, passwd, port)
         except FailedConnectionError as err:
             logger.error(err)
 
@@ -93,7 +95,7 @@ class APIClient:
             case "iceriver":
                 self.create_iceriver_client(ip_addr, auth_str)
             case "whatsminer":
-                self.create_whatsminer_client(ip_addr, passwd=auth_str)
+                self.create_whatsminer_client(ip_addr, auth_str)
             case "volcminer":
                 self.create_volcminer_client(ip_addr, auth_str)
             case "goldshell":
@@ -132,7 +134,8 @@ class APIClient:
     def get_iceriver_mac_addr(self):
         if self.client:
             mac = self.client.get_mac_addr()
-            return mac
+            if mac:
+                return mac
         return "ice-river"
 
     def is_volcminer(self):
@@ -191,6 +194,8 @@ class APIClient:
                 return self.get_target_info(GoldshellParser(self.target_info))
             case "sealminer":
                 return self.get_target_info(SealminerParser(self.target_info))
+            case _:
+                return self.target_info
 
     def close_client(self):
         if self.client:

@@ -23,13 +23,10 @@ logger = logging.getLogger(__name__)
 class WhatsminerRPCClient:
     """Whatsminer JSON-RPC API client"""
 
-    def __init__(self, ip_addr: str, port: int, passwd: str | None = None):
+    def __init__(self, ip_addr: str, passwd: str, port: int):
         self.ip = ip_addr
         self.port = port
         self.passwd = passwd
-        if not self.passwd:
-            if self.passwd == "":
-                self.passwd = "admin"
         self.err = None
         self.__test_connection()
 

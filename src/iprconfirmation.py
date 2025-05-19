@@ -21,13 +21,9 @@ class IPRConfirmation(QWidget, Ui_IPRConfirmation):
             self.title_bar = TitleBar(self, "IP Confirmation", ["min", "close"])
         self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
         self.title_bar._closeButton.clicked.connect(self.window().hide)
-        title_bar_widget = self.titlebarwidget.layout()
-        title_bar_widget.addWidget(self.title_bar)
+        titlebarwidget = self.titlebarwidget.layout()
+        if titlebarwidget:
+            titlebarwidget.addWidget(self.title_bar)
+        self.ipLogo.setPixmap(QPixmap(":theme/icons/rc/wifi.png"))
 
-        self.ipLogo.setPixmap(
-            QPixmap(":theme/icons/rc/wifi.png")
-        )
-
-        self.macLogo.setPixmap(
-            QPixmap(":theme/icons/rc/stack.png")
-        )
+        self.macLogo.setPixmap(QPixmap(":theme/icons/rc/stack.png"))

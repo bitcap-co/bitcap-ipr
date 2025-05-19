@@ -12,7 +12,7 @@ class BaseHTTPClient(ABC):
     def __init__(self, ip: str) -> None:
         self.ip = ip
         self.port = 80
-        self.url = None
+        self.url = ""
         self.username = None
         self.passwd = None
 
@@ -56,7 +56,7 @@ class BaseHTTPClient(ABC):
     def _authenticate_session(self) -> None:
         pass
 
-    def __retry_send(self, req: requests.Request, **kwargs):
+    def __retry_send(self, req: requests.PreparedRequest, **kwargs):
         success = False
         backoff = self.__delay_times(1, jitter=True)
         for delay in backoff:

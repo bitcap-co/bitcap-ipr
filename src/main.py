@@ -73,13 +73,9 @@ class main:
         self.log_path = get_log_file_path()
         self.stylesheet = get_stylesheet()
 
-        self.config = None
-
         self.init_configuration()
         self.init_logger()
-        self.app = None
         self.is_running = False
-        self.main_window = None
         self.launch_app(self.args)
 
     def init_configuration(self):

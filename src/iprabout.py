@@ -40,23 +40,26 @@ class IPRAbout(QDialog, Ui_IPRAbout):
             self.title_bar = TitleBar(self, self._title_str, ["close"])
         self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
         self.title_bar._closeButton.clicked.connect(self.window().close)
-        title_bar_widget = self.titlebarwidget.layout()
-        title_bar_widget.addWidget(self.title_bar)
+        titlebarwidget = self.titlebarwidget.layout()
+        if titlebarwidget:
+            titlebarwidget.addWidget(self.title_bar)
 
         # central widget
         central_widget = self.centralwidget.layout()
-        self._logo.setFixedSize(QSize(150, 150))
-        self._logo.setAlignment(
-            Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
-        )
-        central_widget.addWidget(self._logo)
-        self._textLabel.setWordWrap(True)
-        self._textLabel.setMargin(10)
-        self._textLabel.setAlignment(
-            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
-        )
-        self._textLabel.setText(self._about_text)
-        central_widget.addWidget(self._textLabel)
+        if central_widget:
+            self._logo.setFixedSize(QSize(150, 150))
+            self._logo.setAlignment(
+                Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
+            )
+            central_widget.addWidget(self._logo)
+            self._textLabel.setWordWrap(True)
+            self._textLabel.setMargin(10)
+            self._textLabel.setAlignment(
+                Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+            )
+            self._textLabel.setText(self._about_text)
+            central_widget.addWidget(self._textLabel)
 
         buttons_widget = self.buttons.layout()
-        buttons_widget.addWidget(self._acceptButton)
+        if buttons_widget:
+            buttons_widget.addWidget(self._acceptButton)

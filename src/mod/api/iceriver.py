@@ -84,6 +84,7 @@ class IceriverHTTPClient(BaseHTTPClient):
             if k in ["data", "network"]:
                 if "mac" in resp[k]:
                     return resp[k]["mac"]
+        return ""
 
     def get_system_info(self):
         data = {"post": 4}
