@@ -79,6 +79,9 @@ class IPR_Menubar(QMenuBar):
         self.actionCopySelectedElements.setToolTip(
             "Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows"
         )
+        self.actionImport = self.menuTable.addAction("Import")
+        self.actionImport.setEnabled(False)
+        self.actionImport.setToolTip("Import existing .CSV file into the ID Table")
         self.actionExport = self.menuTable.addAction("Export")
         self.actionExport.setEnabled(False)
         self.actionExport.setToolTip("Export current table as .CSV file")

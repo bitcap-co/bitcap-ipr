@@ -15,6 +15,7 @@ from PySide6.QtCore import (
 )
 from PySide6.QtWidgets import (
     QApplication,
+    QFileDialog,
     QMainWindow,
     QSystemTrayIcon,
     QMessageBox,
@@ -136,6 +137,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionEnableIDTable.triggered.connect(self.update_stacked_widget)
         self.menu_bar.actionOpenSelectedIPs.triggered.connect(self.open_selected_ips)
         self.menu_bar.actionCopySelectedElements.triggered.connect(self.copy_selected)
+        self.menu_bar.actionImport.triggered.connect(self.import_table)
         self.menu_bar.actionExport.triggered.connect(self.export_table)
         self.menu_bar.actionSettings.triggered.connect(self.show_app_config)
         # app config signals
@@ -363,7 +365,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
-            self.populate_table_row(ip, mac, sn, type)
+            target_data = self.get_data_from_type(type, ip)
+            data = {"ip": ip, "mac": mac, "type": type}
+            data.update(target_data)
+            if sn:
+                data["serial"] = sn
+            self.populate_table_row(**data)
             self.activateWindow()
         else:
             confirm = IPRConfirmation()
@@ -427,7 +434,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         lineEdit.copy()
 
     # id table view
-    def populate_table_row(self, ip: str, mac: str, sn: str, type: str) -> None:
+    def get_data_from_type(self, type: str, ip: str):
         client_auth = ""
         match type:
             case "antminer":
@@ -448,6 +455,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info(f"populate_table : get target data from ip {ip}.")
         t_data = self.api_client.get_target_data_from_type(type)
         self.api_client.close_client()
+        return t_data
+
+    def populate_table_row(self, **data: str) -> None:
+        """
+        arguments:
+            **data: dict[str. str] -- row data with the following key structure:
+                'ip', 'mac', 'serial', 'type', 'subtype', 'algoritmn', 'firmware', 'platform'
+        """
         logger.info("populate_table : write table data.")
         rowPosition = self.idTable.rowCount()
         self.idTable.insertRow(rowPosition)
@@ -455,22 +470,19 @@ class IPR(QMainWindow, Ui_MainWindow):
         actionLocateMiner.setPixmap(QPixmap(":theme/icons/rc/flash.png"))
         actionLocateMiner.setToolTip("Locate Miner")
         self.idTable.setCellWidget(rowPosition, 0, actionLocateMiner)
-        self.idTable.setItem(rowPosition, 1, QTableWidgetItem(ip))
-        self.idTable.setItem(rowPosition, 2, QTableWidgetItem(mac.upper()))
-        if sn:
-            self.idTable.setItem(rowPosition, 3, QTableWidgetItem(sn))
-        else:
-            self.idTable.setItem(rowPosition, 3, QTableWidgetItem(t_data["serial"]))
+        self.idTable.setItem(rowPosition, 1, QTableWidgetItem(data["ip"]))
+        self.idTable.setItem(rowPosition, 2, QTableWidgetItem(data["mac"].upper()))
+        self.idTable.setItem(rowPosition, 3, QTableWidgetItem(data["serial"]))
         # ASIC TYPE
-        self.idTable.setItem(rowPosition, 4, QTableWidgetItem(type))
+        self.idTable.setItem(rowPosition, 4, QTableWidgetItem(data["type"]))
         # SUBTYPE
-        self.idTable.setItem(rowPosition, 5, QTableWidgetItem(t_data["subtype"]))
+        self.idTable.setItem(rowPosition, 5, QTableWidgetItem(data["subtype"]))
         # ALGO
-        self.idTable.setItem(rowPosition, 6, QTableWidgetItem(t_data["algorithm"]))
+        self.idTable.setItem(rowPosition, 6, QTableWidgetItem(data["algorithm"]))
         # FIRMWARE
-        self.idTable.setItem(rowPosition, 7, QTableWidgetItem(t_data["firmware"]))
+        self.idTable.setItem(rowPosition, 7, QTableWidgetItem(data["firmware"]))
         # PLATFORM
-        self.idTable.setItem(rowPosition, 8, QTableWidgetItem(t_data["platform"]))
+        self.idTable.setItem(rowPosition, 8, QTableWidgetItem(data["platform"]))
 
     def show_table_context(self):
         self.table_context = QMenu()
@@ -482,6 +494,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             "Copy Selected Elements"
         )
         self.actionContextCopySelectedElements.triggered.connect(self.copy_selected)
+        self.actionContextImport = self.table_context.addAction("Import")
+        self.actionContextImport.triggered.connect(self.import_table)
         self.actionContextExport = self.table_context.addAction("Export")
         self.actionContextExport.triggered.connect(self.export_table)
         self.table_context.exec(QCursor.pos())
@@ -489,6 +503,7 @@ class IPR(QMainWindow, Ui_MainWindow):
     def toggle_table_settings(self, enabled: bool):
         self.menu_bar.actionOpenSelectedIPs.setEnabled(enabled)
         self.menu_bar.actionCopySelectedElements.setEnabled(enabled)
+        self.menu_bar.actionImport.setEnabled(enabled)
         self.menu_bar.actionExport.setEnabled(enabled)
 
     def locate_miner(self, row: int, col: int):
@@ -589,13 +604,37 @@ class IPR(QMainWindow, Ui_MainWindow):
         cb.setText(out.strip(), mode=cb.Mode.Clipboard)
         self.iprStatus.showMessage("Status :: Copied elements to clipboard.", 3000)
 
+    def import_table(self):
+        table_file, _ = QFileDialog.getOpenFileName(
+            self,
+            "Open .CSV",
+            Path(Path.home(), "Documents", "ipr").resolve().__str__(),
+            ".CSV Files (*.csv)",
+        )
+        self.idTable.setRowCount(0)
+        table_csv = QFile(table_file)
+        if table_csv.open(QFile.OpenModeFlag.ReadOnly | QFile.OpenModeFlag.Text):
+            stream = QTextStream(table_csv)
+            header = stream.readLine()
+            headers = [x.lower() for x in header.split(",")]
+            stream.seek(len(header) + 1)
+            while not stream.atEnd():
+                line = stream.readLine()
+                if line:
+                    row = dict(zip(headers, line.split(",")))
+                    self.populate_table_row(**row)
+        else:
+            logger.error(f"import_table : failed to read file {table_file}.")
+            self.iprStatus.showMessage("Status :: Failed to import table.", 5000)
+            return
+
     def export_table(self):
         logger.info("export table.")
         rows = self.idTable.rowCount()
         cols = self.idTable.columnCount()
         if not rows:
             return
-        out = "IP, MAC, SERIAL, TYPE, SUBTYPE, ALGORITHM, FIRMWARE, PLATFORM \n"
+        out = "IP,MAC,SERIAL,TYPE,SUBTYPE,ALGORITHM,FIRMWARE,PLATFORM\n"
         for i in range(rows):
             for j in range(1, cols):
                 out += self.idTable.item(i, j).text()
