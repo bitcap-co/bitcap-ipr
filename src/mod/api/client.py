@@ -55,7 +55,10 @@ class APIClient:
             logger.error(err)
 
     def create_whatsminer_client(
-        self, ip_addr: str, passwd: str, port: int = 4028,
+        self,
+        ip_addr: str,
+        passwd: str,
+        port: int = 4028,
     ):
         if not passwd:
             passwd = "admin"
@@ -148,7 +151,7 @@ class APIClient:
                     return True
         return False
 
-    def get_target_info(self, parser: Parser):
+    def get_target_info(self, parser: Parser) -> dict[str, str]:
         result = parser.get_target()
         if not self.client:
             for k in result.keys():
