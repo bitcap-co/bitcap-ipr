@@ -38,7 +38,7 @@ from ui.widgets.ipr.menubar import IPR_Menubar
 from iprconfirmation import IPRConfirmation
 from iprabout import IPRAbout
 
-from mod.listenermanager import ListenerManager
+from mod.lm.listenermanager import ListenerManager
 from mod.api.client import APIClient
 from utils import (
     CURR_PLATFORM,

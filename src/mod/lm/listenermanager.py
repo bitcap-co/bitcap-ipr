@@ -5,7 +5,7 @@ from PySide6.QtCore import (
     Slot,
 )
 from PySide6.QtWidgets import QButtonGroup
-from mod.listener import Listener
+from .listener import Listener
 
 logger = logging.getLogger(__name__)
 

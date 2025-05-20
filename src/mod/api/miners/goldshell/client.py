@@ -2,9 +2,8 @@ import requests
 from string import Template
 from Crypto.Cipher import AES
 
-from .http import BaseHTTPClient
-from .parser import Parser
-from .errors import (
+from ...http import BaseHTTPClient
+from ...errors import (
     FailedConnectionError,
     AuthenticationError,
 )
@@ -98,26 +97,6 @@ class GoldshellHTTPClient(BaseHTTPClient):
         settings = self.get_settings()
         settings["ledcontrol"] = enabled
         self.run_command("PUT", "setting", payload=settings)
-
-
-class GoldshellParser(Parser):
-    def parse_subtype(self, obj: dict):
-        if "model" in obj:
-            self.target["subtype"] = obj["model"]
-
-    def parse_algorithm(self, obj: dict):
-        for algo in obj["algos"]:
-            if algo["id"] == obj["algo_select"]:
-                self.target["algorithm"] = obj["algos"][algo["id"]]["name"]
-                break
-
-    def parse_firmware(self, obj: dict):
-        if "firmware" in obj:
-            self.target["firmware"] = obj["firmware"]
-
-    def parse_system_info(self, obj: dict):
-        self.parse_firmware(obj)
-        self.parse_subtype(obj)
 
 
 def zero_pad(data: bytes, block_size: int) -> bytes:

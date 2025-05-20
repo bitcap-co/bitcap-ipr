@@ -9,12 +9,12 @@ from .errors import (
     FailedConnectionError,
     AuthenticationError,
 )
-from .bitmain import BitmainHTTPClient, BitmainParser
-from .iceriver import IceriverHTTPClient, IceriverParser
-from .whatsminer import WhatsminerRPCClient, WhatsminerParser
-from .volcminer import VolcminerHTTPClient, VolcminerParser
-from .goldshell import GoldshellHTTPClient, GoldshellParser
-from .sealminer import SealminerHTTPClient, SealminerParser
+from .miners.bitmain import BitmainHTTPClient, BitmainParser
+from .miners.iceriver import IceriverHTTPClient, IceriverParser
+from .miners.whatsminer import WhatsminerRPCClient, WhatsminerParser
+from .miners.volcminer import VolcminerHTTPClient, VolcminerParser
+from .miners.goldshell import GoldshellHTTPClient, GoldshellParser
+from .miners.sealminer import SealminerHTTPClient, SealminerParser
 
 logger = logging.getLogger(__name__)
 

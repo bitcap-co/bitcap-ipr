@@ -2,9 +2,8 @@ import requests
 from requests.auth import HTTPDigestAuth
 from string import Template
 
-from .http import BaseHTTPClient
-from .parser import Parser
-from .errors import FailedConnectionError, AuthenticationError
+from ...http import BaseHTTPClient
+from ...errors import FailedConnectionError, AuthenticationError
 
 
 class VolcminerHTTPClient(BaseHTTPClient):
@@ -72,21 +71,3 @@ class VolcminerHTTPClient(BaseHTTPClient):
     def blink(self, enabled: bool):
         data = {"_bb_type": "rgOn" if enabled else "rgOff"}
         self.run_command("POST", "post_led_onoff", data=data)
-
-
-class VolcminerParser(Parser):
-    def __init__(self, target: dict):
-        super().__init__(target)
-        self.target["algorithm"] = "SCRYPT"
-
-    def parse_subtype(self, obj: dict):
-        if "minertype" in obj:
-            self.target["subtype"] = obj["minertype"][10:]
-
-    def parse_firmware(self, obj: dict):
-        if "system_filesystem_version" in obj:
-            self.target["firmware"] = obj["system_filesystem_version"]
-
-    def parse_all(self, obj: dict):
-        self.parse_subtype(obj)
-        self.parse_firmware(obj)
