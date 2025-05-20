@@ -1,6 +1,5 @@
 import socket
-import json
-from abc import ABC, abstractmethod
+from abc import ABC
 
 from .errors import FailedConnectionError
 
