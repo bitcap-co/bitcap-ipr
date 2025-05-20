@@ -58,12 +58,11 @@ class APIClient:
         self,
         ip_addr: str,
         passwd: str,
-        port: int = 4028,
     ):
         if not passwd:
             passwd = "admin"
         try:
-            self.client = WhatsminerRPCClient(ip_addr, passwd, port)
+            self.client = WhatsminerRPCClient(ip_addr, passwd)
         except FailedConnectionError as err:
             logger.error(err)
 

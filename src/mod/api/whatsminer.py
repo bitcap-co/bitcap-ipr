@@ -10,9 +10,9 @@ from base64 import b64encode, b64decode  # noqa: F401
 from Crypto.Cipher import AES
 from passlib.hash import md5_crypt
 
+from .rpc import BaseRPCClient
 from .parser import Parser
 from .errors import (
-    FailedConnectionError,
     AuthenticationError,
     TokenOverMaxTimesError,
 )
@@ -20,27 +20,42 @@ from .errors import (
 logger = logging.getLogger(__name__)
 
 
-class WhatsminerRPCClient:
+def _crypt(word: str, salt: str) -> str:
+    stdsalt = re.compile(r"\s*\$(\d+)\$([\w\./]*)\$")
+    match = stdsalt.match(salt)
+    if not match:
+        raise ValueError("Invalid salt format")
+    new_salt = match.group(2)
+    result = md5_crypt.hash(word, salt=new_salt)
+    return result
+
+
+def _add_to_16(s: str) -> bytes:
+    while len(s) % 16 != 0:
+        s += "\0"
+    return str.encode(s)
+
+
+def recv_all(sock: socket.socket, buf_size: int):
+    sock.setblocking(True)
+    data = bytearray()
+    while len(data) < buf_size:
+        packet = sock.recv(buf_size - len(data))
+        if not packet:
+            if data:
+                return data
+            return None
+        data.extend(packet)
+    return data
+
+
+class WhatsminerRPCClient(BaseRPCClient):
     """Whatsminer JSON-RPC API client"""
 
-    def __init__(self, ip_addr: str, passwd: str, port: int):
-        self.ip = ip_addr
-        self.port = port
+    def __init__(self, ip_addr: str, passwd: str):
+        super().__init__(ip_addr)
         self.passwd = passwd
-        self.err = None
-        self.__test_connection()
-
-    def __test_connection(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(3.0)
-            try:
-                s.connect((self.ip, self.port))
-            except TimeoutError:
-                self._close_client(
-                    FailedConnectionError(
-                        "Connection Failed: Failed to connect or timeout occurred."
-                    )
-                )
+        self._test_connection()
 
     def __create_token(self):
         """
@@ -66,13 +81,13 @@ class WhatsminerRPCClient:
             )
 
         # Make encrypted key from passwd and salt
-        key = md5_encrypt(self.passwd, token_info["salt"])
+        key = _crypt(self.passwd, token_info["salt"])
 
         aeskey = hashlib.sha256(key.encode()).hexdigest()
         aeskey = binascii.unhexlify(aeskey.encode())
         self.cipher = AES.new(aeskey, AES.MODE_ECB)
 
-        self.sign = md5_encrypt(key + token_info["time"], token_info["newsalt"])
+        self.sign = _crypt(key + token_info["time"], token_info["newsalt"])
 
     def __do_rpc(self, payload: dict, params: dict | None = None, write: bool = False):
         if params:
@@ -80,7 +95,8 @@ class WhatsminerRPCClient:
         cmd = json.dumps(payload)
         if write:
             enc_str = str(
-                base64.encodebytes(self.cipher.encrypt(add_to_16(cmd))), encoding="utf8"
+                base64.encodebytes(self.cipher.encrypt(_add_to_16(cmd))),
+                encoding="utf8",
             ).replace("\n", "")
             data_enc = {"enc": 1}
             data_enc["data"] = enc_str
@@ -149,11 +165,6 @@ class WhatsminerRPCClient:
         params = {"param": "auto"}
         self.__exec_authenticated_command(cmd, params)
 
-    def _close_client(self, error: Exception | None = None):
-        if error:
-            self.err = error
-            raise error
-
 
 class WhatsminerParser(Parser):
     def __init__(self, target: dict):
@@ -183,33 +194,3 @@ class WhatsminerParser(Parser):
     def parse_version_info(self, obj: dict):
         self.parse_firmware(obj)
         self.parse_platform(obj)
-
-
-def md5_encrypt(word: str, salt: str):
-    salt = "$1$" + salt + "$"
-    salt_expr = re.compile(r"\s*\$(\d+)\$([\w\./]*)\$")
-    is_salt = salt_expr.match(salt)
-    if not is_salt:
-        raise ValueError("Invalid salt format")
-    extra_str = is_salt.group(2)
-    encrypted = md5_crypt.hash(word, salt=extra_str).split("$")
-    return encrypted[3]
-
-
-def recv_all(sock: socket.socket, buf_size: int):
-    sock.setblocking(True)
-    data = bytearray()
-    while len(data) < buf_size:
-        packet = sock.recv(buf_size - len(data))
-        if not packet:
-            if data:
-                return data
-            return None
-        data.extend(packet)
-    return data
-
-
-def add_to_16(s: str):
-    while len(s) % 16 != 0:
-        s += "\0"
-    return str.encode(s)
