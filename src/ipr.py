@@ -605,6 +605,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprStatus.showMessage("Status :: Copied elements to clipboard.", 3000)
 
     def import_table(self):
+        logger.info("import table.")
         table_file, _ = QFileDialog.getOpenFileName(
             self,
             "Open .CSV",
@@ -616,7 +617,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         if table_csv.open(QFile.OpenModeFlag.ReadOnly | QFile.OpenModeFlag.Text):
             stream = QTextStream(table_csv)
             header = stream.readLine()
-            headers = [x.lower() for x in header.split(",")]
+            headers = [x.strip().lower() for x in header.split(",")]
             stream.seek(len(header) + 1)
             while not stream.atEnd():
                 line = stream.readLine()
