@@ -397,7 +397,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.sys_tray.messageClicked.connect(
                     lambda: self.show_confirm_from_sys_tray(confirm)
                 )
-                # workaround for clickable notification on linux
+                # workaround to get messageClicked signal on Linux/X11
+                # https://bugreports.qt.io/browse/QTBUG-87329
                 if CURR_PLATFORM == "linux":
                     self.sys_tray.showMessage(
                         "Received confirmation",
