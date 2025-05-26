@@ -116,6 +116,14 @@ class BaseHTTPClient(ABC):
     ):
         pass
 
+    @abstractmethod
+    def get_system_info(self) -> dict:
+        pass
+
+    @abstractmethod
+    def blink(self, enabled: bool) -> None:
+        pass
+
     def _close_client(self, error: Exception | None = None) -> None:
         self.session.close()
         if error:
