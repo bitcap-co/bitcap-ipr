@@ -12,3 +12,7 @@ class MissingAPIKeyError(Exception):
 
 class TokenOverMaxTimesError(Exception):
     """Raise for token over max times"""
+
+
+class APIError(Exception):
+    """Raise for API Error"""
