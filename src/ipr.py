@@ -39,6 +39,7 @@ from iprconfirmation import IPRConfirmation
 from iprabout import IPRAbout
 
 from mod.lm.listenermanager import ListenerManager
+from mod.api import settings
 from mod.api.client import APIClient
 from utils import (
     CURR_PLATFORM,
@@ -238,7 +239,7 @@ class IPR(QMainWindow, Ui_MainWindow):
     def update_status_msg(self):
         if self.lm.listeners and not self.iprStatus.currentMessage():
             self.iprStatus.showMessage(
-                f"Status :: UDP listening on 0.0.0.0[:{self.active_ports}]..."
+                f"Status :: UDP listening on 0.0.0.0[{self.active_miners}]..."
             )
         if not self.iprStatus.currentMessage():
             self.iprStatus.showMessage("Status :: Ready.")
@@ -286,18 +287,18 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionIPRStart.setEnabled(False)
         self.actionIPRStop.setEnabled(True)
         self.lm.start(self.listenerConfig)
-        self.active_ports = ",".join(
-            [str(listener.port) for listener in self.lm.listeners]
+        self.active_miners = ", ".join(
+            [btn.text().lower() for btn in self.listenerConfig.buttons() if btn.isChecked()]
         )
         if self.sys_tray and not self.isVisible():
             self.sys_tray.showMessage(
                 "IPR Listener: Start",
-                f"Started Listening on 0.0.0.0[:{self.active_ports}]...",
+                f"Started Listening on 0.0.0.0[{self.active_miners}]...",
                 QSystemTrayIcon.MessageIcon.Information,
                 3000,
             )
         self.iprStatus.showMessage(
-            f"Status :: UDP listening on 0.0.0.0[:{self.active_ports}]..."
+            f"Status :: UDP listening on 0.0.0.0[{self.active_miners}]..."
         )
 
     def stop_listen(self, timeout=False):
