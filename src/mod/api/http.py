@@ -3,6 +3,8 @@ import time
 import requests
 from abc import ABC, abstractmethod
 
+from mod.api import settings
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -27,8 +29,9 @@ class BaseHTTPClient(ABC):
 
         self._error = None
 
-        self.__max_retries = 3
-        self.__max_delay = 5
+        self.__max_retries = settings.get("http_max_retries")
+        self.__max_delay = settings.get("http_max_delay")
+        self.__jitter = settings.get("http_jitter_delay")
 
     def __new__(cls, *args, **kwargs):
         if cls is BaseHTTPClient:
@@ -58,7 +61,7 @@ class BaseHTTPClient(ABC):
 
     def __retry_send(self, req: requests.PreparedRequest, **kwargs):
         success = False
-        backoff = self.__delay_times(1, jitter=True)
+        backoff = self.__delay_times(1, jitter=self.__jitter)
         for delay in backoff:
             try:
                 res = self.session.send(req, **kwargs)
@@ -81,7 +84,7 @@ class BaseHTTPClient(ABC):
         params: dict | None = None,
         payload: dict | None = None,
         data: dict | None = None,
-        timeout: float = 3.0,
+        timeout: float = settings.get("http_request_timeout"),
     ) -> requests.Response:
         if self.bearer:
             self.session.headers.update({"Authorization": "Bearer " + self.bearer})

@@ -4,8 +4,9 @@ from PySide6.QtCore import (
     QTimer,
 )
 
-from .parser import Parser
-from .errors import (
+from mod.api import settings
+from mod.api.parser import Parser
+from mod.api.errors import (
     FailedConnectionError,
     AuthenticationError,
 )
@@ -36,8 +37,6 @@ class APIClient:
         return self.client
 
     def create_bitmain_client(self, ip_addr: str, passwd: str):
-        if not passwd:
-            passwd = "root"
         try:
             self.client = BitmainHTTPClient(ip_addr, passwd)
         except (
@@ -47,8 +46,6 @@ class APIClient:
             logger.error(err)
 
     def create_iceriver_client(self, ip_addr: str, pb_key: str):
-        if not pb_key:
-            pb_key = "5b281acc-de86-41bb-b14d-e266d9c9edbd"
         try:
             self.client = IceriverHTTPClient(ip_addr, pb_key)
         except FailedConnectionError as err:
@@ -59,32 +56,24 @@ class APIClient:
         ip_addr: str,
         passwd: str,
     ):
-        if not passwd:
-            passwd = "admin"
         try:
             self.client = WhatsminerRPCClient(ip_addr, passwd)
         except FailedConnectionError as err:
             logger.error(err)
 
     def create_volcminer_client(self, ip_addr: str, passwd: str):
-        if not passwd:
-            passwd = "ltc@dog"
         try:
             self.client = VolcminerHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
     def create_goldshell_client(self, ip_addr: str, passwd: str):
-        if not passwd:
-            passwd = "123456789"
         try:
             self.client = GoldshellHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
     def create_sealminer_client(self, ip_addr: str, passwd: str):
-        if not passwd:
-            passwd = "seal"
         try:
             self.client = SealminerHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
@@ -109,18 +98,19 @@ class APIClient:
         self.locate_duration = QTimer(self.parent)
         self.locate_duration.setSingleShot(True)
         self.locate_duration.timeout.connect(self.stop_locate)
+        duration_ms = settings.get("locate_duration_ms", 10000)
         logger.info(" locate miner for 10000ms.")
         match miner_type:
             case "antminer":
                 try:
                     self.client.blink(True)
-                    self.locate_duration.start(10000)
+                    self.locate_duration.start(duration_ms)
                 except AuthenticationError as err:
                     logger.error(err)
                     self.close_client()
             case "iceriver" | "volcminer" | "goldshell" | "sealminer":
                 self.client.blink(True)
-                self.locate_duration.start(10000)
+                self.locate_duration.start(duration_ms)
             case "whatsminer":
                 try:
                     self.client.blink()

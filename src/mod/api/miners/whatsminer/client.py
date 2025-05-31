@@ -9,8 +9,9 @@ import json
 from Crypto.Cipher import AES
 from passlib.hash import md5_crypt
 
-from ...rpc import BaseRPCClient
-from ...errors import (
+from mod.api import settings
+from mod.api.rpc import BaseRPCClient
+from mod.api.errors import (
     AuthenticationError,
     TokenOverMaxTimesError,
 )
@@ -67,7 +68,7 @@ class WhatsminerRPCClient(BaseRPCClient):
 
     def __init__(self, ip_addr: str, passwd: str):
         super().__init__(ip_addr)
-        self.passwd = passwd
+        self.passwds = [passwd, settings.get("default_whatsminer_passwd")]
         self.token = None
 
         self._test_connection()
@@ -75,8 +76,9 @@ class WhatsminerRPCClient(BaseRPCClient):
     def send_privileged_command(self, command: str, **kwargs):
         cmd = {"cmd": command, **kwargs}
         success = False
-        passwds = [self.passwd, "admin"] if self.passwd != "admin" else [self.passwd]
-        for passwd in passwds:
+        for passwd in self.passwds:
+            if not passwd:
+                continue
             self.enable_write_access(passwd)
             privileged_cmd = create_privileged_cmd(self.token, cmd)
             res = self._do_rpc(privileged_cmd)

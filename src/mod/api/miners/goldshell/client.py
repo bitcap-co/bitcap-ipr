@@ -2,8 +2,9 @@ import requests
 from string import Template
 from Crypto.Cipher import AES
 
-from ...http import BaseHTTPClient
-from ...errors import (
+from mod.api import settings
+from mod.api.http import BaseHTTPClient
+from mod.api.errors import (
     FailedConnectionError,
     AuthenticationError,
 )
@@ -16,7 +17,7 @@ class GoldshellHTTPClient(BaseHTTPClient):
         super().__init__(ip_addr)
         self.url = f"http://{self.ip}:{self.port}/"
         self.username = "admin"
-        self.passwd = passwd
+        self.passwds = [passwd, settings.get("default_goldshell_passwd")]
         self.command_format = Template("/mcb/${cmd}")
 
         self._initialize_session()
@@ -37,10 +38,9 @@ class GoldshellHTTPClient(BaseHTTPClient):
 
     def _authenticate_session(self):
         self._do_http("GET", "/user/logout")
-        passwds = (
-            [self.passwd, "123456789"] if self.passwd != "123456789" else [self.passwd]
-        )
-        for passwd in passwds:
+        for passwd in self.passwds:
+            if not passwd:
+                continue
             params = {"username": self.username, "password": passwd, "cipher": "false"}
             res = self._do_http("GET", "/user/login", params=params)
             if res.status_code == 500:

@@ -2,8 +2,9 @@ import requests
 from requests.auth import HTTPDigestAuth
 from string import Template
 
-from ...http import BaseHTTPClient
-from ...errors import (
+from mod.api import settings
+from mod.api.http import BaseHTTPClient
+from mod.api.errors import (
     FailedConnectionError,
     AuthenticationError,
 )
@@ -12,15 +13,16 @@ from ...errors import (
 class BitmainHTTPClient(BaseHTTPClient):
     """Bitmain/Antminer HTTP Client with support for vnish"""
 
-    def __init__(self, ip_addr: str, passwd: str):
+    def __init__(self, ip_addr: str, passwd: str = None):
         super().__init__(ip_addr)
         self.url = f"http://{self.ip}:{self.port}/"
         self.username = "root"
-        self.passwd = passwd
+        self.passwds = [passwd, settings.get("default_bitmain_passwd")]
         self.command_format = {
             "vnish": "api/v1",
             "stock": Template("cgi-bin/${cmd}.cgi"),
         }
+        self.vnish_passwds = [passwd, settings.get("default_vnish_passwd")]
 
         self._initialize_session()
 
@@ -41,8 +43,9 @@ class BitmainHTTPClient(BaseHTTPClient):
             )
 
     def _authenticate_session(self) -> None:
-        passwds = [self.passwd, "root"] if self.passwd != "root" else [self.passwd]
-        for passwd in passwds:
+        for passwd in self.passwds:
+            if not passwd:
+                continue
             self.session.auth = HTTPDigestAuth(self.username, passwd)
             res = self.session.head(self.url, timeout=3.0)
             if res.status_code == 200:
@@ -84,15 +87,13 @@ class BitmainHTTPClient(BaseHTTPClient):
     def __is_vnish(self) -> bool:
         res = self.session.head(self.url + self.command_format["vnish"], timeout=3.0)
         if res.status_code == 200:
-            # change to vnish default passwd
-            if self.passwd == "root":
-                self.passwd = "admin"
             return True
         return False
 
     def unlock_vnish_session(self):
-        passwds = [self.passwd, "admin"] if self.passwd != "admin" else [self.passwd]
-        for passwd in passwds:
+        for passwd in self.vnish_passwds:
+            if not passwd:
+                continue
             payload = {"pw": passwd}
             res = self._do_http(
                 method="POST",
@@ -104,7 +105,9 @@ class BitmainHTTPClient(BaseHTTPClient):
             except requests.exceptions.JSONDecodeError:
                 break
             if "token" in resj:
-                self.session.headers.update({"Authorization": "Bearer " + resj["token"]})
+                self.session.headers.update(
+                    {"Authorization": "Bearer " + resj["token"]}
+                )
                 self.is_unlocked = True
                 break
         if not self.is_unlocked:

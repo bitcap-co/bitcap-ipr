@@ -1,8 +1,9 @@
 import requests
 from string import Template
 
-from ...http import BaseHTTPClient
-from ...errors import (
+from mod.api import settings
+from mod.api.http import BaseHTTPClient
+from mod.api.errors import (
     FailedConnectionError,
     AuthenticationError
 )
@@ -15,7 +16,7 @@ class SealminerHTTPClient(BaseHTTPClient):
         super().__init__(ip_addr)
         self.url = f"http://{self.ip}:{self.port}/"
         self.username = "seal"
-        self.passwd = passwd
+        self.passwds = [passwd, settings.get("default_sealminer_passwd")]
         self.command_format = Template("cgi-bin/${cmd}.php")
 
         self._initialize_session()
@@ -35,10 +36,9 @@ class SealminerHTTPClient(BaseHTTPClient):
             )
 
     def _authenticate_session(self):
-        passwds = (
-            [self.passwd, "seal"] if self.passwd != "seal" else [self.passwd]
-        )
-        for passwd in passwds:
+        for passwd in self.passwds:
+            if not passwd:
+                continue
             data = {
                 "username": self.username,
                 "origin_pwd": passwd

@@ -4,7 +4,8 @@ import re
 import socket
 from abc import ABC
 
-from .errors import APIError, FailedConnectionError
+from mod.api import settings
+from mod.api.errors import APIError, FailedConnectionError
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ class BaseRPCClient(ABC):
         self.port = port
         self.passwd = None
 
-        self.timeout = 10.0
+        self.timeout = settings.get("rpc_request_timeout")
 
         self._error = None
 

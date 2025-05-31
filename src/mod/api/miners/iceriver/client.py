@@ -1,8 +1,9 @@
 import requests
 from string import Template
 
-from ...http import BaseHTTPClient
-from ...errors import (
+from mod.api import settings
+from mod.api.http import BaseHTTPClient
+from mod.api.errors import (
     FailedConnectionError,
 )
 
@@ -13,7 +14,10 @@ class IceriverHTTPClient(BaseHTTPClient):
     def __init__(self, ip_addr: str, pb_key: str):
         super().__init__(ip_addr)
         self.url = f"http://{self.ip}:{self.port}/"
-        self.bearer = pb_key
+        if not pb_key:
+            self.bearer = settings.get("default_pbfarmer_auth")
+        else:
+            self.bearer = pb_key
         self.command_format = {
             "pb": Template("api/${cmd}"),
             "stock": Template("user/${cmd}"),

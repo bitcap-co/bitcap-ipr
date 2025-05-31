@@ -2,8 +2,9 @@ import requests
 from requests.auth import HTTPDigestAuth
 from string import Template
 
-from ...http import BaseHTTPClient
-from ...errors import FailedConnectionError, AuthenticationError
+from mod.api import settings
+from mod.api.http import BaseHTTPClient
+from mod.api.errors import FailedConnectionError, AuthenticationError
 
 
 class VolcminerHTTPClient(BaseHTTPClient):
@@ -13,7 +14,7 @@ class VolcminerHTTPClient(BaseHTTPClient):
         super().__init__(ip_addr)
         self.url = f"http://{self.ip}:{self.port}/"
         self.username = "root"
-        self.passwd = passwd
+        self.passwds = [passwd, settings.get("default_volcminer_passwd")]
         self.command_format = Template("cgi-bin/${cmd}.cgi")
 
         self._initialize_session()
@@ -33,10 +34,9 @@ class VolcminerHTTPClient(BaseHTTPClient):
             )
 
     def _authenticate_session(self):
-        passwds = (
-            [self.passwd, "ltc@dog"] if self.passwd != "ltc@dog" else [self.passwd]
-        )
-        for passwd in passwds:
+        for passwd in self.passwds:
+            if not passwd:
+                continue
             self.session.auth = HTTPDigestAuth(self.username, passwd)
             res = self.session.head(self.url, timeout=3.0)
             if res.status_code == 200:
