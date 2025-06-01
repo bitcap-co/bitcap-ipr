@@ -123,6 +123,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionTogglePbfarmerKey = self.create_passwd_toggle_action(
             self.linePbfarmerKey
         )
+        self.actionToggleVnishPasswd = self.create_passwd_toggle_action(
+            self.lineVnishPasswd
+        )
 
         self.confirms = []
 
@@ -438,18 +441,20 @@ class IPR(QMainWindow, Ui_MainWindow):
     # id table view
     def get_data_from_type(self, type: str, ip: str):
         client_auth = ""
+        custom_auth = ""
         match type:
             case "antminer":
                 client_auth = self.lineBitmainPasswd.text()
+                custom_auth = self.lineVnishPasswd.text()
             case "volcminer":
                 client_auth = self.lineVolcminerPasswd.text()
             case "goldshell":
                 client_auth = self.lineGoldshellPasswd.text()
             case "iceriver":
-                client_auth = self.linePbfarmerKey.text()
+                custom_auth = self.linePbfarmerKey.text()
             case "sealminer":
                 client_auth = self.lineSealminerPasswd.text()
-        self.api_client.create_client_from_type(type, ip, client_auth)
+        self.api_client.create_client_from_type(type, ip, client_auth, custom_auth)
         if not self.api_client.client:
             self.iprStatus.showMessage(
                 "Status :: Failed to connect or authenticate client.", 5000
@@ -521,9 +526,11 @@ class IPR(QMainWindow, Ui_MainWindow):
                 )
             logger.info(f" locate miner {ip_addr}.")
             client_auth = ""
+            custom_auth = ""
             match miner_type:
                 case "antminer":
                     client_auth = self.lineBitmainPasswd.text()
+                    custom_auth = self.lineVnishPasswd.text()
                 case "volcminer":
                     # client_auth = self.lineVolcminerPasswd.text()
                     return self.iprStatus.showMessage(
@@ -531,14 +538,14 @@ class IPR(QMainWindow, Ui_MainWindow):
                         5000,
                     )
                 case "iceriver":
-                    client_auth = self.linePbfarmerKey.text()
+                    custom_auth = self.linePbfarmerKey.text()
                 case "whatsminer":
                     client_auth = self.lineWhatsminerPasswd.text()
                 case "goldshell":
                     client_auth = self.lineGoldshellPasswd.text()
                 case "sealminer":
                     client_auth = self.lineSealminerPasswd.text()
-            self.api_client.create_client_from_type(miner_type, ip_addr, client_auth)
+            self.api_client.create_client_from_type(miner_type, ip_addr, client_auth, custom_auth)
             client = self.api_client.get_client()
             if not client:
                 return self.iprStatus.showMessage(
@@ -730,6 +737,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.lineWhatsminerPasswd.setText(self.config["api"]["whatsminerAltPasswd"])
             self.lineVolcminerPasswd.setText(self.config["api"]["volcminerAltPasswd"])
             self.lineGoldshellPasswd.setText(self.config["api"]["goldshellAltPasswd"])
+            self.lineVnishPasswd.setText(self.config["api"]["vnishAltPasswd"])
             self.linePbfarmerKey.setText(self.config["api"]["pbfarmerKey"])
 
             # logs
@@ -797,6 +805,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "volcminerAltPasswd": self.lineVolcminerPasswd.text(),
                 "goldshellAltPasswd": self.lineGoldshellPasswd.text(),
                 "bitdeerAltPasswd": self.lineSealminerPasswd.text(),
+                "vnishAltPasswd": self.lineVnishPasswd.text(),
                 "pbfarmerKey": self.linePbfarmerKey.text(),
             },
             "logs": {

@@ -36,18 +36,18 @@ class APIClient:
     def get_client(self):
         return self.client
 
-    def create_bitmain_client(self, ip_addr: str, passwd: str):
+    def create_bitmain_client(self, ip_addr: str, passwd: str, vnish_passwd: str):
         try:
-            self.client = BitmainHTTPClient(ip_addr, passwd)
+            self.client = BitmainHTTPClient(ip_addr, passwd, vnish_passwd)
         except (
             FailedConnectionError,
             AuthenticationError,
         ) as err:
             logger.error(err)
 
-    def create_iceriver_client(self, ip_addr: str, pb_key: str):
+    def create_iceriver_client(self, ip_addr: str, passwd: str, pb_key: str):
         try:
-            self.client = IceriverHTTPClient(ip_addr, pb_key)
+            self.client = IceriverHTTPClient(ip_addr, passwd, pb_key)
         except FailedConnectionError as err:
             logger.error(err)
 
@@ -79,20 +79,22 @@ class APIClient:
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
-    def create_client_from_type(self, miner_type: str, ip_addr: str, auth_str: str):
+    def create_client_from_type(
+        self, miner_type: str, ip_addr: str, auth: str, custom_auth: str
+    ):
         match miner_type:
             case "antminer":
-                self.create_bitmain_client(ip_addr, auth_str)
+                self.create_bitmain_client(ip_addr, auth, custom_auth)
             case "iceriver":
-                self.create_iceriver_client(ip_addr, auth_str)
+                self.create_iceriver_client(ip_addr, auth, custom_auth)
             case "whatsminer":
-                self.create_whatsminer_client(ip_addr, auth_str)
+                self.create_whatsminer_client(ip_addr, auth)
             case "volcminer":
-                self.create_volcminer_client(ip_addr, auth_str)
+                self.create_volcminer_client(ip_addr, auth)
             case "goldshell":
-                self.create_goldshell_client(ip_addr, auth_str)
+                self.create_goldshell_client(ip_addr, auth)
             case "sealminer":
-                self.create_sealminer_client(ip_addr, auth_str)
+                self.create_sealminer_client(ip_addr, auth)
 
     def locate_miner(self, miner_type: str):
         self.locate_duration = QTimer(self.parent)

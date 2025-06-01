@@ -11,13 +11,13 @@ from mod.api.errors import (
 class IceriverHTTPClient(BaseHTTPClient):
     """Iceriver HTTP Client with support for pbfarmer"""
 
-    def __init__(self, ip_addr: str, pb_key: str):
+    def __init__(self, ip_addr: str, passwd: str, pb_key: str):
         super().__init__(ip_addr)
         self.url = f"http://{self.ip}:{self.port}/"
-        if not pb_key:
+        self.passwd = passwd
+        self.bearer = pb_key
+        if not self.bearer:
             self.bearer = settings.get("default_pbfarmer_auth")
-        else:
-            self.bearer = pb_key
         self.command_format = {
             "pb": Template("api/${cmd}"),
             "stock": Template("user/${cmd}"),
