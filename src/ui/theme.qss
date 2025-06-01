@@ -45,6 +45,11 @@ QGroupBox::title {
   padding-top: -4px;
 }
 
+/* sub group boxes */
+QGroupBox QGroupBox {
+    border: 1px solid #383e46;
+}
+
 QPushButton {
   background-color: #383e46;
   color: #FFFFFF;
