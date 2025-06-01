@@ -771,7 +771,7 @@
                        <x>0</x>
                        <y>0</y>
                        <width>477</width>
-                       <height>444</height>
+                       <height>557</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_13">
@@ -788,9 +788,120 @@
                        <number>9</number>
                       </property>
                       <item>
+                       <widget class="QGroupBox" name="groupFirmwares">
+                        <property name="title">
+                         <string>Firmwares</string>
+                        </property>
+                        <layout class="QVBoxLayout" name="verticalLayout_15">
+                         <item>
+                          <widget class="QGroupBox" name="groupVnish">
+                           <property name="title">
+                            <string>Vnish</string>
+                           </property>
+                           <layout class="QHBoxLayout" name="horizontalLayout_25">
+                            <item>
+                             <widget class="QLabel" name="label_16">
+                              <property name="font">
+                               <font>
+                                <pointsize>10</pointsize>
+                               </font>
+                              </property>
+                              <property name="text">
+                               <string>Set Login Password:</string>
+                              </property>
+                              <property name="StyleClass" stdset="0">
+                               <string>setText</string>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QLineEdit" name="lineVnishPasswd">
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="font">
+                               <font>
+                                <pointsize>10</pointsize>
+                               </font>
+                              </property>
+                              <property name="toolTip">
+                               <string>Set alternative login password for Vnish. Default: &quot;admin&quot;</string>
+                              </property>
+                              <property name="echoMode">
+                               <enum>QLineEdit::EchoMode::Password</enum>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QGroupBox" name="groupPbfarmer">
+                           <property name="title">
+                            <string>PBfarmer</string>
+                           </property>
+                           <layout class="QHBoxLayout" name="horizontalLayout_13">
+                            <item>
+                             <widget class="QLabel" name="label_12">
+                              <property name="font">
+                               <font>
+                                <pointsize>10</pointsize>
+                               </font>
+                              </property>
+                              <property name="text">
+                               <string>Set API Key:</string>
+                              </property>
+                              <property name="StyleClass" stdset="0">
+                               <string>setText</string>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QLineEdit" name="linePbfarmerKey">
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="minimumSize">
+                               <size>
+                                <width>180</width>
+                                <height>25</height>
+                               </size>
+                              </property>
+                              <property name="font">
+                               <font>
+                                <pointsize>10</pointsize>
+                               </font>
+                              </property>
+                              <property name="toolTip">
+                               <string>Set alternative API Key for pbfarmer. Default API key is supplied if blank</string>
+                              </property>
+                              <property name="echoMode">
+                               <enum>QLineEdit::EchoMode::Password</enum>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
                        <widget class="QGroupBox" name="groupBitmain">
                         <property name="title">
-                         <string>Bitmain/Antminer</string>
+                         <string>Antminer</string>
                         </property>
                         <layout class="QHBoxLayout" name="horizontalLayout_12">
                          <item>
@@ -890,60 +1001,6 @@
                        </widget>
                       </item>
                       <item>
-                       <widget class="QGroupBox" name="groupVolcminer">
-                        <property name="title">
-                         <string>Volcminer</string>
-                        </property>
-                        <layout class="QHBoxLayout" name="horizontalLayout_21">
-                         <item>
-                          <widget class="QLabel" name="label_13">
-                           <property name="font">
-                            <font>
-                             <pointsize>10</pointsize>
-                            </font>
-                           </property>
-                           <property name="text">
-                            <string>Set Login Password:</string>
-                           </property>
-                           <property name="StyleClass" stdset="0">
-                            <string>setText</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QLineEdit" name="lineVolcminerPasswd">
-                           <property name="sizePolicy">
-                            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                             <horstretch>0</horstretch>
-                             <verstretch>0</verstretch>
-                            </sizepolicy>
-                           </property>
-                           <property name="minimumSize">
-                            <size>
-                             <width>180</width>
-                             <height>25</height>
-                            </size>
-                           </property>
-                           <property name="font">
-                            <font>
-                             <pointsize>10</pointsize>
-                            </font>
-                           </property>
-                           <property name="toolTip">
-                            <string>Set alternative login password for Volcminer. Default: &quot;ltc@dog&quot;</string>
-                           </property>
-                           <property name="echoMode">
-                            <enum>QLineEdit::EchoMode::Password</enum>
-                           </property>
-                           <property name="alignment">
-                            <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-                           </property>
-                          </widget>
-                         </item>
-                        </layout>
-                       </widget>
-                      </item>
-                      <item>
                        <widget class="QGroupBox" name="groupGoldshell">
                         <property name="title">
                          <string>Goldshell</string>
@@ -998,9 +1055,63 @@
                        </widget>
                       </item>
                       <item>
+                       <widget class="QGroupBox" name="groupVolcminer">
+                        <property name="title">
+                         <string>Volcminer</string>
+                        </property>
+                        <layout class="QHBoxLayout" name="horizontalLayout_21">
+                         <item>
+                          <widget class="QLabel" name="label_13">
+                           <property name="font">
+                            <font>
+                             <pointsize>10</pointsize>
+                            </font>
+                           </property>
+                           <property name="text">
+                            <string>Set Login Password:</string>
+                           </property>
+                           <property name="StyleClass" stdset="0">
+                            <string>setText</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QLineEdit" name="lineVolcminerPasswd">
+                           <property name="sizePolicy">
+                            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                             <horstretch>0</horstretch>
+                             <verstretch>0</verstretch>
+                            </sizepolicy>
+                           </property>
+                           <property name="minimumSize">
+                            <size>
+                             <width>180</width>
+                             <height>25</height>
+                            </size>
+                           </property>
+                           <property name="font">
+                            <font>
+                             <pointsize>10</pointsize>
+                            </font>
+                           </property>
+                           <property name="toolTip">
+                            <string>Set alternative login password for Volcminer. Default: &quot;ltc@dog&quot;</string>
+                           </property>
+                           <property name="echoMode">
+                            <enum>QLineEdit::EchoMode::Password</enum>
+                           </property>
+                           <property name="alignment">
+                            <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
                        <widget class="QGroupBox" name="groupSealminer">
                         <property name="title">
-                         <string>Bitdeer/Sealminer</string>
+                         <string>Sealminer</string>
                         </property>
                         <layout class="QHBoxLayout" name="horizontalLayout_24">
                          <item>
@@ -1039,60 +1150,6 @@
                            </property>
                            <property name="toolTip">
                             <string>Set alternative login password for Sealminer. Default: &quot;seal&quot;</string>
-                           </property>
-                           <property name="echoMode">
-                            <enum>QLineEdit::EchoMode::Password</enum>
-                           </property>
-                           <property name="alignment">
-                            <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-                           </property>
-                          </widget>
-                         </item>
-                        </layout>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QGroupBox" name="groupPbfarmer">
-                        <property name="title">
-                         <string>pbfarmer</string>
-                        </property>
-                        <layout class="QHBoxLayout" name="horizontalLayout_13">
-                         <item>
-                          <widget class="QLabel" name="label_12">
-                           <property name="font">
-                            <font>
-                             <pointsize>10</pointsize>
-                            </font>
-                           </property>
-                           <property name="text">
-                            <string>Set API Key:</string>
-                           </property>
-                           <property name="StyleClass" stdset="0">
-                            <string>setText</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QLineEdit" name="linePbfarmerKey">
-                           <property name="sizePolicy">
-                            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                             <horstretch>0</horstretch>
-                             <verstretch>0</verstretch>
-                            </sizepolicy>
-                           </property>
-                           <property name="minimumSize">
-                            <size>
-                             <width>180</width>
-                             <height>25</height>
-                            </size>
-                           </property>
-                           <property name="font">
-                            <font>
-                             <pointsize>10</pointsize>
-                            </font>
-                           </property>
-                           <property name="toolTip">
-                            <string>Set alternative API Key for pbfarmer. Default API key is supplied if blank</string>
                            </property>
                            <property name="echoMode">
                             <enum>QLineEdit::EchoMode::Password</enum>
