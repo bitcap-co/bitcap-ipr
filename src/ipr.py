@@ -291,7 +291,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionIPRStop.setEnabled(True)
         self.lm.start(self.listenerConfig)
         self.active_miners = ", ".join(
-            [btn.text().lower() for btn in self.listenerConfig.buttons() if btn.isChecked()]
+            [btn.text() for btn in self.listenerConfig.buttons() if btn.isChecked()]
         )
         if self.sys_tray and not self.isVisible():
             self.sys_tray.showMessage(
