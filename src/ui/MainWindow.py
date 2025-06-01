@@ -345,9 +345,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_13.setContentsMargins(9, 9, 9, 9)
         self.groupFirmwares = QGroupBox(self.scrollAPI)
         self.groupFirmwares.setObjectName(u"groupFirmwares")
-        self.groupFirmwares.setStyleSheet(u"QGroupBox #groupFirmwares {\n"
-"	border: 0px\n"
-"}")
         self.verticalLayout_15 = QVBoxLayout(self.groupFirmwares)
         self.verticalLayout_15.setObjectName(u"verticalLayout_15")
         self.groupVnish = QGroupBox(self.groupFirmwares)
@@ -762,8 +759,8 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(2)
-        self.configTabs.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(1)
+        self.configTabs.setCurrentIndex(0)
         self.comboOnWindowClose.setCurrentIndex(0)
         self.comboLogLevel.setCurrentIndex(1)
         self.actionIPRStart.setDefault(True)
