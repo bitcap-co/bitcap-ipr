@@ -3,10 +3,7 @@ from string import Template
 
 from mod.api import settings
 from mod.api.http import BaseHTTPClient
-from mod.api.errors import (
-    FailedConnectionError,
-    AuthenticationError
-)
+from mod.api.errors import FailedConnectionError, AuthenticationError
 
 
 class SealminerHTTPClient(BaseHTTPClient):
@@ -25,9 +22,9 @@ class SealminerHTTPClient(BaseHTTPClient):
         try:
             self._authenticate_session()
         except (
-                requests.exceptions.ConnectionError,
-                requests.exceptions.ConnectTimeout,
-                requests.exceptions.ReadTimeout,
+            requests.exceptions.ConnectionError,
+            requests.exceptions.ConnectTimeout,
+            requests.exceptions.ReadTimeout,
         ):
             self._close_client(
                 FailedConnectionError(
@@ -39,10 +36,7 @@ class SealminerHTTPClient(BaseHTTPClient):
         for passwd in self.passwds:
             if not passwd:
                 continue
-            data = {
-                "username": self.username,
-                "origin_pwd": passwd
-            }
+            data = {"username": self.username, "origin_pwd": passwd}
             resj = self.run_command("POST", "login", data=data)
 
             if "state" in resj:

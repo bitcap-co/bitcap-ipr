@@ -18,7 +18,11 @@ class BitmainHTTPClient(BaseHTTPClient):
         self.url = f"http://{self.ip}:{self.port}/"
         self.username = "root"
         self.passwds = [passwd, settings.get("default_bitmain_passwd")]
-        self.vnish_passwds = [vnish_passwd, passwd, settings.get("default_vnish_passwd")]
+        self.vnish_passwds = [
+            vnish_passwd,
+            passwd,
+            settings.get("default_vnish_passwd"),
+        ]
         self.command_format = {
             "vnish": "api/v1",
             "stock": Template("cgi-bin/${cmd}.cgi"),

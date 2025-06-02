@@ -69,9 +69,11 @@ class BaseHTTPClient(ABC):
                 return res
             except (
                 requests.exceptions.ReadTimeout,
-                requests.exceptions.ChunkedEncodingError
+                requests.exceptions.ChunkedEncodingError,
             ) as e:
-                logger.warning(f" __retry_send : {e}. retry request in {delay} seconds.")
+                logger.warning(
+                    f" __retry_send : {e}. retry request in {delay} seconds."
+                )
                 time.sleep(delay)
         if not success:
             logger.error(" __retry_send : request failed after max retries.")
@@ -92,7 +94,7 @@ class BaseHTTPClient(ABC):
             method=method,
             url=self.url + path,
             headers=self.session.headers,
-            cookies=self.session.cookies
+            cookies=self.session.cookies,
         )
         if self.auth:
             req.auth = self.auth
@@ -102,7 +104,9 @@ class BaseHTTPClient(ABC):
             self.session.headers.update({"Content-Type": "application/json"})
             req.json = payload
         if data:
-            self.session.headers.update({"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"})
+            self.session.headers.update(
+                {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"}
+            )
             req.data = data
         r = req.prepare()
         res = self.__retry_send(r, timeout=timeout, verify=self.session.verify)

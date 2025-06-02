@@ -80,10 +80,6 @@ class BaseRPCClient(ABC):
         cmd = json.dumps({"cmd": command, **kwargs})
         return self._do_rpc(cmd)
 
-    # whatsminer only
-    def run_privileged_command(self, *args, **kwargs) -> dict:
-        return self._do_rpc(*args, **kwargs)
-
     def _load_api_data(self, data: bytes) -> dict:
         str_data = data.decode("utf-8").rstrip("\x00")
         str_data = str_data.replace(",}", "}")
