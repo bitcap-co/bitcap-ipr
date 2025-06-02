@@ -1,44 +1,48 @@
 {
     "general": {
-        "enableSysTray": false,
-        "onWindowClose": 0,
-        "listenFor": {
-            "antminer": true,
-            "whatsminer": true,
-            "iceriver": true,
-            "additional": {
-                "volcminer": false,
-                "goldshell": false,
-                "sealminer": false
-            }
+      "enableSysTray": false,
+      "onWindowClose": 0,
+      "listenFor": {
+        "antminer": true,
+        "whatsminer": true,
+        "iceriver": true,
+        "additional": {
+          "volcminer": false,
+          "goldshell": false,
+          "sealminer": false
         }
+      }
     },
     "api": {
+      "auth": {
         "bitmainAltPasswd": "",
         "whatsminerAltPasswd": "",
         "volcminerAltPasswd": "",
         "goldshellAltPasswd": "",
         "bitdeerAltPasswd": "",
-        "vnishAltPasswd": "",
-        "pbfarmerKey": ""
+        "firmware": {
+          "vnishAltPasswd": "",
+          "pbfarmerKey": ""
+        }
+      }
     },
     "logs": {
-        "logLevel": "INFO",
-        "maxLogSize": 1024,
-        "onMaxLogSize": 0,
-        "flushInterval": 0
+      "logLevel": "INFO",
+      "maxLogSize": 1024,
+      "onMaxLogSize": 0,
+      "flushInterval": 0
     },
     "instance": {
-        "geometry": {
-            "mainWindow": []
-        },
-        "options": {
-            "alwaysOpenIPInBrowser": false,
-            "disableInactiveTimer": false,
-            "autoStartOnLaunch": false
-        },
-        "table": {
-            "enableIDTable": false
-        }
+      "geometry": {
+        "mainWindow": []
+      },
+      "options": {
+        "alwaysOpenIPInBrowser": false,
+        "disableInactiveTimer": false,
+        "autoStartOnLaunch": false
+      },
+      "table": {
+        "enableIDTable": false
+      }
     }
 }

@@ -735,12 +735,24 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
 
             # api
-            self.lineBitmainPasswd.setText(self.config["api"]["bitmainAltPasswd"])
-            self.lineWhatsminerPasswd.setText(self.config["api"]["whatsminerAltPasswd"])
-            self.lineVolcminerPasswd.setText(self.config["api"]["volcminerAltPasswd"])
-            self.lineGoldshellPasswd.setText(self.config["api"]["goldshellAltPasswd"])
-            self.lineVnishPasswd.setText(self.config["api"]["vnishAltPasswd"])
-            self.linePbfarmerKey.setText(self.config["api"]["pbfarmerKey"])
+            self.lineBitmainPasswd.setText(
+                self.config["api"]["auth"]["bitmainAltPasswd"]
+            )
+            self.lineWhatsminerPasswd.setText(
+                self.config["api"]["auth"]["whatsminerAltPasswd"]
+            )
+            self.lineVolcminerPasswd.setText(
+                self.config["api"]["auth"]["volcminerAltPasswd"]
+            )
+            self.lineGoldshellPasswd.setText(
+                self.config["api"]["auth"]["goldshellAltPasswd"]
+            )
+            self.lineVnishPasswd.setText(
+                self.config["api"]["auth"]["firmware"]["vnishAltPasswd"]
+            )
+            self.linePbfarmerKey.setText(
+                self.config["api"]["auth"]["firmware"]["pbfarmerKey"]
+            )
 
             # logs
             self.comboLogLevel.setCurrentText(self.config["logs"]["logLevel"])
@@ -802,13 +814,17 @@ class IPR(QMainWindow, Ui_MainWindow):
                 },
             },
             "api": {
-                "bitmainAltPasswd": self.lineBitmainPasswd.text(),
-                "whatsminerAltPasswd": self.lineWhatsminerPasswd.text(),
-                "volcminerAltPasswd": self.lineVolcminerPasswd.text(),
-                "goldshellAltPasswd": self.lineGoldshellPasswd.text(),
-                "bitdeerAltPasswd": self.lineSealminerPasswd.text(),
-                "vnishAltPasswd": self.lineVnishPasswd.text(),
-                "pbfarmerKey": self.linePbfarmerKey.text(),
+                "auth": {
+                    "bitmainAltPasswd": self.lineBitmainPasswd.text(),
+                    "whatsminerAltPasswd": self.lineWhatsminerPasswd.text(),
+                    "volcminerAltPasswd": self.lineVolcminerPasswd.text(),
+                    "goldshellAltPasswd": self.lineGoldshellPasswd.text(),
+                    "bitdeerAltPasswd": self.lineSealminerPasswd.text(),
+                    "firmware": {
+                        "vnishAltPasswd": self.lineVnishPasswd.text(),
+                        "pbfarmerKey": self.linePbfarmerKey.text(),
+                    }
+                }
             },
             "logs": {
                 "logLevel": self.comboLogLevel.currentText(),

@@ -61,7 +61,7 @@ def read_config(cp: Path) -> dict:
 
 
 def write_config(cp: Path, content: dict):
-    config = json.dumps(content, indent=4)
+    config = json.dumps(content, indent=2)
     with open(cp, "w") as f:
         f.write(config)
 
