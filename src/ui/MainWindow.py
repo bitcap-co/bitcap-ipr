@@ -339,64 +339,10 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 477, 557))
+        self.scrollAPI.setGeometry(QRect(0, -259, 477, 594))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
         self.verticalLayout_13.setContentsMargins(9, 9, 9, 9)
-        self.groupFirmwares = QGroupBox(self.scrollAPI)
-        self.groupFirmwares.setObjectName(u"groupFirmwares")
-        self.verticalLayout_15 = QVBoxLayout(self.groupFirmwares)
-        self.verticalLayout_15.setObjectName(u"verticalLayout_15")
-        self.groupVnish = QGroupBox(self.groupFirmwares)
-        self.groupVnish.setObjectName(u"groupVnish")
-        self.horizontalLayout_25 = QHBoxLayout(self.groupVnish)
-        self.horizontalLayout_25.setObjectName(u"horizontalLayout_25")
-        self.label_16 = QLabel(self.groupVnish)
-        self.label_16.setObjectName(u"label_16")
-        self.label_16.setFont(font1)
-
-        self.horizontalLayout_25.addWidget(self.label_16)
-
-        self.lineVnishPasswd = QLineEdit(self.groupVnish)
-        self.lineVnishPasswd.setObjectName(u"lineVnishPasswd")
-        sizePolicy.setHeightForWidth(self.lineVnishPasswd.sizePolicy().hasHeightForWidth())
-        self.lineVnishPasswd.setSizePolicy(sizePolicy)
-        self.lineVnishPasswd.setFont(font1)
-        self.lineVnishPasswd.setEchoMode(QLineEdit.EchoMode.Password)
-        self.lineVnishPasswd.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
-
-        self.horizontalLayout_25.addWidget(self.lineVnishPasswd)
-
-
-        self.verticalLayout_15.addWidget(self.groupVnish)
-
-        self.groupPbfarmer = QGroupBox(self.groupFirmwares)
-        self.groupPbfarmer.setObjectName(u"groupPbfarmer")
-        self.horizontalLayout_13 = QHBoxLayout(self.groupPbfarmer)
-        self.horizontalLayout_13.setObjectName(u"horizontalLayout_13")
-        self.label_12 = QLabel(self.groupPbfarmer)
-        self.label_12.setObjectName(u"label_12")
-        self.label_12.setFont(font1)
-
-        self.horizontalLayout_13.addWidget(self.label_12)
-
-        self.linePbfarmerKey = QLineEdit(self.groupPbfarmer)
-        self.linePbfarmerKey.setObjectName(u"linePbfarmerKey")
-        sizePolicy.setHeightForWidth(self.linePbfarmerKey.sizePolicy().hasHeightForWidth())
-        self.linePbfarmerKey.setSizePolicy(sizePolicy)
-        self.linePbfarmerKey.setMinimumSize(QSize(180, 25))
-        self.linePbfarmerKey.setFont(font1)
-        self.linePbfarmerKey.setEchoMode(QLineEdit.EchoMode.Password)
-        self.linePbfarmerKey.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
-
-        self.horizontalLayout_13.addWidget(self.linePbfarmerKey)
-
-
-        self.verticalLayout_15.addWidget(self.groupPbfarmer)
-
-
-        self.verticalLayout_13.addWidget(self.groupFirmwares)
-
         self.groupBitmain = QGroupBox(self.scrollAPI)
         self.groupBitmain.setObjectName(u"groupBitmain")
         self.horizontalLayout_12 = QHBoxLayout(self.groupBitmain)
@@ -515,6 +461,87 @@ class Ui_MainWindow(object):
 
 
         self.verticalLayout_13.addWidget(self.groupSealminer)
+
+        self.groupFirmwares = QGroupBox(self.scrollAPI)
+        self.groupFirmwares.setObjectName(u"groupFirmwares")
+        self.verticalLayout_15 = QVBoxLayout(self.groupFirmwares)
+        self.verticalLayout_15.setObjectName(u"verticalLayout_15")
+        self.groupVnish = QGroupBox(self.groupFirmwares)
+        self.groupVnish.setObjectName(u"groupVnish")
+        self.verticalLayout_16 = QVBoxLayout(self.groupVnish)
+        self.verticalLayout_16.setObjectName(u"verticalLayout_16")
+        self.hwrapper_10 = QWidget(self.groupVnish)
+        self.hwrapper_10.setObjectName(u"hwrapper_10")
+        self.horizontalLayout_25 = QHBoxLayout(self.hwrapper_10)
+        self.horizontalLayout_25.setObjectName(u"horizontalLayout_25")
+        self.horizontalLayout_25.setContentsMargins(0, 0, 0, 0)
+        self.label_16 = QLabel(self.hwrapper_10)
+        self.label_16.setObjectName(u"label_16")
+        self.label_16.setFont(font1)
+
+        self.horizontalLayout_25.addWidget(self.label_16)
+
+        self.lineVnishPasswd = QLineEdit(self.hwrapper_10)
+        self.lineVnishPasswd.setObjectName(u"lineVnishPasswd")
+        sizePolicy.setHeightForWidth(self.lineVnishPasswd.sizePolicy().hasHeightForWidth())
+        self.lineVnishPasswd.setSizePolicy(sizePolicy)
+        self.lineVnishPasswd.setFont(font1)
+        self.lineVnishPasswd.setEchoMode(QLineEdit.EchoMode.Password)
+        self.lineVnishPasswd.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
+
+        self.horizontalLayout_25.addWidget(self.lineVnishPasswd)
+
+
+        self.verticalLayout_16.addWidget(self.hwrapper_10)
+
+        self.widget = QWidget(self.groupVnish)
+        self.widget.setObjectName(u"widget")
+        self.horizontalLayout_26 = QHBoxLayout(self.widget)
+        self.horizontalLayout_26.setObjectName(u"horizontalLayout_26")
+        self.horizontalLayout_26.setContentsMargins(0, 6, 0, 0)
+        self.checkVnishUseAntminerLogin = QCheckBox(self.widget)
+        self.checkVnishUseAntminerLogin.setObjectName(u"checkVnishUseAntminerLogin")
+        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        sizePolicy4.setHorizontalStretch(0)
+        sizePolicy4.setVerticalStretch(0)
+        sizePolicy4.setHeightForWidth(self.checkVnishUseAntminerLogin.sizePolicy().hasHeightForWidth())
+        self.checkVnishUseAntminerLogin.setSizePolicy(sizePolicy4)
+        self.checkVnishUseAntminerLogin.setMinimumSize(QSize(100, 25))
+
+        self.horizontalLayout_26.addWidget(self.checkVnishUseAntminerLogin, 0, Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
+
+
+        self.verticalLayout_16.addWidget(self.widget)
+
+
+        self.verticalLayout_15.addWidget(self.groupVnish)
+
+        self.groupPbfarmer = QGroupBox(self.groupFirmwares)
+        self.groupPbfarmer.setObjectName(u"groupPbfarmer")
+        self.horizontalLayout_13 = QHBoxLayout(self.groupPbfarmer)
+        self.horizontalLayout_13.setObjectName(u"horizontalLayout_13")
+        self.label_12 = QLabel(self.groupPbfarmer)
+        self.label_12.setObjectName(u"label_12")
+        self.label_12.setFont(font1)
+
+        self.horizontalLayout_13.addWidget(self.label_12)
+
+        self.linePbfarmerKey = QLineEdit(self.groupPbfarmer)
+        self.linePbfarmerKey.setObjectName(u"linePbfarmerKey")
+        sizePolicy.setHeightForWidth(self.linePbfarmerKey.sizePolicy().hasHeightForWidth())
+        self.linePbfarmerKey.setSizePolicy(sizePolicy)
+        self.linePbfarmerKey.setMinimumSize(QSize(180, 25))
+        self.linePbfarmerKey.setFont(font1)
+        self.linePbfarmerKey.setEchoMode(QLineEdit.EchoMode.Password)
+        self.linePbfarmerKey.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
+
+        self.horizontalLayout_13.addWidget(self.linePbfarmerKey)
+
+
+        self.verticalLayout_15.addWidget(self.groupPbfarmer)
+
+
+        self.verticalLayout_13.addWidget(self.groupFirmwares)
 
         self.scrollArea.setWidget(self.scrollAPI)
 
@@ -812,19 +839,6 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.configTabs.setTabToolTip(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))
 #endif // QT_CONFIG(tooltip)
-        self.groupFirmwares.setTitle(QCoreApplication.translate("MainWindow", u"Firmwares", None))
-        self.groupVnish.setTitle(QCoreApplication.translate("MainWindow", u"Vnish", None))
-        self.label_16.setText(QCoreApplication.translate("MainWindow", u"Set Login Password:", None))
-        self.label_16.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
-#if QT_CONFIG(tooltip)
-        self.lineVnishPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative login password for Vnish. Default: \"admin\"", None))
-#endif // QT_CONFIG(tooltip)
-        self.groupPbfarmer.setTitle(QCoreApplication.translate("MainWindow", u"PBfarmer", None))
-        self.label_12.setText(QCoreApplication.translate("MainWindow", u"Set API Key:", None))
-        self.label_12.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
-#if QT_CONFIG(tooltip)
-        self.linePbfarmerKey.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative API Key for pbfarmer. Default API key is supplied if blank", None))
-#endif // QT_CONFIG(tooltip)
         self.groupBitmain.setTitle(QCoreApplication.translate("MainWindow", u"Antminer", None))
         self.label_10.setText(QCoreApplication.translate("MainWindow", u"Set Login Password:", None))
         self.label_10.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
@@ -854,6 +868,23 @@ class Ui_MainWindow(object):
         self.label_15.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
 #if QT_CONFIG(tooltip)
         self.lineSealminerPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative login password for Sealminer. Default: \"seal\"", None))
+#endif // QT_CONFIG(tooltip)
+        self.groupFirmwares.setTitle(QCoreApplication.translate("MainWindow", u"Firmwares", None))
+        self.groupVnish.setTitle(QCoreApplication.translate("MainWindow", u"Vnish", None))
+        self.label_16.setText(QCoreApplication.translate("MainWindow", u"Set Login Password:", None))
+        self.label_16.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.lineVnishPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative login password for Vnish. Default: \"admin\"", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.checkVnishUseAntminerLogin.setToolTip(QCoreApplication.translate("MainWindow", u"Check to use configured Antminer Login as alternative instead.", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkVnishUseAntminerLogin.setText(QCoreApplication.translate("MainWindow", u"Use Antminer Login", None))
+        self.groupPbfarmer.setTitle(QCoreApplication.translate("MainWindow", u"PBfarmer", None))
+        self.label_12.setText(QCoreApplication.translate("MainWindow", u"Set API Key:", None))
+        self.label_12.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.linePbfarmerKey.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative API Key for pbfarmer. Default API key is supplied if blank", None))
 #endif // QT_CONFIG(tooltip)
         self.configTabs.setTabText(self.configTabs.indexOf(self.tabAPI), QCoreApplication.translate("MainWindow", u"API", None))
 #if QT_CONFIG(tooltip)

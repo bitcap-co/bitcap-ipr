@@ -530,7 +530,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             match miner_type:
                 case "antminer":
                     client_auth = self.lineBitmainPasswd.text()
-                    custom_auth = self.lineVnishPasswd.text()
+                    if not self.checkVnishUseAntminerLogin.isChecked():
+                        custom_auth = self.lineVnishPasswd.text()
+                    else:
+                        custom_auth = self.lineBitmainPasswd.text()
                 case "volcminer":
                     # client_auth = self.lineVolcminerPasswd.text()
                     return self.iprStatus.showMessage(
@@ -754,6 +757,11 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.config["api"]["auth"]["firmware"]["pbfarmerKey"]
             )
 
+            # api settings
+            self.checkVnishUseAntminerLogin.setChecked(
+                self.config["api"]["settings"]["vnishUseAntminerLogin"]
+            )
+
             # logs
             self.comboLogLevel.setCurrentText(self.config["logs"]["logLevel"])
             self.spinMaxLogSize.setValue(self.config["logs"]["maxLogSize"])
@@ -824,6 +832,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                         "vnishAltPasswd": self.lineVnishPasswd.text(),
                         "pbfarmerKey": self.linePbfarmerKey.text(),
                     }
+                },
+                "settings": {
+                    "vnishUseAntminerLogin": self.checkVnishUseAntminerLogin.isChecked()
                 }
             },
             "logs": {
