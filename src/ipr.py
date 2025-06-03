@@ -39,7 +39,7 @@ from iprconfirmation import IPRConfirmation
 from iprabout import IPRAbout
 
 from mod.lm.listenermanager import ListenerManager
-from mod.api import settings
+from mod.api import settings as api_settings
 from mod.api.client import APIClient
 from utils import (
     CURR_PLATFORM,
@@ -158,6 +158,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         self.read_settings()
 
+        self.spinLocateDuration.valueChanged.connect(self.update_api_locate_duration)
         if self.menu_bar.actionEnableIDTable.isChecked():
             self.toggle_table_settings(True)
 
@@ -564,7 +565,10 @@ class IPR(QMainWindow, Ui_MainWindow):
                 return self.iprStatus.showMessage(
                     f"Status :: Failed to locate miner: {client._error}", 5000
                 )
-            self.iprStatus.showMessage(f"Status :: Locating miner: {ip_addr}...", 10000)
+            self.iprStatus.showMessage(
+                f"Status :: Locating miner: {ip_addr}...",
+                api_settings.get("locate_duration_ms"),
+            )
 
     def double_click_item(self, model_index):
         item = self.idTable.itemFromIndex(model_index)
@@ -689,6 +693,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         else:
             self.comboOnWindowClose.setCurrentIndex(0)
             self.comboOnWindowClose.setEnabled(False)
+
+    def update_api_locate_duration(self):
+        api_settings.update(
+            "locate_duration_ms", self.spinLocateDuration.value() * 1000
+        )
 
     def create_passwd_toggle_action(self, line: QLineEdit):
         passwd_action = line.addAction(
