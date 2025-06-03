@@ -8,6 +8,7 @@
     <file>rc/img/scalable/BitCapIPRCenterLogo.svg</file>
   </qresource>
   <qresource prefix="theme/icons">
+    <file>rc/arrow_up.png</file>
     <file>rc/arrow_down.png</file>
     <file>rc/hide.png</file>
     <file>rc/view.png</file>

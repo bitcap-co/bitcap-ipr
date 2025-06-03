@@ -350,7 +350,7 @@ QAbstractSpinBox {
   /* min-width: 5px; removed to fix 109 */
 }
 
-/* QAbstractSpinBox:up-button {
+QAbstractSpinBox:up-button {
   background-color: transparent #19232D;
   subcontrol-origin: border;
   subcontrol-position: top right;
@@ -363,14 +363,16 @@ QAbstractSpinBox {
   margin-bottom: -1px;
 }
 
-QAbstractSpinBox::up-arrow, QAbstractSpinBox::up-arrow:disabled, QAbstractSpinBox::up-arrow:off {
-  image: url(":/qss_icons/dark/rc/arrow_up_disabled.png");
+/* QAbstractSpinBox::up-arrow, QAbstractSpinBox::up-arrow:disabled, QAbstractSpinBox::up-arrow:off {
+  image: url(":/theme/icons/rc/arrow_up_disabled.png");
   height: 8px;
   width: 8px;
-}
+} */
 
-QAbstractSpinBox::up-arrow:hover {
-  image: url(":/qss_icons/dark/rc/arrow_up.png");
+QAbstractSpinBox::up-arrow {
+  image: url(":/theme/icons/rc/arrow_up.png");
+  width: 8px;
+  height: 8px;
 }
 
 QAbstractSpinBox:down-button {
@@ -386,15 +388,17 @@ QAbstractSpinBox:down-button {
   margin-top: -1px;
 }
 
-QAbstractSpinBox::down-arrow, QAbstractSpinBox::down-arrow:disabled, QAbstractSpinBox::down-arrow:off {
-  image: url(":/qss_icons/dark/rc/arrow_down_disabled.png");
+/* QAbstractSpinBox::down-arrow, QAbstractSpinBox::down-arrow:disabled, QAbstractSpinBox::down-arrow:off {
+  image: url(":/theme/icons/rc/arrow_down_disabled.png");
+  height: 8px;
+  width: 8px;
+} */
+
+QAbstractSpinBox::down-arrow {
+  image: url(":/theme/icons/rc/arrow_down.png");
   height: 8px;
   width: 8px;
 }
-
-QAbstractSpinBox::down-arrow:hover {
-  image: url(":/qss_icons/dark/rc/arrow_down.png");
-} */
 
 QAbstractSpinBox:hover {
   border: 1px solid #92beff;
