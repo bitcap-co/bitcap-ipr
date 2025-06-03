@@ -339,11 +339,46 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, -259, 477, 594))
+        self.scrollAPI.setGeometry(QRect(0, 0, 477, 710))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
         self.verticalLayout_13.setContentsMargins(9, 9, 9, 9)
-        self.groupBitmain = QGroupBox(self.scrollAPI)
+        self.groupAPISettings = QGroupBox(self.scrollAPI)
+        self.groupAPISettings.setObjectName(u"groupAPISettings")
+        self.verticalLayout_17 = QVBoxLayout(self.groupAPISettings)
+        self.verticalLayout_17.setObjectName(u"verticalLayout_17")
+        self.hwrapper_11 = QWidget(self.groupAPISettings)
+        self.hwrapper_11.setObjectName(u"hwrapper_11")
+        self.horizontalLayout_27 = QHBoxLayout(self.hwrapper_11)
+        self.horizontalLayout_27.setObjectName(u"horizontalLayout_27")
+        self.horizontalLayout_27.setContentsMargins(0, 0, 0, 0)
+        self.label_2 = QLabel(self.hwrapper_11)
+        self.label_2.setObjectName(u"label_2")
+
+        self.horizontalLayout_27.addWidget(self.label_2)
+
+        self.spinLocateDuration = QSpinBox(self.hwrapper_11)
+        self.spinLocateDuration.setObjectName(u"spinLocateDuration")
+        self.spinLocateDuration.setWrapping(True)
+        self.spinLocateDuration.setProperty(u"showGroupSeparator", True)
+        self.spinLocateDuration.setMinimum(5)
+        self.spinLocateDuration.setMaximum(30)
+        self.spinLocateDuration.setSingleStep(5)
+        self.spinLocateDuration.setValue(10)
+
+        self.horizontalLayout_27.addWidget(self.spinLocateDuration)
+
+
+        self.verticalLayout_17.addWidget(self.hwrapper_11)
+
+
+        self.verticalLayout_13.addWidget(self.groupAPISettings)
+
+        self.groupAPIAuth = QGroupBox(self.scrollAPI)
+        self.groupAPIAuth.setObjectName(u"groupAPIAuth")
+        self.verticalLayout_18 = QVBoxLayout(self.groupAPIAuth)
+        self.verticalLayout_18.setObjectName(u"verticalLayout_18")
+        self.groupBitmain = QGroupBox(self.groupAPIAuth)
         self.groupBitmain.setObjectName(u"groupBitmain")
         self.horizontalLayout_12 = QHBoxLayout(self.groupBitmain)
         self.horizontalLayout_12.setObjectName(u"horizontalLayout_12")
@@ -364,9 +399,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_12.addWidget(self.lineBitmainPasswd)
 
 
-        self.verticalLayout_13.addWidget(self.groupBitmain)
+        self.verticalLayout_18.addWidget(self.groupBitmain)
 
-        self.groupWhatsminer = QGroupBox(self.scrollAPI)
+        self.groupWhatsminer = QGroupBox(self.groupAPIAuth)
         self.groupWhatsminer.setObjectName(u"groupWhatsminer")
         self.horizontalLayout_8 = QHBoxLayout(self.groupWhatsminer)
         self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
@@ -388,9 +423,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_8.addWidget(self.lineWhatsminerPasswd)
 
 
-        self.verticalLayout_13.addWidget(self.groupWhatsminer)
+        self.verticalLayout_18.addWidget(self.groupWhatsminer)
 
-        self.groupGoldshell = QGroupBox(self.scrollAPI)
+        self.groupGoldshell = QGroupBox(self.groupAPIAuth)
         self.groupGoldshell.setObjectName(u"groupGoldshell")
         self.horizontalLayout_23 = QHBoxLayout(self.groupGoldshell)
         self.horizontalLayout_23.setObjectName(u"horizontalLayout_23")
@@ -412,9 +447,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_23.addWidget(self.lineGoldshellPasswd)
 
 
-        self.verticalLayout_13.addWidget(self.groupGoldshell)
+        self.verticalLayout_18.addWidget(self.groupGoldshell)
 
-        self.groupVolcminer = QGroupBox(self.scrollAPI)
+        self.groupVolcminer = QGroupBox(self.groupAPIAuth)
         self.groupVolcminer.setObjectName(u"groupVolcminer")
         self.horizontalLayout_21 = QHBoxLayout(self.groupVolcminer)
         self.horizontalLayout_21.setObjectName(u"horizontalLayout_21")
@@ -436,9 +471,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_21.addWidget(self.lineVolcminerPasswd)
 
 
-        self.verticalLayout_13.addWidget(self.groupVolcminer)
+        self.verticalLayout_18.addWidget(self.groupVolcminer)
 
-        self.groupSealminer = QGroupBox(self.scrollAPI)
+        self.groupSealminer = QGroupBox(self.groupAPIAuth)
         self.groupSealminer.setObjectName(u"groupSealminer")
         self.horizontalLayout_24 = QHBoxLayout(self.groupSealminer)
         self.horizontalLayout_24.setObjectName(u"horizontalLayout_24")
@@ -460,7 +495,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout_24.addWidget(self.lineSealminerPasswd)
 
 
-        self.verticalLayout_13.addWidget(self.groupSealminer)
+        self.verticalLayout_18.addWidget(self.groupSealminer)
+
+
+        self.verticalLayout_13.addWidget(self.groupAPIAuth)
 
         self.groupFirmwares = QGroupBox(self.scrollAPI)
         self.groupFirmwares.setObjectName(u"groupFirmwares")
@@ -494,12 +532,12 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_16.addWidget(self.hwrapper_10)
 
-        self.widget = QWidget(self.groupVnish)
-        self.widget.setObjectName(u"widget")
-        self.horizontalLayout_26 = QHBoxLayout(self.widget)
+        self.hwrapper_12 = QWidget(self.groupVnish)
+        self.hwrapper_12.setObjectName(u"hwrapper_12")
+        self.horizontalLayout_26 = QHBoxLayout(self.hwrapper_12)
         self.horizontalLayout_26.setObjectName(u"horizontalLayout_26")
         self.horizontalLayout_26.setContentsMargins(0, 6, 0, 0)
-        self.checkVnishUseAntminerLogin = QCheckBox(self.widget)
+        self.checkVnishUseAntminerLogin = QCheckBox(self.hwrapper_12)
         self.checkVnishUseAntminerLogin.setObjectName(u"checkVnishUseAntminerLogin")
         sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
         sizePolicy4.setHorizontalStretch(0)
@@ -511,7 +549,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_26.addWidget(self.checkVnishUseAntminerLogin, 0, Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
 
 
-        self.verticalLayout_16.addWidget(self.widget)
+        self.verticalLayout_16.addWidget(self.hwrapper_12)
 
 
         self.verticalLayout_15.addWidget(self.groupVnish)
@@ -839,6 +877,13 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.configTabs.setTabToolTip(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))
 #endif // QT_CONFIG(tooltip)
+        self.groupAPISettings.setTitle(QCoreApplication.translate("MainWindow", u"Settings", None))
+        self.label_2.setText(QCoreApplication.translate("MainWindow", u"Locate Duration:", None))
+#if QT_CONFIG(tooltip)
+        self.spinLocateDuration.setToolTip(QCoreApplication.translate("MainWindow", u"Set the blinking duration when locating.", None))
+#endif // QT_CONFIG(tooltip)
+        self.spinLocateDuration.setSuffix(QCoreApplication.translate("MainWindow", u" Seconds", None))
+        self.groupAPIAuth.setTitle(QCoreApplication.translate("MainWindow", u"Authentication", None))
         self.groupBitmain.setTitle(QCoreApplication.translate("MainWindow", u"Antminer", None))
         self.label_10.setText(QCoreApplication.translate("MainWindow", u"Set Login Password:", None))
         self.label_10.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
