@@ -26,6 +26,7 @@
         }
       },
       "settings": {
+        "locateDurationSecs": 10,
         "vnishUseAntminerLogin": false
       }
     },

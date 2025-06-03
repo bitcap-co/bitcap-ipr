@@ -127,6 +127,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.lineVnishPasswd
         )
 
+        duration_line = self.spinLocateDuration.lineEdit()
+        duration_line.setReadOnly(True)
+
         self.confirms = []
 
         # menu_bar signals
@@ -758,6 +761,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
 
             # api settings
+            self.spinLocateDuration.setValue(
+                self.config["api"]["settings"]["locateDurationSecs"]
+            )
             self.checkVnishUseAntminerLogin.setChecked(
                 self.config["api"]["settings"]["vnishUseAntminerLogin"]
             )
@@ -831,11 +837,12 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "firmware": {
                         "vnishAltPasswd": self.lineVnishPasswd.text(),
                         "pbfarmerKey": self.linePbfarmerKey.text(),
-                    }
+                    },
                 },
                 "settings": {
-                    "vnishUseAntminerLogin": self.checkVnishUseAntminerLogin.isChecked()
-                }
+                    "locateDurationSecs": self.spinLocateDuration.value(),
+                    "vnishUseAntminerLogin": self.checkVnishUseAntminerLogin.isChecked(),
+                },
             },
             "logs": {
                 "logLevel": self.comboLogLevel.currentText(),
