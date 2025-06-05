@@ -154,5 +154,18 @@ class WhatsminerRPCClient(BaseRPCClient):
             info="ip,proto,netmask,gateway,dns,hostname,mac,ledstat,gateway",
         )
 
-    def blink(self):
-        self.send_privileged_command("set_led", param="auto")
+    def blink(
+        self,
+        enabled: bool,
+        auto: bool = True,
+        color: str = "red",
+        period: int = 60,
+        duration: int = 20,
+        start: int = 0,
+    ):
+        if enabled:
+            auto = False
+        if auto:
+            self.send_privileged_command("set_led", param="auto")
+        else:
+            self.send_privileged_command("set_led", period=period, duration=duration)

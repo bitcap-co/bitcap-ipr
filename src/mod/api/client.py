@@ -97,7 +97,7 @@ class APIClient:
         self.locate_duration.setSingleShot(True)
         self.locate_duration.timeout.connect(self.stop_locate)
         duration_ms = settings.get("locate_duration_ms", 10000)
-        logger.info(" locate miner for 10000ms.")
+        logger.info(f" locate miner for {duration_ms}ms.")
         match miner_type:
             case "antminer":
                 try:
@@ -111,14 +111,14 @@ class APIClient:
                 self.locate_duration.start(duration_ms)
             case "whatsminer":
                 try:
-                    self.client.blink()
+                    self.client.blink(enabled=True)
                     self.close_client()
                 except AuthenticationError as err:
                     logger.error(err)
                     self.close_client()
 
     def stop_locate(self):
-        self.client.blink(False)
+        self.client.blink(enabled=False)
         self.close_client()
 
     def get_iceriver_mac_addr(self):
