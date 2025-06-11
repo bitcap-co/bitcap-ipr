@@ -112,7 +112,7 @@ class APIClient:
             case "whatsminer":
                 try:
                     self.client.blink(enabled=True)
-                    self.close_client()
+                    self.locate_duration.start(duration_ms)
                 except AuthenticationError as err:
                     logger.error(err)
                     self.close_client()
