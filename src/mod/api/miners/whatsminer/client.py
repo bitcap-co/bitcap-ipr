@@ -160,8 +160,8 @@ class WhatsminerRPCClient(BaseRPCClient):
         enabled: bool,
         auto: bool = True,
         color: str = "red",
-        period: int = 60,
-        duration: int = 20,
+        period: int = 1000,
+        duration: int = 500,
         start: int = 0,
     ):
         if enabled:
