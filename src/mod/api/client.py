@@ -96,7 +96,7 @@ class APIClient:
         self.locate_duration = QTimer(self.parent)
         self.locate_duration.setSingleShot(True)
         self.locate_duration.timeout.connect(self.stop_locate)
-        duration_ms = settings.get("locate_duration_ms", 10000)
+        duration_ms = settings.get("locate_duration_ms")
         logger.info(f" locate miner for {duration_ms}ms.")
         match miner_type:
             case "antminer":

@@ -698,6 +698,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         api_settings.update(
             "locate_duration_ms", self.spinLocateDuration.value() * 1000
         )
+        logger.debug(" update api locate_duration_ms: {api_settings.get('locate_duration_ms')}.")
 
     def create_passwd_toggle_action(self, line: QLineEdit):
         passwd_action = line.addAction(
