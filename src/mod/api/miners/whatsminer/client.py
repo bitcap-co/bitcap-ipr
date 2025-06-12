@@ -85,6 +85,7 @@ class WhatsminerRPCClient(BaseRPCClient):
             if "STATUS" in res and res["STATUS"] == "E":
                 # handle incorrect passwd
                 if res["Code"] == 23:
+                    self.token = None
                     continue
             success = True
         if not success:
