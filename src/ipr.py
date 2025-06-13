@@ -368,7 +368,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.api_client.close_client()
         logger.info(f"show_confirm : got {ip},{mac},{sn},{type} from listener.")
         if type == "iceriver":
-            self.api_client.create_iceriver_client(ip, self.linePbfarmerKey.text())
+            self.api_client.create_iceriver_client(ip, None, self.linePbfarmerKey.text())
             mac = self.api_client.get_iceriver_mac_addr()
             self.api_client.close_client()
             logger.info(f"show_confirm : got iceriver mac addr : {mac}")
