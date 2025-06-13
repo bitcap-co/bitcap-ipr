@@ -24,7 +24,7 @@ class APIClient:
     def __init__(self, parent: QObject):
         self.parent = parent
         self.client = None
-        self.locate_duration = None
+        self.locate = None
         self.target_info = {
             "serial": "N/A",
             "subtype": "N/A",
@@ -93,29 +93,22 @@ class APIClient:
                 self.create_sealminer_client(ip_addr, auth)
 
     def locate_miner(self, miner_type: str):
-        self.locate_duration = QTimer(self.parent)
-        self.locate_duration.setSingleShot(True)
-        self.locate_duration.timeout.connect(self.stop_locate)
-        duration_ms = settings.get("locate_duration_ms")
-        logger.info(f" locate miner for {duration_ms}ms.")
+        self.locate = QTimer(self.parent)
+        self.locate.setSingleShot(True)
+        self.locate.timeout.connect(self.stop_locate)
+        duration = settings.get("locate_duration_ms")
+        logger.info(f" locate miner for {duration}ms.")
         match miner_type:
-            case "antminer":
+            case "antminer" | "whatsminer":
                 try:
-                    self.client.blink(True)
-                    self.locate_duration.start(duration_ms)
+                    self.client.blink(enabled=True)
+                    self.locate.start(duration)
                 except AuthenticationError as err:
                     logger.error(err)
                     self.close_client()
             case "iceriver" | "volcminer" | "goldshell" | "sealminer":
-                self.client.blink(True)
-                self.locate_duration.start(duration_ms)
-            case "whatsminer":
-                try:
-                    self.client.blink(enabled=True)
-                    self.locate_duration.start(duration_ms)
-                except AuthenticationError as err:
-                    logger.error(err)
-                    self.close_client()
+                self.client.blink(enabled=True)
+                self.locate.start(duration)
 
     def stop_locate(self):
         self.client.blink(enabled=False)

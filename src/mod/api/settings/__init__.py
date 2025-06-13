@@ -1,6 +1,6 @@
 from typing import Any
 
-# global api settings
+# global default api settings
 _gs = {
     "http_max_retries": 3,
     "http_max_delay": 5,

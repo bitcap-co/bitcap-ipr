@@ -158,7 +158,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         self.read_settings()
 
-        self.spinLocateDuration.valueChanged.connect(self.update_api_locate_duration)
+        self.spinLocateDuration.valueChanged.connect(self.update_miner_locate_duration)
         if self.menu_bar.actionEnableIDTable.isChecked():
             self.toggle_table_settings(True)
 
@@ -175,6 +175,9 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         logger.info(" init APIClient().")
         self.api_client = APIClient(self)
+
+        logger.info(" init API settings.")
+        self.update_miner_locate_duration()
 
         logger.info(" init systray.")
         self.sys_tray = None
@@ -522,8 +525,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             miner_type = self.idTable.item(row, 4).text()
             ip_addr = self.idTable.item(row, 1).text()
             if (
-                self.api_client.locate_duration
-                and self.api_client.locate_duration.isActive()
+                self.api_client.locate
+                and self.api_client.locate.isActive()
             ):
                 return logger.warning(
                     "locate_miner : already locating a miner. Ignoring..."
@@ -567,7 +570,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 )
             self.iprStatus.showMessage(
                 f"Status :: Locating miner: {ip_addr}...",
-                api_settings.get("locate_duration_ms"),
+                self.locateMinerDuration,
             )
 
     def double_click_item(self, model_index):
@@ -694,11 +697,12 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.comboOnWindowClose.setCurrentIndex(0)
             self.comboOnWindowClose.setEnabled(False)
 
-    def update_api_locate_duration(self):
+    def update_miner_locate_duration(self):
+        self.locateMinerDuration = self.spinLocateDuration.value() * 1000
         api_settings.update(
-            "locate_duration_ms", self.spinLocateDuration.value() * 1000
+            "locate_duration_ms", self.locateMinerDuration
         )
-        logger.debug(f" update api locate_duration_ms: {api_settings.get('locate_duration_ms')}.")
+        logger.debug(f" update miner locate duration: {self.locateMinerDuration}ms.")
 
     def create_passwd_toggle_action(self, line: QLineEdit):
         passwd_action = line.addAction(
@@ -874,6 +878,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             buttons=QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Ok,
         )
         if ok == QMessageBox.StandardButton.Ok:
+            logger.info(" reset settings.")
             config = read_config(get_default_config())
             write_config(self.config_path, config)
             self.read_settings()
