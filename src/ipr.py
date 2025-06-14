@@ -597,31 +597,34 @@ class IPR(QMainWindow, Ui_MainWindow):
         rows = self.idTable.rowCount()
         if not rows:
             return
-        selected_items = self.idTable.selectedItems()
-        if len(selected_items) == 1:
-            item = selected_items[0]
-            if item.column() == 1:
-                out = f"http://{item.text()}"
-            else:
-                out = item.text()
-        else:
-            out = ""
-            selected_indexes = self.idTable.selectedIndexes()
-            for r in range(rows):
-                selected_indexes_in_row = [x for x in selected_indexes if x.row() == r]
-                if len(selected_indexes_in_row) == 0:
+        out = ""
+        selected_indexes = self.idTable.selectedIndexes()
+        for r in range(rows):
+            selected_indexes_in_row = [x for x in selected_indexes if x.row() == r]
+            if len(selected_indexes_in_row) == 0:
+                continue
+            if len(selected_indexes_in_row) == 1:
+                # single column
+                item = self.idTable.itemFromIndex(selected_indexes_in_row[0])
+                if item.column() == 0:
                     continue
-                for index in range(len(selected_indexes_in_row)):
-                    if not self.idTable.itemFromIndex(selected_indexes_in_row[index]):
-                        continue
-                    item = self.idTable.itemFromIndex(selected_indexes_in_row[index])
-                    if item.column() == 0:
-                        continue
-                    if item.column() == 1:
-                        out += f"http://{item.text()},"
-                    else:
-                        out += f"{item.text()},"
+                if item.column() == 1:
+                    out += f"http://{item.text()}"
+                else:
+                    out += f"{item.text()}"
                 out += "\n"
+                continue
+            for index in range(len(selected_indexes_in_row)):
+                if not self.idTable.itemFromIndex(selected_indexes_in_row[index]):
+                    continue
+                item = self.idTable.itemFromIndex(selected_indexes_in_row[index])
+                if item.column() == 0:
+                    continue
+                if item.column() == 1:
+                    out += f"http://{item.text()},"
+                else:
+                    out += f"{item.text()},"
+            out += "\n"
         logger.info("copy_selected : copy elements to clipboard.")
         cb = QApplication.clipboard()
         cb.clear(mode=cb.Mode.Clipboard)
