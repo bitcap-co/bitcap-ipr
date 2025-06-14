@@ -497,6 +497,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.idTable.setItem(rowPosition, 7, QTableWidgetItem(data["firmware"]))
         # PLATFORM
         self.idTable.setItem(rowPosition, 8, QTableWidgetItem(data["platform"]))
+        self.idTable.scrollToBottom()
 
     def show_table_context(self):
         self.table_context = QMenu()
