@@ -69,6 +69,7 @@ class BaseHTTPClient(ABC):
                 return res
             except (
                 requests.exceptions.ReadTimeout,
+                requests.exceptions.ConnectTimeout,
                 requests.exceptions.ChunkedEncodingError,
             ) as e:
                 logger.warning(
