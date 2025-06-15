@@ -1,52 +1,58 @@
+import logging
 import os
 import time
-import logging
 import webbrowser
 from datetime import datetime
 from pathlib import Path
+
 from PySide6.QtCore import (
-    Qt,
-    QTimer,
     QFile,
     QIODevice,
-    QTextStream,
-    QUrl,
     QMetaMethod,
+    Qt,
+    QTextStream,
+    QThreadPool,
+    QTimer,
+    QUrl,
+)
+from PySide6.QtGui import (
+    QCursor,
+    QDesktopServices,
+    QIcon,
+    QPixmap,
 )
 from PySide6.QtWidgets import (
     QApplication,
+    QButtonGroup,
     QFileDialog,
-    QMainWindow,
-    QSystemTrayIcon,
-    QMessageBox,
-    QTableWidgetItem,
     QLabel,
     QLineEdit,
+    QMainWindow,
     QMenu,
-    QButtonGroup,
+    QMessageBox,
+    QSystemTrayIcon,
+    QTableWidgetItem,
 )
-from PySide6.QtGui import (
-    QPixmap,
-    QIcon,
-    QCursor,
-    QDesktopServices,
-)
-import ui.resources  # noqa F401
-from ui.MainWindow import Ui_MainWindow
-from ui.widgets.titlebar import TitleBar
-from ui.widgets.ipr.menubar import IPR_Menubar
-from iprconfirmation import IPRConfirmation
-from iprabout import IPRAbout
 
-from mod.lm.listenermanager import ListenerManager
+import ui.resources  # noqa F401
+from iprabout import IPRAbout
+from iprconfirmation import IPRConfirmation
+
+from ui.MainWindow import Ui_MainWindow
+from ui.widgets.ipr.menubar import IPR_Menubar
+from ui.widgets.titlebar import TitleBar
+
 from mod.api import settings as api_settings
 from mod.api.client import APIClient
+from mod.lm.listenermanager import ListenerManager
+from mod.worker import Worker
+
 from utils import (
-    CURR_PLATFORM,
     APP_INFO,
+    CURR_PLATFORM,
+    get_config_file_path,
     get_default_config,
     get_log_dir,
-    get_config_file_path,
     read_config,
     write_config,
 )
@@ -60,6 +66,26 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info(" start IPR() init.")
         super().__init__(flags=Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
+        self.confirms = []
+        self.sys_tray = None
+
+        logger.info(" init inactive timer for 900000ms.")
+        self.inactive = QTimer()
+        self.inactive.setInterval(900000)
+        self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
+
+        logger.info(" init mod lm.")
+        self.lm = ListenerManager(self)
+        self.lm.listen_complete.connect(self.show_confirm)
+        # restart listeners on fail
+        self.lm.listen_error.connect(self.restart_listen)
+
+        logger.info(" init mod api.")
+        # worker threadpool
+        self.max_worker_count = 3
+        self.workerpool = QThreadPool(maxThreadCount=self.max_worker_count)
+
+        self.api_client = APIClient(self)
 
         # title bar
         if CURR_PLATFORM == "darwin":
@@ -80,7 +106,51 @@ class IPR(QMainWindow, Ui_MainWindow):
         if menubarwidget:
             menubarwidget.addWidget(self.menu_bar)
 
+        # menu_bar signals
+        self.menu_bar.actionAbout.triggered.connect(self.about)
+        self.menu_bar.actionOpenLog.triggered.connect(self.open_log)
+        self.menu_bar.actionReportIssue.triggered.connect(self.open_issues)
+        self.menu_bar.actionSourceCode.triggered.connect(self.open_source)
+        self.menu_bar.actionKillAllConfirmations.triggered.connect(self.killall)
+        self.menu_bar.actionQuit.triggered.connect(self.quit)
+        self.menu_bar.menuOptions.triggered.connect(self.update_settings)
+        self.menu_bar.menuTable.triggered.connect(self.update_settings)
+        self.menu_bar.actionEnableIDTable.triggered.connect(self.update_stacked_widget)
+        self.menu_bar.actionEnableIDTable.changed.connect(
+            lambda: self.toggle_table_settings(
+                self.menu_bar.actionEnableIDTable.isChecked()
+            )
+        )
+        self.menu_bar.actionOpenSelectedIPs.triggered.connect(self.open_selected_ips)
+        self.menu_bar.actionCopySelectedElements.triggered.connect(self.copy_selected)
+        self.menu_bar.actionImport.triggered.connect(self.import_table)
+        self.menu_bar.actionExport.triggered.connect(self.export_table)
+        self.menu_bar.actionSettings.triggered.connect(self.show_app_config)
+        self.menu_bar.actionDisableInactiveTimer.changed.connect(self.restart_listen)
+        # app config signals
+        self.checkEnableSysTray.toggled.connect(self.toggle_sys_tray_settings)
+        self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
+        self.spinLocateDuration.valueChanged.connect(self.update_miner_locate_duration)
+        self.comboLogLevel.currentIndexChanged.connect(self.set_logger_level)
+        self.actionIPRCancelConfig.clicked.connect(self.update_stacked_widget)
+        self.actionIPRSaveConfig.clicked.connect(self.update_settings)
+        self.actionIPRResetConfig.clicked.connect(self.reset_settings)
+        # listener signals
+        self.actionIPRStart.clicked.connect(self.start_listen)
+        self.actionIPRStop.clicked.connect(self.stop_listen)
+        # status bar
+        self.iprStatus.messageChanged.connect(self.update_status_msg)
+
         self.labelLogo.setPixmap(QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg"))
+
+        self.listenerConfig = QButtonGroup(exclusive=False)
+        self.listenerConfig.addButton(self.checkListenAntminer, 1)
+        self.listenerConfig.addButton(self.checkListenIceRiver, 2)
+        self.listenerConfig.addButton(self.checkListenWhatsminer, 3)
+        self.listenerConfig.addButton(self.checkListenVolcminer, 4)
+        self.listenerConfig.addButton(self.checkListenGoldshell, 5)
+        self.listenerConfig.addButton(self.checkListenSealminer, 6)
+        self.listenerConfig.buttonClicked.connect(self.restart_listen)
 
         self.idTable.setHorizontalHeaderLabels(
             [
@@ -105,6 +175,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.idTable.doubleClicked.connect(self.double_click_item)
         self.idTable.cellClicked.connect(self.locate_miner)
 
+        duration_line = self.spinLocateDuration.lineEdit()
+        duration_line.setReadOnly(True)
+
         self.actionToggleBitmainPasswd = self.create_passwd_toggle_action(
             self.lineBitmainPasswd
         )
@@ -127,84 +200,15 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.lineVnishPasswd
         )
 
-        duration_line = self.spinLocateDuration.lineEdit()
-        duration_line.setReadOnly(True)
-
-        self.confirms = []
-
-        # menu_bar signals
-        self.menu_bar.actionAbout.triggered.connect(self.about)
-        self.menu_bar.actionOpenLog.triggered.connect(self.open_log)
-        self.menu_bar.actionReportIssue.triggered.connect(self.open_issues)
-        self.menu_bar.actionSourceCode.triggered.connect(self.open_source)
-        self.menu_bar.actionKillAllConfirmations.triggered.connect(self.killall)
-        self.menu_bar.actionQuit.triggered.connect(self.quit)
-        self.menu_bar.menuOptions.triggered.connect(self.update_settings)
-        self.menu_bar.menuTable.triggered.connect(self.update_settings)
-        self.menu_bar.actionEnableIDTable.triggered.connect(self.update_stacked_widget)
-        self.menu_bar.actionOpenSelectedIPs.triggered.connect(self.open_selected_ips)
-        self.menu_bar.actionCopySelectedElements.triggered.connect(self.copy_selected)
-        self.menu_bar.actionImport.triggered.connect(self.import_table)
-        self.menu_bar.actionExport.triggered.connect(self.export_table)
-        self.menu_bar.actionSettings.triggered.connect(self.show_app_config)
-        # app config signals
-        self.checkEnableSysTray.toggled.connect(self.toggle_app_config)
-        self.actionIPRCancelConfig.clicked.connect(self.update_stacked_widget)
-        self.actionIPRSaveConfig.clicked.connect(self.update_settings)
-        self.actionIPRResetConfig.clicked.connect(self.reset_settings)
-        # listener signals
-        self.actionIPRStart.clicked.connect(self.start_listen)
-        self.actionIPRStop.clicked.connect(self.stop_listen)
-
         self.read_settings()
+        # api settings
+        self.update_miner_locate_duration()
 
-        self.spinLocateDuration.valueChanged.connect(self.update_miner_locate_duration)
         if self.menu_bar.actionEnableIDTable.isChecked():
             self.toggle_table_settings(True)
 
-        logger.info(" init ListenerManager().")
-        self.lm = ListenerManager(self)
-        self.lm.listen_complete.connect(self.show_confirm)
-        # restart listeners on fail
-        self.lm.listen_error.connect(self.restart_listen)
-
-        logger.info(" init inactive timer for 900000ms.")
-        self.inactive = QTimer()
-        self.inactive.setInterval(900000)
-        self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
-
-        logger.info(" init APIClient().")
-        self.api_client = APIClient(self)
-
-        logger.info(" init API settings.")
-        self.update_miner_locate_duration()
-
-        logger.info(" init systray.")
-        self.sys_tray = None
         self.create_or_destroy_systray()
-
-        self.listenerConfig = QButtonGroup(exclusive=False)
-        self.listenerConfig.addButton(self.checkListenAntminer, 1)
-        self.listenerConfig.addButton(self.checkListenIceRiver, 2)
-        self.listenerConfig.addButton(self.checkListenWhatsminer, 3)
-        self.listenerConfig.addButton(self.checkListenVolcminer, 4)
-        self.listenerConfig.addButton(self.checkListenGoldshell, 5)
-        self.listenerConfig.addButton(self.checkListenSealminer, 6)
-        self.listenerConfig.buttonClicked.connect(self.restart_listen)
-
-        self.menu_bar.actionDisableInactiveTimer.changed.connect(self.restart_listen)
-        self.menu_bar.actionEnableIDTable.changed.connect(
-            lambda: self.toggle_table_settings(
-                self.menu_bar.actionEnableIDTable.isChecked()
-            )
-        )
-        self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
-        self.comboLogLevel.currentIndexChanged.connect(self.set_logger_level)
-
-        # status bar
-        self.iprStatus.messageChanged.connect(self.update_status_msg)
         self.update_status_msg()
-
         self.update_stacked_widget()
 
         if self.menu_bar.actionAutoStartOnLaunch.isChecked():
@@ -694,7 +698,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.toggle_visibility()
         self.stackedWidget.setCurrentIndex(2)
 
-    def toggle_app_config(self):
+    def toggle_sys_tray_settings(self):
         if self.checkEnableSysTray.isChecked():
             self.comboOnWindowClose.setEnabled(True)
         else:
