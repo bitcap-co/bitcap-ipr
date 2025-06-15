@@ -706,7 +706,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         api_settings.update(
             "locate_duration_ms", self.locateMinerDuration
         )
-        logger.debug(f" update miner locate duration: {self.locateMinerDuration}ms.")
+        logger.info(f" update miner locate duration: {self.locateMinerDuration}ms.")
 
     def create_passwd_toggle_action(self, line: QLineEdit):
         passwd_action = line.addAction(
