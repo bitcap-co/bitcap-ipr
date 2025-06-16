@@ -11,7 +11,6 @@ from PySide6.QtCore import (
     QMetaMethod,
     Qt,
     QTextStream,
-    QThreadPool,
     QTimer,
     QUrl,
 )
@@ -45,7 +44,6 @@ from ui.widgets.titlebar import TitleBar
 from mod.api import settings as api_settings
 from mod.api.client import APIClient
 from mod.lm.listenermanager import ListenerManager
-from mod.worker import Worker
 
 from utils import (
     APP_INFO,
@@ -81,10 +79,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.lm.listen_error.connect(self.restart_listen)
 
         logger.info(" init mod api.")
-        # worker threadpool
-        self.max_worker_count = 3
-        self.workerpool = QThreadPool(maxThreadCount=self.max_worker_count)
-
         self.api_client = APIClient(self)
 
         # title bar
