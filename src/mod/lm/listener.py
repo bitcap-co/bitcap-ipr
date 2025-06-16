@@ -17,6 +17,7 @@ msg_patterns = {
     "ir": re.compile(f"^addr:{reg_ip}"),
     "bt": re.compile(f"^IP:{reg_ip}MAC:{reg_mac}"),
 }
+RECORD_MIN_AGE = 10.0
 ZLIB_DEFAULT_MAGIC = b"\x78\x9c"
 
 
@@ -119,7 +120,7 @@ class Listener(QObject):
             entry = self.record.dict.get(rec)
             if ip == rec and self.msg == entry[0]:
                 prev_entry = True
-                if time.time() - entry[1] <= 10.0:
+                if time.time() - entry[1] <= RECORD_MIN_AGE:
                     logger.warning(f"Listener[{self.port}] : duplicate packet.")
                     return True
                 else:
