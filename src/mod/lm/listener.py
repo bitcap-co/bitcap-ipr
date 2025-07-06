@@ -36,7 +36,7 @@ class Record:
 
 
 class Listener(QObject):
-    result = Signal()
+    result = Signal(str)
     error = Signal()
 
     def __init__(self, parent: QObject, port: int):
@@ -188,7 +188,7 @@ class Listener(QObject):
         logger.info(f"Listener[{self.port}] : emit result.")
         self.record[received[0]] = [self.msg, time.time()]
         self.msg = ",".join(received)
-        self.result.emit()
+        self.result.emit(self.msg)
 
     def emit_error(self, err):
         logger.error(f"Listener[{self.port}] : emit error! got {err}")

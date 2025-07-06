@@ -11,12 +11,11 @@ logger = logging.getLogger(__name__)
 
 
 class ListenerManager(QObject):
-    listen_complete = Signal()
+    listen_complete = Signal(str)
     listen_error = Signal()
 
     def __init__(self, parent: QObject):
         super().__init__(parent)
-        self.result = ""
         self.listeners = []
 
     def append_listener(self, port: int):
@@ -59,14 +58,10 @@ class ListenerManager(QObject):
         # default action (start listeners)
         self.start_listeners(listenConfig)
 
-    def emit_listen_complete(self):
+    def emit_listen_complete(self, result: str):
         logger.info(" listen_complete signal result.")
-        self.result = ""
-        for listener in self.listeners:
-            self.result += listener.msg
-            listener.msg = ""
-        logger.debug(f" result: {self.result}.")
-        self.listen_complete.emit()
+        logger.debug(f" result: {result}.")
+        self.listen_complete.emit(result)
 
     def emit_listen_error(self):
         logger.error(" listen_error signal result!")
