@@ -33,17 +33,6 @@ Download the latest installer for your OS and Arch from [Releases](https://githu
 
 Portable artifacts are also available!
 
-> [!NOTE]
-> macOS binaries are not signed. Due to this, the IP Reporter will probably fail to launch and get an error stating the the app is from an unknown source.
-> To Fix: Manully allow through System Settings -> `Security and Privacy`.
->
-> If macOS complains that the app is damaged, run the following command:
-> ```
-> sudo xattr -dr com.apple.quarantine /path/to/BitCapIPR.app
-> ```
-> Now the app should be able to run normally.
-
-
 ## Usage
 To start listening with BitCap IPR, simply press the "Start" button!
 The app will automatically start listening for Antminers, Whatsminers, and IceRivers.
@@ -79,6 +68,32 @@ pyinstaller src/ipr.spec
 cp ./README.md ./dist/BitCapIPR
 ```
 
+## Known Issues & Workarounds
+ - ### Main window not responding to mouse events (Ubuntu 24.04+ with wayland)
+> If you are running Ubuntu 24.04+ with wayland, it is a known issue that the main window may not be movable by mouse or accept events.
+>
+> Workaround:
+> 1. Install `libxcb-cursor0` package
+> ```bash
+> sudo apt install libxcb-cursor0
+> ```
+> 2. launch the binary with env variable `QT_QPA_PLATFORM=xcb`
+> ```bash
+> QT_QPA_PLATFORM=xcb ./BitCapIPR
+> ```
+> or can modify the .desktop file `/usr/share/applications/ipr.desktop` to:
+>
+> `Exec=env QT_QPA_PLATFORM=xcb /opt/BitCapIPR/ipr/BitCapIPR`
+
+ - ### MacOS binary is damaged/unknown source
+> macOS binaries are not signed. Due to this, the IP Reporter will probably fail to launch and get an error stating the the app is from an unknown source.
+> To Fix: Manully allow through System Settings -> `Security and Privacy`.
+>
+> If macOS complains that the app is damaged, run the following command:
+> ```bash
+> sudo xattr -dr com.apple.quarantine /path/to/BitCapIPR.app
+> ```
+> Now the app should be able to run normally.
 
 ## Troubleshooting/Reporting Issues
 If encountering an issue with the IP reporter, take the following steps:
