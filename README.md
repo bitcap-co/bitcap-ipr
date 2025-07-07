@@ -71,19 +71,20 @@ cp ./README.md ./dist/BitCapIPR
 ## Known Issues & Workarounds
  - ### Main window not responding to mouse events (Ubuntu 24.04+ with wayland)
 > If you are running Ubuntu 24.04+ with wayland, it is a known issue that the main window may not be movable by mouse or accept events.
+> See [Issue](https://github.com/bitcap-co/bitcap-ipr/issues/21)
 >
 > Workaround:
 > 1. Install `libxcb-cursor0` package
 > ```bash
 > sudo apt install libxcb-cursor0
 > ```
-> 2. launch the binary with env variable `QT_QPA_PLATFORM=xcb`
+> 2. launch the binary with -platform argrument
 > ```bash
-> QT_QPA_PLATFORM=xcb ./BitCapIPR
+> ./BitCapIPR -platform xcb
 > ```
 > or can modify the .desktop file `/usr/share/applications/ipr.desktop` to:
 >
-> `Exec=env QT_QPA_PLATFORM=xcb /opt/BitCapIPR/ipr/BitCapIPR`
+> `Exec=/opt/BitCapIPR/ipr/BitCapIPR -platform xcb`
 
  - ### MacOS binary is damaged/unknown source
 > macOS binaries are not signed. Due to this, the IP Reporter will probably fail to launch and get an error stating the the app is from an unknown source.
