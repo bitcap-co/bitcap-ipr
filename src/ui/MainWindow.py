@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.9.0
+## Created by: Qt User Interface Compiler version 6.9.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -276,7 +276,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollAdditional = QWidget()
         self.scrollAdditional.setObjectName(u"scrollAdditional")
-        self.scrollAdditional.setGeometry(QRect(0, 0, 470, 22))
+        self.scrollAdditional.setGeometry(QRect(0, 0, 467, 30))
         self.verticalLayout_14 = QVBoxLayout(self.scrollAdditional)
         self.verticalLayout_14.setObjectName(u"verticalLayout_14")
         self.verticalLayout_14.setContentsMargins(0, 0, 0, 0)
@@ -339,7 +339,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 477, 710))
+        self.scrollAPI.setGeometry(QRect(0, 0, 368, 710))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
         self.verticalLayout_13.setContentsMargins(9, 9, 9, 9)

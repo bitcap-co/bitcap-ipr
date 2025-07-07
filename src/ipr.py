@@ -62,7 +62,7 @@ logger = logging.getLogger(__name__)
 class IPR(QMainWindow, Ui_MainWindow):
     def __init__(self):
         logger.info(" start IPR() init.")
-        super().__init__(flags=Qt.WindowType.FramelessWindowHint)
+        super().__init__(flags=Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
         self.confirms = []
         self.sys_tray = None
