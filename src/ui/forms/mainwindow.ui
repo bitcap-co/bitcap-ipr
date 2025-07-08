@@ -416,7 +416,7 @@
                      <item>
                       <widget class="QCheckBox" name="checkEnableSysTray">
                        <property name="text">
-                        <string>Enable System Tray</string>
+                        <string>Enable System Tray Icon</string>
                        </property>
                       </widget>
                      </item>
@@ -464,17 +464,20 @@
                                <height>16777215</height>
                               </size>
                              </property>
+                             <property name="toolTip">
+                              <string>Set Behavior on window close</string>
+                             </property>
                              <property name="currentIndex">
                               <number>0</number>
                              </property>
                              <item>
                               <property name="text">
-                               <string>Close</string>
+                               <string>Minimize To Tray</string>
                               </property>
                              </item>
                              <item>
                               <property name="text">
-                               <string>Minimize To Tray</string>
+                               <string>Close</string>
                               </property>
                              </item>
                             </widget>
@@ -626,7 +629,7 @@
                              <x>0</x>
                              <y>0</y>
                              <width>467</width>
-                             <height>30</height>
+                             <height>21</height>
                             </rect>
                            </property>
                            <layout class="QVBoxLayout" name="verticalLayout_14">
@@ -770,7 +773,7 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>368</width>
+                       <width>477</width>
                        <height>710</height>
                       </rect>
                      </property>
