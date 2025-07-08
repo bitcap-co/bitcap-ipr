@@ -884,6 +884,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             config = read_config(get_default_config())
             write_config(self.config_path, config)
             self.read_settings()
+            self.update_miner_locate_duration()
+            self.create_or_destroy_systray()
+            self.update_stacked_widget()
             self.iprStatus.showMessage(
                 "Status :: Successfully restored to default settings.", 5000
             )
