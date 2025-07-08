@@ -2,6 +2,9 @@
 Type=Application
 Name=BitCap IPReporter
 Comment=Cross-platform IP Reporter for ASICs
-Path=/opt/BitCapIPR/ipr
-Exec=/opt/BitCapIPR/ipr/BitCapIPR
 Icon=BitCapLngLogo_IPR_Full_ORG_BLK-02_Square
+Exec=/opt/BitCapIPR/ipr/BitCapIPR
+Path=/opt/BitCapIPR/ipr
+Terminal=false
+Categories=Utility
+StartupWMClass=BitCapIPR
