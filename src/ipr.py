@@ -124,6 +124,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         # app config signals
         self.checkEnableSysTray.toggled.connect(self.toggle_sys_tray_settings)
         self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
+        self.comboOnWindowClose.currentIndexChanged.connect(
+            self.update_sys_tray_visibility
+        )
         self.spinLocateDuration.valueChanged.connect(self.update_miner_locate_duration)
         self.comboLogLevel.currentIndexChanged.connect(self.set_logger_level)
         self.actionIPRCancelConfig.clicked.connect(self.update_stacked_widget)
@@ -230,12 +233,20 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.actionSysStartListen.setEnabled(False)
                 self.actionSysStopListen.setEnabled(True)
             self.sys_tray.setContextMenu(self.system_tray_menu)
-            if self.comboOnWindowClose.currentIndex() == 0:
-                self.sys_tray.show()
         else:
             if self.sys_tray:
                 self.sys_tray.hide()
             self.sys_tray = None
+
+    def update_sys_tray_visibility(self, current_index):
+        if self.sys_tray:
+            match current_index:
+                case 0:  # minimize to tray
+                    if self.sys_tray.isVisible():
+                        self.sys_tray.hide()
+                case 1:  # close
+                    if not self.sys_tray.isVisible():
+                        self.sys_tray.show()
 
     def update_stacked_widget(self):
         logger.info(" update view.")
@@ -906,7 +917,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.setVisible(not self.isVisible())
 
     def close_to_tray_or_exit(self):
-        if self.sys_tray and self.comboOnWindowClose.currentIndex() == 1:
+        if self.sys_tray and self.comboOnWindowClose.currentIndex() == 0:
             # force disable ID table option
             self.menu_bar.actionEnableIDTable.setChecked(False)
             self.update_stacked_widget()
