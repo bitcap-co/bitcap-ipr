@@ -3,6 +3,7 @@ from PySide6.QtGui import (
     QIcon,
     QPixmap,
     QColor,
+    QMouseEvent
 )
 from PySide6.QtWidgets import (
     QHBoxLayout,
@@ -26,7 +27,8 @@ class TitleBar(QWidget):
         self.__initUI()
 
     def __initObj(self, parent, title, hint, style):
-        self.initial_pos = None
+        self.set_pos = False
+        self.pos = None
 
         self._title = QLabel()
         self._iconButton = QToolButton()
@@ -129,23 +131,25 @@ class TitleBar(QWidget):
                 self._button_dict[x].setIcon(QIcon())
         event.accept()
 
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
-            self.initial_pos = event.position().toPoint()
-        super().mousePressEvent(event)
-        event.accept()
+            if not self._window.windowHandle().startSystemMove():
+                self.set_pos = True
+                self.pos = event.position().toPoint()
+        return event.accept()
 
-    def mouseMoveEvent(self, event):
-        if self.initial_pos is not None:
-            delta = event.position().toPoint() - self.initial_pos
-            self._window.move(
-                self._window.x() + delta.x(),
-                self._window.y() + delta.y(),
-            )
-        super().mouseMoveEvent(event)
-        event.accept()
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
+        if self.set_pos:
+            if self.pos is not None:
+                offset = event.position().toPoint() - self.pos
+                self._window.move(
+                    self._window.x() + offset.x(),
+                    self._window.y() + offset.y()
+                )
+        return event.accept()
 
-    def mouseReleaseEvent(self, event):
-        self.initial_pos = None
-        super().mouseReleaseEvent(event)
-        event.accept()
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.set_pos = False
+            self.pos = None
+        return event.accept()
