@@ -377,7 +377,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.api_client.close_client()
         logger.info(f"show_confirm : got {ip},{mac},{sn},{type} from listener.")
         if type == "iceriver":
-            self.api_client.create_iceriver_client(ip, None, self.linePbfarmerKey.text())
+            self.api_client.create_iceriver_client(
+                ip, None, self.linePbfarmerKey.text()
+            )
             mac = self.api_client.get_iceriver_mac_addr()
             self.api_client.close_client()
             logger.info(f"show_confirm : got iceriver mac addr : {mac}")
@@ -534,10 +536,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         if col == 0:
             miner_type = self.idTable.item(row, 4).text()
             ip_addr = self.idTable.item(row, 1).text()
-            if (
-                self.api_client.locate
-                and self.api_client.locate.isActive()
-            ):
+            if self.api_client.locate and self.api_client.locate.isActive():
                 return logger.warning(
                     "locate_miner : already locating a miner. Ignoring..."
                 )
@@ -712,9 +711,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def update_miner_locate_duration(self):
         self.locateMinerDuration = self.spinLocateDuration.value() * 1000
-        api_settings.update(
-            "locate_duration_ms", self.locateMinerDuration
-        )
+        api_settings.update("locate_duration_ms", self.locateMinerDuration)
         logger.info(f" update miner locate duration: {self.locateMinerDuration}ms.")
 
     def create_passwd_toggle_action(self, line: QLineEdit):
