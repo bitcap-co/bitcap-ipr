@@ -80,14 +80,14 @@ class Listener(QObject):
             sorted(
                 self.record.dict.items(),
                 reverse=True,
-                key=lambda item: float(item[1][1]),
+                key=lambda item: float(item[1][0]),
             )
         )
         for rec in self.record.dict.keys():
             entry = self.record.dict.get(rec)
-            if ip == rec and self.msg == entry[0]:
+            if mac == rec:
                 prev_entry = True
-                if time.time() - entry[1] <= RECORD_MIN_AGE:
+                if time.time() - entry[0] <= RECORD_MIN_AGE:
                     logger.warning(f"Listener[{self.port}] : duplicate packet.")
                     return True
                 else:
@@ -131,7 +131,7 @@ class Listener(QObject):
 
     def emit_result(self, *received):
         logger.info(f"Listener[{self.port}] : emit result.")
-        self.record[received[0]] = [self.msg, time.time()]
+        self.record[received[1]] = [time.time()]
         self.msg = ",".join(received)
         self.result.emit(self.msg)
 
