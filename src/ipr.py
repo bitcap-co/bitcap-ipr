@@ -376,14 +376,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 type = "volcminer"
             self.api_client.close_client()
         logger.info(f"show_confirm : got {ip},{mac},{sn},{type} from listener.")
-        if type == "iceriver":
-            self.api_client.create_iceriver_client(
-                ip, None, self.linePbfarmerKey.text()
-            )
-            mac = self.api_client.get_iceriver_mac_addr()
-            self.api_client.close_client()
-            logger.info(f"show_confirm : got iceriver mac addr : {mac}")
-        self.iprStatus.showMessage(f"Status :: Got {type}: IP:{ip} MAC:{mac}", 3000)
+        self.iprStatus.showMessage(f"Status :: Got {type}: IP:{ip}, MAC:{mac}", 3000)
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():

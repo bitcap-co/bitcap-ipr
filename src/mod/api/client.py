@@ -114,13 +114,6 @@ class APIClient:
         self.client.blink(enabled=False)
         self.close_client()
 
-    def get_iceriver_mac_addr(self):
-        if self.client:
-            mac = self.client.get_mac_addr()
-            if mac:
-                return mac
-        return "ice-river"
-
     def is_volcminer(self):
         if self.client:
             system_info = self.client.get_system_info()
