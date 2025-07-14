@@ -22,6 +22,7 @@ This menu contains settings relating to the ID Table view:
    ```
    - "Open Selected IPs" : Once triggered, all selected IP addresses in the "IP" column will be opened in the default browser.
    - "Copy Selected Elements" : Once triggered, all selected elements in the table will be copied to the clipboard (seperated by comma).
+   - "Import" : Once triggered, opens a file dialog to import a .csv file into the table view.
    - "Export" : Once triggered, the current data in the table will be exported to a .CSV file located in system's documents path.
 
 #### "Settings" Menu
@@ -37,7 +38,7 @@ Here is where you can change general, API, and log settings in their respective 
    #### "General" tab
    - System Tray:
       - "Enable System Tray" : When checked, the system tray icon is created. From the icon, you can show/hide the main window, start/stop listening and quit the application. If the main window is hidden, you will get information messages and confirmations as system notifications.
-      - "On Window Close" : When "Enable System Tray" is checked, you can change the window close behavior ("X" button clicked) to "Close" (default) or "Minimize to tray" to minimize the application to the system tray.
+      - "On Window Close" : When "Enable System Tray" is checked, you can change the window close behavior ("X" button clicked) to "Close" or "Minimize to tray" (default) to minimize the application to the system tray.
    - Listener Configuration:
       - "Antminer" : When checked, enable listening for Antminers. Checked by default.
       - "Whatminer" : When checked, enable listening for Whatsminers. Checked by default.
@@ -47,6 +48,9 @@ Here is where you can change general, API, and log settings in their respective 
          - "Volcminer":  When checked, enable listening for VolcMiners.
          - "Sealminers": When checked, enable listening for Sealminers.
    #### "API" tab
+   "Settings" section:
+    - Locate Duration : configure the blink duration when locating a miner. Default is 10s.
+  "Authentication" section:
    If you have an alternative password other then the default, you can set it here for the respective miner type to be able use with the ID Table view:
    - Bitmain/Antminer:
      - "Set Login Password" : Set alternative login password for Antminers. If blank, "root" is used for authentication.
@@ -58,6 +62,9 @@ Here is where you can change general, API, and log settings in their respective 
      - "Set Login Password": Set alternative login for Goldshell miners. If blank, "123456789" is used for authentication.
    - Bitdeer/Sealminer:
      - "Set Login Password": Set alternative login for Sealminers. if blank, "seal" is used for authentication.
+   - Vnish:
+     - "Set Login Password": Set alternative login for Vnish firmware. if blank, "admin" is used for authentication.
+     - "Use Antminer Login" Checkbox : When checked, it will set the alternative login for Vnish to be the same as the supplied Antminer login.
    - pbfarmer:
      - "Set API Key" : Set alternative API Key to access IceRivers using pbfarmer firmware. If blank, the default API key is used for authentication.
 
@@ -79,45 +86,54 @@ Here is where you can change general, API, and log settings in their respective 
 ```json
 {
     "general": {
-        "enableSysTray": false,
-        "onWindowClose": 0,
-        "listenFor": {
-            "antminer": true,
-            "whatsminer": true,
-            "iceriver": true,
-            "additional": {
-                "volcminer": false,
-                "goldshell": false,
-                "sealminer": false
-            }
+      "enableSysTray": false,
+      "onWindowClose": 0,
+      "listenFor": {
+        "antminer": true,
+        "whatsminer": true,
+        "iceriver": true,
+        "additional": {
+          "volcminer": false,
+          "goldshell": false,
+          "sealminer": false
         }
+      }
     },
     "api": {
+      "auth": {
         "bitmainAltPasswd": "",
         "whatsminerAltPasswd": "",
         "volcminerAltPasswd": "",
         "goldshellAltPasswd": "",
         "bitdeerAltPasswd": "",
-        "pbfarmerKey": ""
+        "firmware": {
+          "vnishAltPasswd": "",
+          "pbfarmerKey": ""
+        }
+      },
+      "settings": {
+        "locateDurationSecs": 10,
+        "vnishUseAntminerLogin": false
+      }
     },
     "logs": {
-        "logLevel": "INFO",
-        "maxLogSize": 1024,
-        "onMaxLogSize": 0,
-        "flushInterval": 0
+      "logLevel": "INFO",
+      "maxLogSize": 1024,
+      "onMaxLogSize": 0,
+      "flushInterval": 0
     },
     "instance": {
-        "geometry": {
-            "mainWindow": []
-        },
-        "options": {
-            "alwaysOpenIPInBrowser": false,
-            "disableInactiveTimer": false,
-            "autoStartOnLaunch": false
-        },
-        "table": {
-            "enableIDTable": false
-        }
+      "geometry": {
+        "mainWindow": []
+      },
+      "options": {
+        "alwaysOpenIPInBrowser": false,
+        "disableInactiveTimer": false,
+        "autoStartOnLaunch": false
+      },
+      "table": {
+        "enableIDTable": false
+      }
     }
 }
 ```
