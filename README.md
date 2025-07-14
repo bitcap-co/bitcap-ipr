@@ -35,12 +35,9 @@ Portable artifacts are also available!
 
 ## Usage
 To start listening with BitCap IPR, simply press the "Start" button!
-The app will automatically start listening for Antminers, Whatsminers, and IceRivers.
+The app will automatically start listening for Antminers, Whatsminers, and IceRivers by default.
 
-Press the "IP Report" button on the miner and a IP confirmation window should show detailing the IP & MAC address.
-
-> [!NOTE]
-> By default, the listeners will only run for 15 minutes and automatically stop. To disable this, go to the top menubar and select Options -> "Disable Inactive Timer".
+Press the "IP Report" button on the miner and a IP confirmation window should show detailing the IP & MAC addresses.
 
 
 ## Further Configuration
@@ -54,19 +51,6 @@ By default, it will use the default authentication. If you have an alternative p
 > [!NOTE]
 > On MacOS, go to "Preferences..." (Command + ,)
 
-
-## Building application from source (Pyinstaller)
-clone or download the source repo.
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r ./requirements.txt
-pip install pyinstaller
-pyinstaller src/ipr.spec
-# move the readme into dist to create files and run locally
-cp ./README.md ./dist/BitCapIPR
-```
 
 ## Known Issues & Workarounds
  - ### Main window not movable by mouse (Ubuntu 24.04+ with wayland)
