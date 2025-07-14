@@ -7,16 +7,7 @@ from PySide6.QtNetwork import QUdpSocket, QHostAddress, QNetworkInterface
 
 
 logger = logging.getLogger(__name__)
-
-reg_ip = r"((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?){4}"
-reg_mac = r"([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})"
-msg_patterns = {
-    "common": re.compile(f"^{reg_ip},{reg_mac}"),
-    "ir": re.compile(f"^addr:{reg_ip}"),
-    "bt": re.compile(f"^IP:{reg_ip}MAC:{reg_mac}"),
-}
-RECORD_MIN_AGE = 10.0
-ZLIB_DEFAULT_MAGIC = b"\x78\x9c"
+RECORD_MIN_AGE = 15.0
 
 
 class Record:
