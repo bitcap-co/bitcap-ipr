@@ -1,11 +1,9 @@
 import time
-import re
 import logging
 import json
-import zlib
 
 from PySide6.QtCore import QObject, Signal, Slot
-from PySide6.QtNetwork import QUdpSocket, QHostAddress
+from PySide6.QtNetwork import QUdpSocket, QHostAddress, QNetworkInterface
 
 
 logger = logging.getLogger(__name__)
@@ -53,61 +51,30 @@ class Listener(QObject):
         self.sock.errorOccurred.connect(self.emit_error)
         self.sock.readyRead.connect(self.process_datagram)
 
-    def validate_json(self) -> bool:
-        try:
-            self.msg = json.loads(self.msg)
-            return True
-        except json.JSONDecodeError:
-            logger.error(
-                f"Listener[{self.port}] : Failed to decode json msg."
-            )
-            return False
-
     def validate_msg(self, type: str) -> bool:
         match type:
-            case "antminer":
-                if re.match(msg_patterns["common"], self.msg):
-                    return True
-            case "whatsminer":
-                if re.match(msg_patterns["bt"], self.msg):
-                    return True
-            case "iceriver":
-                if re.match(msg_patterns["ir"], self.msg):
-                    return True
             case "goldshell":
-                if self.validate_json():
-                    if re.match(reg_ip, self.msg["ip"]) and re.match(reg_mac, self.msg["mac"]):
-                        return True
-            case "sealminer":
-                if self.validate_json():
-                    if re.match(reg_ip, self.msg[3]["IPV4"]) and re.match(reg_mac, self.msg[1]["MAC"]):
-                        return True
-        logger.warning(f"Listener[{self.port}] : Failed to validate msg. Ignoring...")
-        return False
+                try:
+                    self.msg = json.loads(self.msg)
+                    return True
+                except json.JSONDecodeError:
+                    logger.warning(
+                        f"Listener[{self.port}] : Failed to validate msg. Ignoring..."
+                    )
+                    return False
+            case _:
+                return True
 
-    def parse_msg(self, type: str) -> tuple:
+    def parse_sn_from_msg(self, type: str) -> str:
         sn = ""
-        match type:
-            case "antminer":
-                ip, mac = self.msg.split(",")
-            case "whatsminer":
-                ip, mac = self.msg.split("M")
-                ip = ip[3:]
-                mac = mac[3:]
-            case "iceriver":
-                ip = self.msg.split(":")[1]
-                mac = "ice-river"
-            case "goldshell":
-                ip = self.msg["ip"]
-                mac = self.msg["mac"]
-                if "boxsn" in self.msg:
-                    sn = self.msg["boxsn"]
-            case "sealminer":
-                ip = self.msg[3]["IPV4"]
-                mac = self.msg[1]["MAC"]
-        return ip, mac, sn
+        if self.validate_msg(type):
+            match type:
+                case "goldshell":
+                    if "boxsn" in self.msg:
+                        sn = self.msg["boxsn"]
+        return sn
 
-    def is_dup_packet(self, ip: str) -> bool:
+    def is_dup_packet(self, mac: str) -> bool:
         prev_entry = False
         self.record.dict = dict(
             sorted(
@@ -128,42 +95,21 @@ class Listener(QObject):
         if not prev_entry:
             return False
 
-    def is_zlib_compressed(self, data: bytes) -> bool:
-        if ZLIB_DEFAULT_MAGIC in data:
-            return True
-        return False
-
-    def decompress_data(self, data: bytes, header: bytes):
-        data_start = data.find(header)
-        data = data[data_start:]
-        try:
-            out = zlib.decompress(data)
-        except Exception as e:
-            logger.error(f"Listener[{self.port}]: Failed to decompress msg data: {e}.")
-            return
-        # clean up data
-        out = out.replace(b"\x00", b"")
-        out = out.replace(b"}{", b"}, {")
-        out = b"[" + out + b"]"
-        return out
-
     @Slot()
     def process_datagram(self):
         while self.sock.hasPendingDatagrams():
             datagram = self.sock.receiveDatagram(self.max_buf)
             if not datagram.isValid():
                 return
-            if self.is_zlib_compressed(datagram.data().data()):
-                self.msg = self.decompress_data(
-                    datagram.data().data(), ZLIB_DEFAULT_MAGIC
-                )
-            else:
-                self.msg = datagram.data().data().decode().rstrip("\x00")
-            if not self.msg:
-                logger.warning(f"Listener[{self.port}] : msg empty. Ignoring...")
-                return
-            logger.info(f"Listener[{self.port}] : received msg.")
-            logger.debug(f"Listener[{self.port}] : decoded {self.msg}")
+            logger.info(f"Listener[{self.port}] : received datagram.")
+            ip = datagram.senderAddress().toString()
+            # get mac address from sender interface
+            ifaceIndex = datagram.interfaceIndex()
+            iface = QNetworkInterface().interfaceFromIndex(ifaceIndex)
+            mac = iface.hardwareAddress()
+            logger.debug(f"Listener[{self.port}] : received IP: {ip}, MAC: {mac}.")
+            # get msg from packet for extra miner info i.e SN
+            self.msg = datagram.data().data().decode().rstrip("\x00")
             match self.port:
                 case 14235:
                     type = "antminer"
@@ -176,13 +122,12 @@ class Listener(QObject):
                 case 18650:
                     type = "sealminer"
             logger.debug(f"Listener[{self.port}] : found type {type} from port.")
-            if self.validate_msg(type):
-                ip, mac, sn = self.parse_msg(type)
-                if self.record.dict:
-                    if not self.is_dup_packet(ip):
-                        self.emit_result(ip, mac, type, sn)
-                else:
+            sn = self.parse_sn_from_msg(type)
+            if self.record.dict:
+                if not self.is_dup_packet(mac):
                     self.emit_result(ip, mac, type, sn)
+            else:
+                self.emit_result(ip, mac, type, sn)
 
     def emit_result(self, *received):
         logger.info(f"Listener[{self.port}] : emit result.")
