@@ -58,7 +58,7 @@ class Listener(QObject):
 
     def parse_sn_from_msg(self, type: str) -> str:
         sn = ""
-        if self.validate_msg(type):
+        if self.msg and self.validate_msg(type):
             match type:
                 case "goldshell":
                     if "boxsn" in self.msg:
@@ -122,7 +122,7 @@ class Listener(QObject):
 
     def emit_result(self, *received):
         logger.info(f"Listener[{self.port}] : emit result.")
-        self.record[received[1]] = [time.time()]
+        self.record[received[1]] = [time.time(), received[2], received[0]]
         self.msg = ",".join(received)
         self.result.emit(self.msg)
 
