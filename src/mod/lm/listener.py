@@ -7,7 +7,7 @@ from PySide6.QtNetwork import QUdpSocket, QHostAddress, QNetworkInterface
 
 
 logger = logging.getLogger(__name__)
-RECORD_MIN_AGE = 15.0
+RECORD_MIN_AGE = 10.0
 
 
 class Record:
