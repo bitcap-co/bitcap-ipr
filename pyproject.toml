@@ -2,10 +2,8 @@
 name = "bitcap-ipr"
 version = "1.2.7"
 description = ""
-authors = [
-    {name = "MatthewWertman",email = "matthewwertman57@gmail.com"}
-]
-license = {text = "GPL-3.0-only"}
+authors = [{ name = "MatthewWertman", email = "matthewwertman57@gmail.com" }]
+license = { text = "GPL-3.0-only" }
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
 dependencies = [
@@ -13,7 +11,7 @@ dependencies = [
     "pyside6 (>=6.9.0,<7.0.0)",
     "passlib (>=1.7.4,<2.0.0)",
     "platformdirs (>=4.3.7,<5.0.0)",
-    "pycryptodome (>=3.22.0,<4.0.0)"
+    "pycryptodome (>=3.22.0,<4.0.0)",
 ]
 
 [tool.poetry]
@@ -26,6 +24,7 @@ pyinstaller = "^6.13.0"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.5"
+scapy = "^2.6.1"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
