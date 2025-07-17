@@ -76,7 +76,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.lm = ListenerManager(self)
         self.lm.listen_complete.connect(self.show_confirm)
         # restart listeners on fail
-        self.lm.listen_error.connect(self.restart_listen)
+        self.lm.listen_error.connect(lambda: self.restart_listen(restart=True))
 
         logger.info(" init mod api.")
         self.api_client = APIClient(self)
@@ -120,7 +120,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionImport.triggered.connect(self.import_table)
         self.menu_bar.actionExport.triggered.connect(self.export_table)
         self.menu_bar.actionSettings.triggered.connect(self.show_app_config)
-        self.menu_bar.actionDisableInactiveTimer.changed.connect(self.restart_listen)
+        self.menu_bar.actionDisableInactiveTimer.changed.connect(
+            lambda: self.restart_listen(restart=True)
+        )
         # app config signals
         self.checkEnableSysTray.toggled.connect(self.toggle_sys_tray_settings)
         self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
@@ -147,7 +149,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.listenerConfig.addButton(self.checkListenVolcminer, 4)
         self.listenerConfig.addButton(self.checkListenGoldshell, 5)
         self.listenerConfig.addButton(self.checkListenSealminer, 6)
-        self.listenerConfig.buttonClicked.connect(self.restart_listen)
+        self.listenerConfig.buttonClicked.connect(
+            lambda: self.restart_listen(restart=True)
+        )
 
         self.idTable.setHorizontalHeaderLabels(
             [
@@ -320,13 +324,17 @@ class IPR(QMainWindow, Ui_MainWindow):
             f"Status :: UDP listening on 0.0.0.0[{self.active_miners}]..."
         )
 
-    def stop_listen(self, timeout=False):
+    def stop_listen(self, timeout: bool = False, restart: bool = False):
         logger.info(" stop listeners.")
         self.inactive.stop()
         if self.sys_tray:
             self.actionSysStartListen.setEnabled(True)
             self.actionSysStopListen.setEnabled(False)
-        if self.menu_bar.actionEnableIDTable.isChecked():
+        if (
+            self.menu_bar.actionEnableIDTable.isChecked()
+            and not timeout
+            and not restart
+        ):
             self.idTable.setRowCount(0)
         self.actionIPRStart.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
