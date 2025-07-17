@@ -76,7 +76,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.lm = ListenerManager(self)
         self.lm.listen_complete.connect(self.show_confirm)
         # restart listeners on fail
-        self.lm.listen_error.connect(lambda: self.restart_listen(restart=True))
+        self.lm.listen_error.connect(self.restart_listen)
 
         logger.info(" init mod api.")
         self.api_client = APIClient(self)
@@ -149,9 +149,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.listenerConfig.addButton(self.checkListenVolcminer, 4)
         self.listenerConfig.addButton(self.checkListenGoldshell, 5)
         self.listenerConfig.addButton(self.checkListenSealminer, 6)
-        self.listenerConfig.buttonClicked.connect(
-            lambda: self.restart_listen(restart=True)
-        )
+        self.listenerConfig.buttonClicked.connect(self.restart_listen)
 
         self.idTable.setHorizontalHeaderLabels(
             [
@@ -369,7 +367,7 @@ class IPR(QMainWindow, Ui_MainWindow):
     def restart_listen(self):
         if self.lm.listeners:
             logger.info(" restart listeners.")
-            self.stop_listen()
+            self.stop_listen(restart=True)
             self.start_listen()
 
     # confirm
