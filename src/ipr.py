@@ -120,9 +120,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionImport.triggered.connect(self.import_table)
         self.menu_bar.actionExport.triggered.connect(self.export_table)
         self.menu_bar.actionSettings.triggered.connect(self.show_app_config)
-        self.menu_bar.actionDisableInactiveTimer.changed.connect(
-            lambda: self.restart_listen(restart=True)
-        )
+        self.menu_bar.actionDisableInactiveTimer.changed.connect(self.restart_listen)
         # app config signals
         self.checkEnableSysTray.toggled.connect(self.toggle_sys_tray_settings)
         self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
