@@ -365,11 +365,11 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.start_listen()
 
     # confirm
-    def show_confirm(self, result: str):
+    def show_confirm(self, result: list):
         logger.info(" show IP confirmation.")
         if not self.menu_bar.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
-        ip, mac, type, sn = result.split(",")
+        ip, mac, type, sn = result
         if type == "antminer" and self.checkListenVolcminer.isChecked():
             self.api_client.create_volcminer_client(ip, self.lineVolcminerPasswd.text())
             if self.api_client.is_volcminer():

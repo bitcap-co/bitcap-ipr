@@ -36,7 +36,7 @@ class Record:
 
 
 class Listener(QObject):
-    result = Signal(str)
+    result = Signal(list)
     error = Signal()
 
     def __init__(self, parent: QObject, port: int):
@@ -91,7 +91,7 @@ class Listener(QObject):
         )
         return False
 
-    def parse_msg(self, type: str) -> tuple:
+    def parse_msg(self, type: str) -> list:
         sn = ""
         match type:
             case "antminer":
@@ -111,22 +111,23 @@ class Listener(QObject):
             case "sealminer":
                 ip = self.msg[3]["IPV4"]
                 mac = self.msg[1]["MAC"]
-        return ip, mac, sn
+        return [ip, mac, type, sn]
 
-    def is_dup_packet(self, ip: str) -> bool:
+    def is_dup_packet(self, parsed_msg: list) -> bool:
         prev_entry = False
         self.record.dict = dict(
             sorted(
                 self.record.dict.items(),
                 reverse=True,
-                key=lambda item: float(item[1][1]),
+                key=lambda item: float(item[1]["created_at"]),
             )
         )
-        for rec in self.record.dict.keys():
-            entry = self.record.dict.get(rec)
-            if ip == rec and self.msg == entry[0]:
+        ip, mac, type, *_ = parsed_msg
+        for ip_record in self.record.dict.keys():
+            rec_data = self.record.dict.get(ip_record)
+            if ip == ip_record and mac == rec_data["mac"] and type == rec_data["type"]:
                 prev_entry = True
-                if time.time() - entry[1] <= RECORD_MIN_AGE:
+                if time.time() - rec_data["created_at"] <= RECORD_MIN_AGE:
                     logger.warning(f"Listener[{self.port}] : duplicate packet.")
                     return True
                 else:
@@ -194,11 +195,15 @@ class Listener(QObject):
 
     def emit_result(self, received: list) -> None:
         logger.info(f"Listener[{self.port}] : emit result.")
-        self.record[received[0]] = [self.msg, time.time()]
-        self.msg = ",".join(received)
-        self.result.emit(self.msg)
+        ip, mac, type, *_ = received
+        self.record[ip] = {
+            "type": type,
+            "mac": mac,
+            "created_at": time.time(),
+        }
+        self.result.emit(received)
 
-    def emit_error(self, err):
+    def emit_error(self, err) -> None:
         logger.error(f"Listener[{self.port}] : emit error! got {err}")
         self.error.emit()
 

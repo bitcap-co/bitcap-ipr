@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class ListenerManager(QObject):
-    listen_complete = Signal(str)
+    listen_complete = Signal(list)
     listen_error = Signal()
 
     def __init__(self, parent: QObject):
@@ -58,7 +58,7 @@ class ListenerManager(QObject):
         # default action (start listeners)
         self.start_listeners(listenConfig)
 
-    def emit_listen_complete(self, result: str):
+    def emit_listen_complete(self, result: list):
         logger.info(" listen_complete signal result.")
         logger.debug(f" result: {result}.")
         self.listen_complete.emit(result)
