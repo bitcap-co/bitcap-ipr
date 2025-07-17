@@ -107,7 +107,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionSourceCode.triggered.connect(self.open_source)
         self.menu_bar.actionKillAllConfirmations.triggered.connect(self.killall)
         self.menu_bar.actionQuit.triggered.connect(self.quit)
-        self.menu_bar.menuOptions.triggered.connect(self.update_settings)
+        self.menu_bar.menuOptions.triggered.connect(
+            lambda: self.update_settings(update_view=False)
+        )
         self.menu_bar.menuTable.triggered.connect(self.update_settings)
         self.menu_bar.actionEnableIDTable.triggered.connect(self.update_stacked_widget)
         self.menu_bar.actionEnableIDTable.changed.connect(
@@ -130,7 +132,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.spinLocateDuration.valueChanged.connect(self.update_miner_locate_duration)
         self.comboLogLevel.currentIndexChanged.connect(self.set_logger_level)
         self.actionIPRCancelConfig.clicked.connect(self.update_stacked_widget)
-        self.actionIPRSaveConfig.clicked.connect(self.update_settings)
+        self.actionIPRSaveConfig.clicked.connect(
+            lambda: self.update_settings(update_view=True)
+        )
         self.actionIPRResetConfig.clicked.connect(self.reset_settings)
         # listener signals
         self.actionIPRStart.clicked.connect(self.start_listen)
@@ -822,7 +826,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.config["instance"]["table"]["enableIDTable"]
             )
 
-    def update_settings(self):
+    def update_settings(self, update_view: bool = False):
         logger.info(" update settings to config.")
         instance = {
             "geometry": {
@@ -881,7 +885,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             "instance": instance,
         }
         self.config = config
-        self.update_stacked_widget()
+        if update_view:
+            self.update_stacked_widget()
         self.iprStatus.showMessage("Status :: Updated settings to config.", 1000)
 
     def reset_settings(self):
