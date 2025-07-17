@@ -57,8 +57,10 @@ class Listener(QObject):
         try:
             self.msg = json.loads(self.msg)
             return True
-        except json.JSONDecodeError:
-            logger.error(f"Listener[{self.port}] : Failed to decode json msg.")
+        except json.JSONDecodeError as e:
+            logger.error(
+                f"Listener[{self.port}] : failed to decode JSON data message: {e}."
+            )
             return False
 
     def validate_msg(self, type: str) -> bool:
@@ -84,7 +86,9 @@ class Listener(QObject):
                         reg_mac, self.msg[1]["MAC"]
                     ):
                         return True
-        logger.warning(f"Listener[{self.port}] : Failed to validate msg. Ignoring...")
+        logger.warning(
+            f"Listener[{self.port}] : failed to validate data message. Ignoring..."
+        )
         return False
 
     def parse_msg(self, type: str) -> tuple:
@@ -141,7 +145,9 @@ class Listener(QObject):
         try:
             out = zlib.decompress(data)
         except Exception as e:
-            logger.error(f"Listener[{self.port}]: Failed to decompress msg data: {e}.")
+            logger.error(
+                f"Listener[{self.port}] : failed to decompress data message: {e}."
+            )
             return
         # clean up data
         out = out.replace(b"\x00", b"")
