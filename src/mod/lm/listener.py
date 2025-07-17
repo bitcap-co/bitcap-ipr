@@ -135,7 +135,7 @@ class Listener(QObject):
         if not prev_entry:
             return False
 
-    def is_zlib_compressed(self, data: bytes) -> bool:
+    def is_compressed(self, data: bytes) -> bool:
         if ZLIB_DEFAULT_MAGIC in data:
             return True
         return False
@@ -162,17 +162,7 @@ class Listener(QObject):
             datagram = self.sock.receiveDatagram(self.max_buf)
             if not datagram.isValid():
                 return
-            if self.is_zlib_compressed(datagram.data().data()):
-                self.msg = self.decompress_data(
-                    datagram.data().data(), ZLIB_DEFAULT_MAGIC
-                )
-            else:
-                self.msg = datagram.data().data().decode().rstrip("\x00")
-            if not self.msg:
-                logger.warning(f"Listener[{self.port}] : msg empty. Ignoring...")
-                return
-            logger.info(f"Listener[{self.port}] : received msg.")
-            logger.debug(f"Listener[{self.port}] : decoded {self.msg}")
+            logger.info(f"Listener[{self.port}] : received datagram.")
             match self.port:
                 case 14235:
                     type = "antminer"
@@ -185,13 +175,24 @@ class Listener(QObject):
                 case 18650:
                     type = "sealminer"
             logger.debug(f"Listener[{self.port}] : found type {type} from port.")
-            if self.validate_msg(type):
-                ip, mac, sn = self.parse_msg(type)
-                if self.record.dict:
-                    if not self.is_dup_packet(ip):
-                        self.emit_result(ip, mac, type, sn)
-                else:
-                    self.emit_result(ip, mac, type, sn)
+            if self.is_compressed(datagram.data().data()):
+                self.msg = self.decompress_data(
+                    datagram.data().data(), ZLIB_DEFAULT_MAGIC
+                )
+            else:
+                self.msg = datagram.data().data().decode().rstrip("\x00")
+            if not self.msg:
+                logger.warning(f"Listener[{self.port}] : msg empty. Ignoring...")
+                return
+            logger.debug(f"Listener[{self.port}] : decoded data message: {self.msg}")
+            if not self.validate_msg(type):
+                return
+            parsed_msg = self.parse_msg(type)
+            if self.record.dict:
+                if not self.is_dup_packet(parsed_msg):
+                    self.emit_result(parsed_msg)
+            else:
+                self.emit_result(parsed_msg)
 
     def emit_result(self, received: list) -> None:
         logger.info(f"Listener[{self.port}] : emit result.")
