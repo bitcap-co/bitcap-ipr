@@ -135,7 +135,7 @@ class Listener(QObject):
             return True
         return False
 
-    def decompress_data(self, data: bytes, header: bytes):
+    def decompress_data(self, data: bytes, header: bytes) -> bytes:
         data_start = data.find(header)
         data = data[data_start:]
         try:
@@ -150,7 +150,7 @@ class Listener(QObject):
         return out
 
     @Slot()
-    def process_datagram(self):
+    def process_datagram(self) -> None:
         while self.sock.hasPendingDatagrams():
             datagram = self.sock.receiveDatagram(self.max_buf)
             if not datagram.isValid():
@@ -186,7 +186,7 @@ class Listener(QObject):
                 else:
                     self.emit_result(ip, mac, type, sn)
 
-    def emit_result(self, *received):
+    def emit_result(self, received: list) -> None:
         logger.info(f"Listener[{self.port}] : emit result.")
         self.record[received[0]] = [self.msg, time.time()]
         self.msg = ",".join(received)
@@ -196,7 +196,7 @@ class Listener(QObject):
         logger.error(f"Listener[{self.port}] : emit error! got {err}")
         self.error.emit()
 
-    def close(self):
+    def close(self) -> None:
         logger.info(f"Listener[{self.port}] : close socket.")
         self.record.dict = {}  # clear record
         self.sock.close()
