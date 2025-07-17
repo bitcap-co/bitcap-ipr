@@ -7,13 +7,48 @@ import time
 def parse_arguments():
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("-l", "--local", action="store_true")
-    group.add_argument("-b", "--broadcast", action="store_true")
-    parser.add_argument("-p", "--port", action="store", type=int, required=True)
+    group.add_argument(
+        "-l",
+        "--local",
+        action="store_true",
+        help="switch for sending UDP datagram over localhost",
+    )
+    group.add_argument(
+        "-b",
+        "--broadcast",
+        action="store_true",
+        help="switch for sending UDP datagram to broadcast",
+    )
+    parser.add_argument(
+        "-p",
+        "--port",
+        action="store",
+        type=int,
+        required=True,
+        help="destination port for UDP datagram",
+    )
     group2 = parser.add_mutually_exclusive_group(required=True)
-    group2.add_argument("-m", "--msg", action="store", type=str)
-    group2.add_argument("-s", "--hex", action="store", type=str)
-    parser.add_argument("-r", "--repeat", action="store", type=int)
+    group2.add_argument(
+        "-m",
+        "--msg",
+        action="store",
+        type=str,
+        help="custom string to send as data payload",
+    )
+    group2.add_argument(
+        "-s",
+        "--hex",
+        action="store",
+        type=str,
+        help="custom hex string to send as data payload",
+    )
+    parser.add_argument(
+        "-r",
+        "--repeat",
+        action="store",
+        type=int,
+        help="repeat datagram sending n times",
+    )
     return parser.parse_args()
 
 
