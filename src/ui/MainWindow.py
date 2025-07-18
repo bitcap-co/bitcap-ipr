@@ -191,15 +191,13 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 478, 361))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 477, 383))
         self.verticalLayout_19 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
-        self.verticalLayout_19.setContentsMargins(0, 0, 9, 0)
         self.groupSystemTray = QGroupBox(self.scrollGeneral)
         self.groupSystemTray.setObjectName(u"groupSystemTray")
         self.verticalLayout_5 = QVBoxLayout(self.groupSystemTray)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
-        self.verticalLayout_5.setContentsMargins(9, 6, 0, 0)
         self.checkEnableSysTray = QCheckBox(self.groupSystemTray)
         self.checkEnableSysTray.setObjectName(u"checkEnableSysTray")
         sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
@@ -214,6 +212,7 @@ class Ui_MainWindow(object):
         self.hwrapper_2.setObjectName(u"hwrapper_2")
         self.horizontalLayout_7 = QHBoxLayout(self.hwrapper_2)
         self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
+        self.horizontalLayout_7.setContentsMargins(0, 0, 0, 0)
         self.label_4 = QLabel(self.hwrapper_2)
         self.label_4.setObjectName(u"label_4")
         font1 = QFont()
@@ -222,12 +221,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_7.addWidget(self.label_4)
 
-        self.splitter_5 = QWidget(self.hwrapper_2)
-        self.splitter_5.setObjectName(u"splitter_5")
-        self.horizontalLayout_19 = QHBoxLayout(self.splitter_5)
-        self.horizontalLayout_19.setObjectName(u"horizontalLayout_19")
-        self.horizontalLayout_19.setContentsMargins(-1, 0, -1, 0)
-        self.comboOnWindowClose = QComboBox(self.splitter_5)
+        self.comboOnWindowClose = QComboBox(self.hwrapper_2)
         self.comboOnWindowClose.addItem("")
         self.comboOnWindowClose.addItem("")
         self.comboOnWindowClose.setObjectName(u"comboOnWindowClose")
@@ -235,14 +229,7 @@ class Ui_MainWindow(object):
         self.comboOnWindowClose.setMinimumSize(QSize(180, 0))
         self.comboOnWindowClose.setMaximumSize(QSize(250, 16777215))
 
-        self.horizontalLayout_19.addWidget(self.comboOnWindowClose)
-
-        self.horizontalSpacer_8 = QSpacerItem(80, 20, QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_19.addItem(self.horizontalSpacer_8)
-
-
-        self.horizontalLayout_7.addWidget(self.splitter_5)
+        self.horizontalLayout_7.addWidget(self.comboOnWindowClose)
 
 
         self.verticalLayout_5.addWidget(self.hwrapper_2)
@@ -254,7 +241,6 @@ class Ui_MainWindow(object):
         self.groupInactiveTimer.setObjectName(u"groupInactiveTimer")
         self.verticalLayout_14 = QVBoxLayout(self.groupInactiveTimer)
         self.verticalLayout_14.setObjectName(u"verticalLayout_14")
-        self.verticalLayout_14.setContentsMargins(-1, 6, 0, 0)
         self.checkUseCustomTimeout = QCheckBox(self.groupInactiveTimer)
         self.checkUseCustomTimeout.setObjectName(u"checkUseCustomTimeout")
         self.checkUseCustomTimeout.setChecked(False)
@@ -265,18 +251,14 @@ class Ui_MainWindow(object):
         self.hwrapper_13.setObjectName(u"hwrapper_13")
         self.horizontalLayout_28 = QHBoxLayout(self.hwrapper_13)
         self.horizontalLayout_28.setObjectName(u"horizontalLayout_28")
+        self.horizontalLayout_28.setContentsMargins(0, 0, 0, 0)
         self.label_9 = QLabel(self.hwrapper_13)
         self.label_9.setObjectName(u"label_9")
         self.label_9.setFont(font1)
 
         self.horizontalLayout_28.addWidget(self.label_9)
 
-        self.splitter_6 = QWidget(self.hwrapper_13)
-        self.splitter_6.setObjectName(u"splitter_6")
-        self.horizontalLayout_29 = QHBoxLayout(self.splitter_6)
-        self.horizontalLayout_29.setObjectName(u"horizontalLayout_29")
-        self.horizontalLayout_29.setContentsMargins(-1, 0, -1, 0)
-        self.spinInactiveTimeout = QSpinBox(self.splitter_6)
+        self.spinInactiveTimeout = QSpinBox(self.hwrapper_13)
         self.spinInactiveTimeout.setObjectName(u"spinInactiveTimeout")
         self.spinInactiveTimeout.setEnabled(False)
         sizePolicy.setHeightForWidth(self.spinInactiveTimeout.sizePolicy().hasHeightForWidth())
@@ -290,14 +272,7 @@ class Ui_MainWindow(object):
         self.spinInactiveTimeout.setSingleStep(15)
         self.spinInactiveTimeout.setValue(15)
 
-        self.horizontalLayout_29.addWidget(self.spinInactiveTimeout)
-
-        self.horizontalSpacer_9 = QSpacerItem(80, 20, QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_29.addItem(self.horizontalSpacer_9)
-
-
-        self.horizontalLayout_28.addWidget(self.splitter_6)
+        self.horizontalLayout_28.addWidget(self.spinInactiveTimeout)
 
 
         self.verticalLayout_14.addWidget(self.hwrapper_13)
@@ -309,13 +284,11 @@ class Ui_MainWindow(object):
         self.groupListeners.setObjectName(u"groupListeners")
         self.verticalLayout_11 = QVBoxLayout(self.groupListeners)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
-        self.verticalLayout_11.setContentsMargins(0, 0, 0, 0)
         self.hwrapper_9 = QWidget(self.groupListeners)
         self.hwrapper_9.setObjectName(u"hwrapper_9")
         self.horizontalLayout_20 = QHBoxLayout(self.hwrapper_9)
-        self.horizontalLayout_20.setSpacing(100)
+        self.horizontalLayout_20.setSpacing(70)
         self.horizontalLayout_20.setObjectName(u"horizontalLayout_20")
-        self.horizontalLayout_20.setContentsMargins(9, 9, 9, 9)
         self.checkListenAntminer = QCheckBox(self.hwrapper_9)
         self.checkListenAntminer.setObjectName(u"checkListenAntminer")
         self.checkListenAntminer.setMaximumSize(QSize(100, 22))
@@ -344,13 +317,12 @@ class Ui_MainWindow(object):
         self.groupAdditional.setObjectName(u"groupAdditional")
         self.verticalLayout_12 = QVBoxLayout(self.groupAdditional)
         self.verticalLayout_12.setObjectName(u"verticalLayout_12")
-        self.verticalLayout_12.setContentsMargins(0, 2, 0, 0)
+        self.verticalLayout_12.setContentsMargins(0, 0, 0, 0)
         self.hwrapper_8 = QWidget(self.groupAdditional)
         self.hwrapper_8.setObjectName(u"hwrapper_8")
         self.horizontalLayout_22 = QHBoxLayout(self.hwrapper_8)
-        self.horizontalLayout_22.setSpacing(100)
+        self.horizontalLayout_22.setSpacing(70)
         self.horizontalLayout_22.setObjectName(u"horizontalLayout_22")
-        self.horizontalLayout_22.setContentsMargins(9, 9, 9, 9)
         self.checkListenGoldshell = QCheckBox(self.hwrapper_8)
         self.checkListenGoldshell.setObjectName(u"checkListenGoldshell")
         self.checkListenGoldshell.setMaximumSize(QSize(100, 22))
@@ -381,11 +353,6 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidget(self.scrollGeneral)
 
         self.verticalLayout_4.addWidget(self.scrollArea_3)
-
-        self.actionIPRResetConfig = QPushButton(self.tabGeneral)
-        self.actionIPRResetConfig.setObjectName(u"actionIPRResetConfig")
-
-        self.verticalLayout_4.addWidget(self.actionIPRResetConfig)
 
         self.configTabs.addTab(self.tabGeneral, "")
         self.tabAPI = QWidget()
@@ -808,15 +775,26 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addWidget(self.configTabs)
 
-        self.hwrapper_7 = QWidget(self.configView)
-        self.hwrapper_7.setObjectName(u"hwrapper_7")
-        self.horizontalLayout_15 = QHBoxLayout(self.hwrapper_7)
-        self.horizontalLayout_15.setObjectName(u"horizontalLayout_15")
-        self.actionIPRCancelConfig = QPushButton(self.hwrapper_7)
-        self.actionIPRCancelConfig.setObjectName(u"actionIPRCancelConfig")
+        self.configControls = QWidget(self.configView)
+        self.configControls.setObjectName(u"configControls")
+        self.verticalLayout_20 = QVBoxLayout(self.configControls)
+        self.verticalLayout_20.setObjectName(u"verticalLayout_20")
+        self.actionIPRResetConfig = QPushButton(self.configControls)
+        self.actionIPRResetConfig.setObjectName(u"actionIPRResetConfig")
         font2 = QFont()
         font2.setPointSize(10)
         font2.setBold(True)
+        self.actionIPRResetConfig.setFont(font2)
+
+        self.verticalLayout_20.addWidget(self.actionIPRResetConfig)
+
+        self.hwrapper_7 = QWidget(self.configControls)
+        self.hwrapper_7.setObjectName(u"hwrapper_7")
+        self.horizontalLayout_15 = QHBoxLayout(self.hwrapper_7)
+        self.horizontalLayout_15.setObjectName(u"horizontalLayout_15")
+        self.horizontalLayout_15.setContentsMargins(0, 0, 0, 0)
+        self.actionIPRCancelConfig = QPushButton(self.hwrapper_7)
+        self.actionIPRCancelConfig.setObjectName(u"actionIPRCancelConfig")
         self.actionIPRCancelConfig.setFont(font2)
 
         self.horizontalLayout_15.addWidget(self.actionIPRCancelConfig)
@@ -828,7 +806,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout_15.addWidget(self.actionIPRSaveConfig)
 
 
-        self.verticalLayout_3.addWidget(self.hwrapper_7)
+        self.verticalLayout_20.addWidget(self.hwrapper_7)
+
+
+        self.verticalLayout_3.addWidget(self.configControls)
 
         self.stackedWidget.addWidget(self.configView)
 
@@ -940,7 +921,6 @@ class Ui_MainWindow(object):
         self.checkListenSealminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Sealminers", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenSealminer.setText(QCoreApplication.translate("MainWindow", u"Sealminer", None))
-        self.actionIPRResetConfig.setText(QCoreApplication.translate("MainWindow", u"Reset Settings to Default", None))
         self.configTabs.setTabText(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
 #if QT_CONFIG(tooltip)
         self.configTabs.setTabToolTip(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))
@@ -1039,6 +1019,7 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.configTabs.setTabToolTip(self.configTabs.indexOf(self.tabLogs), QCoreApplication.translate("MainWindow", u"Log Settings", None))
 #endif // QT_CONFIG(tooltip)
+        self.actionIPRResetConfig.setText(QCoreApplication.translate("MainWindow", u"Reset Settings to Default", None))
         self.actionIPRCancelConfig.setText(QCoreApplication.translate("MainWindow", u"Cancel", None))
         self.actionIPRSaveConfig.setText(QCoreApplication.translate("MainWindow", u"Save", None))
         self.actionIPRStart.setText(QCoreApplication.translate("MainWindow", u"Start", None))
