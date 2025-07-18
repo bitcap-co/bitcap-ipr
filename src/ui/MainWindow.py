@@ -15,12 +15,13 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractItemView, QAbstractSpinBox, QApplication, QCheckBox,
-    QComboBox, QFrame, QGroupBox, QHBoxLayout,
-    QHeaderView, QLabel, QLineEdit, QMainWindow,
-    QPushButton, QScrollArea, QSizePolicy, QSpacerItem,
-    QSpinBox, QStackedWidget, QStatusBar, QTabWidget,
-    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QAbstractItemView, QAbstractScrollArea, QAbstractSpinBox, QApplication,
+    QCheckBox, QComboBox, QFrame, QGroupBox,
+    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+    QMainWindow, QPushButton, QScrollArea, QSizePolicy,
+    QSpacerItem, QSpinBox, QStackedWidget, QStatusBar,
+    QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout,
+    QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -179,13 +180,33 @@ class Ui_MainWindow(object):
         self.tabGeneral.setObjectName(u"tabGeneral")
         self.verticalLayout_4 = QVBoxLayout(self.tabGeneral)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
-        self.groupSystemTray = QGroupBox(self.tabGeneral)
+        self.verticalLayout_4.setContentsMargins(-1, -1, 9, -1)
+        self.scrollArea_3 = QScrollArea(self.tabGeneral)
+        self.scrollArea_3.setObjectName(u"scrollArea_3")
+        self.scrollArea_3.setFrameShape(QFrame.Shape.NoFrame)
+        self.scrollArea_3.setFrameShadow(QFrame.Shadow.Plain)
+        self.scrollArea_3.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.scrollArea_3.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scrollArea_3.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustIgnored)
+        self.scrollArea_3.setWidgetResizable(True)
+        self.scrollGeneral = QWidget()
+        self.scrollGeneral.setObjectName(u"scrollGeneral")
+        self.scrollGeneral.setGeometry(QRect(0, 0, 478, 361))
+        self.verticalLayout_19 = QVBoxLayout(self.scrollGeneral)
+        self.verticalLayout_19.setObjectName(u"verticalLayout_19")
+        self.verticalLayout_19.setContentsMargins(0, 0, 9, 0)
+        self.groupSystemTray = QGroupBox(self.scrollGeneral)
         self.groupSystemTray.setObjectName(u"groupSystemTray")
         self.verticalLayout_5 = QVBoxLayout(self.groupSystemTray)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
         self.verticalLayout_5.setContentsMargins(9, 6, 0, 0)
         self.checkEnableSysTray = QCheckBox(self.groupSystemTray)
         self.checkEnableSysTray.setObjectName(u"checkEnableSysTray")
+        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        sizePolicy4.setHorizontalStretch(0)
+        sizePolicy4.setVerticalStretch(0)
+        sizePolicy4.setHeightForWidth(self.checkEnableSysTray.sizePolicy().hasHeightForWidth())
+        self.checkEnableSysTray.setSizePolicy(sizePolicy4)
 
         self.verticalLayout_5.addWidget(self.checkEnableSysTray)
 
@@ -227,12 +248,68 @@ class Ui_MainWindow(object):
         self.verticalLayout_5.addWidget(self.hwrapper_2)
 
 
-        self.verticalLayout_4.addWidget(self.groupSystemTray)
+        self.verticalLayout_19.addWidget(self.groupSystemTray)
 
-        self.groupListeners = QGroupBox(self.tabGeneral)
+        self.groupInactiveTimer = QGroupBox(self.scrollGeneral)
+        self.groupInactiveTimer.setObjectName(u"groupInactiveTimer")
+        self.verticalLayout_14 = QVBoxLayout(self.groupInactiveTimer)
+        self.verticalLayout_14.setObjectName(u"verticalLayout_14")
+        self.verticalLayout_14.setContentsMargins(-1, 6, 0, 0)
+        self.checkUseCustomTimeout = QCheckBox(self.groupInactiveTimer)
+        self.checkUseCustomTimeout.setObjectName(u"checkUseCustomTimeout")
+        self.checkUseCustomTimeout.setChecked(False)
+
+        self.verticalLayout_14.addWidget(self.checkUseCustomTimeout)
+
+        self.hwrapper_13 = QWidget(self.groupInactiveTimer)
+        self.hwrapper_13.setObjectName(u"hwrapper_13")
+        self.horizontalLayout_28 = QHBoxLayout(self.hwrapper_13)
+        self.horizontalLayout_28.setObjectName(u"horizontalLayout_28")
+        self.label_9 = QLabel(self.hwrapper_13)
+        self.label_9.setObjectName(u"label_9")
+        self.label_9.setFont(font1)
+
+        self.horizontalLayout_28.addWidget(self.label_9)
+
+        self.splitter_6 = QWidget(self.hwrapper_13)
+        self.splitter_6.setObjectName(u"splitter_6")
+        self.horizontalLayout_29 = QHBoxLayout(self.splitter_6)
+        self.horizontalLayout_29.setObjectName(u"horizontalLayout_29")
+        self.horizontalLayout_29.setContentsMargins(-1, 0, -1, 0)
+        self.spinInactiveTimeout = QSpinBox(self.splitter_6)
+        self.spinInactiveTimeout.setObjectName(u"spinInactiveTimeout")
+        self.spinInactiveTimeout.setEnabled(False)
+        sizePolicy.setHeightForWidth(self.spinInactiveTimeout.sizePolicy().hasHeightForWidth())
+        self.spinInactiveTimeout.setSizePolicy(sizePolicy)
+        self.spinInactiveTimeout.setMinimumSize(QSize(180, 0))
+        self.spinInactiveTimeout.setMaximumSize(QSize(250, 16777215))
+        self.spinInactiveTimeout.setWrapping(True)
+        self.spinInactiveTimeout.setProperty(u"showGroupSeparator", True)
+        self.spinInactiveTimeout.setMinimum(15)
+        self.spinInactiveTimeout.setMaximum(120)
+        self.spinInactiveTimeout.setSingleStep(15)
+        self.spinInactiveTimeout.setValue(15)
+
+        self.horizontalLayout_29.addWidget(self.spinInactiveTimeout)
+
+        self.horizontalSpacer_9 = QSpacerItem(80, 20, QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_29.addItem(self.horizontalSpacer_9)
+
+
+        self.horizontalLayout_28.addWidget(self.splitter_6)
+
+
+        self.verticalLayout_14.addWidget(self.hwrapper_13)
+
+
+        self.verticalLayout_19.addWidget(self.groupInactiveTimer)
+
+        self.groupListeners = QGroupBox(self.scrollGeneral)
         self.groupListeners.setObjectName(u"groupListeners")
         self.verticalLayout_11 = QVBoxLayout(self.groupListeners)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
+        self.verticalLayout_11.setContentsMargins(0, 0, 0, 0)
         self.hwrapper_9 = QWidget(self.groupListeners)
         self.hwrapper_9.setObjectName(u"hwrapper_9")
         self.horizontalLayout_20 = QHBoxLayout(self.hwrapper_9)
@@ -268,24 +345,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_12 = QVBoxLayout(self.groupAdditional)
         self.verticalLayout_12.setObjectName(u"verticalLayout_12")
         self.verticalLayout_12.setContentsMargins(0, 2, 0, 0)
-        self.scrollArea_2 = QScrollArea(self.groupAdditional)
-        self.scrollArea_2.setObjectName(u"scrollArea_2")
-        self.scrollArea_2.setFrameShape(QFrame.Shape.NoFrame)
-        self.scrollArea_2.setFrameShadow(QFrame.Shadow.Plain)
-        self.scrollArea_2.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.scrollArea_2.setWidgetResizable(True)
-        self.scrollAdditional = QWidget()
-        self.scrollAdditional.setObjectName(u"scrollAdditional")
-        self.scrollAdditional.setGeometry(QRect(0, 0, 467, 21))
-        self.verticalLayout_14 = QVBoxLayout(self.scrollAdditional)
-        self.verticalLayout_14.setObjectName(u"verticalLayout_14")
-        self.verticalLayout_14.setContentsMargins(0, 0, 0, 0)
-        self.hwrapper_8 = QWidget(self.scrollAdditional)
+        self.hwrapper_8 = QWidget(self.groupAdditional)
         self.hwrapper_8.setObjectName(u"hwrapper_8")
         self.horizontalLayout_22 = QHBoxLayout(self.hwrapper_8)
         self.horizontalLayout_22.setSpacing(100)
         self.horizontalLayout_22.setObjectName(u"horizontalLayout_22")
-        self.horizontalLayout_22.setContentsMargins(9, 0, -1, 0)
+        self.horizontalLayout_22.setContentsMargins(9, 9, 9, 9)
         self.checkListenGoldshell = QCheckBox(self.hwrapper_8)
         self.checkListenGoldshell.setObjectName(u"checkListenGoldshell")
         self.checkListenGoldshell.setMaximumSize(QSize(100, 22))
@@ -305,26 +370,22 @@ class Ui_MainWindow(object):
         self.horizontalLayout_22.addWidget(self.checkListenSealminer)
 
 
-        self.verticalLayout_14.addWidget(self.hwrapper_8)
-
-        self.scrollArea_2.setWidget(self.scrollAdditional)
-
-        self.verticalLayout_12.addWidget(self.scrollArea_2)
+        self.verticalLayout_12.addWidget(self.hwrapper_8)
 
 
         self.verticalLayout_11.addWidget(self.groupAdditional)
 
 
-        self.verticalLayout_4.addWidget(self.groupListeners)
+        self.verticalLayout_19.addWidget(self.groupListeners)
+
+        self.scrollArea_3.setWidget(self.scrollGeneral)
+
+        self.verticalLayout_4.addWidget(self.scrollArea_3)
 
         self.actionIPRResetConfig = QPushButton(self.tabGeneral)
         self.actionIPRResetConfig.setObjectName(u"actionIPRResetConfig")
 
         self.verticalLayout_4.addWidget(self.actionIPRResetConfig)
-
-        self.verticalSpacer_3 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
-
-        self.verticalLayout_4.addItem(self.verticalSpacer_3)
 
         self.configTabs.addTab(self.tabGeneral, "")
         self.tabAPI = QWidget()
@@ -333,13 +394,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_6.setObjectName(u"verticalLayout_6")
         self.scrollArea = QScrollArea(self.tabAPI)
         self.scrollArea.setObjectName(u"scrollArea")
-        self.scrollArea.setAutoFillBackground(True)
         self.scrollArea.setFrameShape(QFrame.Shape.NoFrame)
         self.scrollArea.setFrameShadow(QFrame.Shadow.Plain)
         self.scrollArea.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 477, 710))
+        self.scrollAPI.setGeometry(QRect(0, 0, 477, 744))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
         self.verticalLayout_13.setContentsMargins(9, 9, 9, 9)
@@ -539,9 +599,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_26.setContentsMargins(0, 6, 0, 0)
         self.checkVnishUseAntminerLogin = QCheckBox(self.hwrapper_12)
         self.checkVnishUseAntminerLogin.setObjectName(u"checkVnishUseAntminerLogin")
-        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-        sizePolicy4.setHorizontalStretch(0)
-        sizePolicy4.setVerticalStretch(0)
         sizePolicy4.setHeightForWidth(self.checkVnishUseAntminerLogin.sizePolicy().hasHeightForWidth())
         self.checkVnishUseAntminerLogin.setSizePolicy(sizePolicy4)
         self.checkVnishUseAntminerLogin.setMinimumSize(QSize(100, 25))
@@ -849,6 +906,14 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.comboOnWindowClose.setToolTip(QCoreApplication.translate("MainWindow", u"Set Behavior on window close", None))
 #endif // QT_CONFIG(tooltip)
+        self.groupInactiveTimer.setTitle(QCoreApplication.translate("MainWindow", u"Inactive Timer", None))
+        self.checkUseCustomTimeout.setText(QCoreApplication.translate("MainWindow", u"Use Custom Timeout", None))
+        self.label_9.setText(QCoreApplication.translate("MainWindow", u"Inactive Timeout:", None))
+        self.label_9.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.spinInactiveTimeout.setToolTip(QCoreApplication.translate("MainWindow", u"Set inactive timeout in minutes", None))
+#endif // QT_CONFIG(tooltip)
+        self.spinInactiveTimeout.setSuffix(QCoreApplication.translate("MainWindow", u" Minutes", None))
         self.groupListeners.setTitle(QCoreApplication.translate("MainWindow", u"Listener Configuraion", None))
 #if QT_CONFIG(tooltip)
         self.checkListenAntminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Antminers", None))

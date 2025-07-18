@@ -79,6 +79,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.lm.listen_error.connect(self.restart_listen)
 
         logger.info(" init mod api.")
+        logger.info(" init miner locate duration for 10000ms.")
         self.api_client = APIClient(self)
 
         # title bar
@@ -122,13 +123,17 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionImport.triggered.connect(self.import_table)
         self.menu_bar.actionExport.triggered.connect(self.export_table)
         self.menu_bar.actionSettings.triggered.connect(self.show_app_config)
-        self.menu_bar.actionDisableInactiveTimer.changed.connect(self.restart_listen)
+        self.menu_bar.actionDisableInactiveTimer.changed.connect(
+            self.update_inactive_timer
+        )
         # app config signals
         self.checkEnableSysTray.toggled.connect(self.toggle_sys_tray_settings)
         self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
         self.comboOnWindowClose.currentIndexChanged.connect(
             self.update_sys_tray_visibility
         )
+        self.checkUseCustomTimeout.toggled.connect(self.toggle_inactive_timer_settings)
+        self.spinInactiveTimeout.valueChanged.connect(self.update_inactive_timer)
         self.spinLocateDuration.valueChanged.connect(self.update_miner_locate_duration)
         self.comboLogLevel.currentIndexChanged.connect(self.set_logger_level)
         self.actionIPRCancelConfig.clicked.connect(self.update_stacked_widget)
@@ -176,8 +181,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.idTable.doubleClicked.connect(self.double_click_item)
         self.idTable.cellClicked.connect(self.locate_miner)
 
-        duration_line = self.spinLocateDuration.lineEdit()
-        duration_line.setReadOnly(True)
+        self.spinLocateDuration.lineEdit().setReadOnly(True)
+        self.spinInactiveTimeout.lineEdit().setReadOnly(True)
 
         self.actionToggleBitmainPasswd = self.create_passwd_toggle_action(
             self.lineBitmainPasswd
@@ -202,8 +207,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
 
         self.read_settings()
-        # api settings
-        self.update_miner_locate_duration()
 
         if self.menu_bar.actionEnableIDTable.isChecked():
             self.toggle_table_settings(True)
@@ -717,6 +720,23 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.comboOnWindowClose.setCurrentIndex(0)
             self.comboOnWindowClose.setEnabled(False)
 
+    def update_inactive_timer(self):
+        self.groupInactiveTimer.setEnabled(
+            not self.menu_bar.actionDisableInactiveTimer.isChecked()
+        )
+        if self.groupInactiveTimer.isEnabled():
+            inactiveDuration = self.spinInactiveTimeout.value() * 60 * 1000
+            self.inactive.setInterval(inactiveDuration)
+            logger.info(f" update inactive timer duration: {inactiveDuration}ms")
+        self.restart_listen()
+
+    def toggle_inactive_timer_settings(self):
+        if self.checkUseCustomTimeout.isChecked():
+            self.spinInactiveTimeout.setEnabled(True)
+        else:
+            self.spinInactiveTimeout.setValue(self.spinInactiveTimeout.minimum())
+            self.spinInactiveTimeout.setEnabled(False)
+
     def update_miner_locate_duration(self):
         self.locateMinerDuration = self.spinLocateDuration.value() * 1000
         api_settings.update("locate_duration_ms", self.locateMinerDuration)
@@ -751,6 +771,13 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.comboOnWindowClose.setCurrentIndex(
                 self.config["general"]["onWindowClose"]
             )
+            self.checkUseCustomTimeout.setChecked(
+                self.config["general"]["useCustomTimeout"]
+            )
+            self.spinInactiveTimeout.setValue(
+                self.config["general"]["inactiveTimeoutMins"]
+            )
+
             # listeners
             self.checkListenAntminer.setChecked(
                 self.config["general"]["listenFor"]["antminer"]
@@ -848,6 +875,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             "general": {
                 "enableSysTray": self.checkEnableSysTray.isChecked(),
                 "onWindowClose": self.comboOnWindowClose.currentIndex(),
+                "useCustomTimeout": self.checkUseCustomTimeout.isChecked(),
+                "inactiveTimeoutMins": self.spinInactiveTimeout.value(),
                 "listenFor": {
                     "antminer": self.checkListenAntminer.isChecked(),
                     "whatsminer": self.checkListenWhatsminer.isChecked(),
@@ -901,6 +930,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             config = read_config(get_default_config())
             write_config(self.config_path, config)
             self.read_settings()
+            self.update_inactive_timer()
             self.update_miner_locate_duration()
             self.create_or_destroy_systray()
             self.update_stacked_widget()

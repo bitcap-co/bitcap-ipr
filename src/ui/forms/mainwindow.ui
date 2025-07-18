@@ -395,249 +395,402 @@
                   <string>General Settings</string>
                  </attribute>
                  <layout class="QVBoxLayout" name="verticalLayout_4">
+                  <property name="rightMargin">
+                   <number>9</number>
+                  </property>
                   <item>
-                   <widget class="QGroupBox" name="groupSystemTray">
-                    <property name="title">
-                     <string>System Tray</string>
+                   <widget class="QScrollArea" name="scrollArea_3">
+                    <property name="frameShape">
+                     <enum>QFrame::Shape::NoFrame</enum>
                     </property>
-                    <layout class="QVBoxLayout" name="verticalLayout_5">
-                     <property name="leftMargin">
-                      <number>9</number>
-                     </property>
-                     <property name="topMargin">
-                      <number>6</number>
-                     </property>
-                     <property name="rightMargin">
-                      <number>0</number>
-                     </property>
-                     <property name="bottomMargin">
-                      <number>0</number>
-                     </property>
-                     <item>
-                      <widget class="QCheckBox" name="checkEnableSysTray">
-                       <property name="text">
-                        <string>Enable System Tray Icon</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QWidget" name="hwrapper_2" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_7">
-                        <item>
-                         <widget class="QLabel" name="label_4">
-                          <property name="font">
-                           <font>
-                            <pointsize>10</pointsize>
-                           </font>
-                          </property>
-                          <property name="text">
-                           <string>On Window Close:</string>
-                          </property>
-                          <property name="StyleClass" stdset="0">
-                           <string>setText</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QWidget" name="splitter_5" native="true">
-                          <layout class="QHBoxLayout" name="horizontalLayout_19">
-                           <property name="topMargin">
-                            <number>0</number>
-                           </property>
-                           <property name="bottomMargin">
-                            <number>0</number>
-                           </property>
-                           <item>
-                            <widget class="QComboBox" name="comboOnWindowClose">
-                             <property name="enabled">
-                              <bool>false</bool>
-                             </property>
-                             <property name="minimumSize">
-                              <size>
-                               <width>180</width>
-                               <height>0</height>
-                              </size>
-                             </property>
-                             <property name="maximumSize">
-                              <size>
-                               <width>250</width>
-                               <height>16777215</height>
-                              </size>
-                             </property>
-                             <property name="toolTip">
-                              <string>Set Behavior on window close</string>
-                             </property>
-                             <property name="currentIndex">
-                              <number>0</number>
-                             </property>
-                             <item>
-                              <property name="text">
-                               <string>Minimize To Tray</string>
-                              </property>
-                             </item>
-                             <item>
-                              <property name="text">
-                               <string>Close</string>
-                              </property>
-                             </item>
-                            </widget>
-                           </item>
-                           <item>
-                            <spacer name="horizontalSpacer_8">
-                             <property name="orientation">
-                              <enum>Qt::Orientation::Horizontal</enum>
-                             </property>
-                             <property name="sizeType">
-                              <enum>QSizePolicy::Policy::Preferred</enum>
-                             </property>
-                             <property name="sizeHint" stdset="0">
-                              <size>
-                               <width>80</width>
-                               <height>20</height>
-                              </size>
-                             </property>
-                            </spacer>
-                           </item>
-                          </layout>
-                         </widget>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QGroupBox" name="groupListeners">
-                    <property name="title">
-                     <string>Listener Configuraion</string>
+                    <property name="frameShadow">
+                     <enum>QFrame::Shadow::Plain</enum>
                     </property>
-                    <layout class="QVBoxLayout" name="verticalLayout_11">
-                     <item>
-                      <widget class="QWidget" name="hwrapper_9" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_20">
-                        <property name="spacing">
-                         <number>100</number>
+                    <property name="verticalScrollBarPolicy">
+                     <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
+                    </property>
+                    <property name="horizontalScrollBarPolicy">
+                     <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+                    </property>
+                    <property name="sizeAdjustPolicy">
+                     <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustIgnored</enum>
+                    </property>
+                    <property name="widgetResizable">
+                     <bool>true</bool>
+                    </property>
+                    <widget class="QWidget" name="scrollGeneral">
+                     <property name="geometry">
+                      <rect>
+                       <x>0</x>
+                       <y>0</y>
+                       <width>478</width>
+                       <height>361</height>
+                      </rect>
+                     </property>
+                     <layout class="QVBoxLayout" name="verticalLayout_19">
+                      <property name="leftMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>9</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>0</number>
+                      </property>
+                      <item>
+                       <widget class="QGroupBox" name="groupSystemTray">
+                        <property name="title">
+                         <string>System Tray</string>
                         </property>
-                        <property name="leftMargin">
-                         <number>9</number>
-                        </property>
-                        <property name="topMargin">
-                         <number>9</number>
-                        </property>
-                        <property name="rightMargin">
-                         <number>9</number>
-                        </property>
-                        <property name="bottomMargin">
-                         <number>9</number>
-                        </property>
-                        <item>
-                         <widget class="QCheckBox" name="checkListenAntminer">
-                          <property name="maximumSize">
-                           <size>
-                            <width>100</width>
-                            <height>22</height>
-                           </size>
-                          </property>
-                          <property name="toolTip">
-                           <string>Enable listening for Antminers</string>
-                          </property>
-                          <property name="text">
-                           <string>Antminer</string>
-                          </property>
-                          <property name="checked">
-                           <bool>true</bool>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QCheckBox" name="checkListenWhatsminer">
-                          <property name="maximumSize">
-                           <size>
-                            <width>100</width>
-                            <height>22</height>
-                           </size>
-                          </property>
-                          <property name="toolTip">
-                           <string>Enable listening for Whatsminers</string>
-                          </property>
-                          <property name="text">
-                           <string>Whatsminer</string>
-                          </property>
-                          <property name="checked">
-                           <bool>true</bool>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QCheckBox" name="checkListenIceRiver">
-                          <property name="maximumSize">
-                           <size>
-                            <width>100</width>
-                            <height>22</height>
-                           </size>
-                          </property>
-                          <property name="toolTip">
-                           <string>Enable listening for Icerivers</string>
-                          </property>
-                          <property name="text">
-                           <string>IceRiver</string>
-                          </property>
-                          <property name="checked">
-                           <bool>true</bool>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QGroupBox" name="groupAdditional">
-                       <property name="title">
-                        <string>Additional Miners</string>
-                       </property>
-                       <layout class="QVBoxLayout" name="verticalLayout_12">
-                        <property name="leftMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="topMargin">
-                         <number>2</number>
-                        </property>
-                        <property name="rightMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="bottomMargin">
-                         <number>0</number>
-                        </property>
-                        <item>
-                         <widget class="QScrollArea" name="scrollArea_2">
-                          <property name="frameShape">
-                           <enum>QFrame::Shape::NoFrame</enum>
-                          </property>
-                          <property name="frameShadow">
-                           <enum>QFrame::Shadow::Plain</enum>
-                          </property>
-                          <property name="horizontalScrollBarPolicy">
-                           <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
-                          </property>
-                          <property name="widgetResizable">
-                           <bool>true</bool>
-                          </property>
-                          <widget class="QWidget" name="scrollAdditional">
-                           <property name="geometry">
-                            <rect>
-                             <x>0</x>
-                             <y>0</y>
-                             <width>467</width>
-                             <height>21</height>
-                            </rect>
+                        <layout class="QVBoxLayout" name="verticalLayout_5">
+                         <property name="leftMargin">
+                          <number>9</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>6</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>0</number>
+                         </property>
+                         <item>
+                          <widget class="QCheckBox" name="checkEnableSysTray">
+                           <property name="sizePolicy">
+                            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                             <horstretch>0</horstretch>
+                             <verstretch>0</verstretch>
+                            </sizepolicy>
                            </property>
-                           <layout class="QVBoxLayout" name="verticalLayout_14">
+                           <property name="text">
+                            <string>Enable System Tray Icon</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QWidget" name="hwrapper_2" native="true">
+                           <layout class="QHBoxLayout" name="horizontalLayout_7">
+                            <item>
+                             <widget class="QLabel" name="label_4">
+                              <property name="font">
+                               <font>
+                                <pointsize>10</pointsize>
+                               </font>
+                              </property>
+                              <property name="text">
+                               <string>On Window Close:</string>
+                              </property>
+                              <property name="StyleClass" stdset="0">
+                               <string>setText</string>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QWidget" name="splitter_5" native="true">
+                              <layout class="QHBoxLayout" name="horizontalLayout_19">
+                               <property name="topMargin">
+                                <number>0</number>
+                               </property>
+                               <property name="bottomMargin">
+                                <number>0</number>
+                               </property>
+                               <item>
+                                <widget class="QComboBox" name="comboOnWindowClose">
+                                 <property name="enabled">
+                                  <bool>false</bool>
+                                 </property>
+                                 <property name="minimumSize">
+                                  <size>
+                                   <width>180</width>
+                                   <height>0</height>
+                                  </size>
+                                 </property>
+                                 <property name="maximumSize">
+                                  <size>
+                                   <width>250</width>
+                                   <height>16777215</height>
+                                  </size>
+                                 </property>
+                                 <property name="toolTip">
+                                  <string>Set Behavior on window close</string>
+                                 </property>
+                                 <property name="currentIndex">
+                                  <number>0</number>
+                                 </property>
+                                 <item>
+                                  <property name="text">
+                                   <string>Minimize To Tray</string>
+                                  </property>
+                                 </item>
+                                 <item>
+                                  <property name="text">
+                                   <string>Close</string>
+                                  </property>
+                                 </item>
+                                </widget>
+                               </item>
+                               <item>
+                                <spacer name="horizontalSpacer_8">
+                                 <property name="orientation">
+                                  <enum>Qt::Orientation::Horizontal</enum>
+                                 </property>
+                                 <property name="sizeType">
+                                  <enum>QSizePolicy::Policy::Preferred</enum>
+                                 </property>
+                                 <property name="sizeHint" stdset="0">
+                                  <size>
+                                   <width>80</width>
+                                   <height>20</height>
+                                  </size>
+                                 </property>
+                                </spacer>
+                               </item>
+                              </layout>
+                             </widget>
+                            </item>
+                           </layout>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QGroupBox" name="groupInactiveTimer">
+                        <property name="title">
+                         <string>Inactive Timer</string>
+                        </property>
+                        <layout class="QVBoxLayout" name="verticalLayout_14">
+                         <property name="topMargin">
+                          <number>6</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>0</number>
+                         </property>
+                         <item>
+                          <widget class="QCheckBox" name="checkUseCustomTimeout">
+                           <property name="text">
+                            <string>Use Custom Timeout</string>
+                           </property>
+                           <property name="checked">
+                            <bool>false</bool>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QWidget" name="hwrapper_13" native="true">
+                           <layout class="QHBoxLayout" name="horizontalLayout_28">
+                            <item>
+                             <widget class="QLabel" name="label_9">
+                              <property name="font">
+                               <font>
+                                <pointsize>10</pointsize>
+                               </font>
+                              </property>
+                              <property name="text">
+                               <string>Inactive Timeout:</string>
+                              </property>
+                              <property name="StyleClass" stdset="0">
+                               <string>setText</string>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QWidget" name="splitter_6" native="true">
+                              <layout class="QHBoxLayout" name="horizontalLayout_29">
+                               <property name="topMargin">
+                                <number>0</number>
+                               </property>
+                               <property name="bottomMargin">
+                                <number>0</number>
+                               </property>
+                               <item>
+                                <widget class="QSpinBox" name="spinInactiveTimeout">
+                                 <property name="enabled">
+                                  <bool>false</bool>
+                                 </property>
+                                 <property name="sizePolicy">
+                                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                                   <horstretch>0</horstretch>
+                                   <verstretch>0</verstretch>
+                                  </sizepolicy>
+                                 </property>
+                                 <property name="minimumSize">
+                                  <size>
+                                   <width>180</width>
+                                   <height>0</height>
+                                  </size>
+                                 </property>
+                                 <property name="maximumSize">
+                                  <size>
+                                   <width>250</width>
+                                   <height>16777215</height>
+                                  </size>
+                                 </property>
+                                 <property name="toolTip">
+                                  <string>Set inactive timeout in minutes</string>
+                                 </property>
+                                 <property name="wrapping">
+                                  <bool>true</bool>
+                                 </property>
+                                 <property name="showGroupSeparator" stdset="0">
+                                  <bool>true</bool>
+                                 </property>
+                                 <property name="suffix">
+                                  <string> Minutes</string>
+                                 </property>
+                                 <property name="minimum">
+                                  <number>15</number>
+                                 </property>
+                                 <property name="maximum">
+                                  <number>120</number>
+                                 </property>
+                                 <property name="singleStep">
+                                  <number>15</number>
+                                 </property>
+                                 <property name="value">
+                                  <number>15</number>
+                                 </property>
+                                </widget>
+                               </item>
+                               <item>
+                                <spacer name="horizontalSpacer_9">
+                                 <property name="orientation">
+                                  <enum>Qt::Orientation::Horizontal</enum>
+                                 </property>
+                                 <property name="sizeType">
+                                  <enum>QSizePolicy::Policy::Preferred</enum>
+                                 </property>
+                                 <property name="sizeHint" stdset="0">
+                                  <size>
+                                   <width>80</width>
+                                   <height>20</height>
+                                  </size>
+                                 </property>
+                                </spacer>
+                               </item>
+                              </layout>
+                             </widget>
+                            </item>
+                           </layout>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QGroupBox" name="groupListeners">
+                        <property name="title">
+                         <string>Listener Configuraion</string>
+                        </property>
+                        <layout class="QVBoxLayout" name="verticalLayout_11">
+                         <property name="leftMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>0</number>
+                         </property>
+                         <item>
+                          <widget class="QWidget" name="hwrapper_9" native="true">
+                           <layout class="QHBoxLayout" name="horizontalLayout_20">
+                            <property name="spacing">
+                             <number>100</number>
+                            </property>
+                            <property name="leftMargin">
+                             <number>9</number>
+                            </property>
+                            <property name="topMargin">
+                             <number>9</number>
+                            </property>
+                            <property name="rightMargin">
+                             <number>9</number>
+                            </property>
+                            <property name="bottomMargin">
+                             <number>9</number>
+                            </property>
+                            <item>
+                             <widget class="QCheckBox" name="checkListenAntminer">
+                              <property name="maximumSize">
+                               <size>
+                                <width>100</width>
+                                <height>22</height>
+                               </size>
+                              </property>
+                              <property name="toolTip">
+                               <string>Enable listening for Antminers</string>
+                              </property>
+                              <property name="text">
+                               <string>Antminer</string>
+                              </property>
+                              <property name="checked">
+                               <bool>true</bool>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QCheckBox" name="checkListenWhatsminer">
+                              <property name="maximumSize">
+                               <size>
+                                <width>100</width>
+                                <height>22</height>
+                               </size>
+                              </property>
+                              <property name="toolTip">
+                               <string>Enable listening for Whatsminers</string>
+                              </property>
+                              <property name="text">
+                               <string>Whatsminer</string>
+                              </property>
+                              <property name="checked">
+                               <bool>true</bool>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QCheckBox" name="checkListenIceRiver">
+                              <property name="maximumSize">
+                               <size>
+                                <width>100</width>
+                                <height>22</height>
+                               </size>
+                              </property>
+                              <property name="toolTip">
+                               <string>Enable listening for Icerivers</string>
+                              </property>
+                              <property name="text">
+                               <string>IceRiver</string>
+                              </property>
+                              <property name="checked">
+                               <bool>true</bool>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QGroupBox" name="groupAdditional">
+                           <property name="title">
+                            <string>Additional Miners</string>
+                           </property>
+                           <layout class="QVBoxLayout" name="verticalLayout_12">
                             <property name="leftMargin">
                              <number>0</number>
                             </property>
                             <property name="topMargin">
-                             <number>0</number>
+                             <number>2</number>
                             </property>
                             <property name="rightMargin">
                              <number>0</number>
@@ -655,10 +808,13 @@
                                 <number>9</number>
                                </property>
                                <property name="topMargin">
-                                <number>0</number>
+                                <number>9</number>
+                               </property>
+                               <property name="rightMargin">
+                                <number>9</number>
                                </property>
                                <property name="bottomMargin">
-                                <number>0</number>
+                                <number>9</number>
                                </property>
                                <item>
                                 <widget class="QCheckBox" name="checkListenGoldshell">
@@ -713,12 +869,12 @@
                             </item>
                            </layout>
                           </widget>
-                         </widget>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                    </layout>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                     </layout>
+                    </widget>
                    </widget>
                   </item>
                   <item>
@@ -727,22 +883,6 @@
                      <string>Reset Settings to Default</string>
                     </property>
                    </widget>
-                  </item>
-                  <item>
-                   <spacer name="verticalSpacer_3">
-                    <property name="orientation">
-                     <enum>Qt::Orientation::Vertical</enum>
-                    </property>
-                    <property name="sizeType">
-                     <enum>QSizePolicy::Policy::Preferred</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>20</width>
-                      <height>40</height>
-                     </size>
-                    </property>
-                   </spacer>
                   </item>
                  </layout>
                 </widget>
@@ -756,9 +896,6 @@
                  <layout class="QVBoxLayout" name="verticalLayout_6">
                   <item>
                    <widget class="QScrollArea" name="scrollArea">
-                    <property name="autoFillBackground">
-                     <bool>true</bool>
-                    </property>
                     <property name="frameShape">
                      <enum>QFrame::Shape::NoFrame</enum>
                     </property>
@@ -774,7 +911,7 @@
                        <x>0</x>
                        <y>0</y>
                        <width>477</width>
-                       <height>710</height>
+                       <height>744</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_13">

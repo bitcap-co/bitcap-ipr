@@ -2,6 +2,8 @@
     "general": {
       "enableSysTray": false,
       "onWindowClose": 0,
+      "useCustomTimeout": false,
+      "inactiveTimeoutMins": 15,
       "listenFor": {
         "antminer": true,
         "whatsminer": true,
