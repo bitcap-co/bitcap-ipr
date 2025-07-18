@@ -15,6 +15,10 @@ QDialog QLabel {
   color: #FFFFFF;
 }
 
+QLabel:disabled {
+  color: #828282;
+}
+
 QStatusBar {
   border: 1px solid #383e46;
   /* Fixes Spyder #9120, #9121 */
@@ -35,6 +39,10 @@ QGroupBox {
   margin-bottom: 4px;
 }
 
+QGroupBox:disabled {
+  border: 1px solid #525252;
+}
+
 QGroupBox::title {
   color: #FFFFFF;
   subcontrol-origin: margin;
@@ -45,9 +53,17 @@ QGroupBox::title {
   padding-top: -4px;
 }
 
+QGroupBox::title:disabled {
+  color: #828282;
+}
+
 /* sub group boxes */
 QGroupBox QGroupBox {
     border: 1px solid #383e46;
+}
+
+QAbstractButton:disabled {
+  color: #828282;
 }
 
 QPushButton {
@@ -247,7 +263,7 @@ QTableView::item:!selected:hover {
   background-color: #5c9dff;
 }
 
-QScrollArea QWidget QWidget#scrollAPI,QWidget#scrollAdditional {
+QScrollArea QWidget QWidget#scrollAPI,QWidget#scrollAdditional,QWidget#scrollGeneral {
   background-color: qlineargradient(spread:pad, x1:0.500, y1:0, x2:0.500, y2:1, stop:0.5 rgba(6, 16, 31, 255), stop:1 rgba(2, 6, 12, 255));
   color: #FFFFFF;
 }
@@ -411,6 +427,10 @@ QAbstractSpinBox:focus {
 QAbstractSpinBox:selected {
   background: #346792;
   color: #383e46;
+}
+
+QAbstractSpinBox:disabled {
+  color: #828282;
 }
 
 /* QTabWiget --------------------------------------------------------------
