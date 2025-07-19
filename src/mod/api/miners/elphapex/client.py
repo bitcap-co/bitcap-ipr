@@ -57,8 +57,8 @@ class ElphapexHTTPClient(BaseHTTPClient):
             return net_info["macaddr"]
         return ""
 
-    def get_system_info(self):
+    def get_system_info(self) -> dict:
         return self.run_command("GET", "get_system_info")
 
     def blink(self, enabled: bool) -> None:
-        pass
+        self.run_command("POST", "blink", payload={"blink": enabled})

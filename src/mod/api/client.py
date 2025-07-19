@@ -115,7 +115,7 @@ class APIClient:
                 except AuthenticationError as err:
                     logger.error(err)
                     self.close_client()
-            case "iceriver" | "volcminer" | "goldshell" | "sealminer":
+            case "iceriver" | "volcminer" | "goldshell" | "sealminer" | "elphapex":
                 self.client.blink(enabled=True)
                 self.locate.start(duration)
 

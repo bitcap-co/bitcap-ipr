@@ -79,8 +79,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.lm.listen_error.connect(self.restart_listen)
 
         logger.info(" init mod api.")
-        logger.info(" init miner locate duration for 10000ms.")
         self.api_client = APIClient(self)
+        logger.info(" init miner locate duration for 10000ms.")
+        self.update_miner_locate_duration()
 
         # title bar
         if CURR_PLATFORM == "darwin":
