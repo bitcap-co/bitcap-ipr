@@ -16,6 +16,7 @@ _gs = {
     "default_goldshell_passwd": "123456789",
     "default_volcminer_passwd": "ltc@dog",
     "default_sealminer_passwd": "seal",
+    "default_elphapex_passwd": "root",
 }
 
 
