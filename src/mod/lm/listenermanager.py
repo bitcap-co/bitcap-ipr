@@ -42,6 +42,9 @@ class ListenerManager(QObject):
                 case 6:  # sealminer
                     if listenFor.isChecked():
                         self.append_listener(18650)
+                case 7:  # elphapex
+                    if listenFor.isChecked():
+                        self.append_listener(9999)
         for listener in self.listeners:
             listener.result.connect(self.emit_listen_complete)
             listener.error.connect(self.emit_listen_error)

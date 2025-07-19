@@ -156,6 +156,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.listenerConfig.addButton(self.checkListenVolcminer, 4)
         self.listenerConfig.addButton(self.checkListenGoldshell, 5)
         self.listenerConfig.addButton(self.checkListenSealminer, 6)
+        self.listenerConfig.addButton(self.checkListenElphapex, 7)
         self.listenerConfig.buttonClicked.connect(self.restart_listen)
 
         self.idTable.setHorizontalHeaderLabels(

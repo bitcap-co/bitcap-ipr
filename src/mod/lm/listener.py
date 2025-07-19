@@ -5,7 +5,7 @@ import json
 import zlib
 
 from PySide6.QtCore import QObject, Signal, Slot
-from PySide6.QtNetwork import QUdpSocket, QHostAddress
+from PySide6.QtNetwork import QNetworkDatagram, QUdpSocket, QHostAddress
 
 
 logger = logging.getLogger(__name__)
@@ -16,6 +16,7 @@ msg_patterns = {
     "common": re.compile(f"^{reg_ip},{reg_mac}"),
     "ir": re.compile(f"^addr:{reg_ip}"),
     "bt": re.compile(f"^IP:{reg_ip}MAC:{reg_mac}"),
+    "elphapex": re.compile("^DG_IPREPORT_ONLY"),
 }
 RECORD_MIN_AGE = 10.0
 ZLIB_DEFAULT_MAGIC = b"\x78\x9c"
@@ -86,12 +87,15 @@ class Listener(QObject):
                         reg_mac, self.msg[1]["MAC"]
                     ):
                         return True
+            case "elphapex":
+                if re.match(msg_patterns["elphapex"], self.msg):
+                    return True
         logger.warning(
             f"Listener[{self.port}] : failed to validate data message. Ignoring..."
         )
         return False
 
-    def parse_msg(self, type: str) -> list:
+    def parse_msg(self, datagram: QNetworkDatagram, type: str) -> list:
         sn = ""
         match type:
             case "antminer":
@@ -111,6 +115,9 @@ class Listener(QObject):
             case "sealminer":
                 ip = self.msg[3]["IPV4"]
                 mac = self.msg[1]["MAC"]
+            case "elphapex":
+                ip = datagram.senderAddress().toString()
+                mac = "ELPHAPEX"
         return [ip, mac, type, sn]
 
     def is_dup_packet(self, parsed_msg: list) -> bool:
@@ -174,6 +181,8 @@ class Listener(QObject):
                     type = "goldshell"
                 case 18650:
                     type = "sealminer"
+                case 9999:
+                    type = "elphapex"
             logger.debug(f"Listener[{self.port}] : found type {type} from port.")
             if self.is_compressed(datagram.data().data()):
                 self.msg = self.decompress_data(
@@ -187,7 +196,7 @@ class Listener(QObject):
             logger.debug(f"Listener[{self.port}] : decoded data message: {self.msg}")
             if not self.validate_msg(type):
                 return
-            parsed_msg = self.parse_msg(type)
+            parsed_msg = self.parse_msg(datagram, type)
             if self.record.dict:
                 if not self.is_dup_packet(parsed_msg):
                     self.emit_result(parsed_msg)
