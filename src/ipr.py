@@ -397,6 +397,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         missing_mac = self.api_client.get_missing_mac_addr()
         if missing_mac:
             mac = missing_mac
+        self.api_client.close_client()
         self.iprStatus.showMessage(f"Status :: Got {type}: IP:{ip}, MAC:{mac}", 3000)
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
