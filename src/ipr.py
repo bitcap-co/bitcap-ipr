@@ -392,9 +392,11 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.api_client.create_iceriver_client(
                 ip, None, self.linePbfarmerKey.text()
             )
-            mac = self.api_client.get_iceriver_mac_addr()
-            self.api_client.close_client()
-            logger.info(f"show_confirm : got iceriver mac addr : {mac}")
+        if type == "elphapex":
+            self.api_client.create_elphapex_client(ip, None)
+        missing_mac = self.api_client.get_missing_mac_addr()
+        if missing_mac:
+            mac = missing_mac
         self.iprStatus.showMessage(f"Status :: Got {type}: IP:{ip}, MAC:{mac}", 3000)
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)

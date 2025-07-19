@@ -123,12 +123,15 @@ class APIClient:
         self.client.blink(enabled=False)
         self.close_client()
 
-    def get_iceriver_mac_addr(self):
-        if self.client:
+    def get_missing_mac_addr(self):
+        if isinstance(self.client, IceriverHTTPClient) or isinstance(
+            self.client, ElphapexHTTPClient
+        ):
             mac = self.client.get_mac_addr()
             if mac:
                 return mac
-        return "ice-river"
+            else:
+                return "Failed"
 
     def is_volcminer(self):
         if self.client:
