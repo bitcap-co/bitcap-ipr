@@ -803,6 +803,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.checkListenSealminer.setChecked(
                 self.config["general"]["listenFor"]["additional"]["sealminer"]
             )
+            self.checkListenElphapex.setChecked(
+                self.config["general"]["listenFor"]["additional"]["elphapex"]
+            )
 
             # api
             self.lineBitmainPasswd.setText(
@@ -890,6 +893,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                         "volcminer": self.checkListenVolcminer.isChecked(),
                         "goldshell": self.checkListenGoldshell.isChecked(),
                         "sealminer": self.checkListenSealminer.isChecked(),
+                        "elphapex": self.checkListenElphapex.isChecked(),
                     },
                 },
             },
