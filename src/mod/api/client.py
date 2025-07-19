@@ -16,6 +16,7 @@ from .miners.whatsminer import WhatsminerRPCClient, WhatsminerParser
 from .miners.volcminer import VolcminerHTTPClient, VolcminerParser
 from .miners.goldshell import GoldshellHTTPClient, GoldshellParser
 from .miners.sealminer import SealminerHTTPClient, SealminerParser
+from .miners.elphapex import ElphapexHTTPClient, ElphapexParser
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +76,12 @@ class APIClient:
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
+    def create_elphapex_client(self, ip_addr: str, passwd: str):
+        try:
+            self.client = ElphapexHTTPClient(ip_addr, passwd)
+        except (FailedConnectionError, AuthenticationError) as err:
+            logger.error(err)
+
     def create_client_from_type(
         self, miner_type: str, ip_addr: str, auth: str, custom_auth: str
     ):
@@ -91,6 +98,8 @@ class APIClient:
                 self.create_goldshell_client(ip_addr, auth)
             case "sealminer":
                 self.create_sealminer_client(ip_addr, auth)
+            case "elphapex":
+                self.create_elphapex_client(ip_addr, auth)
 
     def locate_miner(self, miner_type: str):
         self.locate = QTimer(self.parent)
@@ -149,6 +158,7 @@ class APIClient:
             isinstance(parser, IceriverParser)
             or isinstance(parser, VolcminerParser)
             or isinstance(parser, SealminerParser)
+            or isinstance(parser, ElphapexParser)
         ):
             parser.parse_all(sys)
         elif isinstance(parser, GoldshellParser):
@@ -177,6 +187,8 @@ class APIClient:
                 return self.get_target_info(GoldshellParser(self.target_info))
             case "sealminer":
                 return self.get_target_info(SealminerParser(self.target_info))
+            case "elphapex":
+                return self.get_target_info(ElphapexParser(self.target_info))
             case _:
                 return self.target_info
 

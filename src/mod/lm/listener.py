@@ -117,7 +117,7 @@ class Listener(QObject):
                 mac = self.msg[1]["MAC"]
             case "elphapex":
                 ip = datagram.senderAddress().toString()
-                mac = "ELPHAPEX"
+                mac = "elphapex"
         return [ip, mac, type, sn]
 
     def is_dup_packet(self, parsed_msg: list) -> bool:
