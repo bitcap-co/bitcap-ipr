@@ -79,8 +79,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.lm.listen_error.connect(self.restart_listen)
 
         logger.info(" init mod api.")
-        logger.info(" init miner locate duration for 10000ms.")
         self.api_client = APIClient(self)
+        logger.info(" init miner locate duration for 10000ms.")
+        self.update_miner_locate_duration()
 
         # title bar
         if CURR_PLATFORM == "darwin":
@@ -156,6 +157,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.listenerConfig.addButton(self.checkListenVolcminer, 4)
         self.listenerConfig.addButton(self.checkListenGoldshell, 5)
         self.listenerConfig.addButton(self.checkListenSealminer, 6)
+        self.listenerConfig.addButton(self.checkListenElphapex, 7)
         self.listenerConfig.buttonClicked.connect(self.restart_listen)
 
         self.idTable.setHorizontalHeaderLabels(
@@ -391,9 +393,12 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.api_client.create_iceriver_client(
                 ip, None, self.linePbfarmerKey.text()
             )
-            mac = self.api_client.get_iceriver_mac_addr()
-            self.api_client.close_client()
-            logger.info(f"show_confirm : got iceriver mac addr : {mac}")
+        if type == "elphapex":
+            self.api_client.create_elphapex_client(ip, None)
+        missing_mac = self.api_client.get_missing_mac_addr()
+        if missing_mac:
+            mac = missing_mac
+        self.api_client.close_client()
         self.iprStatus.showMessage(f"Status :: Got {type}: IP:{ip}, MAC:{mac}", 3000)
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
@@ -798,6 +803,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.checkListenSealminer.setChecked(
                 self.config["general"]["listenFor"]["additional"]["sealminer"]
             )
+            self.checkListenElphapex.setChecked(
+                self.config["general"]["listenFor"]["additional"]["elphapex"]
+            )
 
             # api
             self.lineBitmainPasswd.setText(
@@ -885,6 +893,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                         "volcminer": self.checkListenVolcminer.isChecked(),
                         "goldshell": self.checkListenGoldshell.isChecked(),
                         "sealminer": self.checkListenSealminer.isChecked(),
+                        "elphapex": self.checkListenElphapex.isChecked(),
                     },
                 },
             },
