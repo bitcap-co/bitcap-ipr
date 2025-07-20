@@ -161,7 +161,6 @@ class APIClient:
             isinstance(parser, IceriverParser)
             or isinstance(parser, VolcminerParser)
             or isinstance(parser, SealminerParser)
-            or isinstance(parser, ElphapexParser)
         ):
             parser.parse_all(sys)
         elif isinstance(parser, GoldshellParser):
@@ -174,6 +173,10 @@ class APIClient:
             parser.parse_subtype(devs)
             ver = self.client.get_version()
             parser.parse_version_info(ver)
+        elif isinstance(parser, ElphapexParser):
+            info = self.client.get_miner_info()
+            parser.parse_platform(info)
+            parser.parse_system_info(sys)
         return parser.get_target()
 
     def get_target_data_from_type(self, miner_type: str):

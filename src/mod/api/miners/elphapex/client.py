@@ -57,6 +57,10 @@ class ElphapexHTTPClient(BaseHTTPClient):
             return net_info["macaddr"]
         return ""
 
+    def get_miner_info(self) -> dict:
+        return self.run_command("GET", "summary")
+
+
     def get_system_info(self) -> dict:
         return self.run_command("GET", "get_system_info")
 

@@ -17,7 +17,12 @@ class ElphapexParser(Parser):
         if "system_filesystem_version" in obj:
             self.target["firmware"] = obj["system_filesystem_version"]
 
-    def parse_all(self, obj: dict):
+    def parse_platform(self, obj:dict):
+        if "INFO" in obj:
+            if "hw_version" in obj["INFO"]:
+                self.target["platform"] = obj["INFO"]["hw_version"]
+
+    def parse_system_info(self, obj: dict):
         self.parse_subtype(obj)
         self.parse_firmware(obj)
         self.parse_algorithm(obj)
