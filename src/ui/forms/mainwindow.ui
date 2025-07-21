@@ -422,9 +422,9 @@
                      <property name="geometry">
                       <rect>
                        <x>0</x>
-                       <y>0</y>
+                       <y>-206</y>
                        <width>477</width>
-                       <height>383</height>
+                       <height>429</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -710,7 +710,7 @@
                              <number>0</number>
                             </property>
                             <item>
-                             <widget class="QWidget" name="hwrapper_8" native="true">
+                             <widget class="QWidget" name="additional1" native="true">
                               <layout class="QHBoxLayout" name="horizontalLayout_22">
                                <property name="spacing">
                                 <number>70</number>
@@ -762,6 +762,50 @@
                                   <string>Sealminer</string>
                                  </property>
                                 </widget>
+                               </item>
+                              </layout>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QWidget" name="additional2" native="true">
+                              <layout class="QHBoxLayout" name="horizontalLayout_19">
+                               <property name="spacing">
+                                <number>70</number>
+                               </property>
+                               <item>
+                                <widget class="QCheckBox" name="checkListenElphapex">
+                                 <property name="sizePolicy">
+                                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                                   <horstretch>0</horstretch>
+                                   <verstretch>0</verstretch>
+                                  </sizepolicy>
+                                 </property>
+                                 <property name="maximumSize">
+                                  <size>
+                                   <width>100</width>
+                                   <height>22</height>
+                                  </size>
+                                 </property>
+                                 <property name="toolTip">
+                                  <string>Enable listening for Elphapex miners</string>
+                                 </property>
+                                 <property name="text">
+                                  <string>Elphapex</string>
+                                 </property>
+                                </widget>
+                               </item>
+                               <item>
+                                <spacer name="horizontalSpacer_8">
+                                 <property name="orientation">
+                                  <enum>Qt::Orientation::Horizontal</enum>
+                                 </property>
+                                 <property name="sizeHint" stdset="0">
+                                  <size>
+                                   <width>40</width>
+                                   <height>20</height>
+                                  </size>
+                                 </property>
+                                </spacer>
                                </item>
                               </layout>
                              </widget>

@@ -191,7 +191,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 477, 383))
+        self.scrollGeneral.setGeometry(QRect(0, -206, 477, 429))
         self.verticalLayout_19 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
         self.groupSystemTray = QGroupBox(self.scrollGeneral)
@@ -318,31 +318,51 @@ class Ui_MainWindow(object):
         self.verticalLayout_12 = QVBoxLayout(self.groupAdditional)
         self.verticalLayout_12.setObjectName(u"verticalLayout_12")
         self.verticalLayout_12.setContentsMargins(0, 0, 0, 0)
-        self.hwrapper_8 = QWidget(self.groupAdditional)
-        self.hwrapper_8.setObjectName(u"hwrapper_8")
-        self.horizontalLayout_22 = QHBoxLayout(self.hwrapper_8)
+        self.additional1 = QWidget(self.groupAdditional)
+        self.additional1.setObjectName(u"additional1")
+        self.horizontalLayout_22 = QHBoxLayout(self.additional1)
         self.horizontalLayout_22.setSpacing(70)
         self.horizontalLayout_22.setObjectName(u"horizontalLayout_22")
-        self.checkListenGoldshell = QCheckBox(self.hwrapper_8)
+        self.checkListenGoldshell = QCheckBox(self.additional1)
         self.checkListenGoldshell.setObjectName(u"checkListenGoldshell")
         self.checkListenGoldshell.setMaximumSize(QSize(100, 22))
 
         self.horizontalLayout_22.addWidget(self.checkListenGoldshell)
 
-        self.checkListenVolcminer = QCheckBox(self.hwrapper_8)
+        self.checkListenVolcminer = QCheckBox(self.additional1)
         self.checkListenVolcminer.setObjectName(u"checkListenVolcminer")
         self.checkListenVolcminer.setMaximumSize(QSize(100, 22))
 
         self.horizontalLayout_22.addWidget(self.checkListenVolcminer)
 
-        self.checkListenSealminer = QCheckBox(self.hwrapper_8)
+        self.checkListenSealminer = QCheckBox(self.additional1)
         self.checkListenSealminer.setObjectName(u"checkListenSealminer")
         self.checkListenSealminer.setMaximumSize(QSize(100, 22))
 
         self.horizontalLayout_22.addWidget(self.checkListenSealminer)
 
 
-        self.verticalLayout_12.addWidget(self.hwrapper_8)
+        self.verticalLayout_12.addWidget(self.additional1)
+
+        self.additional2 = QWidget(self.groupAdditional)
+        self.additional2.setObjectName(u"additional2")
+        self.horizontalLayout_19 = QHBoxLayout(self.additional2)
+        self.horizontalLayout_19.setSpacing(70)
+        self.horizontalLayout_19.setObjectName(u"horizontalLayout_19")
+        self.checkListenElphapex = QCheckBox(self.additional2)
+        self.checkListenElphapex.setObjectName(u"checkListenElphapex")
+        sizePolicy4.setHeightForWidth(self.checkListenElphapex.sizePolicy().hasHeightForWidth())
+        self.checkListenElphapex.setSizePolicy(sizePolicy4)
+        self.checkListenElphapex.setMaximumSize(QSize(100, 22))
+
+        self.horizontalLayout_19.addWidget(self.checkListenElphapex)
+
+        self.horizontalSpacer_8 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_19.addItem(self.horizontalSpacer_8)
+
+
+        self.verticalLayout_12.addWidget(self.additional2)
 
 
         self.verticalLayout_11.addWidget(self.groupAdditional)
@@ -921,6 +941,10 @@ class Ui_MainWindow(object):
         self.checkListenSealminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Sealminers", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenSealminer.setText(QCoreApplication.translate("MainWindow", u"Sealminer", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenElphapex.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Elphapex miners", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenElphapex.setText(QCoreApplication.translate("MainWindow", u"Elphapex", None))
         self.configTabs.setTabText(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
 #if QT_CONFIG(tooltip)
         self.configTabs.setTabToolTip(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))
