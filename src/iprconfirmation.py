@@ -3,7 +3,7 @@ from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import QPixmap
 
 from ui.Confirmation import Ui_IPRConfirmation
-from ui.widgets.titlebar import TitleBar
+from ui.widgets.ipr import IPR_Titlebar
 from utils import CURR_PLATFORM
 
 
@@ -14,11 +14,11 @@ class IPRConfirmation(QWidget, Ui_IPRConfirmation):
 
         # title bar
         if CURR_PLATFORM == "darwin":
-            self.title_bar = TitleBar(
+            self.title_bar = IPR_Titlebar(
                 self, "IP Confirmation", ["close", "min"], style="mac"
             )
         else:
-            self.title_bar = TitleBar(self, "IP Confirmation", ["min", "close"])
+            self.title_bar = IPR_Titlebar(self, "IP Confirmation", ["min", "close"])
         self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
         self.title_bar._closeButton.clicked.connect(self.window().hide)
         titlebarwidget = self.titlebarwidget.layout()
