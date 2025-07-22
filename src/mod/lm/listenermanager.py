@@ -1,4 +1,5 @@
 import logging
+from typing import List
 from PySide6.QtCore import (
     QObject,
     Signal,
@@ -16,7 +17,7 @@ class ListenerManager(QObject):
 
     def __init__(self, parent: QObject):
         super().__init__(parent)
-        self.listeners = []
+        self.listeners: List[Listener] = []
 
     def append_listener(self, port: int):
         listener = Listener(self, port)
@@ -57,11 +58,11 @@ class ListenerManager(QObject):
         self.listeners = []
 
     @Slot()
-    def start(self, listenConfig: QButtonGroup):
+    def start(self, config: QButtonGroup):
         # default action (start listeners)
-        self.start_listeners(listenConfig)
+        self.start_listeners(config)
 
-    def emit_listen_complete(self, result: list):
+    def emit_listen_complete(self, result: List[str]):
         logger.info(" listen_complete signal result.")
         logger.debug(f" result: {result}.")
         self.listen_complete.emit(result)
