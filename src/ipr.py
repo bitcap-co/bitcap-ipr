@@ -801,7 +801,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         # get missing mac addr
         match type:
             case "iceriver":
-                self.api_client.create_iceriver_client(ip, None, self.linePbfarmerKey)
+                self.api_client.create_iceriver_client(ip, None, self.linePbfarmerKey.text())
             case "elphapex":
                 self.api_client.create_elphapex_client(ip, None)
         missing_mac = self.api_client.get_missing_mac_addr()
