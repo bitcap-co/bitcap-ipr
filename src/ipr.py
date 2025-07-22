@@ -895,6 +895,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
+            logger.info("show_confirmation : populate ID table.")
             self.populate_id_table(result)
         else:
             confirm = IPRConfirmation()
@@ -908,7 +909,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             confirm.lineMACField.actionCopy = self.create_copy_text_action(
                 confirm.lineMACField
             )
-            logger.info("show_confirm : show IPRConfirmation.")
+            logger.info("show_confirmation : show IPRConfirmation.")
             confirm.lineIPField.setText(ip)
             confirm.lineMACField.setText(mac.upper())
             self.confirms.append(confirm)
