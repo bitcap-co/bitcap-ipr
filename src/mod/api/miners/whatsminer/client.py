@@ -138,18 +138,18 @@ class WhatsminerRPCClient(BaseRPCClient):
         self.passwd = passwd
         self.get_token()
 
-    def has_write_access(self):
+    def has_write_access(self) -> bool:
         if not self.passwd:
             return False
         return True
 
-    def get_version(self):
+    def get_version(self) -> dict:
         return self.run_command("get_version")
 
-    def get_dev_details(self):
+    def get_dev_details(self) -> dict:
         return self.run_command("devdetails")
 
-    def get_system_info(self):
+    def get_system_info(self) -> dict:
         return self.run_command(
             "get_miner_info",
             info="ip,proto,netmask,gateway,dns,hostname,mac,ledstat,gateway",
@@ -163,7 +163,7 @@ class WhatsminerRPCClient(BaseRPCClient):
         period: int = 1000,
         duration: int = 500,
         start: int = 0,
-    ):
+    ) -> None:
         if enabled:
             auto = False
         if auto:
