@@ -798,7 +798,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         ip, mac, type, sn = result
         logger.debug(f"process_result : got {ip},{mac},{sn},{type} from listener.")
         if type == "bitmain-common":
-            bitmain_common_miners = [self.checkListenAntminer, self.checkListenVolcminer]
+            bitmain_common_miners = [self.checkListenAntminer, self.checkListenVolcminer, self.checkListenDragonball]
             enabled_common_filter = [btn.text().lower() for btn in bitmain_common_miners if btn.isChecked()]
             for miner in bitmain_common_miners:
                 match miner.text().lower():
@@ -814,6 +814,13 @@ class IPR(QMainWindow, Ui_MainWindow):
                         if not self.api_client.client or not self.api_client.is_volcminer():
                             continue
                         type = "volcminer"
+                        self.api_client.close_client()
+                        break
+                    case "dragonball":
+                        self.api_client.create_dragonball_client(ip, None)
+                        if not self.api_client.client or not self.api_client.is_dragonball():
+                            continue
+                        type = "dragonball"
                         self.api_client.close_client()
                         break
             if type not in enabled_common_filter:
