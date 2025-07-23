@@ -135,6 +135,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.listenerConfig.addButton(self.checkListenGoldshell, 5)
         self.listenerConfig.addButton(self.checkListenSealminer, 6)
         self.listenerConfig.addButton(self.checkListenElphapex, 7)
+        self.listenerConfig.addButton(self.checkListenDragonball, 8)
         self.listenerConfig.buttonClicked.connect(self.restart_listen)
         # listener signals
         self.actionIPRStart.clicked.connect(self.start_listen)
