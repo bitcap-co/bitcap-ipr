@@ -1,22 +1,25 @@
 import logging
+from typing import Dict, Optional
+
 from PySide6.QtCore import (
     QObject,
     QTimer,
 )
 
 from mod.api import settings
-from mod.api.parser import Parser
 from mod.api.errors import (
-    FailedConnectionError,
     AuthenticationError,
+    FailedConnectionError,
 )
+from mod.api.parser import Parser
+
 from .miners.bitmain import BitmainHTTPClient, BitmainParser
-from .miners.iceriver import IceriverHTTPClient, IceriverParser
-from .miners.whatsminer import WhatsminerRPCClient, WhatsminerParser
-from .miners.volcminer import VolcminerHTTPClient, VolcminerParser
-from .miners.goldshell import GoldshellHTTPClient, GoldshellParser
-from .miners.sealminer import SealminerHTTPClient, SealminerParser
 from .miners.elphapex import ElphapexHTTPClient, ElphapexParser
+from .miners.goldshell import GoldshellHTTPClient, GoldshellParser
+from .miners.iceriver import IceriverHTTPClient, IceriverParser
+from .miners.sealminer import SealminerHTTPClient, SealminerParser
+from .miners.volcminer import VolcminerHTTPClient, VolcminerParser
+from .miners.whatsminer import WhatsminerParser, WhatsminerRPCClient
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +28,8 @@ class APIClient:
     def __init__(self, parent: QObject):
         self.parent = parent
         self.client = None
-        self.locate = None
-        self.target_info = {
+        self.locate: Optional[QTimer] = None
+        self.target_info: Dict[str, str] = {
             "serial": "N/A",
             "subtype": "N/A",
             "algorithm": "N/A",
@@ -37,46 +40,43 @@ class APIClient:
     def get_client(self):
         return self.client
 
-    def create_bitmain_client(self, ip_addr: str, passwd: str, vnish_passwd: str):
+    def create_bitmain_client(self, ip_addr: str, passwd: str, vnish_passwd: str) -> None:
         try:
             self.client = BitmainHTTPClient(ip_addr, passwd, vnish_passwd)
-        except (
-            FailedConnectionError,
-            AuthenticationError,
-        ) as err:
+        except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
-    def create_iceriver_client(self, ip_addr: str, passwd: str, pb_key: str):
+    def create_iceriver_client(self, ip_addr: str, passwd: str, pb_key: str) -> None:
         try:
             self.client = IceriverHTTPClient(ip_addr, passwd, pb_key)
         except FailedConnectionError as err:
             logger.error(err)
 
-    def create_whatsminer_client(self, ip_addr: str, passwd: str):
+    def create_whatsminer_client(self, ip_addr: str, passwd: str) -> None:
         try:
             self.client = WhatsminerRPCClient(ip_addr, passwd)
         except FailedConnectionError as err:
             logger.error(err)
 
-    def create_volcminer_client(self, ip_addr: str, passwd: str):
+    def create_volcminer_client(self, ip_addr: str, passwd: str) -> None:
         try:
             self.client = VolcminerHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
-    def create_goldshell_client(self, ip_addr: str, passwd: str):
+    def create_goldshell_client(self, ip_addr: str, passwd: str) -> None:
         try:
             self.client = GoldshellHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
-    def create_sealminer_client(self, ip_addr: str, passwd: str):
+    def create_sealminer_client(self, ip_addr: str, passwd: str) -> None:
         try:
             self.client = SealminerHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
-    def create_elphapex_client(self, ip_addr: str, passwd: str):
+    def create_elphapex_client(self, ip_addr: str, passwd: str) -> None:
         try:
             self.client = ElphapexHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
@@ -84,7 +84,7 @@ class APIClient:
 
     def create_client_from_type(
         self, miner_type: str, ip_addr: str, auth: str, custom_auth: str
-    ):
+    ) -> None:
         match miner_type:
             case "antminer":
                 self.create_bitmain_client(ip_addr, auth, custom_auth)
@@ -101,7 +101,7 @@ class APIClient:
             case "elphapex":
                 self.create_elphapex_client(ip_addr, auth)
 
-    def locate_miner(self, miner_type: str):
+    def locate_miner(self, miner_type: str) -> None:
         self.locate = QTimer(self.parent)
         self.locate.setSingleShot(True)
         self.locate.timeout.connect(self.stop_locate)
@@ -119,11 +119,11 @@ class APIClient:
                 self.client.blink(enabled=True)
                 self.locate.start(duration)
 
-    def stop_locate(self):
+    def stop_locate(self) -> None:
         self.client.blink(enabled=False)
         self.close_client()
 
-    def get_missing_mac_addr(self):
+    def get_missing_mac_addr(self) -> Optional[str]:
         if isinstance(self.client, IceriverHTTPClient) or isinstance(
             self.client, ElphapexHTTPClient
         ):
@@ -152,7 +152,7 @@ class APIClient:
             return True
         return False
 
-    def get_target_info(self, parser: Parser) -> dict[str, str]:
+    def get_target_info(self, parser: Parser) -> Dict[str, str]:
         result = parser.get_target()
         if not self.client:
             for k in result.keys():
@@ -177,18 +177,18 @@ class APIClient:
             algo = self.client.get_algo_settings()
             parser.parse_algorithm(algo)
         elif isinstance(parser, WhatsminerParser):
-            parser.parse_serial(sys)
+            parser.parse_system_info(sys)
             devs = self.client.get_dev_details()
             parser.parse_subtype(devs)
             ver = self.client.get_version()
             parser.parse_version_info(ver)
         elif isinstance(parser, ElphapexParser):
+            parser.parse_system_info(sys)
             info = self.client.get_miner_info()
             parser.parse_platform(info)
-            parser.parse_system_info(sys)
         return parser.get_target()
 
-    def get_target_data_from_type(self, miner_type: str):
+    def get_target_data_from_type(self, miner_type: str) -> Dict[str, str]:
         match miner_type:
             case "antminer":
                 return self.get_target_info(BitmainParser(self.target_info))
@@ -207,7 +207,7 @@ class APIClient:
             case _:
                 return self.target_info
 
-    def close_client(self):
+    def close_client(self) -> None:
         if self.client:
             logger.debug(" close client.")
             self.client = self.client._close_client()

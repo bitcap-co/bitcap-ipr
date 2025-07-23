@@ -1,11 +1,13 @@
-import requests
 from string import Template
+from typing import Any, Dict, Optional
+
+import requests
 
 from mod.api import settings
-from mod.api.http import BaseHTTPClient
 from mod.api.errors import (
     FailedConnectionError,
 )
+from mod.api.http import BaseHTTPClient
 
 
 class IceriverHTTPClient(BaseHTTPClient):
@@ -43,16 +45,16 @@ class IceriverHTTPClient(BaseHTTPClient):
             )
 
     def _authenticate_session(self) -> None:
-        pass
+        return super()._authenticate_session()
 
     def run_command(
         self,
         method: str,
         command: str,
-        params: dict | None = None,
-        payload: dict | None = None,
-        data: dict | None = None,
-    ):
+        params: Optional[Dict[str, str]] = None,
+        payload: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None
+    ) -> Any:
         path = self.command_format["stock"].substitute(cmd=command)
         if self.is_custom:
             match command:
@@ -80,7 +82,7 @@ class IceriverHTTPClient(BaseHTTPClient):
             return True
         return False
 
-    def get_mac_addr(self):
+    def get_mac_addr(self) -> str:
         data = {"post": 1}
         resp = self.run_command("POST", "ipconfig", data=data)
         for k in resp.keys():
@@ -89,16 +91,16 @@ class IceriverHTTPClient(BaseHTTPClient):
                     return resp[k]["mac"]
         return ""
 
-    def get_system_info(self):
+    def get_system_info(self) -> dict:
         data = {"post": 4}
         resp = self.run_command("POST", "userpanel", data=data)
         return resp["data"]
 
-    def get_blink_status(self):
+    def get_blink_status(self) -> bool:
         resp = self.get_system_info()
         return resp["locate"]
 
-    def blink(self, enabled: bool):
+    def blink(self, enabled: bool) -> None:
         if not self.is_custom:
             data = {"post": 5, "locate": "1" if enabled else "0"}
             self.run_command("POST", "userpanel", data=data)

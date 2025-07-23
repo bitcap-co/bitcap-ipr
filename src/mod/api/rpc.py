@@ -2,7 +2,8 @@ import json
 import logging
 import re
 import socket
-from abc import ABC
+from abc import ABC, abstractmethod
+from typing import Optional
 
 from mod.api import settings
 from mod.api.errors import APIError, FailedConnectionError
@@ -16,9 +17,9 @@ class BaseRPCClient(ABC):
         self.port = port
         self.passwd = None
 
-        self.timeout = settings.get("rpc_request_timeout")
+        self.timeout: float = settings.get("rpc_request_timeout")
 
-        self._error = None
+        self._error: Optional[Exception] = None
 
     def __new__(cls, *args, **kwargs):
         if cls is BaseRPCClient:
@@ -28,7 +29,7 @@ class BaseRPCClient(ABC):
     def __repr__(self):
         return f"{self.__class__.__name__}: {str(self.ip)}"
 
-    def _test_connection(self):
+    def _test_connection(self) -> None:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.settimeout(self.timeout)
             try:
@@ -80,6 +81,14 @@ class BaseRPCClient(ABC):
         cmd = json.dumps({"cmd": command, **kwargs})
         return self._do_rpc(cmd)
 
+    @abstractmethod
+    def get_system_info(self) -> dict:
+        pass
+
+    @abstractmethod
+    def blink(self, enabled: bool, **kwargs) -> None:
+        pass
+
     def _load_api_data(self, data: bytes) -> dict:
         str_data = data.decode("utf-8").rstrip("\x00")
         str_data = str_data.replace(",}", "}")
@@ -101,7 +110,7 @@ class BaseRPCClient(ABC):
         return api_data
 
     @staticmethod
-    def _recv_all(s: socket.socket, buf_size: int) -> bytearray | None:
+    def _recv_all(s: socket.socket, buf_size: int) -> Optional[bytearray]:
         s.setblocking(True)
         data = bytearray()
         while len(data) < buf_size:
