@@ -206,14 +206,14 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.update_sys_tray_visibility
         )
 
-        # set configuration
-        self.read_settings()
-
         # configuration signals
         self.checkUseCustomTimeout.toggled.connect(self.update_inactive_timer_settings)
         self.spinInactiveTimeout.valueChanged.connect(self.update_inactive_timer)
         self.spinLocateDuration.valueChanged.connect(self.update_miner_locate_duration)
         self.comboLogLevel.currentIndexChanged.connect(self.set_logger_level)
+
+        # set configuration
+        self.read_settings()
 
         self.update_stacked_widget()
         self.update_status_msg()
