@@ -14,6 +14,7 @@ from mod.api.errors import (
 from mod.api.parser import Parser
 
 from .miners.bitmain import BitmainHTTPClient, BitmainParser
+from .miners.dragonball import DragonballHTTPClient, DragonballParser
 from .miners.elphapex import ElphapexHTTPClient, ElphapexParser
 from .miners.goldshell import GoldshellHTTPClient, GoldshellParser
 from .miners.iceriver import IceriverHTTPClient, IceriverParser
@@ -82,6 +83,12 @@ class APIClient:
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
+    def create_dragonball_client(self, ip_addr: str, passwd: str) -> None:
+        try:
+            self.client = DragonballHTTPClient(ip_addr, passwd)
+        except (FailedConnectionError, AuthenticationError) as err:
+            logger.error(err)
+
     def create_client_from_type(
         self, miner_type: str, ip_addr: str, auth: str, custom_auth: str
     ) -> None:
@@ -100,6 +107,8 @@ class APIClient:
                 self.create_sealminer_client(ip_addr, auth)
             case "elphapex":
                 self.create_elphapex_client(ip_addr, auth)
+            case "dragonball":
+                self.create_dragonball_client(ip_addr, auth)
 
     def locate_miner(self, miner_type: str) -> None:
         self.locate = QTimer(self.parent)
@@ -152,6 +161,12 @@ class APIClient:
             return True
         return False
 
+    def is_dragonball(self) -> bool:
+        miner_type = self.get_common_miner_type()
+        if miner_type and miner_type == "miner":
+            return True
+        return False
+
     def get_target_info(self, parser: Parser) -> Dict[str, str]:
         result = parser.get_target()
         if not self.client:
@@ -186,6 +201,8 @@ class APIClient:
             parser.parse_system_info(sys)
             info = self.client.get_miner_info()
             parser.parse_platform(info)
+        elif isinstance(parser, DragonballParser):
+            parser.parse_system_info(sys)
         return parser.get_target()
 
     def get_target_data_from_type(self, miner_type: str) -> Dict[str, str]:
@@ -204,6 +221,8 @@ class APIClient:
                 return self.get_target_info(SealminerParser(self.target_info))
             case "elphapex":
                 return self.get_target_info(ElphapexParser(self.target_info))
+            case "dragonball":
+                return self.get_target_info(DragonballParser(self.target_info))
             case _:
                 return self.target_info
 
