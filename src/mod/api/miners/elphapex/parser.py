@@ -4,7 +4,7 @@ from ...parser import Parser
 
 
 class ElphapexParser(Parser):
-    def __init__(self, target: dict):
+    def __init__(self, target: Dict[str, str]):
         super().__init__(target)
 
     def parse_serial(self, obj: Dict[str, Any]) -> None:

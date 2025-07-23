@@ -78,7 +78,7 @@ class BitmainHTTPClient(BaseHTTPClient):
                 case "blink":
                     command = "/find-miner"
             path = self.command_format["vnish"] + command
-        res = self._do_http(method=method, path=path, payload=payload)
+        res = self._do_http(method, path, params=params, payload=payload, data=data)
         try:
             resj = res.json()
         except requests.exceptions.JSONDecodeError:
