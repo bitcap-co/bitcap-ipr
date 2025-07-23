@@ -47,7 +47,7 @@ class IPReportDatagram:
     def __get_miner_type_from_port(self) -> None:
         match self.dst_port:
             case 14235:  # common port
-                self.miner_type = "antminer"
+                self.miner_type = "bitmain-common"
             case 11503:
                 self.miner_type = "iceriver"
             case 8888:
@@ -104,7 +104,7 @@ class IPReportDatagram:
                 self.msg = self.data.decode().rstrip("\x00")
 
             match self.miner_type:
-                case "antminer":
+                case "bitmain-common":
                     if re.match(msg_patterns["common"], self.msg):
                         self.is_msg_valid = True
                 case "iceriver":
@@ -137,7 +137,7 @@ class IPReportDatagram:
         mac = ""
         sn = ""
         match self.miner_type:
-            case "antminer":
+            case "bitmain-common":
                 ip, mac = self.msg.split(",")
             case "iceriver":
                 ip = self.msg.split(":")[1]
