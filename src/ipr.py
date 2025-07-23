@@ -337,6 +337,9 @@ class IPR(QMainWindow, Ui_MainWindow):
            self.checkListenElphapex.setChecked(
                self.config["general"]["listenFor"]["additional"]["elphapex"]
            )
+           self.checkListenDragonball.setChecked(
+               self.config["general"]["listenFor"]["additional"]["dragonball"]
+           )
 
            # api
            self.lineBitmainPasswd.setText(
@@ -425,6 +428,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                        "goldshell": self.checkListenGoldshell.isChecked(),
                        "sealminer": self.checkListenSealminer.isChecked(),
                        "elphapex": self.checkListenElphapex.isChecked(),
+                       "dragonball": self.checkListenDragonball.isChecked(),
                    },
                },
            },

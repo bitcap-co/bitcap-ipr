@@ -345,6 +345,12 @@ class Ui_MainWindow(object):
 
         self.gridLayout.addWidget(self.checkListenSealminer, 0, 2, 1, 1)
 
+        self.checkListenDragonball = QCheckBox(self.groupAdditional)
+        self.checkListenDragonball.setObjectName(u"checkListenDragonball")
+        self.checkListenDragonball.setMaximumSize(QSize(100, 22))
+
+        self.gridLayout.addWidget(self.checkListenDragonball, 1, 1, 1, 1)
+
 
         self.verticalLayout_11.addWidget(self.groupAdditional)
 
@@ -926,6 +932,10 @@ class Ui_MainWindow(object):
         self.checkListenSealminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Sealminers", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenSealminer.setText(QCoreApplication.translate("MainWindow", u"Sealminer", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenDragonball.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Dragonball miners", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenDragonball.setText(QCoreApplication.translate("MainWindow", u"Dragonball", None))
         self.configTabs.setTabText(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
 #if QT_CONFIG(tooltip)
         self.configTabs.setTabToolTip(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))
