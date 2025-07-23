@@ -1,10 +1,12 @@
+from string import Template
+from typing import Any, Dict, Optional
+
 import requests
 from requests.auth import HTTPDigestAuth
-from string import Template
 
 from mod.api import settings
+from mod.api.errors import AuthenticationError
 from mod.api.http import BaseHTTPClient
-from mod.api.errors import FailedConnectionError, AuthenticationError
 
 
 class VolcminerHTTPClient(BaseHTTPClient):
@@ -19,21 +21,10 @@ class VolcminerHTTPClient(BaseHTTPClient):
 
         self._initialize_session()
 
-    def _initialize_session(self):
-        try:
-            self._authenticate_session()
-        except (
-            requests.exceptions.ConnectionError,
-            requests.exceptions.ConnectTimeout,
-            requests.exceptions.ReadTimeout,
-        ):
-            self._close_client(
-                FailedConnectionError(
-                    "Connection Failed: Failed to connect or timeout occured."
-                )
-            )
+    def _initialize_session(self) -> None:
+        return super()._initialize_session()
 
-    def _authenticate_session(self):
+    def _authenticate_session(self) -> None:
         for passwd in self.passwds:
             if not passwd:
                 continue
@@ -53,10 +44,10 @@ class VolcminerHTTPClient(BaseHTTPClient):
         self,
         method: str,
         command: str,
-        params: dict | None = None,
-        payload: dict | None = None,
-        data: dict | None = None,
-    ):
+        params: Optional[Dict[str, str]] = None,
+        payload: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None
+    ) -> Any:
         path = self.command_format.substitute(cmd=command)
         res = self._do_http(method, path, data=data)
         try:
@@ -65,9 +56,15 @@ class VolcminerHTTPClient(BaseHTTPClient):
             resj = {}
         return resj
 
-    def get_system_info(self):
+    def get_mac_addr(self) -> str:
+        return super().get_mac_addr()
+
+    def get_system_info(self) -> dict:
         return self.run_command("GET", "get_system_info")
 
-    def blink(self, enabled: bool):
+    def get_blink_status(self) -> bool:
+        return super().get_blink_status()
+
+    def blink(self, enabled: bool) -> None:
         data = {"_bb_type": "rgOn" if enabled else "rgOff"}
         self.run_command("POST", "post_led_onoff", data=data)

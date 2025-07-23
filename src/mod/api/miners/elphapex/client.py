@@ -1,9 +1,10 @@
-import requests
 from string import Template
+from typing import Any, Dict, Optional
+
+import requests
 
 from mod.api import settings
 from mod.api.http import BaseHTTPClient
-from mod.api.errors import FailedConnectionError
 
 
 class ElphapexHTTPClient(BaseHTTPClient):
@@ -18,31 +19,20 @@ class ElphapexHTTPClient(BaseHTTPClient):
 
         self._initialize_session()
 
-    def _initialize_session(self):
-        try:
-            self._authenticate_session()
-        except (
-            requests.exceptions.ConnectionError,
-            requests.exceptions.ConnectTimeout,
-            requests.exceptions.ReadTimeout,
-        ):
-            self._close_client(
-                FailedConnectionError(
-                    "Connection Failed: Failed to connect or timeout occured."
-                )
-            )
+    def _initialize_session(self) -> None:
+        return super()._initialize_session()
 
     def _authenticate_session(self) -> None:
-        pass
+        return super()._authenticate_session()
 
     def run_command(
         self,
         method: str,
         command: str,
-        params: dict | None = None,
-        payload: dict | None = None,
-        data: dict | None = None,
-    ):
+        params: Optional[Dict[str, str]] = None,
+        payload: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None
+    ) -> Any:
         path = self.command_format.substitute(cmd=command)
         res = self._do_http(method, path, data=data)
         try:
@@ -51,18 +41,20 @@ class ElphapexHTTPClient(BaseHTTPClient):
             resj = {}
         return resj
 
-    def get_mac_addr(self):
+    def get_miner_info(self) -> dict:
+        return self.run_command("GET", "summary")
+
+    def get_mac_addr(self) -> str:
         net_info = self.run_command("GET", "get_network_info")
         if "macaddr" in net_info:
             return net_info["macaddr"]
         return ""
 
-    def get_miner_info(self) -> dict:
-        return self.run_command("GET", "summary")
-
-
     def get_system_info(self) -> dict:
         return self.run_command("GET", "get_system_info")
+
+    def get_blink_status(self) -> bool:
+        return super().get_blink_status()
 
     def blink(self, enabled: bool) -> None:
         self.run_command("POST", "blink", payload={"blink": enabled})

@@ -1,9 +1,11 @@
-import requests
 from string import Template
+from typing import Any, Dict, Optional
+
+import requests
 
 from mod.api import settings
+from mod.api.errors import AuthenticationError
 from mod.api.http import BaseHTTPClient
-from mod.api.errors import FailedConnectionError, AuthenticationError
 
 
 class SealminerHTTPClient(BaseHTTPClient):
@@ -18,19 +20,8 @@ class SealminerHTTPClient(BaseHTTPClient):
 
         self._initialize_session()
 
-    def _initialize_session(self):
-        try:
-            self._authenticate_session()
-        except (
-            requests.exceptions.ConnectionError,
-            requests.exceptions.ConnectTimeout,
-            requests.exceptions.ReadTimeout,
-        ):
-            self._close_client(
-                FailedConnectionError(
-                    "Connection Failed: Failed to connect or timeout occured."
-                )
-            )
+    def _initialize_session(self) -> None:
+        return super()._initialize_session()
 
     def _authenticate_session(self):
         for passwd in self.passwds:
@@ -54,10 +45,10 @@ class SealminerHTTPClient(BaseHTTPClient):
         self,
         method: str,
         command: str,
-        params: dict | None = None,
-        payload: dict | None = None,
-        data: dict | None = None,
-    ):
+        params: Optional[Dict[str, str]] = None,
+        payload: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None
+    ) -> Any:
         path = self.command_format.substitute(cmd=command)
         res = self._do_http(method=method, path=path, params=params, data=data)
         try:
@@ -65,6 +56,9 @@ class SealminerHTTPClient(BaseHTTPClient):
         except requests.exceptions.JSONDecodeError:
             resj = {}
         return resj
+
+    def get_mac_addr(self) -> str:
+        return super().get_mac_addr()
 
     def get_system_info(self):
         return self.run_command("GET", "get_system_info")

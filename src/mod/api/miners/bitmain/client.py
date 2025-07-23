@@ -1,13 +1,15 @@
+from string import Template
+from typing import Any, Dict, Optional
+
 import requests
 from requests.auth import HTTPDigestAuth
-from string import Template
 
 from mod.api import settings
-from mod.api.http import BaseHTTPClient
 from mod.api.errors import (
-    FailedConnectionError,
     AuthenticationError,
+    FailedConnectionError,
 )
+from mod.api.http import BaseHTTPClient
 
 
 class BitmainHTTPClient(BaseHTTPClient):
@@ -62,10 +64,10 @@ class BitmainHTTPClient(BaseHTTPClient):
         self,
         method: str,
         command: str,
-        params: dict | None = None,
-        payload: dict | None = None,
-        data: dict | None = None,
-    ):
+        params: Optional[Dict[str, str]] = None,
+        payload: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None
+    ) -> Any:
         path = self.command_format["stock"].substitute(cmd=command)
         if self.is_custom:
             match command:
@@ -121,6 +123,9 @@ class BitmainHTTPClient(BaseHTTPClient):
         resp = self.run_command("GET", "log")
         resp["plaintext"] = resp["plaintext"][0 : resp["plaintext"].find("===")]
         return resp
+
+    def get_mac_addr(self) -> str:
+        return super().get_mac_addr()
 
     def get_system_info(self) -> dict:
         return self.run_command("GET", "get_system_info")
