@@ -902,7 +902,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 )
             self.iprStatus.showMessage(
                 f"Status :: Locating miner: {ip_addr}...",
-                self.locateMinerDuration,
+                self.miner_locate_duration,
             )
 
     # ip confirmation
