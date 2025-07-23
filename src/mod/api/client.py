@@ -133,14 +133,23 @@ class APIClient:
             else:
                 return "Failed"
 
-    def is_volcminer(self) -> bool:
+    def get_common_miner_type(self):
         if self.client:
             system_info = self.client.get_system_info()
-            if "minertype" in system_info:
-                miner_type = system_info["minertype"][:10].strip()
-                if miner_type == "VolcMiner":
-                    logger.debug(" found VolcMiner.")
-                    return True
+            for k in system_info.keys():
+                if k in ["miner", "minertype"]:
+                    return system_info[k].strip().lower()
+
+    def is_antminer(self) -> bool:
+        miner_type: str = self.get_common_miner_type()
+        if miner_type and miner_type.__contains__("antminer"):
+            return True
+        return False
+
+    def is_volcminer(self) -> bool:
+        miner_type = self.get_common_miner_type()
+        if miner_type and miner_type.__contains__("volcminer"):
+            return True
         return False
 
     def get_target_info(self, parser: Parser) -> Dict[str, str]:

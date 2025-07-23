@@ -792,12 +792,29 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.inactive.start()
         ip, mac, type, sn = result
         logger.debug(f"process_result : got {ip},{mac},{sn},{type} from listener.")
-        # check and see if the miner is actually a volcminer
-        if type == "antminer" and self.checkListenVolcminer.isChecked():
-            self.api_client.create_volcminer_client(ip, self.lineVolcminerPasswd.text())
-            if self.api_client.is_volcminer():
-                type = "volcminer"
-            self.api_client.close_client()
+        if type == "bitmain-common":
+            bitmain_common_miners = [self.checkListenAntminer, self.checkListenVolcminer]
+            enabled_common_filter = [btn.text().lower() for btn in bitmain_common_miners if btn.isChecked()]
+            for miner in bitmain_common_miners:
+                match miner.text().lower():
+                    case "antminer":
+                        self.api_client.create_bitmain_client(ip, self.lineBitmainPasswd.text(), self.lineVnishPasswd.text())
+                        if not self.api_client.client or not self.api_client.is_antminer():
+                            continue
+                        type = "antminer"
+                        self.api_client.close_client()
+                        break
+                    case "volcminer":
+                        self.api_client.create_volcminer_client(ip, self.lineVolcminerPasswd.text())
+                        if not self.api_client.client or not self.api_client.is_volcminer():
+                            continue
+                        type = "volcminer"
+                        self.api_client.close_client()
+                        break
+            if type not in enabled_common_filter:
+                logger.warning(f"process_result : recieved miner type {type} outside of filter: {enabled_common_filter}. Ignoring...")
+                self.iprStatus.showMessage(f"Status :: Got miner type: {type.capitalize()} outside of listener configuration.", 8000)
+                return
         # get missing mac addr
         match type:
             case "iceriver":
