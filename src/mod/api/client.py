@@ -168,15 +168,15 @@ class APIClient:
             algo = self.client.get_algo_settings()
             parser.parse_algorithm(algo)
         elif isinstance(parser, WhatsminerParser):
-            parser.parse_serial(sys)
+            parser.parse_system_info(sys)
             devs = self.client.get_dev_details()
             parser.parse_subtype(devs)
             ver = self.client.get_version()
             parser.parse_version_info(ver)
         elif isinstance(parser, ElphapexParser):
+            parser.parse_system_info(sys)
             info = self.client.get_miner_info()
             parser.parse_platform(info)
-            parser.parse_system_info(sys)
         return parser.get_target()
 
     def get_target_data_from_type(self, miner_type: str):
