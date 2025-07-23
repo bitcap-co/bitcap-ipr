@@ -891,6 +891,11 @@ class IPR(QMainWindow, Ui_MainWindow):
                         "Status :: Failed to locate miner: VolcMiner is currently not supported.",
                         5000,
                     )
+                case "dragonball":
+                    return self.iprStatus.showMessage(
+                        "Status :: Failed to locate miner: Dragonball is currently not supported.",
+                        5000
+                    )
                 case "iceriver":
                     custom_auth = self.linePbfarmerKey.text()
                 case "whatsminer":
