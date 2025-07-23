@@ -135,6 +135,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.listenerConfig.addButton(self.checkListenGoldshell, 5)
         self.listenerConfig.addButton(self.checkListenSealminer, 6)
         self.listenerConfig.addButton(self.checkListenElphapex, 7)
+        self.listenerConfig.addButton(self.checkListenDragonball, 8)
         self.listenerConfig.buttonClicked.connect(self.restart_listen)
         # listener signals
         self.actionIPRStart.clicked.connect(self.start_listen)
@@ -337,6 +338,9 @@ class IPR(QMainWindow, Ui_MainWindow):
            self.checkListenElphapex.setChecked(
                self.config["general"]["listenFor"]["additional"]["elphapex"]
            )
+           self.checkListenDragonball.setChecked(
+               self.config["general"]["listenFor"]["additional"]["dragonball"]
+           )
 
            # api
            self.lineBitmainPasswd.setText(
@@ -425,6 +429,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                        "goldshell": self.checkListenGoldshell.isChecked(),
                        "sealminer": self.checkListenSealminer.isChecked(),
                        "elphapex": self.checkListenElphapex.isChecked(),
+                       "dragonball": self.checkListenDragonball.isChecked(),
                    },
                },
            },
@@ -793,7 +798,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         ip, mac, type, sn = result
         logger.debug(f"process_result : got {ip},{mac},{sn},{type} from listener.")
         if type == "bitmain-common":
-            bitmain_common_miners = [self.checkListenAntminer, self.checkListenVolcminer]
+            bitmain_common_miners = [self.checkListenAntminer, self.checkListenVolcminer, self.checkListenDragonball]
             enabled_common_filter = [btn.text().lower() for btn in bitmain_common_miners if btn.isChecked()]
             for miner in bitmain_common_miners:
                 match miner.text().lower():
@@ -809,6 +814,13 @@ class IPR(QMainWindow, Ui_MainWindow):
                         if not self.api_client.client or not self.api_client.is_volcminer():
                             continue
                         type = "volcminer"
+                        self.api_client.close_client()
+                        break
+                    case "dragonball":
+                        self.api_client.create_dragonball_client(ip, None)
+                        if not self.api_client.client or not self.api_client.is_dragonball():
+                            continue
+                        type = "dragonball"
                         self.api_client.close_client()
                         break
             if type not in enabled_common_filter:
@@ -878,6 +890,11 @@ class IPR(QMainWindow, Ui_MainWindow):
                     return self.iprStatus.showMessage(
                         "Status :: Failed to locate miner: VolcMiner is currently not supported.",
                         5000,
+                    )
+                case "dragonball":
+                    return self.iprStatus.showMessage(
+                        "Status :: Failed to locate miner: Dragonball is currently not supported.",
+                        5000
                     )
                 case "iceriver":
                     custom_auth = self.linePbfarmerKey.text()

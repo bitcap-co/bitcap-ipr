@@ -17,6 +17,7 @@ _gs = {
     "default_volcminer_passwd": "ltc@dog",
     "default_sealminer_passwd": "seal",
     "default_elphapex_passwd": "root",
+    "default_dragonball_passwd": "dragonball",
 }
 
 
