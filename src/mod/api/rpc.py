@@ -15,7 +15,7 @@ class BaseRPCClient(ABC):
     def __init__(self, ip: str, port: int = 4028):
         self.ip = ip
         self.port = port
-        self.passwd = None
+        self.passwd: Optional[str] = None
 
         self.timeout: float = settings.get("rpc_request_timeout")
 
