@@ -20,12 +20,10 @@ class BaseHTTPClient(ABC):
         self.url = ""
         self.username: Optional[str] = None
         self.passwd: Optional[str] = None
-
+        self.passwds: Optional[List[str]] = None
         self.auth: Optional[HTTPDigestAuth] = None
         self.bearer: Optional[str] = None
         self.session = requests.Session()
-
-        self.command_format: Optional[Any] = None
 
         self.is_custom = False
         self.is_unlocked = False

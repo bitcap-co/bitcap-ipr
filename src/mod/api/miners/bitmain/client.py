@@ -1,5 +1,5 @@
 from string import Template
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import requests
 from requests.auth import HTTPDigestAuth
@@ -20,7 +20,7 @@ class BitmainHTTPClient(BaseHTTPClient):
         self.url = f"http://{self.ip}:{self.port}/"
         self.username = "root"
         self.passwds = [passwd, settings.get("default_bitmain_passwd")]
-        self.vnish_passwds = [vnish_passwd, settings.get("default_vnish_passwd")]
+        self.vnish_passwds: List[str] = [vnish_passwd, settings.get("default_vnish_passwd")]
         self.command_format = {
             "vnish": "api/v1",
             "stock": Template("cgi-bin/${cmd}.cgi"),
