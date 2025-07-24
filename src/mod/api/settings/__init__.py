@@ -12,6 +12,7 @@ _gs = {
     "default_bitmain_passwd": "root",
     "default_vnish_passwd": "admin",
     "default_whatsminer_passwd": "admin",
+    "default_iceriver_passwd": "12345678",
     "default_pbfarmer_auth": "5b281acc-de86-41bb-b14d-e266d9c9edbd",
     "default_goldshell_passwd": "123456789",
     "default_volcminer_passwd": "ltc@dog",

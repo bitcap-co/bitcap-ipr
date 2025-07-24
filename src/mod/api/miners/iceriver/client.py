@@ -1,5 +1,5 @@
 from string import Template
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import requests
 
@@ -17,6 +17,7 @@ class IceriverHTTPClient(BaseHTTPClient):
         super().__init__(ip_addr)
         self.url = f"http://{self.ip}:{self.port}/"
         self.passwd = passwd
+        self.passwds: List[str] = [passwd, settings.get("default_iceriver_passwd")]
         self.bearer = pb_key
         if not self.bearer:
             self.bearer = settings.get("default_pbfarmer_auth")
