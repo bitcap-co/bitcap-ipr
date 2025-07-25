@@ -75,7 +75,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         logger.info(" init mod lm.")
         self.lm = ListenerManager(self)
-        self.lm.listen_complete.connect(self.post_process_result)
+        self.lm.listen_complete.connect(self.process_result)
         # restart listeners on fail
         self.lm.listen_error.connect(self.restart_listen)
 
@@ -118,7 +118,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionCopySelectedElements.triggered.connect(self.copy_selected)
         self.menu_bar.actionImport.triggered.connect(self.import_table)
         self.menu_bar.actionExport.triggered.connect(self.export_table)
-        self.menu_bar.actionSettings.triggered.connect(lambda: self.update_stacked_widget(view_index=2))
+        self.menu_bar.actionSettings.triggered.connect(
+            lambda: self.update_stacked_widget(view_index=2)
+        )
         self.menu_bar.actionDisableInactiveTimer.changed.connect(
             self.update_inactive_timer
         )
@@ -228,11 +230,11 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     # logger
     def set_logger_level(self):
-       logger.manager.root.setLevel(self.comboLogLevel.currentText())
-       logger.log(
-           logger.manager.root.level,
-           f" change logger to level {self.comboLogLevel.currentText()}.",
-       )
+        logger.manager.root.setLevel(self.comboLogLevel.currentText())
+        logger.log(
+            logger.manager.root.level,
+            f" change logger to level {self.comboLogLevel.currentText()}.",
+        )
 
     # window
     def toggle_visibility(self):
@@ -275,7 +277,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
             self.actionSysStopListen.setEnabled(False)
             self.system_tray_menu.addSeparator()
-            self.system_tray_menu.addAction("Settings", lambda: self.update_stacked_widget(view_index=2))
+            self.system_tray_menu.addAction(
+                "Settings", lambda: self.update_stacked_widget(view_index=2)
+            )
             self.system_tray_menu.addAction("Quit", self.quit)
             if self.lm.listeners:
                 self.actionSysStartListen.setEnabled(False)
@@ -299,194 +303,194 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     # configuration
     def read_settings(self):
-       logger.info(" read config.")
-       self.config_path = get_config_file_path()
-       if os.path.exists(self.config_path):
-           self.config = read_config(self.config_path)
-           # general
-           self.checkEnableSysTray.setChecked(self.config["general"]["enableSysTray"])
-           self.comboOnWindowClose.setCurrentIndex(
-               self.config["general"]["onWindowClose"]
-           )
-           self.checkUseCustomTimeout.setChecked(
-               self.config["general"]["useCustomTimeout"]
-           )
-           self.spinInactiveTimeout.setValue(
-               self.config["general"]["inactiveTimeoutMins"]
-           )
+        logger.info(" read config.")
+        self.config_path = get_config_file_path()
+        if os.path.exists(self.config_path):
+            self.config = read_config(self.config_path)
+            # general
+            self.checkEnableSysTray.setChecked(self.config["general"]["enableSysTray"])
+            self.comboOnWindowClose.setCurrentIndex(
+                self.config["general"]["onWindowClose"]
+            )
+            self.checkUseCustomTimeout.setChecked(
+                self.config["general"]["useCustomTimeout"]
+            )
+            self.spinInactiveTimeout.setValue(
+                self.config["general"]["inactiveTimeoutMins"]
+            )
 
-           # listeners
-           self.checkListenAntminer.setChecked(
-               self.config["general"]["listenFor"]["antminer"]
-           )
-           self.checkListenWhatsminer.setChecked(
-               self.config["general"]["listenFor"]["whatsminer"]
-           )
-           self.checkListenIceRiver.setChecked(
-               self.config["general"]["listenFor"]["iceriver"]
-           )
-           # additional listeners
-           self.checkListenVolcminer.setChecked(
-               self.config["general"]["listenFor"]["additional"]["volcminer"]
-           )
-           self.checkListenGoldshell.setChecked(
-               self.config["general"]["listenFor"]["additional"]["goldshell"]
-           )
-           self.checkListenSealminer.setChecked(
-               self.config["general"]["listenFor"]["additional"]["sealminer"]
-           )
-           self.checkListenElphapex.setChecked(
-               self.config["general"]["listenFor"]["additional"]["elphapex"]
-           )
-           self.checkListenDragonball.setChecked(
-               self.config["general"]["listenFor"]["additional"]["dragonball"]
-           )
+            # listeners
+            self.checkListenAntminer.setChecked(
+                self.config["general"]["listenFor"]["antminer"]
+            )
+            self.checkListenWhatsminer.setChecked(
+                self.config["general"]["listenFor"]["whatsminer"]
+            )
+            self.checkListenIceRiver.setChecked(
+                self.config["general"]["listenFor"]["iceriver"]
+            )
+            # additional listeners
+            self.checkListenVolcminer.setChecked(
+                self.config["general"]["listenFor"]["additional"]["volcminer"]
+            )
+            self.checkListenGoldshell.setChecked(
+                self.config["general"]["listenFor"]["additional"]["goldshell"]
+            )
+            self.checkListenSealminer.setChecked(
+                self.config["general"]["listenFor"]["additional"]["sealminer"]
+            )
+            self.checkListenElphapex.setChecked(
+                self.config["general"]["listenFor"]["additional"]["elphapex"]
+            )
+            self.checkListenDragonball.setChecked(
+                self.config["general"]["listenFor"]["additional"]["dragonball"]
+            )
 
-           # api
-           self.lineBitmainPasswd.setText(
-               self.config["api"]["auth"]["bitmainAltPasswd"]
-           )
-           self.lineWhatsminerPasswd.setText(
-               self.config["api"]["auth"]["whatsminerAltPasswd"]
-           )
-           self.lineVolcminerPasswd.setText(
-               self.config["api"]["auth"]["volcminerAltPasswd"]
-           )
-           self.lineGoldshellPasswd.setText(
-               self.config["api"]["auth"]["goldshellAltPasswd"]
-           )
-           self.lineVnishPasswd.setText(
-               self.config["api"]["auth"]["firmware"]["vnishAltPasswd"]
-           )
-           self.linePbfarmerKey.setText(
-               self.config["api"]["auth"]["firmware"]["pbfarmerKey"]
-           )
+            # api
+            self.lineBitmainPasswd.setText(
+                self.config["api"]["auth"]["bitmainAltPasswd"]
+            )
+            self.lineWhatsminerPasswd.setText(
+                self.config["api"]["auth"]["whatsminerAltPasswd"]
+            )
+            self.lineVolcminerPasswd.setText(
+                self.config["api"]["auth"]["volcminerAltPasswd"]
+            )
+            self.lineGoldshellPasswd.setText(
+                self.config["api"]["auth"]["goldshellAltPasswd"]
+            )
+            self.lineVnishPasswd.setText(
+                self.config["api"]["auth"]["firmware"]["vnishAltPasswd"]
+            )
+            self.linePbfarmerKey.setText(
+                self.config["api"]["auth"]["firmware"]["pbfarmerKey"]
+            )
 
-           # api settings
-           self.spinLocateDuration.setValue(
-               self.config["api"]["settings"]["locateDurationSecs"]
-           )
-           self.checkVnishUseAntminerLogin.setChecked(
-               self.config["api"]["settings"]["vnishUseAntminerLogin"]
-           )
+            # api settings
+            self.spinLocateDuration.setValue(
+                self.config["api"]["settings"]["locateDurationSecs"]
+            )
+            self.checkVnishUseAntminerLogin.setChecked(
+                self.config["api"]["settings"]["vnishUseAntminerLogin"]
+            )
 
-           # logs
-           self.comboLogLevel.setCurrentText(self.config["logs"]["logLevel"])
-           self.spinMaxLogSize.setValue(self.config["logs"]["maxLogSize"])
-           self.comboOnMaxLogSize.setCurrentIndex(self.config["logs"]["onMaxLogSize"])
-           self.comboFlushInterval.setCurrentIndex(
-               self.config["logs"]["flushInterval"]
-           )
+            # logs
+            self.comboLogLevel.setCurrentText(self.config["logs"]["logLevel"])
+            self.spinMaxLogSize.setValue(self.config["logs"]["maxLogSize"])
+            self.comboOnMaxLogSize.setCurrentIndex(self.config["logs"]["onMaxLogSize"])
+            self.comboFlushInterval.setCurrentIndex(
+                self.config["logs"]["flushInterval"]
+            )
 
-           # instance
-           window = self.config["instance"]["geometry"]["mainWindow"]
-           if window:
-               self.setGeometry(*window)
+            # instance
+            window = self.config["instance"]["geometry"]["mainWindow"]
+            if window:
+                self.setGeometry(*window)
 
-           self.menu_bar.actionAlwaysOpenIPInBrowser.setChecked(
-               self.config["instance"]["options"]["alwaysOpenIPInBrowser"]
-           )
-           self.menu_bar.actionDisableInactiveTimer.setChecked(
-               self.config["instance"]["options"]["disableInactiveTimer"]
-           )
-           self.menu_bar.actionAutoStartOnLaunch.setChecked(
-               self.config["instance"]["options"]["autoStartOnLaunch"]
-           )
-           self.menu_bar.actionEnableIDTable.setChecked(
-               self.config["instance"]["table"]["enableIDTable"]
-           )
+            self.menu_bar.actionAlwaysOpenIPInBrowser.setChecked(
+                self.config["instance"]["options"]["alwaysOpenIPInBrowser"]
+            )
+            self.menu_bar.actionDisableInactiveTimer.setChecked(
+                self.config["instance"]["options"]["disableInactiveTimer"]
+            )
+            self.menu_bar.actionAutoStartOnLaunch.setChecked(
+                self.config["instance"]["options"]["autoStartOnLaunch"]
+            )
+            self.menu_bar.actionEnableIDTable.setChecked(
+                self.config["instance"]["table"]["enableIDTable"]
+            )
 
     def update_settings(self):
-       logger.info(" update settings to config.")
-       instance = {
-           "geometry": {
-               "mainWindow": [
-                   self.geometry().x(),
-                   self.geometry().y(),
-                   self.geometry().width(),
-                   self.geometry().height(),
-               ]
-           },
-           "options": {
-               "alwaysOpenIPInBrowser": self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked(),
-               "disableInactiveTimer": self.menu_bar.actionDisableInactiveTimer.isChecked(),
-               "autoStartOnLaunch": self.menu_bar.actionAutoStartOnLaunch.isChecked(),
-           },
-           "table": {"enableIDTable": self.menu_bar.actionEnableIDTable.isChecked()},
-       }
-       config = {
-           "general": {
-               "enableSysTray": self.checkEnableSysTray.isChecked(),
-               "onWindowClose": self.comboOnWindowClose.currentIndex(),
-               "useCustomTimeout": self.checkUseCustomTimeout.isChecked(),
-               "inactiveTimeoutMins": self.spinInactiveTimeout.value(),
-               "listenFor": {
-                   "antminer": self.checkListenAntminer.isChecked(),
-                   "whatsminer": self.checkListenWhatsminer.isChecked(),
-                   "iceriver": self.checkListenIceRiver.isChecked(),
-                   "additional": {
-                       "volcminer": self.checkListenVolcminer.isChecked(),
-                       "goldshell": self.checkListenGoldshell.isChecked(),
-                       "sealminer": self.checkListenSealminer.isChecked(),
-                       "elphapex": self.checkListenElphapex.isChecked(),
-                       "dragonball": self.checkListenDragonball.isChecked(),
-                   },
-               },
-           },
-           "api": {
-               "auth": {
-                   "bitmainAltPasswd": self.lineBitmainPasswd.text(),
-                   "whatsminerAltPasswd": self.lineWhatsminerPasswd.text(),
-                   "volcminerAltPasswd": self.lineVolcminerPasswd.text(),
-                   "goldshellAltPasswd": self.lineGoldshellPasswd.text(),
-                   "bitdeerAltPasswd": self.lineSealminerPasswd.text(),
-                   "firmware": {
-                       "vnishAltPasswd": self.lineVnishPasswd.text(),
-                       "pbfarmerKey": self.linePbfarmerKey.text(),
-                   },
-               },
-               "settings": {
-                   "locateDurationSecs": self.spinLocateDuration.value(),
-                   "vnishUseAntminerLogin": self.checkVnishUseAntminerLogin.isChecked(),
-               },
-           },
-           "logs": {
-               "logLevel": self.comboLogLevel.currentText(),
-               "maxLogSize": self.spinMaxLogSize.value(),
-               "onMaxLogSize": self.comboOnMaxLogSize.currentIndex(),
-               "flushInterval": self.comboFlushInterval.currentIndex(),
-           },
-           "instance": instance,
-       }
-       self.config = config
-       # update view from configuration
-       if self.stackedWidget.currentIndex() == 2:
-           self.update_stacked_widget()
-       self.iprStatus.showMessage("Status :: Updated settings to config.", 1000)
+        logger.info(" update settings to config.")
+        instance = {
+            "geometry": {
+                "mainWindow": [
+                    self.geometry().x(),
+                    self.geometry().y(),
+                    self.geometry().width(),
+                    self.geometry().height(),
+                ]
+            },
+            "options": {
+                "alwaysOpenIPInBrowser": self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked(),
+                "disableInactiveTimer": self.menu_bar.actionDisableInactiveTimer.isChecked(),
+                "autoStartOnLaunch": self.menu_bar.actionAutoStartOnLaunch.isChecked(),
+            },
+            "table": {"enableIDTable": self.menu_bar.actionEnableIDTable.isChecked()},
+        }
+        config = {
+            "general": {
+                "enableSysTray": self.checkEnableSysTray.isChecked(),
+                "onWindowClose": self.comboOnWindowClose.currentIndex(),
+                "useCustomTimeout": self.checkUseCustomTimeout.isChecked(),
+                "inactiveTimeoutMins": self.spinInactiveTimeout.value(),
+                "listenFor": {
+                    "antminer": self.checkListenAntminer.isChecked(),
+                    "whatsminer": self.checkListenWhatsminer.isChecked(),
+                    "iceriver": self.checkListenIceRiver.isChecked(),
+                    "additional": {
+                        "volcminer": self.checkListenVolcminer.isChecked(),
+                        "goldshell": self.checkListenGoldshell.isChecked(),
+                        "sealminer": self.checkListenSealminer.isChecked(),
+                        "elphapex": self.checkListenElphapex.isChecked(),
+                        "dragonball": self.checkListenDragonball.isChecked(),
+                    },
+                },
+            },
+            "api": {
+                "auth": {
+                    "bitmainAltPasswd": self.lineBitmainPasswd.text(),
+                    "whatsminerAltPasswd": self.lineWhatsminerPasswd.text(),
+                    "volcminerAltPasswd": self.lineVolcminerPasswd.text(),
+                    "goldshellAltPasswd": self.lineGoldshellPasswd.text(),
+                    "bitdeerAltPasswd": self.lineSealminerPasswd.text(),
+                    "firmware": {
+                        "vnishAltPasswd": self.lineVnishPasswd.text(),
+                        "pbfarmerKey": self.linePbfarmerKey.text(),
+                    },
+                },
+                "settings": {
+                    "locateDurationSecs": self.spinLocateDuration.value(),
+                    "vnishUseAntminerLogin": self.checkVnishUseAntminerLogin.isChecked(),
+                },
+            },
+            "logs": {
+                "logLevel": self.comboLogLevel.currentText(),
+                "maxLogSize": self.spinMaxLogSize.value(),
+                "onMaxLogSize": self.comboOnMaxLogSize.currentIndex(),
+                "flushInterval": self.comboFlushInterval.currentIndex(),
+            },
+            "instance": instance,
+        }
+        self.config = config
+        # update view from configuration
+        if self.stackedWidget.currentIndex() == 2:
+            self.update_stacked_widget()
+        self.iprStatus.showMessage("Status :: Updated settings to config.", 1000)
 
     def write_settings(self):
-       self.update_settings()
-       write_config(self.config_path, self.config)
+        self.update_settings()
+        write_config(self.config_path, self.config)
 
     def reset_settings(self):
-       ok = QMessageBox.warning(
-           self,
-           "Confirm Reset Settings",
-           "Are you sure you want to reset configuration to default?",
-           buttons=QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Ok,
-       )
-       if ok == QMessageBox.StandardButton.Ok:
-           logger.info(" reset settings.")
-           config = read_config(get_default_config())
-           write_config(self.config_path, config)
-           self.read_settings()
-           self.update_inactive_timer()
-           self.update_miner_locate_duration()
-           self.create_or_destroy_systray()
-           self.update_stacked_widget()
-           self.iprStatus.showMessage(
-               "Status :: Successfully restored to default settings.", 5000
-           )
+        ok = QMessageBox.warning(
+            self,
+            "Confirm Reset Settings",
+            "Are you sure you want to reset configuration to default?",
+            buttons=QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Ok,
+        )
+        if ok == QMessageBox.StandardButton.Ok:
+            logger.info(" reset settings.")
+            config = read_config(get_default_config())
+            write_config(self.config_path, config)
+            self.read_settings()
+            self.update_inactive_timer()
+            self.update_miner_locate_duration()
+            self.create_or_destroy_systray()
+            self.update_stacked_widget()
+            self.iprStatus.showMessage(
+                "Status :: Successfully restored to default settings.", 5000
+            )
 
     def update_inactive_timer(self):
         self.groupInactiveTimer.setEnabled(
@@ -796,46 +800,74 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.stop_listen(restart=True)
             self.start_listen()
 
-    def post_process_result(self, result: List[str]):
+    def process_result(self, result: List[str]):
         # reset inactive timer
         if self.inactive.isActive():
             self.inactive.start()
         ip, mac, type, sn = result
         logger.debug(f"process_result : got {ip},{mac},{sn},{type} from listener.")
         if type == "bitmain-common":
-            bitmain_common_miners = [self.checkListenAntminer, self.checkListenVolcminer, self.checkListenDragonball]
-            enabled_common_filter = [btn.text().lower() for btn in bitmain_common_miners if btn.isChecked()]
+            bitmain_common_miners = [
+                self.checkListenAntminer,
+                self.checkListenVolcminer,
+                self.checkListenDragonball,
+            ]
+            enabled_common_filter = [
+                btn.text().lower() for btn in bitmain_common_miners if btn.isChecked()
+            ]
             for miner in bitmain_common_miners:
                 match miner.text().lower():
                     case "antminer":
-                        self.api_client.create_bitmain_client(ip, self.lineBitmainPasswd.text(), self.lineVnishPasswd.text())
-                        if not self.api_client.client or not self.api_client.is_antminer():
+                        self.api_client.create_bitmain_client(
+                            ip,
+                            self.lineBitmainPasswd.text(),
+                            self.lineVnishPasswd.text(),
+                        )
+                        if (
+                            not self.api_client.client
+                            or not self.api_client.is_antminer()
+                        ):
                             continue
                         type = "antminer"
                         self.api_client.close_client()
                         break
                     case "volcminer":
-                        self.api_client.create_volcminer_client(ip, self.lineVolcminerPasswd.text())
-                        if not self.api_client.client or not self.api_client.is_volcminer():
+                        self.api_client.create_volcminer_client(
+                            ip, self.lineVolcminerPasswd.text()
+                        )
+                        if (
+                            not self.api_client.client
+                            or not self.api_client.is_volcminer()
+                        ):
                             continue
                         type = "volcminer"
                         self.api_client.close_client()
                         break
                     case "dragonball":
                         self.api_client.create_dragonball_client(ip, None)
-                        if not self.api_client.client or not self.api_client.is_dragonball():
+                        if (
+                            not self.api_client.client
+                            or not self.api_client.is_dragonball()
+                        ):
                             continue
                         type = "dragonball"
                         self.api_client.close_client()
                         break
             if type not in enabled_common_filter:
-                logger.warning(f"process_result : recieved miner type {type} outside of filter: {enabled_common_filter}. Ignoring...")
-                self.iprStatus.showMessage(f"Status :: Got miner type: {type.capitalize()} outside of listener configuration.", 8000)
+                logger.warning(
+                    f"process_result : recieved miner type {type} outside of filter: {enabled_common_filter}. Ignoring..."
+                )
+                self.iprStatus.showMessage(
+                    f"Status :: Got miner type: {type.capitalize()} outside of listener configuration.",
+                    8000,
+                )
                 return
         # get missing mac addr
         match type:
             case "iceriver":
-                self.api_client.create_iceriver_client(ip, None, self.linePbfarmerKey.text())
+                self.api_client.create_iceriver_client(
+                    ip, None, self.linePbfarmerKey.text()
+                )
             case "elphapex":
                 self.api_client.create_elphapex_client(ip, None)
         missing_mac = self.api_client.get_missing_mac_addr()
@@ -844,98 +876,25 @@ class IPR(QMainWindow, Ui_MainWindow):
             mac = missing_mac
         logger.info(f"process_result : got updated result {ip},{mac},{sn},{type}.")
         self.iprStatus.showMessage(f"Status :: Got {type}: IP:{ip}, MAC:{mac}", 3000)
-        self.show_confirmation([ip, mac, type, sn])
-
-    # api
-    def get_target_data_from_type(self, type: str, ip: str) -> Dict[str, str]:
-        client_auth = ""
-        custom_auth = ""
-        match type:
-            case "antminer":
-                client_auth = self.lineBitmainPasswd.text()
-                custom_auth = self.lineVnishPasswd.text()
-            case "volcminer":
-                client_auth = self.lineVolcminerPasswd.text()
-            case "goldshell":
-                client_auth = self.lineGoldshellPasswd.text()
-            case "iceriver":
-                custom_auth = self.linePbfarmerKey.text()
-            case "sealminer":
-                client_auth = self.lineSealminerPasswd.text()
-        self.api_client.create_client_from_type(type, ip, client_auth, custom_auth)
-        if not self.api_client.client:
-            self.iprStatus.showMessage(
-                "Status :: Failed to connect or authenticate client.", 5000
-            )
-        logger.info(f"populate_table : get target data from ip {ip}.")
-        t_data = self.api_client.get_target_data_from_type(type)
-        self.api_client.close_client()
-        return t_data
-
-    def locate_miner(self, row: int, col: int):
-        if col == 0:
-            miner_type = self.idTable.item(row, 4).text()
-            ip_addr = self.idTable.item(row, 1).text()
-            if self.api_client.locate and self.api_client.locate.isActive():
-                return logger.warning(
-                    "locate_miner : already locating a miner. Ignoring..."
-                )
-            logger.info(f" locate miner {ip_addr}.")
-            client_auth = ""
-            custom_auth = ""
-            match miner_type:
-                case "antminer":
-                    client_auth = self.lineBitmainPasswd.text()
-                    if not self.checkVnishUseAntminerLogin.isChecked():
-                        custom_auth = self.lineVnishPasswd.text()
-                    else:
-                        custom_auth = self.lineBitmainPasswd.text()
-                case "volcminer":
-                    # client_auth = self.lineVolcminerPasswd.text()
-                    return self.iprStatus.showMessage(
-                        "Status :: Failed to locate miner: VolcMiner is currently not supported.",
-                        5000,
-                    )
-                case "dragonball":
-                    return self.iprStatus.showMessage(
-                        "Status :: Failed to locate miner: Dragonball is currently not supported.",
-                        5000
-                    )
-                case "iceriver":
-                    custom_auth = self.linePbfarmerKey.text()
-                case "whatsminer":
-                    client_auth = self.lineWhatsminerPasswd.text()
-                case "goldshell":
-                    client_auth = self.lineGoldshellPasswd.text()
-                case "sealminer":
-                    client_auth = self.lineSealminerPasswd.text()
-            self.api_client.create_client_from_type(
-                miner_type, ip_addr, client_auth, custom_auth
-            )
-            client = self.api_client.get_client()
-            if not client:
-                return self.iprStatus.showMessage(
-                    "Status :: Failed to connect or authenticate client.", 5000
-                )
-            self.api_client.locate_miner(miner_type)
-            if client._error:
-                return self.iprStatus.showMessage(
-                    f"Status :: Failed to locate miner: {client._error}", 5000
-                )
-            self.iprStatus.showMessage(
-                f"Status :: Locating miner: {ip_addr}...",
-                self.miner_locate_duration,
-            )
+        self.result: Dict[str, str] = {
+            "ip": ip,
+            "mac": mac.upper(),
+            "type": type,
+            "sn": sn,
+            **self.api_client.target_info,
+        }
+        self.show_confirmation()
 
     # ip confirmation
-    def show_confirmation(self, result: List[str]):
+    def show_confirmation(self):
         logger.info(" show IP confirmation.")
-        ip, mac, type, sn = result
+        ip = self.result["ip"]
+        mac = self.result["mac"]
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
             logger.info("show_confirmation : populate ID table.")
-            self.populate_id_table(result)
+            self.populate_id_table()
         else:
             confirm = IPRConfirmation()
             # IPRConfirmation Signals
@@ -950,7 +909,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
             logger.info("show_confirmation : show IPRConfirmation.")
             confirm.lineIPField.setText(ip)
-            confirm.lineMACField.setText(mac.upper())
+            confirm.lineMACField.setText(mac)
             self.confirms.append(confirm)
             if self.sys_tray and not self.isVisible():
                 if self.sys_tray.isSignalConnected(
@@ -987,7 +946,43 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.sys_tray.messageClicked.disconnect()
 
     # ID table
-    def populate_table_row(self, **data: str) -> None:
+    def populate_id_table(self) -> None:
+        sn = self.result["sn"]
+        target_data = self.get_target_data_from_type()
+        self.result.update(target_data)
+        if sn:
+            self.result["serial"] = sn
+        self.populate_table_row()
+        self.activateWindow()
+
+    def get_target_data_from_type(self) -> Dict[str, str]:
+        ip = self.result["ip"]
+        type = self.result["type"]
+        client_auth = ""
+        custom_auth = ""
+        match type:
+            case "antminer":
+                client_auth = self.lineBitmainPasswd.text()
+                custom_auth = self.lineVnishPasswd.text()
+            case "volcminer":
+                client_auth = self.lineVolcminerPasswd.text()
+            case "goldshell":
+                client_auth = self.lineGoldshellPasswd.text()
+            case "iceriver":
+                custom_auth = self.linePbfarmerKey.text()
+            case "sealminer":
+                client_auth = self.lineSealminerPasswd.text()
+        self.api_client.create_client_from_type(type, ip, client_auth, custom_auth)
+        if not self.api_client.client:
+            self.iprStatus.showMessage(
+                "Status :: Failed to connect or authenticate client.", 5000
+            )
+        logger.info(f"populate_table : get target data from ip {ip}.")
+        t_data = self.api_client.get_target_data_from_type(type)
+        self.api_client.close_client()
+        return t_data
+
+    def populate_table_row(self) -> None:
         """
         arguments:
             **data: dict[str. str] -- row data with the following key structure:
@@ -1000,30 +995,75 @@ class IPR(QMainWindow, Ui_MainWindow):
         actionLocateMiner.setPixmap(QPixmap(":theme/icons/rc/flash.png"))
         actionLocateMiner.setToolTip("Locate Miner")
         self.idTable.setCellWidget(rowPosition, 0, actionLocateMiner)
-        self.idTable.setItem(rowPosition, 1, QTableWidgetItem(data["ip"]))
-        self.idTable.setItem(rowPosition, 2, QTableWidgetItem(data["mac"].upper()))
-        self.idTable.setItem(rowPosition, 3, QTableWidgetItem(data["serial"]))
+        self.idTable.setItem(rowPosition, 1, QTableWidgetItem(self.result["ip"]))
+        self.idTable.setItem(rowPosition, 2, QTableWidgetItem(self.result["mac"]))
+        self.idTable.setItem(rowPosition, 3, QTableWidgetItem(self.result["serial"]))
         # ASIC TYPE
-        self.idTable.setItem(rowPosition, 4, QTableWidgetItem(data["type"]))
+        self.idTable.setItem(rowPosition, 4, QTableWidgetItem(self.result["type"]))
         # SUBTYPE
-        self.idTable.setItem(rowPosition, 5, QTableWidgetItem(data["subtype"]))
+        self.idTable.setItem(rowPosition, 5, QTableWidgetItem(self.result["subtype"]))
         # ALGO
-        self.idTable.setItem(rowPosition, 6, QTableWidgetItem(data["algorithm"]))
+        self.idTable.setItem(rowPosition, 6, QTableWidgetItem(self.result["algorithm"]))
         # FIRMWARE
-        self.idTable.setItem(rowPosition, 7, QTableWidgetItem(data["firmware"]))
+        self.idTable.setItem(rowPosition, 7, QTableWidgetItem(self.result["firmware"]))
         # PLATFORM
-        self.idTable.setItem(rowPosition, 8, QTableWidgetItem(data["platform"]))
+        self.idTable.setItem(rowPosition, 8, QTableWidgetItem(self.result["platform"]))
         self.idTable.scrollToBottom()
 
-    def populate_id_table(self, result: List[str]) -> None:
-        ip, mac, type, sn = result
-        row_data: Dict[str, str] = {"ip": ip, "mac": mac, "type": type}
-        target_data = self.get_target_data_from_type(type, ip)
-        row_data.update(target_data)
-        if sn:
-            row_data["serial"] = sn
-        self.populate_table_row(**row_data)
-        self.activateWindow()
+    def locate_miner(self, row: int, col: int):
+        if col == 0:
+            miner_type = self.idTable.item(row, 4).text()
+            ip_addr = self.idTable.item(row, 1).text()
+            if self.api_client.locate and self.api_client.locate.isActive():
+                return logger.warning(
+                    "locate_miner : already locating a miner. Ignoring..."
+                )
+            logger.info(f" locate miner {ip_addr}.")
+            client_auth = ""
+            custom_auth = ""
+            match miner_type:
+                case "antminer":
+                    client_auth = self.lineBitmainPasswd.text()
+                    if not self.checkVnishUseAntminerLogin.isChecked():
+                        custom_auth = self.lineVnishPasswd.text()
+                    else:
+                        custom_auth = self.lineBitmainPasswd.text()
+                case "volcminer":
+                    # client_auth = self.lineVolcminerPasswd.text()
+                    return self.iprStatus.showMessage(
+                        "Status :: Failed to locate miner: VolcMiner is currently not supported.",
+                        5000,
+                    )
+                case "dragonball":
+                    return self.iprStatus.showMessage(
+                        "Status :: Failed to locate miner: Dragonball is currently not supported.",
+                        5000,
+                    )
+                case "iceriver":
+                    custom_auth = self.linePbfarmerKey.text()
+                case "whatsminer":
+                    client_auth = self.lineWhatsminerPasswd.text()
+                case "goldshell":
+                    client_auth = self.lineGoldshellPasswd.text()
+                case "sealminer":
+                    client_auth = self.lineSealminerPasswd.text()
+            self.api_client.create_client_from_type(
+                miner_type, ip_addr, client_auth, custom_auth
+            )
+            client = self.api_client.get_client()
+            if not client:
+                return self.iprStatus.showMessage(
+                    "Status :: Failed to connect or authenticate client.", 5000
+                )
+            self.api_client.locate_miner(miner_type)
+            if client._error:
+                return self.iprStatus.showMessage(
+                    f"Status :: Failed to locate miner: {client._error}", 5000
+                )
+            self.iprStatus.showMessage(
+                f"Status :: Locating miner: {ip_addr}...",
+                self.miner_locate_duration,
+            )
 
     # exit
     def close_to_tray_or_exit(self):
