@@ -524,7 +524,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionExport.setEnabled(enabled)
 
     # actions
-    def create_passwd_toggle_action(self, line: QLineEdit):
+    def create_passwd_toggle_action(self, line: QLineEdit) -> QAction:
         passwd_action = line.addAction(
             QIcon(":theme/icons/rc/view.png"),
             QLineEdit.ActionPosition.TrailingPosition,
@@ -543,7 +543,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             line.setEchoMode(QLineEdit.EchoMode.Password)
             action.setIcon(QIcon(":theme/icons/rc/view.png"))
 
-    def create_copy_text_action(self, line: QLineEdit):
+    def create_copy_text_action(self, line: QLineEdit) -> QAction:
         copy_action = line.addAction(
             QIcon(":theme/icons/rc/copy.png"),
             QLineEdit.ActionPosition.TrailingPosition,
@@ -553,7 +553,12 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def copy_text(self, line: QLineEdit):
         line.selectAll()
-        line.copy()
+        text = line.text()
+        if line.objectName() == "lineIPField":
+            text = f"http://{line.text()}"
+        cb = QApplication.clipboard()
+        cb.clear(mode=cb.Mode.Clipboard)
+        cb.setText(text.strip(), mode=cb.Mode.Clipboard)
 
     def about(self):
         self.aboutDialog = IPRAbout(
