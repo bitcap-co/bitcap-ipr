@@ -67,10 +67,12 @@ class WhatsminerV3Client(BaseTCPClient):
             self._close_client(APIError(f"API Error: {json.dumps(resp, indent=2)}"))
 
     def get_miner_info(self) -> Dict[str, Any]:
-        return self.run_command("get.device.info", "miner")
+        dev_info = self.run_command("get.device.info", "miner")
+        return dev_info["miner"]
 
     def get_system_info(self) -> Dict[str, Any]:
-        return self.run_command("get.device.info", "system")
+        sys_info = self.run_command("get.device.info", "system")
+        return sys_info["system"]
 
     def blink(
         self,
