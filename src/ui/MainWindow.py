@@ -191,7 +191,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 477, 404))
+        self.scrollGeneral.setGeometry(QRect(0, -195, 477, 427))
         self.verticalLayout_19 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
         self.groupSystemTray = QGroupBox(self.scrollGeneral)
@@ -291,21 +291,21 @@ class Ui_MainWindow(object):
         self.horizontalLayout_20.setObjectName(u"horizontalLayout_20")
         self.checkListenAntminer = QCheckBox(self.hwrapper_9)
         self.checkListenAntminer.setObjectName(u"checkListenAntminer")
-        self.checkListenAntminer.setMaximumSize(QSize(100, 22))
+        self.checkListenAntminer.setMaximumSize(QSize(100, 30))
         self.checkListenAntminer.setChecked(True)
 
         self.horizontalLayout_20.addWidget(self.checkListenAntminer)
 
         self.checkListenWhatsminer = QCheckBox(self.hwrapper_9)
         self.checkListenWhatsminer.setObjectName(u"checkListenWhatsminer")
-        self.checkListenWhatsminer.setMaximumSize(QSize(100, 22))
+        self.checkListenWhatsminer.setMaximumSize(QSize(100, 30))
         self.checkListenWhatsminer.setChecked(True)
 
         self.horizontalLayout_20.addWidget(self.checkListenWhatsminer)
 
         self.checkListenIceRiver = QCheckBox(self.hwrapper_9)
         self.checkListenIceRiver.setObjectName(u"checkListenIceRiver")
-        self.checkListenIceRiver.setMaximumSize(QSize(100, 22))
+        self.checkListenIceRiver.setMaximumSize(QSize(100, 30))
         self.checkListenIceRiver.setChecked(True)
 
         self.horizontalLayout_20.addWidget(self.checkListenIceRiver)
@@ -318,39 +318,41 @@ class Ui_MainWindow(object):
         self.gridLayout = QGridLayout(self.groupAdditional)
         self.gridLayout.setObjectName(u"gridLayout")
         self.gridLayout.setHorizontalSpacing(70)
-        self.gridLayout.setVerticalSpacing(15)
+        self.gridLayout.setVerticalSpacing(20)
         self.checkListenElphapex = QCheckBox(self.groupAdditional)
         self.checkListenElphapex.setObjectName(u"checkListenElphapex")
         sizePolicy4.setHeightForWidth(self.checkListenElphapex.sizePolicy().hasHeightForWidth())
         self.checkListenElphapex.setSizePolicy(sizePolicy4)
-        self.checkListenElphapex.setMaximumSize(QSize(100, 22))
+        self.checkListenElphapex.setMaximumSize(QSize(100, 30))
 
         self.gridLayout.addWidget(self.checkListenElphapex, 1, 0, 1, 1)
 
         self.checkListenVolcminer = QCheckBox(self.groupAdditional)
         self.checkListenVolcminer.setObjectName(u"checkListenVolcminer")
-        self.checkListenVolcminer.setMaximumSize(QSize(100, 22))
+        self.checkListenVolcminer.setMaximumSize(QSize(100, 30))
 
         self.gridLayout.addWidget(self.checkListenVolcminer, 0, 1, 1, 1)
 
         self.checkListenGoldshell = QCheckBox(self.groupAdditional)
         self.checkListenGoldshell.setObjectName(u"checkListenGoldshell")
-        self.checkListenGoldshell.setMaximumSize(QSize(100, 22))
+        self.checkListenGoldshell.setMaximumSize(QSize(100, 30))
 
         self.gridLayout.addWidget(self.checkListenGoldshell, 0, 0, 1, 1)
 
         self.checkListenSealminer = QCheckBox(self.groupAdditional)
         self.checkListenSealminer.setObjectName(u"checkListenSealminer")
-        self.checkListenSealminer.setMaximumSize(QSize(100, 22))
+        self.checkListenSealminer.setMaximumSize(QSize(100, 30))
 
         self.gridLayout.addWidget(self.checkListenSealminer, 0, 2, 1, 1)
 
         self.checkListenDragonball = QCheckBox(self.groupAdditional)
         self.checkListenDragonball.setObjectName(u"checkListenDragonball")
-        self.checkListenDragonball.setMaximumSize(QSize(100, 22))
+        self.checkListenDragonball.setMaximumSize(QSize(100, 30))
 
         self.gridLayout.addWidget(self.checkListenDragonball, 1, 1, 1, 1)
 
+        self.gridLayout.setRowMinimumHeight(0, 30)
+        self.gridLayout.setRowMinimumHeight(1, 30)
 
         self.verticalLayout_11.addWidget(self.groupAdditional)
 

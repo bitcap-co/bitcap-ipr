@@ -422,9 +422,9 @@
                      <property name="geometry">
                       <rect>
                        <x>0</x>
-                       <y>0</y>
+                       <y>-195</y>
                        <width>477</width>
-                       <height>404</height>
+                       <height>427</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -636,7 +636,7 @@
                               <property name="maximumSize">
                                <size>
                                 <width>100</width>
-                                <height>22</height>
+                                <height>30</height>
                                </size>
                               </property>
                               <property name="toolTip">
@@ -655,7 +655,7 @@
                               <property name="maximumSize">
                                <size>
                                 <width>100</width>
-                                <height>22</height>
+                                <height>30</height>
                                </size>
                               </property>
                               <property name="toolTip">
@@ -674,7 +674,7 @@
                               <property name="maximumSize">
                                <size>
                                 <width>100</width>
-                                <height>22</height>
+                                <height>30</height>
                                </size>
                               </property>
                               <property name="toolTip">
@@ -696,12 +696,12 @@
                            <property name="title">
                             <string>Additional Miners</string>
                            </property>
-                           <layout class="QGridLayout" name="gridLayout">
+                           <layout class="QGridLayout" name="gridLayout" rowminimumheight="30,30">
                             <property name="horizontalSpacing">
                              <number>70</number>
                             </property>
                             <property name="verticalSpacing">
-                             <number>15</number>
+                             <number>20</number>
                             </property>
                             <item row="1" column="0">
                              <widget class="QCheckBox" name="checkListenElphapex">
@@ -714,7 +714,7 @@
                               <property name="maximumSize">
                                <size>
                                 <width>100</width>
-                                <height>22</height>
+                                <height>30</height>
                                </size>
                               </property>
                               <property name="toolTip">
@@ -730,7 +730,7 @@
                               <property name="maximumSize">
                                <size>
                                 <width>100</width>
-                                <height>22</height>
+                                <height>30</height>
                                </size>
                               </property>
                               <property name="toolTip">
@@ -746,7 +746,7 @@
                               <property name="maximumSize">
                                <size>
                                 <width>100</width>
-                                <height>22</height>
+                                <height>30</height>
                                </size>
                               </property>
                               <property name="toolTip">
@@ -762,7 +762,7 @@
                               <property name="maximumSize">
                                <size>
                                 <width>100</width>
-                                <height>22</height>
+                                <height>30</height>
                                </size>
                               </property>
                               <property name="toolTip">
@@ -778,7 +778,7 @@
                               <property name="maximumSize">
                                <size>
                                 <width>100</width>
-                                <height>22</height>
+                                <height>30</height>
                                </size>
                               </property>
                               <property name="toolTip">
