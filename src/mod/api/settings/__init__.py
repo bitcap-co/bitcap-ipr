@@ -6,6 +6,7 @@ _gs = {
     "http_max_delay": 5,
     "http_jitter_delay": False,
     "http_request_timeout": 5.0,
+    "tcp_request_timeout": 5.0,
     "rpc_request_timeout": 10.0,
     "locate_duration_ms": 10000,
     # default authentication
@@ -13,6 +14,7 @@ _gs = {
     "default_vnish_passwd": "admin",
     "default_whatsminer_passwd": "admin",
     "default_iceriver_passwd": "12345678",
+    "default_whatsminer_v3_passwd": "super",
     "default_pbfarmer_auth": "5b281acc-de86-41bb-b14d-e266d9c9edbd",
     "default_goldshell_passwd": "123456789",
     "default_volcminer_passwd": "ltc@dog",
