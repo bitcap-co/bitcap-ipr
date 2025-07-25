@@ -1,13 +1,14 @@
-import requests
 from string import Template
+from typing import Any, Dict, Optional
+
+import requests
 from Crypto.Cipher import AES
 
 from mod.api import settings
-from mod.api.http import BaseHTTPClient
 from mod.api.errors import (
-    FailedConnectionError,
     AuthenticationError,
 )
+from mod.api.http import BaseHTTPClient
 
 
 class GoldshellHTTPClient(BaseHTTPClient):
@@ -22,21 +23,10 @@ class GoldshellHTTPClient(BaseHTTPClient):
 
         self._initialize_session()
 
-    def _initialize_session(self):
-        try:
-            self._authenticate_session()
-        except (
-            requests.exceptions.ConnectionError,
-            requests.exceptions.ConnectTimeout,
-            requests.exceptions.ReadTimeout,
-        ):
-            self._close_client(
-                FailedConnectionError(
-                    "Connection Failed: Failed to connect or timeout occured."
-                )
-            )
+    def _initialize_session(self) -> None:
+        return super()._initialize_session()
 
-    def _authenticate_session(self):
+    def _authenticate_session(self) -> None:
         self._do_http("GET", "/user/logout")
         for passwd in self.passwds:
             if not passwd:
@@ -68,32 +58,35 @@ class GoldshellHTTPClient(BaseHTTPClient):
         self,
         method: str,
         command: str,
-        params: dict | None = None,
-        payload: dict | None = None,
-        data: dict | None = None,
-    ):
+        params: Optional[Dict[str, str]] = None,
+        payload: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None
+    ) -> Any:
         path = self.command_format.substitute(cmd=command)
-        res = self._do_http(method, path, params=params, payload=payload)
+        res = self._do_http(method, path, params=params, payload=payload, data=data)
         try:
             resj = res.json()
         except requests.exceptions.JSONDecodeError:
             resj = {}
         return resj
 
-    def get_system_info(self):
-        return self.run_command("GET", "status")
-
-    def get_settings(self):
+    def get_settings(self) -> dict:
         return self.run_command("GET", "setting")
 
-    def get_algo_settings(self):
+    def get_algo_settings(self) -> dict:
         return self.run_command("GET", "algosetting")
 
-    def get_blink_status(self):
+    def get_mac_addr(self) -> str:
+        return super().get_mac_addr()
+
+    def get_system_info(self) -> dict:
+        return self.run_command("GET", "status")
+
+    def get_blink_status(self) -> bool:
         settings = self.get_settings()
         return settings["ledcontrol"]
 
-    def blink(self, enabled: bool):
+    def blink(self, enabled: bool) -> None:
         settings = self.get_settings()
         settings["ledcontrol"] = enabled
         self.run_command("PUT", "setting", payload=settings)

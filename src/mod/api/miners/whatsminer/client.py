@@ -5,6 +5,7 @@ import hashlib
 import binascii
 import base64
 import json
+from typing import Any, Dict, List
 
 from Crypto.Cipher import AES
 from passlib.hash import md5_crypt
@@ -35,7 +36,7 @@ def _add_to_16(s: str) -> bytes:
     return str.encode(s)
 
 
-def create_privileged_cmd(token: dict, command: dict) -> str:
+def create_privileged_cmd(token: Dict[str, Any], command: dict) -> str:
     command.update({"token": token["sign"]})
     aeskey = hashlib.sha256(token["key"].encode()).hexdigest()
     aeskey = binascii.unhexlify(aeskey.encode())
@@ -50,7 +51,7 @@ def create_privileged_cmd(token: dict, command: dict) -> str:
     return cmd
 
 
-def parse_privileged_data(token: dict, data: dict) -> dict:
+def parse_privileged_data(token: Dict[str, Any], data: dict) -> dict:
     enc_data = data["enc"]
     aeskey = hashlib.sha256(token["key"].encode()).hexdigest()
     aeskey = binascii.unhexlify(aeskey.encode())
@@ -64,11 +65,11 @@ def parse_privileged_data(token: dict, data: dict) -> dict:
 
 
 class WhatsminerRPCClient(BaseRPCClient):
-    """Whatsminer JSON-RPC API client"""
+    """Whatsminer JSON-RPC API V2 client"""
 
     def __init__(self, ip_addr: str, passwd: str):
         super().__init__(ip_addr)
-        self.passwds = [passwd, settings.get("default_whatsminer_passwd")]
+        self.passwds: List[str] = [passwd, settings.get("default_whatsminer_passwd")]
         self.token = None
 
         self._test_connection()
@@ -97,7 +98,7 @@ class WhatsminerRPCClient(BaseRPCClient):
         res = parse_privileged_data(self.token, res)
         logger.debug(f" parsed privileged data: {res}.")
 
-    def get_token(self) -> dict:
+    def get_token(self) -> Dict[str, Any]:
         """
         Encryption algorithm:
         Ciphertext = aes256(plaintext), ECB mode
@@ -134,22 +135,22 @@ class WhatsminerRPCClient(BaseRPCClient):
         self.token = {"sign": sign, "key": key, "timestamp": datetime.datetime.now()}
         return self.token
 
-    def enable_write_access(self, passwd: str):
+    def enable_write_access(self, passwd: str) -> None:
         self.passwd = passwd
         self.get_token()
 
-    def has_write_access(self):
+    def has_write_access(self) -> bool:
         if not self.passwd:
             return False
         return True
 
-    def get_version(self):
+    def get_version(self) -> dict:
         return self.run_command("get_version")
 
-    def get_dev_details(self):
+    def get_dev_details(self) -> dict:
         return self.run_command("devdetails")
 
-    def get_system_info(self):
+    def get_system_info(self) -> dict:
         return self.run_command(
             "get_miner_info",
             info="ip,proto,netmask,gateway,dns,hostname,mac,ledstat,gateway",
@@ -163,7 +164,7 @@ class WhatsminerRPCClient(BaseRPCClient):
         period: int = 1000,
         duration: int = 500,
         start: int = 0,
-    ):
+    ) -> None:
         if enabled:
             auto = False
         if auto:

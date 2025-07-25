@@ -2,21 +2,18 @@ from string import Template
 from typing import Any, Dict, Optional
 
 import requests
-from requests.auth import HTTPDigestAuth
 
 from mod.api import settings
-from mod.api.errors import AuthenticationError
 from mod.api.http import BaseHTTPClient
 
 
-class VolcminerHTTPClient(BaseHTTPClient):
-    """Volcminer HTTP Client"""
+class DragonballHTTPClient(BaseHTTPClient):
+    """Dragonball HTTP Client"""
 
-    def __init__(self, ip_addr: str, passwd: str):
-        super().__init__(ip_addr)
+    def __init__(self, ip_addr: str, passwd: str, port: int = 16666):
+        super().__init__(ip_addr, port)
         self.url = f"http://{self.ip}:{self.port}/"
-        self.username = "root"
-        self.passwds = [passwd, settings.get("default_volcminer_passwd")]
+        self.passwds = [passwd, settings.get("default_dragonball_passwd")]
         self.command_format = Template("cgi-bin/${cmd}.cgi")
 
         self._initialize_session()
@@ -25,20 +22,7 @@ class VolcminerHTTPClient(BaseHTTPClient):
         return super()._initialize_session()
 
     def _authenticate_session(self) -> None:
-        for passwd in self.passwds:
-            if not passwd:
-                continue
-            self.session.auth = HTTPDigestAuth(self.username, passwd)
-            res = self.session.head(self.url, timeout=3.0)
-            if res.status_code == 200:
-                self.auth = self.session.auth
-                break
-        if not self.auth:
-            self._close_client(
-                AuthenticationError(
-                    "Authentication Failed: Failed to authenticate session."
-                )
-            )
+        return super()._authenticate_session()
 
     def run_command(
         self,
@@ -66,5 +50,4 @@ class VolcminerHTTPClient(BaseHTTPClient):
         return super().get_blink_status()
 
     def blink(self, enabled: bool) -> None:
-        data = {"_bb_type": "rgOn" if enabled else "rgOff"}
-        self.run_command("POST", "post_led_onoff", data=data)
+        return super().blink(enabled)

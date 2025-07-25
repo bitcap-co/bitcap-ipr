@@ -1,37 +1,38 @@
+import logging
 import random
 import time
-import requests
 from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Optional
+
+import requests
+from requests.auth import HTTPDigestAuth
 
 from mod.api import settings
-
-import logging
+from mod.api.errors import FailedConnectionError
 
 logger = logging.getLogger(__name__)
 
 
 class BaseHTTPClient(ABC):
-    def __init__(self, ip: str) -> None:
+    def __init__(self, ip: str, port: int = 80) -> None:
         self.ip = ip
-        self.port = 80
+        self.port = port
         self.url = ""
-        self.username = None
-        self.passwd = None
-
-        self.auth = None
-        self.bearer = None
+        self.username: Optional[str] = None
+        self.passwd: Optional[str] = None
+        self.passwds: Optional[List[str]] = None
+        self.auth: Optional[HTTPDigestAuth] = None
+        self.bearer: Optional[str] = None
         self.session = requests.Session()
-
-        self.command_format = None
 
         self.is_custom = False
         self.is_unlocked = False
 
-        self._error = None
+        self._error: Optional[Exception] = None
 
-        self.__max_retries = settings.get("http_max_retries")
-        self.__max_delay = settings.get("http_max_delay")
-        self.__jitter = settings.get("http_jitter_delay")
+        self.__max_retries: int = settings.get("http_max_retries")
+        self.__max_delay: int = settings.get("http_max_delay")
+        self.__jitter: bool = settings.get("http_jitter_delay")
 
     def __new__(cls, *args, **kwargs):
         if cls is BaseHTTPClient:
@@ -41,19 +42,30 @@ class BaseHTTPClient(ABC):
     def __repr__(self):
         return f"{self.__class__.__name__}: {str(self.ip)}"
 
-    def __delay_times(self, backoff_factor: int, jitter: bool = False):
-        delay_times = []
+    def __delay_times(self, base_delay: int, jitter: bool = False) -> List[float]:
+        delay_times: List[float] = []
         for retry in range(self.__max_retries):
-            delay_time = backoff_factor * (2 ** (self.__max_retries - 1))
+            delay_time = float(base_delay * (2 ** retry))
             if jitter:
-                delay_time *= random.uniform(0.5, 1.5)
+                delay_time *= random.uniform(0.8, 1.2)
             effective_delay = min(delay_time, self.__max_delay)
             delay_times.append(effective_delay)
         return delay_times
 
     @abstractmethod
     def _initialize_session(self) -> None:
-        pass
+        try:
+            self._authenticate_session()
+        except (
+            requests.exceptions.ConnectionError,
+            requests.exceptions.ConnectTimeout,
+            requests.exceptions.ReadTimeout,
+        ):
+            self._close_client(
+                FailedConnectionError(
+                    "Connection Failed: Failed to connect or timeout occured."
+                )
+            )
 
     @abstractmethod
     def _authenticate_session(self) -> None:
@@ -68,14 +80,15 @@ class BaseHTTPClient(ABC):
                 success = True
                 return res
             except (
-                requests.exceptions.ReadTimeout,
-                requests.exceptions.ConnectTimeout,
+                requests.exceptions.Timeout,
+                requests.exceptions.ConnectionError,
                 requests.exceptions.ChunkedEncodingError,
             ) as e:
-                logger.warning(
-                    f" __retry_send : {e}. retry request in {delay} seconds."
-                )
-                time.sleep(delay)
+                if not isinstance(e, requests.exceptions.ConnectionError):
+                    logger.warning(
+                        f" __retry_send : {e}. retry request in {delay} seconds."
+                    )
+                    time.sleep(delay)
         if not success:
             logger.error(" __retry_send : request failed after max retries.")
             return requests.Response()
@@ -84,9 +97,9 @@ class BaseHTTPClient(ABC):
         self,
         method: str,
         path: str,
-        params: dict | None = None,
-        payload: dict | None = None,
-        data: dict | None = None,
+        params: Optional[Dict[str,str]] = None,
+        payload: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None,
         timeout: float = settings.get("http_request_timeout"),
     ) -> requests.Response:
         if self.bearer:
@@ -118,10 +131,14 @@ class BaseHTTPClient(ABC):
         self,
         method: str,
         command: str,
-        params: dict | None = None,
-        payload: dict | None = None,
-        data: dict | None = None,
-    ):
+        params: Optional[Dict[str,str]] = None,
+        payload: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None,
+    ) -> Any:
+        pass
+
+    @abstractmethod
+    def get_mac_addr(self) -> str:
         pass
 
     @abstractmethod
@@ -129,10 +146,14 @@ class BaseHTTPClient(ABC):
         pass
 
     @abstractmethod
+    def get_blink_status(self) -> bool:
+        pass
+
+    @abstractmethod
     def blink(self, enabled: bool) -> None:
         pass
 
-    def _close_client(self, error: Exception | None = None) -> None:
+    def _close_client(self, error: Optional[Exception] = None) -> None:
         self.session.close()
         if error:
             self._error = error

@@ -16,12 +16,12 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractItemView, QAbstractScrollArea, QAbstractSpinBox, QApplication,
-    QCheckBox, QComboBox, QFrame, QGroupBox,
-    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
-    QMainWindow, QPushButton, QScrollArea, QSizePolicy,
-    QSpacerItem, QSpinBox, QStackedWidget, QStatusBar,
-    QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout,
-    QWidget)
+    QCheckBox, QComboBox, QFrame, QGridLayout,
+    QGroupBox, QHBoxLayout, QHeaderView, QLabel,
+    QLineEdit, QMainWindow, QPushButton, QScrollArea,
+    QSizePolicy, QSpacerItem, QSpinBox, QStackedWidget,
+    QStatusBar, QTabWidget, QTableWidget, QTableWidgetItem,
+    QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -191,7 +191,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 477, 383))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 477, 404))
         self.verticalLayout_19 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
         self.groupSystemTray = QGroupBox(self.scrollGeneral)
@@ -315,34 +315,41 @@ class Ui_MainWindow(object):
 
         self.groupAdditional = QGroupBox(self.groupListeners)
         self.groupAdditional.setObjectName(u"groupAdditional")
-        self.verticalLayout_12 = QVBoxLayout(self.groupAdditional)
-        self.verticalLayout_12.setObjectName(u"verticalLayout_12")
-        self.verticalLayout_12.setContentsMargins(0, 0, 0, 0)
-        self.hwrapper_8 = QWidget(self.groupAdditional)
-        self.hwrapper_8.setObjectName(u"hwrapper_8")
-        self.horizontalLayout_22 = QHBoxLayout(self.hwrapper_8)
-        self.horizontalLayout_22.setSpacing(70)
-        self.horizontalLayout_22.setObjectName(u"horizontalLayout_22")
-        self.checkListenGoldshell = QCheckBox(self.hwrapper_8)
-        self.checkListenGoldshell.setObjectName(u"checkListenGoldshell")
-        self.checkListenGoldshell.setMaximumSize(QSize(100, 22))
+        self.gridLayout = QGridLayout(self.groupAdditional)
+        self.gridLayout.setObjectName(u"gridLayout")
+        self.gridLayout.setHorizontalSpacing(70)
+        self.gridLayout.setVerticalSpacing(15)
+        self.checkListenElphapex = QCheckBox(self.groupAdditional)
+        self.checkListenElphapex.setObjectName(u"checkListenElphapex")
+        sizePolicy4.setHeightForWidth(self.checkListenElphapex.sizePolicy().hasHeightForWidth())
+        self.checkListenElphapex.setSizePolicy(sizePolicy4)
+        self.checkListenElphapex.setMaximumSize(QSize(100, 22))
 
-        self.horizontalLayout_22.addWidget(self.checkListenGoldshell)
+        self.gridLayout.addWidget(self.checkListenElphapex, 1, 0, 1, 1)
 
-        self.checkListenVolcminer = QCheckBox(self.hwrapper_8)
+        self.checkListenVolcminer = QCheckBox(self.groupAdditional)
         self.checkListenVolcminer.setObjectName(u"checkListenVolcminer")
         self.checkListenVolcminer.setMaximumSize(QSize(100, 22))
 
-        self.horizontalLayout_22.addWidget(self.checkListenVolcminer)
+        self.gridLayout.addWidget(self.checkListenVolcminer, 0, 1, 1, 1)
 
-        self.checkListenSealminer = QCheckBox(self.hwrapper_8)
+        self.checkListenGoldshell = QCheckBox(self.groupAdditional)
+        self.checkListenGoldshell.setObjectName(u"checkListenGoldshell")
+        self.checkListenGoldshell.setMaximumSize(QSize(100, 22))
+
+        self.gridLayout.addWidget(self.checkListenGoldshell, 0, 0, 1, 1)
+
+        self.checkListenSealminer = QCheckBox(self.groupAdditional)
         self.checkListenSealminer.setObjectName(u"checkListenSealminer")
         self.checkListenSealminer.setMaximumSize(QSize(100, 22))
 
-        self.horizontalLayout_22.addWidget(self.checkListenSealminer)
+        self.gridLayout.addWidget(self.checkListenSealminer, 0, 2, 1, 1)
 
+        self.checkListenDragonball = QCheckBox(self.groupAdditional)
+        self.checkListenDragonball.setObjectName(u"checkListenDragonball")
+        self.checkListenDragonball.setMaximumSize(QSize(100, 22))
 
-        self.verticalLayout_12.addWidget(self.hwrapper_8)
+        self.gridLayout.addWidget(self.checkListenDragonball, 1, 1, 1, 1)
 
 
         self.verticalLayout_11.addWidget(self.groupAdditional)
@@ -366,7 +373,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 477, 744))
+        self.scrollAPI.setGeometry(QRect(0, 0, 477, 710))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
         self.verticalLayout_13.setContentsMargins(9, 9, 9, 9)
@@ -910,17 +917,25 @@ class Ui_MainWindow(object):
         self.checkListenIceRiver.setText(QCoreApplication.translate("MainWindow", u"IceRiver", None))
         self.groupAdditional.setTitle(QCoreApplication.translate("MainWindow", u"Additional Miners", None))
 #if QT_CONFIG(tooltip)
-        self.checkListenGoldshell.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Goldshells", None))
+        self.checkListenElphapex.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Elphapex miners", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkListenGoldshell.setText(QCoreApplication.translate("MainWindow", u"Goldshell", None))
+        self.checkListenElphapex.setText(QCoreApplication.translate("MainWindow", u"Elphapex", None))
 #if QT_CONFIG(tooltip)
         self.checkListenVolcminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Volcminers", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenVolcminer.setText(QCoreApplication.translate("MainWindow", u"Volcminer", None))
 #if QT_CONFIG(tooltip)
+        self.checkListenGoldshell.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Goldshells", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenGoldshell.setText(QCoreApplication.translate("MainWindow", u"Goldshell", None))
+#if QT_CONFIG(tooltip)
         self.checkListenSealminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Sealminers", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenSealminer.setText(QCoreApplication.translate("MainWindow", u"Sealminer", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenDragonball.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Dragonball miners", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenDragonball.setText(QCoreApplication.translate("MainWindow", u"Dragonball", None))
         self.configTabs.setTabText(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
 #if QT_CONFIG(tooltip)
         self.configTabs.setTabToolTip(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))

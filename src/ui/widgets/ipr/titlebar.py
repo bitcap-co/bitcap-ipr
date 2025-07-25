@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
 import ui.resources  # noqa: F401
 
 
-class TitleBar(QWidget):
+class IPR_Titlebar(QWidget):
     def __init__(
         self,
         parent: QWidget,

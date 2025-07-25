@@ -11,7 +11,9 @@
         "additional": {
           "volcminer": false,
           "goldshell": false,
-          "sealminer": false
+          "sealminer": false,
+          "elphapex": false,
+          "dragonball": false
         }
       }
     },

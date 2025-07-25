@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
     QLabel,
 )
 from ui.About import Ui_IPRAbout
-from ui.widgets.titlebar import TitleBar
+from ui.widgets.ipr import IPR_Titlebar
 from ui.widgets.svglabel import SvgLabel
 from utils import CURR_PLATFORM
 
@@ -35,9 +35,9 @@ class IPRAbout(QDialog, Ui_IPRAbout):
         self.setWindowTitle(self._title_str)
         # title bar
         if CURR_PLATFORM == "darwin":
-            self.title_bar = TitleBar(self, self._title_str, ["close"], style="mac")
+            self.title_bar = IPR_Titlebar(self, self._title_str, ["close"], style="mac")
         else:
-            self.title_bar = TitleBar(self, self._title_str, ["close"])
+            self.title_bar = IPR_Titlebar(self, self._title_str, ["close"])
         self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
         self.title_bar._closeButton.clicked.connect(self.window().close)
         titlebarwidget = self.titlebarwidget.layout()

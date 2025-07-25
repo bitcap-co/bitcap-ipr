@@ -1,13 +1,15 @@
+from string import Template
+from typing import Any, Dict, List, Optional
+
 import requests
 from requests.auth import HTTPDigestAuth
-from string import Template
 
 from mod.api import settings
-from mod.api.http import BaseHTTPClient
 from mod.api.errors import (
-    FailedConnectionError,
     AuthenticationError,
+    FailedConnectionError,
 )
+from mod.api.http import BaseHTTPClient
 
 
 class BitmainHTTPClient(BaseHTTPClient):
@@ -18,7 +20,7 @@ class BitmainHTTPClient(BaseHTTPClient):
         self.url = f"http://{self.ip}:{self.port}/"
         self.username = "root"
         self.passwds = [passwd, settings.get("default_bitmain_passwd")]
-        self.vnish_passwds = [vnish_passwd, settings.get("default_vnish_passwd")]
+        self.vnish_passwds: List[str] = [vnish_passwd, settings.get("default_vnish_passwd")]
         self.command_format = {
             "vnish": "api/v1",
             "stock": Template("cgi-bin/${cmd}.cgi"),
@@ -62,10 +64,10 @@ class BitmainHTTPClient(BaseHTTPClient):
         self,
         method: str,
         command: str,
-        params: dict | None = None,
-        payload: dict | None = None,
-        data: dict | None = None,
-    ):
+        params: Optional[Dict[str, str]] = None,
+        payload: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None
+    ) -> Any:
         path = self.command_format["stock"].substitute(cmd=command)
         if self.is_custom:
             match command:
@@ -76,7 +78,7 @@ class BitmainHTTPClient(BaseHTTPClient):
                 case "blink":
                     command = "/find-miner"
             path = self.command_format["vnish"] + command
-        res = self._do_http(method=method, path=path, payload=payload)
+        res = self._do_http(method, path, params=params, payload=payload, data=data)
         try:
             resj = res.json()
         except requests.exceptions.JSONDecodeError:
@@ -121,6 +123,9 @@ class BitmainHTTPClient(BaseHTTPClient):
         resp = self.run_command("GET", "log")
         resp["plaintext"] = resp["plaintext"][0 : resp["plaintext"].find("===")]
         return resp
+
+    def get_mac_addr(self) -> str:
+        return super().get_mac_addr()
 
     def get_system_info(self) -> dict:
         return self.run_command("GET", "get_system_info")

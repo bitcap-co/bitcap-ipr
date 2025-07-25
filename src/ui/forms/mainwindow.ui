@@ -424,7 +424,7 @@
                        <x>0</x>
                        <y>0</y>
                        <width>477</width>
-                       <height>383</height>
+                       <height>404</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -696,74 +696,97 @@
                            <property name="title">
                             <string>Additional Miners</string>
                            </property>
-                           <layout class="QVBoxLayout" name="verticalLayout_12">
-                            <property name="leftMargin">
-                             <number>0</number>
+                           <layout class="QGridLayout" name="gridLayout">
+                            <property name="horizontalSpacing">
+                             <number>70</number>
                             </property>
-                            <property name="topMargin">
-                             <number>0</number>
+                            <property name="verticalSpacing">
+                             <number>15</number>
                             </property>
-                            <property name="rightMargin">
-                             <number>0</number>
-                            </property>
-                            <property name="bottomMargin">
-                             <number>0</number>
-                            </property>
-                            <item>
-                             <widget class="QWidget" name="hwrapper_8" native="true">
-                              <layout class="QHBoxLayout" name="horizontalLayout_22">
-                               <property name="spacing">
-                                <number>70</number>
-                               </property>
-                               <item>
-                                <widget class="QCheckBox" name="checkListenGoldshell">
-                                 <property name="maximumSize">
-                                  <size>
-                                   <width>100</width>
-                                   <height>22</height>
-                                  </size>
-                                 </property>
-                                 <property name="toolTip">
-                                  <string>Enable listening for Goldshells</string>
-                                 </property>
-                                 <property name="text">
-                                  <string>Goldshell</string>
-                                 </property>
-                                </widget>
-                               </item>
-                               <item>
-                                <widget class="QCheckBox" name="checkListenVolcminer">
-                                 <property name="maximumSize">
-                                  <size>
-                                   <width>100</width>
-                                   <height>22</height>
-                                  </size>
-                                 </property>
-                                 <property name="toolTip">
-                                  <string>Enable listening for Volcminers</string>
-                                 </property>
-                                 <property name="text">
-                                  <string>Volcminer</string>
-                                 </property>
-                                </widget>
-                               </item>
-                               <item>
-                                <widget class="QCheckBox" name="checkListenSealminer">
-                                 <property name="maximumSize">
-                                  <size>
-                                   <width>100</width>
-                                   <height>22</height>
-                                  </size>
-                                 </property>
-                                 <property name="toolTip">
-                                  <string>Enable listening for Sealminers</string>
-                                 </property>
-                                 <property name="text">
-                                  <string>Sealminer</string>
-                                 </property>
-                                </widget>
-                               </item>
-                              </layout>
+                            <item row="1" column="0">
+                             <widget class="QCheckBox" name="checkListenElphapex">
+                              <property name="sizePolicy">
+                               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                                <horstretch>0</horstretch>
+                                <verstretch>0</verstretch>
+                               </sizepolicy>
+                              </property>
+                              <property name="maximumSize">
+                               <size>
+                                <width>100</width>
+                                <height>22</height>
+                               </size>
+                              </property>
+                              <property name="toolTip">
+                               <string>Enable listening for Elphapex miners</string>
+                              </property>
+                              <property name="text">
+                               <string>Elphapex</string>
+                              </property>
+                             </widget>
+                            </item>
+                            <item row="0" column="1">
+                             <widget class="QCheckBox" name="checkListenVolcminer">
+                              <property name="maximumSize">
+                               <size>
+                                <width>100</width>
+                                <height>22</height>
+                               </size>
+                              </property>
+                              <property name="toolTip">
+                               <string>Enable listening for Volcminers</string>
+                              </property>
+                              <property name="text">
+                               <string>Volcminer</string>
+                              </property>
+                             </widget>
+                            </item>
+                            <item row="0" column="0">
+                             <widget class="QCheckBox" name="checkListenGoldshell">
+                              <property name="maximumSize">
+                               <size>
+                                <width>100</width>
+                                <height>22</height>
+                               </size>
+                              </property>
+                              <property name="toolTip">
+                               <string>Enable listening for Goldshells</string>
+                              </property>
+                              <property name="text">
+                               <string>Goldshell</string>
+                              </property>
+                             </widget>
+                            </item>
+                            <item row="0" column="2">
+                             <widget class="QCheckBox" name="checkListenSealminer">
+                              <property name="maximumSize">
+                               <size>
+                                <width>100</width>
+                                <height>22</height>
+                               </size>
+                              </property>
+                              <property name="toolTip">
+                               <string>Enable listening for Sealminers</string>
+                              </property>
+                              <property name="text">
+                               <string>Sealminer</string>
+                              </property>
+                             </widget>
+                            </item>
+                            <item row="1" column="1">
+                             <widget class="QCheckBox" name="checkListenDragonball">
+                              <property name="maximumSize">
+                               <size>
+                                <width>100</width>
+                                <height>22</height>
+                               </size>
+                              </property>
+                              <property name="toolTip">
+                               <string>Enable listening for Dragonball miners</string>
+                              </property>
+                              <property name="text">
+                               <string>Dragonball</string>
+                              </property>
                              </widget>
                             </item>
                            </layout>
@@ -803,7 +826,7 @@
                        <x>0</x>
                        <y>0</y>
                        <width>477</width>
-                       <height>744</height>
+                       <height>710</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_13">

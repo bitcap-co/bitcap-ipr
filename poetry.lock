@@ -507,14 +507,14 @@ hook-testing = ["execnet (>=1.5.0)", "psutil", "pytest (>=2.7.3)"]
 
 [[package]]
 name = "pyinstaller-hooks-contrib"
-version = "2025.5"
+version = "2025.7"
 description = "Community maintained hooks for PyInstaller"
 optional = false
 python-versions = ">=3.8"
 groups = ["dev"]
 files = [
-    {file = "pyinstaller_hooks_contrib-2025.5-py3-none-any.whl", hash = "sha256:ebfae1ba341cb0002fb2770fad0edf2b3e913c2728d92df7ad562260988ca373"},
-    {file = "pyinstaller_hooks_contrib-2025.5.tar.gz", hash = "sha256:707386770b8fe066c04aad18a71bc483c7b25e18b4750a756999f7da2ab31982"},
+    {file = "pyinstaller_hooks_contrib-2025.7-py3-none-any.whl", hash = "sha256:ba4fecc94eb761de2015cd8b1e674354e8a1f13ba65047602912f34c20fb510b"},
+    {file = "pyinstaller_hooks_contrib-2025.7.tar.gz", hash = "sha256:b0c19dbe9a8428665d2c5c4538eaa16b683579aabd7f2ecd31f41b116c4e4e57"},
 ]
 
 [package.dependencies]
