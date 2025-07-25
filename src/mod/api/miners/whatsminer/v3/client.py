@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 
 from mod.api import settings
 from mod.api.tcp import BaseTCPClient
-from src.mod.api.errors import APIError
+from mod.api.errors import APIError
 
 logger = logging.getLogger(__name__)
 
