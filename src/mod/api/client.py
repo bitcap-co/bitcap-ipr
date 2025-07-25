@@ -21,6 +21,7 @@ from .miners.iceriver import IceriverHTTPClient, IceriverParser
 from .miners.sealminer import SealminerHTTPClient, SealminerParser
 from .miners.volcminer import VolcminerHTTPClient, VolcminerParser
 from .miners.whatsminer import WhatsminerParser, WhatsminerRPCClient
+from .miners.whatsminer.v3 import WhatsminerV3Client, WhatsminerV3Parser
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,12 @@ class APIClient:
     def create_whatsminer_client(self, ip_addr: str, passwd: str) -> None:
         try:
             self.client = WhatsminerRPCClient(ip_addr, passwd)
+        except FailedConnectionError as err:
+            logger.error(err)
+
+    def create_whatsminerv3_client(self, ip_addr: str, user: Optional[str], passwd: Optional[str]) -> None:
+        try:
+            self.client = WhatsminerV3Client(ip_addr, user, passwd)
         except FailedConnectionError as err:
             logger.error(err)
 
