@@ -213,6 +213,10 @@ class APIClient:
             parser.parse_subtype(devs)
             ver = self.client.get_version()
             parser.parse_version_info(ver)
+        elif isinstance(parser, WhatsminerV3Parser):
+            parser.parse_system_info(sys)
+            dev = self.client.get_miner_info()
+            parser.parse_miner_info(dev)
         elif isinstance(parser, ElphapexParser):
             parser.parse_system_info(sys)
             info = self.client.get_miner_info()
@@ -228,6 +232,8 @@ class APIClient:
             case "iceriver":
                 return self.get_target_info(IceriverParser(self.target_info))
             case "whatsminer":
+                if isinstance(self.client, WhatsminerV3Client):
+                    return self.get_target_info(WhatsminerV3Parser(self.target_info))
                 return self.get_target_info(WhatsminerParser(self.target_info))
             case "volcminer":
                 return self.get_target_info(VolcminerParser(self.target_info))
