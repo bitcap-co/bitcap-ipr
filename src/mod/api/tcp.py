@@ -19,9 +19,7 @@ class BaseTCPClient(ABC):
         self.passwd = passwd
 
         self.timeout = settings.get("tcp_request_timeout")
-
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.settimeout(self.timeout)
+        self.sock: Optional[socket.socket] = None
 
         self._error = None
 
@@ -35,6 +33,8 @@ class BaseTCPClient(ABC):
 
     def _connect(self) -> None:
         try:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.settimeout(self.timeout)
             self.sock.connect((self.ip, self.port))
         except TimeoutError:
             self._close_client(
@@ -45,8 +45,8 @@ class BaseTCPClient(ABC):
 
     # whatsminer api v3
     def wm_v3_send(self, msg: str, msg_len: int) -> Dict[str, Any]:
-        size = struct.pack("<I", msg_len)
-        self.sock.sendall(size)
+        packed_size = struct.pack("<I", msg_len)
+        self.sock.sendall(packed_size)
         self.sock.sendall(msg.encode())
         resp = self._wm_v3_recv_all()
 
@@ -61,24 +61,22 @@ class BaseTCPClient(ABC):
 
     def _wm_v3_recv_all(self) -> Optional[str]:
         buffer = b""
-
         # get first 4 bytes for length of data
-        data_len = self.sock.recv(4)
-        if len(data_len) < 4:
+        packed_len = self.sock.recv(4)
+        if len(packed_len) < 4:
             logger.error("_wm_v3_receive : failed to get resp length")
             return None
 
-        rsp_len = struct.unpack("<I", data_len)[0]
-        if rsp_len > 8192:
-            logger.error(f"_wm_v3_receive : invalid resp length: {rsp_len}")
+        resp_len = struct.unpack("<I", packed_len)[0]
+        if resp_len > 8192:
+            logger.error(f"_wm_v3_receive : invalid resp length: {resp_len}")
             return None
 
-        while len(buffer) < rsp_len:
-            data = self.sock.recv(rsp_len - len(buffer))
+        while len(buffer) < resp_len:
+            data = self.sock.recv(resp_len - len(buffer))
             if not data:
                 break
             buffer += data
-
         return buffer.decode()
 
     def _close_client(self, error: Exception | None = None) -> None:

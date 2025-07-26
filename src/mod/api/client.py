@@ -106,7 +106,7 @@ class APIClient:
                 self.create_iceriver_client(ip_addr, auth, custom_auth)
             case "whatsminer":
                 self.create_whatsminer_client(ip_addr, auth)
-                self.upgrade_whatsminer_client(ip_addr, auth, None)
+                self.upgrade_whatsminer_client(ip_addr, None, auth)
             case "volcminer":
                 self.create_volcminer_client(ip_addr, auth)
             case "goldshell":
@@ -178,7 +178,6 @@ class APIClient:
     def upgrade_whatsminer_client(self, ip: str, user: Optional[str], passwd: Optional[str]) -> None:
         if self.client and isinstance(self.client, WhatsminerRPCClient):
             ver = self.client.get_version()
-            logger.debug(ver)
             if int(ver["Msg"]["fw_ver"][:6]) > 202412:
                     self.close_client()
                     self.create_whatsminerv3_client(ip, user, passwd)

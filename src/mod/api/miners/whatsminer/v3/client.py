@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 class WhatsminerV3Client(BaseTCPClient):
     """Whatsminer API v3 Client"""
 
-    def __init__(self, ip_addr: str, username: Optional[str], passwd: Optional[str], port: int = 4433):
-        super().__init__(ip_addr, port, username, passwd)
-        if not username:
+    def __init__(self, ip_addr: str, user: Optional[str], passwd: Optional[str], port: int = 4433):
+        super().__init__(ip_addr, port, user, passwd)
+        if not user:
             self.username = "super"
         if not passwd:
             self.passwd: str = settings.get("default_whatsminer_v3_passwd", "super")
@@ -51,14 +51,15 @@ class WhatsminerV3Client(BaseTCPClient):
         return json.dumps(cmd)
 
     def run_command(
-        self, command: str, param: Optional[Any] = None, set: bool = False
+        self,
+        command: str,
+        param: Optional[Any] = None,
+        privileged: bool = False
     ) -> Dict[str, Any]:
-        if set:
+        cmd = self.create_get_cmd(command, param)
+        if privileged:
             cmd = self.create_set_cmd(command, param)
-        else:
-            cmd = self.create_get_cmd(command, param)
-        cmd_len = len(cmd)
-        resp = self.wm_v3_send(cmd, cmd_len)
+        resp = self.wm_v3_send(cmd, len(cmd))
 
         if resp["code"] == 0:
             logger.debug(resp)
