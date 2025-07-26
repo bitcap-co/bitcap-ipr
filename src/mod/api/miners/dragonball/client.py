@@ -10,7 +10,7 @@ from mod.api.http import BaseHTTPClient
 class DragonballHTTPClient(BaseHTTPClient):
     """Dragonball HTTP Client"""
 
-    def __init__(self, ip_addr: str, passwd: str, port: int = 16666):
+    def __init__(self, ip_addr: str, passwd: Optional[str], port: int = 16666):
         super().__init__(ip_addr, port)
         self.url = f"http://{self.ip}:{self.port}/"
         self.passwds = [passwd, settings.get("default_dragonball_passwd")]
@@ -30,7 +30,7 @@ class DragonballHTTPClient(BaseHTTPClient):
         command: str,
         params: Optional[Dict[str, str]] = None,
         payload: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None
+        data: Optional[Dict[str, Any]] = None,
     ) -> Any:
         path = self.command_format.substitute(cmd=command)
         res = self._do_http(method, path, params=params, payload=payload, data=data)

@@ -13,7 +13,7 @@ from mod.api.http import BaseHTTPClient
 class IceriverHTTPClient(BaseHTTPClient):
     """Iceriver HTTP Client with support for pbfarmer"""
 
-    def __init__(self, ip_addr: str, passwd: str, pb_key: str):
+    def __init__(self, ip_addr: str, passwd: Optional[str], pb_key: str):
         super().__init__(ip_addr)
         self.url = f"http://{self.ip}:{self.port}/"
         self.passwd = passwd
@@ -54,7 +54,7 @@ class IceriverHTTPClient(BaseHTTPClient):
         command: str,
         params: Optional[Dict[str, str]] = None,
         payload: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None
+        data: Optional[Dict[str, Any]] = None,
     ) -> Any:
         path = self.command_format["stock"].substitute(cmd=command)
         if self.is_custom:
@@ -66,7 +66,9 @@ class IceriverHTTPClient(BaseHTTPClient):
                 case "locate":
                     command = "machine/locate"
             path = self.command_format["pb"].substitute(cmd=command)
-        res = self._do_http(method, path, params=params, payload=payload, data=data, timeout=10.0)
+        res = self._do_http(
+            method, path, params=params, payload=payload, data=data, timeout=10.0
+        )
         try:
             resj = res.json()
         except requests.exceptions.JSONDecodeError:

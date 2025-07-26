@@ -10,7 +10,7 @@ from mod.api.http import BaseHTTPClient
 class ElphapexHTTPClient(BaseHTTPClient):
     """Elphapex HTTP Client"""
 
-    def __init__(self, ip_addr: str, passwd: str):
+    def __init__(self, ip_addr: str, passwd: Optional[str]):
         super().__init__(ip_addr)
         self.url = f"http://{self.ip}:{self.port}/"
         self.username = "root"
@@ -31,7 +31,7 @@ class ElphapexHTTPClient(BaseHTTPClient):
         command: str,
         params: Optional[Dict[str, str]] = None,
         payload: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None
+        data: Optional[Dict[str, Any]] = None,
     ) -> Any:
         path = self.command_format.substitute(cmd=command)
         res = self._do_http(method, path, params=params, payload=payload, data=data)

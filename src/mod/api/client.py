@@ -49,7 +49,9 @@ class APIClient:
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
-    def create_iceriver_client(self, ip_addr: str, passwd: str, pb_key: str) -> None:
+    def create_iceriver_client(
+        self, ip_addr: str, passwd: Optional[str], pb_key: str
+    ) -> None:
         try:
             self.client = IceriverHTTPClient(ip_addr, passwd, pb_key)
         except FailedConnectionError as err:
@@ -79,13 +81,13 @@ class APIClient:
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
-    def create_elphapex_client(self, ip_addr: str, passwd: str) -> None:
+    def create_elphapex_client(self, ip_addr: str, passwd: Optional[str]) -> None:
         try:
             self.client = ElphapexHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
-    def create_dragonball_client(self, ip_addr: str, passwd: str) -> None:
+    def create_dragonball_client(self, ip_addr: str, passwd: Optional[str]) -> None:
         try:
             self.client = DragonballHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
@@ -137,9 +139,8 @@ class APIClient:
         self.close_client()
 
     def get_missing_mac_addr(self) -> Optional[str]:
-        if (
-            isinstance(self.client, IceriverHTTPClient) or
-            isinstance(self.client, ElphapexHTTPClient)
+        if isinstance(self.client, IceriverHTTPClient) or isinstance(
+            self.client, ElphapexHTTPClient
         ):
             mac = self.client.get_mac_addr()
             if mac:
