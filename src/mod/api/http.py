@@ -45,7 +45,7 @@ class BaseHTTPClient(ABC):
     def __delay_times(self, base_delay: int, jitter: bool = False) -> List[float]:
         delay_times: List[float] = []
         for retry in range(self.__max_retries):
-            delay_time = float(base_delay * (2 ** retry))
+            delay_time = float(base_delay * (2**retry))
             if jitter:
                 delay_time *= random.uniform(0.8, 1.2)
             effective_delay = min(delay_time, self.__max_delay)
@@ -84,7 +84,12 @@ class BaseHTTPClient(ABC):
                 requests.exceptions.ConnectionError,
                 requests.exceptions.ChunkedEncodingError,
             ) as e:
-                if not isinstance(e, requests.exceptions.ConnectionError):
+                if (
+                    isinstance(e, requests.exceptions.ConnectionError) or
+                    isinstance(e, requests.exceptions.ConnectTimeout)
+                ):
+                    break
+                else:
                     logger.warning(
                         f" __retry_send : {e}. retry request in {delay} seconds."
                     )
@@ -97,7 +102,7 @@ class BaseHTTPClient(ABC):
         self,
         method: str,
         path: str,
-        params: Optional[Dict[str,str]] = None,
+        params: Optional[Dict[str, str]] = None,
         payload: Optional[Dict[str, Any]] = None,
         data: Optional[Dict[str, Any]] = None,
         timeout: float = settings.get("http_request_timeout"),
@@ -131,7 +136,7 @@ class BaseHTTPClient(ABC):
         self,
         method: str,
         command: str,
-        params: Optional[Dict[str,str]] = None,
+        params: Optional[Dict[str, str]] = None,
         payload: Optional[Dict[str, Any]] = None,
         data: Optional[Dict[str, Any]] = None,
     ) -> Any:
