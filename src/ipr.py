@@ -853,7 +853,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                         type = "dragonball"
                         self.api_client.close_client()
                         break
-            if type not in enabled_common_filter:
+            if type not in enabled_common_filter and type != "bitmain-common":
                 logger.warning(
                     f"process_result : recieved miner type {type} outside of filter: {enabled_common_filter}. Ignoring..."
                 )
@@ -862,6 +862,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                     8000,
                 )
                 return
+            else:
+                type = "Failed"
         # get missing mac addr
         match type:
             case "iceriver":
@@ -1047,6 +1049,10 @@ class IPR(QMainWindow, Ui_MainWindow):
                     client_auth = self.lineGoldshellPasswd.text()
                 case "sealminer":
                     client_auth = self.lineSealminerPasswd.text()
+                case _:
+                    return self.iprStatus.showMessage(
+                        "Status :: Failed to locate miner: Unknown miner."
+                    )
             self.api_client.create_client_from_type(
                 miner_type, ip_addr, client_auth, custom_auth
             )

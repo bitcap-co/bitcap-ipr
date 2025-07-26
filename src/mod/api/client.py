@@ -41,7 +41,9 @@ class APIClient:
     def get_client(self):
         return self.client
 
-    def create_bitmain_client(self, ip_addr: str, passwd: str, vnish_passwd: str) -> None:
+    def create_bitmain_client(
+        self, ip_addr: str, passwd: str, vnish_passwd: str
+    ) -> None:
         try:
             self.client = BitmainHTTPClient(ip_addr, passwd, vnish_passwd)
         except (FailedConnectionError, AuthenticationError) as err:
@@ -109,6 +111,8 @@ class APIClient:
                 self.create_elphapex_client(ip_addr, auth)
             case "dragonball":
                 self.create_dragonball_client(ip_addr, auth)
+            case _:
+                return
 
     def locate_miner(self, miner_type: str) -> None:
         self.locate = QTimer(self.parent)
@@ -133,8 +137,9 @@ class APIClient:
         self.close_client()
 
     def get_missing_mac_addr(self) -> Optional[str]:
-        if isinstance(self.client, IceriverHTTPClient) or isinstance(
-            self.client, ElphapexHTTPClient
+        if (
+            isinstance(self.client, IceriverHTTPClient) or
+            isinstance(self.client, ElphapexHTTPClient)
         ):
             mac = self.client.get_mac_addr()
             if mac:
