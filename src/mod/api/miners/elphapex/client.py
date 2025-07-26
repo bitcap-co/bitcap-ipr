@@ -10,11 +10,12 @@ from mod.api.http import BaseHTTPClient
 class ElphapexHTTPClient(BaseHTTPClient):
     """Elphapex HTTP Client"""
 
-    def __init__(self, ip_addr: str, passwd: Optional[str]):
+    def __init__(self, ip_addr: str, passwd: Optional[str] = None):
         super().__init__(ip_addr)
         self.url = f"http://{self.ip}:{self.port}/"
         self.username = "root"
-        self.passwds = [passwd, settings.get("default_elphapex_passwd")]
+        if passwd:
+            self.passwds = [passwd, settings.get("default_elphapex_passwd")]
         self.command_format = Template("cgi-bin/${cmd}.cgi")
 
         self._initialize_session()
@@ -23,7 +24,9 @@ class ElphapexHTTPClient(BaseHTTPClient):
         return super()._initialize_session()
 
     def _authenticate_session(self) -> None:
-        return super()._authenticate_session()
+        res = self.session.head(self.url, timeout=3.0)
+        if res.status_code == 200:
+            return
 
     def run_command(
         self,

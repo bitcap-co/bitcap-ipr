@@ -10,10 +10,11 @@ from mod.api.http import BaseHTTPClient
 class DragonballHTTPClient(BaseHTTPClient):
     """Dragonball HTTP Client"""
 
-    def __init__(self, ip_addr: str, passwd: Optional[str], port: int = 16666):
+    def __init__(self, ip_addr: str, passwd: Optional[str] = None, port: int = 16666):
         super().__init__(ip_addr, port)
         self.url = f"http://{self.ip}:{self.port}/"
-        self.passwds = [passwd, settings.get("default_dragonball_passwd")]
+        if passwd:
+            self.passwds = [passwd, settings.get("default_dragonball_passwd")]
         self.command_format = Template("cgi-bin/${cmd}.cgi")
 
         self._initialize_session()
@@ -22,7 +23,9 @@ class DragonballHTTPClient(BaseHTTPClient):
         return super()._initialize_session()
 
     def _authenticate_session(self) -> None:
-        return super()._authenticate_session()
+        res = self.session.head(self.url, timeout=3.0)
+        if res.status_code == 200:
+            return
 
     def run_command(
         self,
