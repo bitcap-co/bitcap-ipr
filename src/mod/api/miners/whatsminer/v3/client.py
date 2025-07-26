@@ -29,7 +29,7 @@ class WhatsminerV3Client(BaseTCPClient):
         self._connect()
         # get and set salt
         salt = self.run_command("get.device.info", "salt")
-        self.salt = salt
+        self.salt = salt["salt"]
 
     def _generate_token(self, command: str, ts: int) -> str:
         src = f"{command}{self.passwd}{self.salt}{ts}"
