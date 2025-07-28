@@ -584,8 +584,8 @@ class IPR(QMainWindow, Ui_MainWindow):
     def open_source(self):
         webbrowser.open(f"{APP_INFO['source']}", new=2)
 
-    def open_dashboard(self, ip: str):
-        webbrowser.open("http://{0}".format(ip), new=2)
+    def open_dashboard(self, ip: str, port: int = 80):
+        webbrowser.open(f"http://{ip}:{port}/", new=2)
 
     def show_table_context(self):
         self.table_context = QMenu()
@@ -607,7 +607,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         item = self.idTable.itemFromIndex(model_index)
         match item.column():
             case 1:  # ip column
-                self.open_dashboard(item.text())
+                miner_type = self.idTable.item(item.row(), 4).text()
+                match miner_type:
+                    case "dragonball":
+                        http_port = 16666
+                    case _:
+                        http_port = 80
+                self.open_dashboard(item.text(), http_port)
             case 3:  # serial column
                 self.idTable.editItem(item)
             case _:
@@ -620,7 +626,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         selected_ips = [x for x in self.idTable.selectedIndexes() if x.column() == 1]
         for index in selected_ips:
             item = self.idTable.itemFromIndex(index)
-            self.open_dashboard(item.text())
+            miner_type = self.idTable.item(item.row(), 4).text()
+            match miner_type:
+                case "dragonball":
+                    http_port = 16666
+                case _:
+                    http_port = 80
+            self.open_dashboard(item.text(), http_port)
 
     def copy_selected(self):
         logger.info(" copy selected elements.")
@@ -892,15 +904,21 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info(" show IP confirmation.")
         ip = self.result["ip"]
         mac = self.result["mac"]
+        type = self.result["type"]
+        match type:
+            case "dragonball":
+                http_port = 16666
+            case _:
+                http_port = 80
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
-            self.open_dashboard(ip)
+            self.open_dashboard(ip, http_port)
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
             logger.info("show_confirmation : populate ID table.")
             self.populate_id_table()
         else:
             confirm = IPRConfirmation()
             # IPRConfirmation Signals
-            confirm.actionOpenBrowser.clicked.connect(lambda: self.open_dashboard(ip))
+            confirm.actionOpenBrowser.clicked.connect(lambda: self.open_dashboard(ip, http_port))
             confirm.accept.clicked.connect(confirm.hide)
             # copy action
             confirm.lineIPField.actionCopy = self.create_copy_text_action(
