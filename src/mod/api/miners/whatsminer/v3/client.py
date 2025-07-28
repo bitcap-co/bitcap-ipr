@@ -15,13 +15,13 @@ logger = logging.getLogger(__name__)
 class WhatsminerV3Client(BaseTCPClient):
     """Whatsminer API v3 Client"""
 
-    def __init__(self, ip_addr: str, user: Optional[str], passwd: Optional[str], port: int = 4433):
-        super().__init__(ip_addr, port, user, passwd)
+    def __init__(self, ip_addr: str, user: Optional[str] = None, passwd: Optional[str] = None, port: int = 4433):
         if not user:
             self.username = "super"
         if not passwd:
             self.passwd: str = settings.get("default_whatsminer_v3_passwd", "super")
         self.salt = ""
+        super().__init__(ip_addr, port, user, passwd)
 
         self._initialize_client()
 

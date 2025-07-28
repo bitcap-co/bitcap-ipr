@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class BaseTCPClient(ABC):
-    def __init__(self, ip: str, port: int, username: str, passwd: str):
+    def __init__(self, ip: str, port: int, username: Optional[str] = None, passwd: Optional[str] = None):
         self.ip = ip
         self.port = port
         self.username = username
