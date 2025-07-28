@@ -21,6 +21,7 @@ from .miners.iceriver import IceriverHTTPClient, IceriverParser
 from .miners.sealminer import SealminerHTTPClient, SealminerParser
 from .miners.volcminer import VolcminerHTTPClient, VolcminerParser
 from .miners.whatsminer import WhatsminerParser, WhatsminerRPCClient
+from .miners.whatsminer.v3 import WhatsminerV3Client, WhatsminerV3Parser
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +61,12 @@ class APIClient:
     def create_whatsminer_client(self, ip_addr: str, passwd: str) -> None:
         try:
             self.client = WhatsminerRPCClient(ip_addr, passwd)
+        except FailedConnectionError as err:
+            logger.error(err)
+
+    def create_whatsminerv3_client(self, ip_addr: str, user: Optional[str], passwd: Optional[str]) -> None:
+        try:
+            self.client = WhatsminerV3Client(ip_addr, user, passwd)
         except FailedConnectionError as err:
             logger.error(err)
 
@@ -103,6 +110,7 @@ class APIClient:
                 self.create_iceriver_client(ip_addr, auth, custom_auth)
             case "whatsminer":
                 self.create_whatsminer_client(ip_addr, auth)
+                self.upgrade_whatsminer_client(ip_addr)
             case "volcminer":
                 self.create_volcminer_client(ip_addr, auth)
             case "goldshell":
@@ -173,6 +181,13 @@ class APIClient:
             return True
         return False
 
+    def upgrade_whatsminer_client(self, ip: str, user: Optional[str] = None, passwd: Optional[str] = None) -> None:
+        if self.client and isinstance(self.client, WhatsminerRPCClient):
+            ver = self.client.get_version()
+            if int(ver["Msg"]["fw_ver"][:6]) > 202412:
+                    self.close_client()
+                    self.create_whatsminerv3_client(ip, user, passwd)
+
     def get_target_info(self, parser: Parser) -> Dict[str, str]:
         result = parser.get_target()
         if not self.client:
@@ -203,6 +218,10 @@ class APIClient:
             parser.parse_subtype(devs)
             ver = self.client.get_version()
             parser.parse_version_info(ver)
+        elif isinstance(parser, WhatsminerV3Parser):
+            parser.parse_system_info(sys)
+            dev = self.client.get_miner_info()
+            parser.parse_miner_info(dev)
         elif isinstance(parser, ElphapexParser):
             parser.parse_system_info(sys)
             info = self.client.get_miner_info()
@@ -218,6 +237,8 @@ class APIClient:
             case "iceriver":
                 return self.get_target_info(IceriverParser(self.target_info))
             case "whatsminer":
+                if isinstance(self.client, WhatsminerV3Client):
+                    return self.get_target_info(WhatsminerV3Parser(self.target_info))
                 return self.get_target_info(WhatsminerParser(self.target_info))
             case "volcminer":
                 return self.get_target_info(VolcminerParser(self.target_info))

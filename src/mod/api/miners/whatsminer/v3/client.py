@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 
 from mod.api import settings
 from mod.api.tcp import BaseTCPClient
-from src.mod.api.errors import APIError
+from mod.api.errors import APIError
 
 logger = logging.getLogger(__name__)
 
@@ -15,11 +15,13 @@ logger = logging.getLogger(__name__)
 class WhatsminerV3Client(BaseTCPClient):
     """Whatsminer API v3 Client"""
 
-    def __init__(self, ip_addr: str, username: str, passwd: str, port: int = 4433):
-        super().__init__(ip_addr, port, username, passwd)
-        self.username = username
-        self.passwd = passwd
+    def __init__(self, ip_addr: str, user: Optional[str] = None, passwd: Optional[str] = None, port: int = 4433):
+        if not user:
+            self.username = "super"
+        if not passwd:
+            self.passwd: str = settings.get("default_whatsminer_v3_passwd", "super")
         self.salt = ""
+        super().__init__(ip_addr, port, user, passwd)
 
         self._initialize_client()
 
@@ -27,7 +29,7 @@ class WhatsminerV3Client(BaseTCPClient):
         self._connect()
         # get and set salt
         salt = self.run_command("get.device.info", "salt")
-        self.salt = salt
+        self.salt = salt["salt"]
 
     def _generate_token(self, command: str, ts: int) -> str:
         src = f"{command}{self.passwd}{self.salt}{ts}"
@@ -42,21 +44,22 @@ class WhatsminerV3Client(BaseTCPClient):
     def create_set_cmd(self, command: str, param: Optional[Any] = None) -> str:
         cmd: Dict[str, Any] = {"cmd": command, "param": param}
         ts = int(time.time())
-        token = self._generate_token(cmd, ts)
+        token = self._generate_token(command, ts)
         cmd["ts"] = ts
         cmd["token"] = token
         cmd["account"] = self.username
         return json.dumps(cmd)
 
     def run_command(
-        self, command: str, param: Optional[Any] = None, set: bool = False
+        self,
+        command: str,
+        param: Optional[Any] = None,
+        privileged: bool = False
     ) -> Dict[str, Any]:
-        if set:
+        cmd = self.create_get_cmd(command, param)
+        if privileged:
             cmd = self.create_set_cmd(command, param)
-        else:
-            cmd = self.create_get_cmd(command, param)
-        cmd_len = len(cmd)
-        resp = self.wm_v3_send(cmd, cmd_len)
+        resp = self.wm_v3_send(cmd, len(cmd))
 
         if resp["code"] == 0:
             logger.debug(resp)
@@ -65,10 +68,12 @@ class WhatsminerV3Client(BaseTCPClient):
             self._close_client(APIError(f"API Error: {json.dumps(resp, indent=2)}"))
 
     def get_miner_info(self) -> Dict[str, Any]:
-        return self.run_command("get.device.info", "miner")
+        dev_info = self.run_command("get.device.info", "miner")
+        return dev_info["miner"]
 
     def get_system_info(self) -> Dict[str, Any]:
-        return self.run_command("get.device.info", "system")
+        sys_info = self.run_command("get.device.info", "system")
+        return sys_info["system"]
 
     def blink(
         self,
