@@ -44,7 +44,7 @@ class WhatsminerV3Client(BaseTCPClient):
     def create_set_cmd(self, command: str, param: Optional[Any] = None) -> str:
         cmd: Dict[str, Any] = {"cmd": command, "param": param}
         ts = int(time.time())
-        token = self._generate_token(cmd, ts)
+        token = self._generate_token(command, ts)
         cmd["ts"] = ts
         cmd["token"] = token
         cmd["account"] = self.username
