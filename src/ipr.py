@@ -978,8 +978,8 @@ class IPR(QMainWindow, Ui_MainWindow):
     def get_target_data_from_type(self) -> Dict[str, str]:
         ip = self.result["ip"]
         type = self.result["type"]
-        client_auth = ""
-        custom_auth = ""
+        client_auth = None
+        custom_auth = None
         match type:
             case "antminer":
                 client_auth = self.lineBitmainPasswd.text()

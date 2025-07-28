@@ -43,7 +43,7 @@ class APIClient:
         return self.client
 
     def create_bitmain_client(
-        self, ip_addr: str, passwd: str, vnish_passwd: str
+        self, ip_addr: str, passwd: Optional[str] = None, vnish_passwd: Optional[str] = None
     ) -> None:
         try:
             self.client = BitmainHTTPClient(ip_addr, passwd, vnish_passwd)
@@ -51,57 +51,57 @@ class APIClient:
             logger.error(err)
 
     def create_iceriver_client(
-        self, ip_addr: str, passwd: Optional[str], pb_key: str
+        self, ip_addr: str, passwd: Optional[str] = None, pb_key: Optional[str] = None
     ) -> None:
         try:
             self.client = IceriverHTTPClient(ip_addr, passwd, pb_key)
         except FailedConnectionError as err:
             logger.error(err)
 
-    def create_whatsminer_client(self, ip_addr: str, passwd: str) -> None:
+    def create_whatsminer_client(self, ip_addr: str, passwd: Optional[str] = None) -> None:
         try:
             self.client = WhatsminerRPCClient(ip_addr, passwd)
         except FailedConnectionError as err:
             logger.error(err)
 
-    def create_whatsminerv3_client(self, ip_addr: str, user: Optional[str], passwd: Optional[str]) -> None:
+    def create_whatsminerv3_client(self, ip_addr: str, user: Optional[str] = None, passwd: Optional[str] = None) -> None:
         try:
             self.client = WhatsminerV3Client(ip_addr, user, passwd)
         except FailedConnectionError as err:
             logger.error(err)
 
-    def create_volcminer_client(self, ip_addr: str, passwd: str) -> None:
+    def create_volcminer_client(self, ip_addr: str, passwd: Optional[str] = None) -> None:
         try:
             self.client = VolcminerHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
-    def create_goldshell_client(self, ip_addr: str, passwd: str) -> None:
+    def create_goldshell_client(self, ip_addr: str, passwd: Optional[str] = None) -> None:
         try:
             self.client = GoldshellHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
-    def create_sealminer_client(self, ip_addr: str, passwd: str) -> None:
+    def create_sealminer_client(self, ip_addr: str, passwd: Optional[str] = None) -> None:
         try:
             self.client = SealminerHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
-    def create_elphapex_client(self, ip_addr: str, passwd: Optional[str]) -> None:
+    def create_elphapex_client(self, ip_addr: str, passwd: Optional[str] = None) -> None:
         try:
             self.client = ElphapexHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
-    def create_dragonball_client(self, ip_addr: str, passwd: Optional[str]) -> None:
+    def create_dragonball_client(self, ip_addr: str, passwd: Optional[str] = None) -> None:
         try:
             self.client = DragonballHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
     def create_client_from_type(
-        self, miner_type: str, ip_addr: str, auth: str, custom_auth: str
+        self, miner_type: str, ip_addr: str, auth: Optional[str] =  None, custom_auth: Optional[str] = None
     ) -> None:
         match miner_type:
             case "antminer":

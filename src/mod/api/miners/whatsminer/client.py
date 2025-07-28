@@ -9,6 +9,7 @@ from typing import Any, Dict, List
 
 from Crypto.Cipher import AES
 from passlib.hash import md5_crypt
+from scapy.arch.solaris import Optional
 
 from mod.api import settings
 from mod.api.rpc import BaseRPCClient
@@ -67,7 +68,7 @@ def parse_privileged_data(token: Dict[str, Any], data: dict) -> dict:
 class WhatsminerRPCClient(BaseRPCClient):
     """Whatsminer JSON-RPC API V2 client"""
 
-    def __init__(self, ip_addr: str, passwd: str):
+    def __init__(self, ip_addr: str, passwd: Optional[str]):
         super().__init__(ip_addr)
         self.passwds: List[str] = [passwd, settings.get("default_whatsminer_passwd")]
         self.token = None

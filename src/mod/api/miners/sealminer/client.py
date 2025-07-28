@@ -11,7 +11,7 @@ from mod.api.http import BaseHTTPClient
 class SealminerHTTPClient(BaseHTTPClient):
     """Bitdeer/Sealminer HTTP Client"""
 
-    def __init__(self, ip_addr: str, passwd: str):
+    def __init__(self, ip_addr: str, passwd: Optional[str]):
         super().__init__(ip_addr)
         self.url = f"http://{self.ip}:{self.port}/"
         self.username = "seal"

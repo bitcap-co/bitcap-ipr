@@ -14,7 +14,7 @@ from mod.api.http import BaseHTTPClient
 class GoldshellHTTPClient(BaseHTTPClient):
     """Goldshell HTTP Client"""
 
-    def __init__(self, ip_addr: str, passwd: str):
+    def __init__(self, ip_addr: str, passwd: Optional[str]):
         super().__init__(ip_addr)
         self.url = f"http://{self.ip}:{self.port}/"
         self.username = "admin"
@@ -110,5 +110,5 @@ def encrypt_to_hex(plain: str) -> str:
         AES.MODE_CBC,
         iv=bytes([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
     )
-    b = zero_pad(plain.encode("UTF-8"), 16)
+    b = zero_pad(plain.encode(), 16)
     return cipher.encrypt(b).hex()

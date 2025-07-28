@@ -15,7 +15,7 @@ from mod.api.http import BaseHTTPClient
 class BitmainHTTPClient(BaseHTTPClient):
     """Bitmain/Antminer HTTP Client with support for vnish"""
 
-    def __init__(self, ip_addr: str, passwd: str, vnish_passwd: str):
+    def __init__(self, ip_addr: str, passwd: Optional[str], vnish_passwd: Optional[str]):
         super().__init__(ip_addr)
         self.url = f"http://{self.ip}:{self.port}/"
         self.username = "root"
