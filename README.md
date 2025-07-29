@@ -9,7 +9,7 @@
 
 ## Included Features
  - Listen for Antminers, IceRivers, and Whatsminers concurrently!
-   - With additional support for Goldshell, VolcMiner, and Sealminers.
+   - With additional support for Goldshell, VolcMiner, Sealminers and more!
  - Copy confirmation IP & MAC addresses to clipboard.
  - Open confirmation IP addresses in web browser.
  - Custom "ID Table" view for retrieving identifying information from miners (i.e. SN, type, subtype/model, algorithm, firmware, and platform).
@@ -57,7 +57,7 @@ By default, it will use the default authentication. If you have an alternative p
 > See [Issue](https://github.com/bitcap-co/bitcap-ipr/issues/21) for more details
 
 > [!NOTE]
-> This has now been patched. See [Release](https://github.com/bitcap-co/bitcap-ipr/releases/tag/v1.2.7-rp-wayland-fix)
+> This has now been patched. See [Release](https://github.com/bitcap-co/bitcap-ipr/releases/tag/v1.2.7)
 
  - ### MacOS binary is damaged/unknown source
 > macOS binaries are not signed. Due to this, the IP Reporter will probably fail to launch and get an error stating the the app is from an unknown source.
