@@ -39,14 +39,19 @@ Here is where you can change general, API, and log settings in their respective 
    - System Tray:
       - "Enable System Tray" : When checked, the system tray icon is created. From the icon, you can show/hide the main window, start/stop listening and quit the application. If the main window is hidden, you will get information messages and confirmations as system notifications.
       - "On Window Close" : When "Enable System Tray" is checked, you can change the window close behavior ("X" button clicked) to "Close" or "Minimize to tray" (default) to minimize the application to the system tray.
+   - Inactive Timer:
+     - "Use Custom Timeout" : When checked, enable ability to set custom inactive timer duration.
+     -  "Inactive Timeout: : When "Use Custom Timeout" is checked, you can change the duration using the spin box. Default is 15 minutues.
    - Listener Configuration:
       - "Antminer" : When checked, enable listening for Antminers. Checked by default.
       - "Whatminer" : When checked, enable listening for Whatsminers. Checked by default.
       - "IceRiver" : When checked, enable listening for IceRivers. Checked by default.
       - Additional Miners (disabled by default):
-         - "Goldshell": When checked, enable listening for Goldshell miners.
-         - "Volcminer":  When checked, enable listening for VolcMiners.
-         - "Sealminers": When checked, enable listening for Sealminers.
+         - "Goldshell" : When checked, enable listening for Goldshell miners.
+         - "Volcminer" :  When checked, enable listening for VolcMiners.
+         - "Sealminer" : When checked, enable listening for Sealminers.
+         - "Elphapex" : When checked, enable listening for Elphapex miners.
+         - "Dragonball" : When checked, enable listening for Dragonball miners.
    #### "API" tab
    "Settings" section:
     - Locate Duration : configure the blink duration when locating a miner. Default is 10s.
@@ -88,6 +93,8 @@ Here is where you can change general, API, and log settings in their respective 
     "general": {
       "enableSysTray": false,
       "onWindowClose": 0,
+      "useCustomTimeout": false,
+      "inactiveTimeoutMins": 15,
       "listenFor": {
         "antminer": true,
         "whatsminer": true,
@@ -95,7 +102,9 @@ Here is where you can change general, API, and log settings in their respective 
         "additional": {
           "volcminer": false,
           "goldshell": false,
-          "sealminer": false
+          "sealminer": false,
+          "elphapex": false,
+          "dragonball": false
         }
       }
     },
