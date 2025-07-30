@@ -6,8 +6,8 @@ import time
 from typing import Any, Dict, Optional
 
 from mod.api import settings
-from mod.api.tcp import BaseTCPClient
 from mod.api.errors import APIError
+from mod.api.tcp import BaseTCPClient
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,13 @@ logger = logging.getLogger(__name__)
 class WhatsminerV3Client(BaseTCPClient):
     """Whatsminer API v3 Client"""
 
-    def __init__(self, ip_addr: str, user: Optional[str] = None, passwd: Optional[str] = None, port: int = 4433):
+    def __init__(
+        self,
+        ip_addr: str,
+        user: Optional[str] = None,
+        passwd: Optional[str] = None,
+        port: int = 4433,
+    ):
         if not user:
             self.username = "super"
         if not passwd:
@@ -51,10 +57,7 @@ class WhatsminerV3Client(BaseTCPClient):
         return json.dumps(cmd)
 
     def run_command(
-        self,
-        command: str,
-        param: Optional[Any] = None,
-        privileged: bool = False
+        self, command: str, param: Optional[Any] = None, privileged: bool = False
     ) -> Dict[str, Any]:
         cmd = self.create_get_cmd(command, param)
         if privileged:

@@ -84,9 +84,8 @@ class BaseHTTPClient(ABC):
                 requests.exceptions.ConnectionError,
                 requests.exceptions.ChunkedEncodingError,
             ) as e:
-                if (
-                    isinstance(e, requests.exceptions.ConnectionError) or
-                    isinstance(e, requests.exceptions.ConnectTimeout)
+                if isinstance(e, requests.exceptions.ConnectionError) or isinstance(
+                    e, requests.exceptions.ConnectTimeout
                 ):
                     break
                 else:

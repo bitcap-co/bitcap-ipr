@@ -43,7 +43,10 @@ class APIClient:
         return self.client
 
     def create_bitmain_client(
-        self, ip_addr: str, passwd: Optional[str] = None, vnish_passwd: Optional[str] = None
+        self,
+        ip_addr: str,
+        passwd: Optional[str] = None,
+        vnish_passwd: Optional[str] = None,
     ) -> None:
         try:
             self.client = BitmainHTTPClient(ip_addr, passwd, vnish_passwd)
@@ -58,50 +61,68 @@ class APIClient:
         except FailedConnectionError as err:
             logger.error(err)
 
-    def create_whatsminer_client(self, ip_addr: str, passwd: Optional[str] = None) -> None:
+    def create_whatsminer_client(
+        self, ip_addr: str, passwd: Optional[str] = None
+    ) -> None:
         try:
             self.client = WhatsminerRPCClient(ip_addr, passwd)
         except FailedConnectionError as err:
             logger.error(err)
 
-    def create_whatsminerv3_client(self, ip_addr: str, user: Optional[str] = None, passwd: Optional[str] = None) -> None:
+    def create_whatsminerv3_client(
+        self, ip_addr: str, user: Optional[str] = None, passwd: Optional[str] = None
+    ) -> None:
         try:
             self.client = WhatsminerV3Client(ip_addr, user, passwd)
         except FailedConnectionError as err:
             logger.error(err)
 
-    def create_volcminer_client(self, ip_addr: str, passwd: Optional[str] = None) -> None:
+    def create_volcminer_client(
+        self, ip_addr: str, passwd: Optional[str] = None
+    ) -> None:
         try:
             self.client = VolcminerHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
-    def create_goldshell_client(self, ip_addr: str, passwd: Optional[str] = None) -> None:
+    def create_goldshell_client(
+        self, ip_addr: str, passwd: Optional[str] = None
+    ) -> None:
         try:
             self.client = GoldshellHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
-    def create_sealminer_client(self, ip_addr: str, passwd: Optional[str] = None) -> None:
+    def create_sealminer_client(
+        self, ip_addr: str, passwd: Optional[str] = None
+    ) -> None:
         try:
             self.client = SealminerHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
-    def create_elphapex_client(self, ip_addr: str, passwd: Optional[str] = None) -> None:
+    def create_elphapex_client(
+        self, ip_addr: str, passwd: Optional[str] = None
+    ) -> None:
         try:
             self.client = ElphapexHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
-    def create_dragonball_client(self, ip_addr: str, passwd: Optional[str] = None) -> None:
+    def create_dragonball_client(
+        self, ip_addr: str, passwd: Optional[str] = None
+    ) -> None:
         try:
             self.client = DragonballHTTPClient(ip_addr, passwd)
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
     def create_client_from_type(
-        self, miner_type: str, ip_addr: str, auth: Optional[str] =  None, custom_auth: Optional[str] = None
+        self,
+        miner_type: str,
+        ip_addr: str,
+        auth: Optional[str] = None,
+        custom_auth: Optional[str] = None,
     ) -> None:
         match miner_type:
             case "antminer":
@@ -181,12 +202,14 @@ class APIClient:
             return True
         return False
 
-    def upgrade_whatsminer_client(self, ip: str, user: Optional[str] = None, passwd: Optional[str] = None) -> None:
+    def upgrade_whatsminer_client(
+        self, ip: str, user: Optional[str] = None, passwd: Optional[str] = None
+    ) -> None:
         if self.client and isinstance(self.client, WhatsminerRPCClient):
             ver = self.client.get_version()
             if int(ver["Msg"]["fw_ver"][:6]) > 202412:
-                    self.close_client()
-                    self.create_whatsminerv3_client(ip, user, passwd)
+                self.close_client()
+                self.create_whatsminerv3_client(ip, user, passwd)
 
     def get_target_info(self, parser: Parser) -> Dict[str, str]:
         result = parser.get_target()

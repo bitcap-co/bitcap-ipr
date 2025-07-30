@@ -15,12 +15,17 @@ from mod.api.http import BaseHTTPClient
 class BitmainHTTPClient(BaseHTTPClient):
     """Bitmain/Antminer HTTP Client with support for vnish"""
 
-    def __init__(self, ip_addr: str, passwd: Optional[str], vnish_passwd: Optional[str]):
+    def __init__(
+        self, ip_addr: str, passwd: Optional[str], vnish_passwd: Optional[str]
+    ):
         super().__init__(ip_addr)
         self.url = f"http://{self.ip}:{self.port}/"
         self.username = "root"
         self.passwds = [passwd, settings.get("default_bitmain_passwd")]
-        self.vnish_passwds: List[str] = [vnish_passwd, settings.get("default_vnish_passwd")]
+        self.vnish_passwds: List[str] = [
+            vnish_passwd,
+            settings.get("default_vnish_passwd"),
+        ]
         self.command_format = {
             "vnish": "api/v1",
             "stock": Template("cgi-bin/${cmd}.cgi"),
@@ -66,7 +71,7 @@ class BitmainHTTPClient(BaseHTTPClient):
         command: str,
         params: Optional[Dict[str, str]] = None,
         payload: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None
+        data: Optional[Dict[str, Any]] = None,
     ) -> Any:
         path = self.command_format["stock"].substitute(cmd=command)
         if self.is_custom:

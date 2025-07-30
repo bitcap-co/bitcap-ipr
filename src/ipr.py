@@ -918,7 +918,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         else:
             confirm = IPRConfirmation()
             # IPRConfirmation Signals
-            confirm.actionOpenBrowser.clicked.connect(lambda: self.open_dashboard(ip, http_port))
+            confirm.actionOpenBrowser.clicked.connect(
+                lambda: self.open_dashboard(ip, http_port)
+            )
             confirm.accept.clicked.connect(confirm.hide)
             # copy action
             confirm.lineIPField.actionCopy = self.create_copy_text_action(

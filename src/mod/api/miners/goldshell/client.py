@@ -60,7 +60,7 @@ class GoldshellHTTPClient(BaseHTTPClient):
         command: str,
         params: Optional[Dict[str, str]] = None,
         payload: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None
+        data: Optional[Dict[str, Any]] = None,
     ) -> Any:
         path = self.command_format.substitute(cmd=command)
         res = self._do_http(method, path, params=params, payload=payload, data=data)

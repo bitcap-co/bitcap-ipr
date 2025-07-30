@@ -2,6 +2,7 @@ from typing import Dict, Any
 
 from ...parser import Parser
 
+
 class GoldshellParser(Parser):
     def __init__(self, target: Dict[str, str]):
         super().__init__(target)

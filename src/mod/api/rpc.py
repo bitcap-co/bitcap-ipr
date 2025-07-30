@@ -73,11 +73,7 @@ class BaseRPCClient(ABC):
                 )
             )
 
-    def run_command(
-        self,
-        command: str,
-        **kwargs
-    ) -> dict:
+    def run_command(self, command: str, **kwargs) -> dict:
         cmd = json.dumps({"cmd": command, **kwargs})
         return self._do_rpc(cmd)
 

@@ -12,7 +12,13 @@ logger = logging.getLogger(__name__)
 
 
 class BaseTCPClient(ABC):
-    def __init__(self, ip: str, port: int, username: Optional[str] = None, passwd: Optional[str] = None):
+    def __init__(
+        self,
+        ip: str,
+        port: int,
+        username: Optional[str] = None,
+        passwd: Optional[str] = None,
+    ):
         self.ip = ip
         self.port = port
         self.username = username
@@ -51,11 +57,7 @@ class BaseTCPClient(ABC):
         resp = self._wm_v3_recv_all()
 
         if resp is None:
-            self._close_client(
-                APIError(
-                    "API Error: Failed to receive response."
-                )
-            )
+            self._close_client(APIError("API Error: Failed to receive response."))
 
         return json.loads(resp)
 

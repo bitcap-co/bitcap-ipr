@@ -170,4 +170,6 @@ class WhatsminerRPCClient(BaseRPCClient):
         if auto:
             self.send_privileged_command("set_led", param="auto")
         else:
-            self.send_privileged_command("set_led", color=color, period=period, duration=duration, start=start)
+            self.send_privileged_command(
+                "set_led", color=color, period=period, duration=duration, start=start
+            )

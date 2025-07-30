@@ -74,7 +74,9 @@ class Listener(QObject):
             logger.info(f"Listener[{self.port}] : received datagram.")
             ipreport = IPReportDatagram(datagram)
             if not ipreport.is_msg_valid:
-                logger.warning(f"Listener[{self.port}] : invalid IP report datagram. Ignoring...")
+                logger.warning(
+                    f"Listener[{self.port}] : invalid IP report datagram. Ignoring..."
+                )
                 return
             parsed_msg = ipreport.parse_msg()
             if self.record.dict:
