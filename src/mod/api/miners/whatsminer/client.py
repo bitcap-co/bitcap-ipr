@@ -1,22 +1,21 @@
+import base64
+import binascii
 import datetime
+import hashlib
+import json
 import logging
 import re
-import hashlib
-import binascii
-import base64
-import json
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from Crypto.Cipher import AES
 from passlib.hash import md5_crypt
-from scapy.arch.solaris import Optional
 
 from mod.api import settings
-from mod.api.rpc import BaseRPCClient
 from mod.api.errors import (
     AuthenticationError,
     TokenOverMaxTimesError,
 )
+from mod.api.rpc import BaseRPCClient
 
 logger = logging.getLogger(__name__)
 
