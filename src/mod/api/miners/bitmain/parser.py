@@ -54,8 +54,8 @@ class BitmainParser(Parser):
             pools = obj["miner"]["pools"]
         for pool in pools:
             if pool["status"] == "active" or pool["status"] == "Alive":
-                self.target["active_pool"] = pool["url"]
-                self.target["active_worker"] = pool["user"]
+                self.target["pool"] = pool["url"]
+                self.target["worker"] = pool["user"]
                 break
 
     def parse_system_info(self, obj: Dict[str, Any]) -> None:
