@@ -55,6 +55,7 @@ from utils import (
     get_log_dir,
     read_config,
     write_config,
+    get_miner_url,
 )
 
 logger = logging.getLogger(__name__)
@@ -603,19 +604,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionContextExport.triggered.connect(self.export_table)
         self.table_context.exec(QCursor.pos())
 
-    def get_miner_url(self, ip_addr: str, miner_type: str) -> str:
-        port = 80
-        match miner_type:
-            case "dragonball":
-                port = 16666
-        return f"http://{ip_addr}:{port}/"
-
     def double_click_item(self, model_index: QModelIndex):
         item = self.idTable.itemFromIndex(model_index)
         match item.column():
             case 1:  # ip column
                 miner_type = self.idTable.item(item.row(), 4).text()
-                url = self.get_miner_url(item.text(), miner_type)
+                url = get_miner_url(item.text(), miner_type)
                 self.open_dashboard(url)
             case 3:  # serial column
                 self.idTable.editItem(item)
@@ -630,7 +624,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         for index in selected_ips:
             item = self.idTable.itemFromIndex(index)
             miner_type = self.idTable.item(item.row(), 4).text()
-            url = self.get_miner_url(item.text(), miner_type)
+            url = get_miner_url(item.text(), miner_type)
             self.open_dashboard(url)
 
     def copy_selected(self):
@@ -656,7 +650,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                     case 0:  # ignore locate
                         continue
                     case 1:  # ip
-                        url = self.get_miner_url(item.text(), miner_type)
+                        url = get_miner_url(item.text(), miner_type)
                         out += f"{url}{sep}"
                     case _:
                         out += f"{item.text()}{sep}"
@@ -900,7 +894,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         ip = self.result["ip"]
         mac = self.result["mac"]
         type = self.result["type"]
-        url = self.get_miner_url(ip, type)
+        url = get_miner_url(ip, type)
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(url)
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():

@@ -82,3 +82,10 @@ def flush_log():
     with open(get_log_file_path(), "r+") as f:
         f.truncate(0)
         f.seek(0)
+
+def get_miner_url(ip_addr: str, miner_type: str) -> str:
+    port = 80
+    match miner_type:
+        case "dragonball":
+            port = 16666
+    return f"http://{ip_addr}:{port}/"
