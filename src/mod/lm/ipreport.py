@@ -101,7 +101,14 @@ class IPReportDatagram:
             if self.is_msg_compressed:
                 self.__decompress_data_from_type()
             else:
-                self.msg = self.data.decode().rstrip("\x00")
+                try:
+                    self.msg = self.data.decode().rstrip("\x00")
+                except UnicodeDecodeError:
+                    logger.debug(self.data)
+                    logger.warning(
+                        f"{self.miner_type}[{self.src_addr}] : failed to decode datagram. Possibly intercepted from another source."
+                    )
+                    return
 
             match self.miner_type:
                 case "bitmain-common":
