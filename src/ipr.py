@@ -584,8 +584,8 @@ class IPR(QMainWindow, Ui_MainWindow):
     def open_source(self):
         webbrowser.open(f"{APP_INFO['source']}", new=2)
 
-    def open_dashboard(self, ip: str, port: int = 80):
-        webbrowser.open(f"http://{ip}:{port}/", new=2)
+    def open_dashboard(self, url: str):
+        webbrowser.open(url, new=2)
 
     def show_table_context(self):
         self.table_context = QMenu()
@@ -603,17 +603,20 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionContextExport.triggered.connect(self.export_table)
         self.table_context.exec(QCursor.pos())
 
+    def get_miner_url(self, ip_addr: str, miner_type: str) -> str:
+        port = 80
+        match miner_type:
+            case "dragonball":
+                port = 16666
+        return f"http://{ip_addr}:{port}/"
+
     def double_click_item(self, model_index: QModelIndex):
         item = self.idTable.itemFromIndex(model_index)
         match item.column():
             case 1:  # ip column
                 miner_type = self.idTable.item(item.row(), 4).text()
-                match miner_type:
-                    case "dragonball":
-                        http_port = 16666
-                    case _:
-                        http_port = 80
-                self.open_dashboard(item.text(), http_port)
+                url = self.get_miner_url(item.text(), miner_type)
+                self.open_dashboard(url)
             case 3:  # serial column
                 self.idTable.editItem(item)
             case _:
@@ -627,12 +630,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         for index in selected_ips:
             item = self.idTable.itemFromIndex(index)
             miner_type = self.idTable.item(item.row(), 4).text()
-            match miner_type:
-                case "dragonball":
-                    http_port = 16666
-                case _:
-                    http_port = 80
-            self.open_dashboard(item.text(), http_port)
+            url = self.get_miner_url(item.text(), miner_type)
+            self.open_dashboard(url)
 
     def copy_selected(self):
         logger.info(" copy selected elements.")
@@ -657,11 +656,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                     case 0:  # ignore locate
                         continue
                     case 1:  # ip
-                        match miner_type:
-                            case "dragonball":
-                                out += f"http://{item.text()}:16666{sep}"
-                            case _:
-                                out += f"http://{item.text()}{sep}"
+                        url = self.get_miner_url(item.text(), miner_type)
+                        out += f"{url}{sep}"
                     case _:
                         out += f"{item.text()}{sep}"
                 continue
@@ -904,13 +900,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         ip = self.result["ip"]
         mac = self.result["mac"]
         type = self.result["type"]
-        match type:
-            case "dragonball":
-                http_port = 16666
-            case _:
-                http_port = 80
+        url = self.get_miner_url(ip, type)
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
-            self.open_dashboard(ip, http_port)
+            self.open_dashboard(url)
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
             logger.info("show_confirmation : populate ID table.")
             self.populate_id_table()
@@ -918,7 +910,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             confirm = IPRConfirmation()
             # IPRConfirmation Signals
             confirm.actionOpenBrowser.clicked.connect(
-                lambda: self.open_dashboard(ip, http_port)
+                lambda: self.open_dashboard(url)
             )
             confirm.accept.clicked.connect(confirm.hide)
             # copy action
@@ -1011,7 +1003,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         """
         logger.info("populate_table : write table data.")
         if data:
-            self.result.update(data)
+            self.result = data
         rowPosition = self.idTable.rowCount()
         self.idTable.insertRow(rowPosition)
         actionLocateMiner = QLabel()
