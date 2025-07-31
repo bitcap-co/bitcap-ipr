@@ -31,10 +31,12 @@ p = Popen(
 p.wait()
 os.rename("dist\\BitCapIPR\\main.dist", "dist\\BitCapIPR\\ipr")
 shutil.copy("README.md", "dist\\BitCapIPR")
+shutil.copy("CONFIGURATION.md", "dist\\BitCapIPR")
 shutil.make_archive(
     f"BitCapIPR-v{args.v}-win-x64-portable", "zip", os.path.join("dist")
 )
 os.remove("dist\\BitCapIPR\\README.md")
+os.remove("dist\\BitCapIPR\\CONFIGURATION.md")
 
 if not args.no_setup:
     p = Popen(

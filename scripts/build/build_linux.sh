@@ -32,8 +32,9 @@ python3 -m nuitka src/main.py --assume-yes-for-downloads --standalone --output-f
 
 mv dist/BitCapIPR/main.dist dist/BitCapIPR/ipr
 cp README.md dist/BitCapIPR
+cp CONFIGURATION.md dist/BitCapIPR
 zip -r "dist/$PNAME-$VERSION-${OS,,}-$PLATFORM-portable.zip" dist/BitCapIPR
-rm dist/BitCapIPR/README.md
+rm dist/BitCapIPR/README.md dist/BitCapIPR/CONFIGURATION.md
 
 [[ ARCHIVE -eq 1 ]] && exit 1;
 

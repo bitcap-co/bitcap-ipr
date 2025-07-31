@@ -2,7 +2,7 @@ name: Build and Release BitCap IPReporter
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build:
@@ -27,7 +27,7 @@ jobs:
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install Python dependencies
         run: |
@@ -55,8 +55,9 @@ jobs:
           mv dist/BitCapIPR/main.dist dist/BitCapIPR/ipr
           # package portable zip archive
           cp README.md dist/BitCapIPR
+          cp CONFIGURATION.md dist/BitCapIPR
           zip -r dist/BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}-portable.zip dist/BitCapIPR
-          rm dist/BitCapIPR/README.md
+          rm dist/BitCapIPR/README.md dist/BitCapIPR/CONFIGURATION.md
 
           # package .deb archive with dpkg-deb
           [ -e package ] && rm -rf package
@@ -113,8 +114,9 @@ jobs:
           mv dist/main.app dist/BitCapIPR.app
           # package portable zip archive
           cp README.md dist/BitCapIPR.app/Contents
+          cp CONFIGURATION.md dist/BitCapIPR.app/Contents
           zip -9 -y -r dist/BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}-portable.zip dist/BitCapIPR.app
-          rm dist/BitCapIPR.app/Contents/README.md
+          rm dist/BitCapIPR.app/Contents/README.md dist/BitCapIPR.app/Contents/CONFIGURATION.md
 
           # package .dmg with create-dmg
           brew install create-dmg
@@ -154,8 +156,9 @@ jobs:
 
           # package portable zip archive
           Copy-Item .\README.md .\dist\BitCapIPR
+          Copy-Item .\CONFIGURATION.md .\dist\BitCapIPR
           Compress-Archive -Path .\dist\BitCapIPR -DestinationPath .\dist\BitCapIPR-${{ github.ref_name }}-win-${{ matrix.arch }}-portable.zip -Force
-          Remove-Item -Path .\dist\BitCapIPR\README.md
+          Remove-Item -Path .\dist\BitCapIPR\README.md,.\dist\BitCapIPR\CONFIGURATION.md
 
           # package setup installer with innosetup
           choco install innosetup
