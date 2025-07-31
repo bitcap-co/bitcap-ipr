@@ -47,6 +47,17 @@ class BitmainParser(Parser):
                     self.target["platform"] = cb
                     break
 
+    def parse_pools(self, obj: Dict[str, Any]) -> None:
+        if "POOLS" in obj:
+            pools = obj["POOLS"]
+        elif "miner" in obj:
+            pools = obj["miner"]["pools"]
+        for pool in pools:
+            if pool["status"] == "active" or pool["status"] == "Alive":
+                self.target["active_pool"] = pool["url"]
+                self.target["active_worker"] = pool["user"]
+                break
+
     def parse_system_info(self, obj: Dict[str, Any]) -> None:
         self.parse_algorithm(obj)
         self.parse_firmware(obj)

@@ -35,6 +35,8 @@ class APIClient:
             "serial": "N/A",
             "subtype": "N/A",
             "algorithm": "N/A",
+            "pool": "N/A",
+            "worker": "N/A",
             "firmware": "N/A",
             "platform": "N/A",
         }
@@ -218,12 +220,14 @@ class APIClient:
                 result[k] = "Failed"
             return result
         sys = self.client.get_system_info()
+        pools = self.client.get_pools()
         if isinstance(parser, BitmainParser):
             if not self.client.is_custom:
                 log = self.client.get_bitmain_system_log()
                 parser.parse_platform(log)
             else:
                 parser.parse_platform(sys)
+            parser.parse_pools(pools)
             parser.parse_system_info(sys)
         elif (
             isinstance(parser, IceriverParser)
