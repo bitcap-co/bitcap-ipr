@@ -251,8 +251,9 @@ class APIClient:
             parser.parse_miner_info(dev)
         elif isinstance(parser, ElphapexParser):
             parser.parse_system_info(sys)
-            info = self.client.get_miner_info()
-            parser.parse_platform(info)
+            parser.parse_pools(pools)
+            dev = self.client.get_miner_info()
+            parser.parse_platform(dev)
         elif isinstance(parser, DragonballParser):
             parser.parse_system_info(sys)
         return parser.get_target()
