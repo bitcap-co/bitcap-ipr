@@ -691,7 +691,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 line = stream.readLine()
                 if line:
                     row = dict(zip(headers, line.split(",")))
-                    self.populate_table_row(**row)
+                    self.populate_table_row(row)
         else:
             logger.error(f"import_table : failed to read file {table_file}.")
             self.iprStatus.showMessage("Status :: Failed to import table.", 5000)
@@ -1003,13 +1003,15 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.api_client.close_client()
         return t_data
 
-    def populate_table_row(self) -> None:
+    def populate_table_row(self, data: Dict[str, str] = None) -> None:
         """
         arguments:
             **data: dict[str. str] -- row data with the following key structure:
                 'ip', 'mac', 'serial', 'type', 'subtype', 'algoritmn', 'firmware', 'platform'
         """
         logger.info("populate_table : write table data.")
+        if data:
+            self.result.update(data)
         rowPosition = self.idTable.rowCount()
         self.idTable.insertRow(rowPosition)
         actionLocateMiner = QLabel()
