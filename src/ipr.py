@@ -645,27 +645,26 @@ class IPR(QMainWindow, Ui_MainWindow):
             selected_indexes_in_row = [x for x in selected_indexes if x.row() == r]
             if len(selected_indexes_in_row) == 0:
                 continue
-            if len(selected_indexes_in_row) == 1:
-                # single column
-                item = self.idTable.itemFromIndex(selected_indexes_in_row[0])
-                if item.column() == 0:
-                    continue
-                if item.column() == 1:
-                    out += f"http://{item.text()}"
-                else:
-                    out += f"{item.text()}"
-                out += "\n"
-                continue
             for index in range(len(selected_indexes_in_row)):
+                sep = ""
+                if len(selected_indexes_in_row) > 1:
+                    sep = ","
                 if not self.idTable.itemFromIndex(selected_indexes_in_row[index]):
                     continue
                 item = self.idTable.itemFromIndex(selected_indexes_in_row[index])
-                if item.column() == 0:
-                    continue
-                if item.column() == 1:
-                    out += f"http://{item.text()},"
-                else:
-                    out += f"{item.text()},"
+                miner_type = self.idTable.item(item.row(), 4).text()
+                match item.column():
+                    case 0:  # ignore locate
+                        continue
+                    case 1:  # ip
+                        match miner_type:
+                            case "dragonball":
+                                out += f"http://{item.text()}:16666{sep}"
+                            case _:
+                                out += f"http://{item.text()}{sep}"
+                    case _:
+                        out += f"{item.text()}{sep}"
+                continue
             out += "\n"
         logger.info("copy_selected : copy elements to clipboard.")
         cb = QApplication.clipboard()
