@@ -154,6 +154,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "TYPE",
                 "SUBTYPE",
                 "ALGORITHM",
+                "POOL",
+                "WORKER",
                 "FIRMWARE",
                 "PLATFORM",
             ]
@@ -164,7 +166,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.idTable.setColumnWidth(2, 120)
         self.idTable.setColumnWidth(3, 135)
         self.idTable.setColumnWidth(5, 130)
-        self.idTable.setColumnWidth(7, 180)
+        self.idTable.setColumnWidth(7, 250)
+        self.idTable.setColumnWidth(8, 180)
+        self.idTable.setColumnWidth(9, 180)
         self.idTable.doubleClicked.connect(self.double_click_item)
         self.idTable.cellClicked.connect(self.locate_miner)
 

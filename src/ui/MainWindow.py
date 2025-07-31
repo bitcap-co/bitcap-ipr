@@ -127,7 +127,7 @@ class Ui_MainWindow(object):
         self.idTable.setAlternatingRowColors(False)
         self.idTable.setShowGrid(False)
         self.idTable.setCornerButtonEnabled(True)
-        self.idTable.setColumnCount(9)
+        self.idTable.setColumnCount(11)
         self.idTable.horizontalHeader().setMinimumSectionSize(15)
         self.idTable.horizontalHeader().setDefaultSectionSize(105)
 
