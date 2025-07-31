@@ -46,7 +46,7 @@ class IPR_Menubar(QMenuBar):
         )
         self.actionAlwaysOpenIPInBrowser.setCheckable(True)
         self.actionAlwaysOpenIPInBrowser.setToolTip(
-            "Always opens IPs in browser (No IP confirmation)"
+            "Always open received IPs in browser"
         )
         self.actionDisableInactiveTimer = self.menuOptions.addAction(
             "Disable Inactive Timer"

@@ -6,7 +6,7 @@ Along the top of the window, is the main interaction with the configuration of t
 #### "Options" Menu
 The "Options" menu contains settings relating to the core listener functionality.
 Listener Behavior options:
-   - "Always Open IP in Browser" Checkbox : When checked, the received IP address will automatically open in your default web browser. No IP confirmation window will be shown.
+   - "Always Open IP in Browser" Checkbox : When checked, the received IP address will automatically open in your default web browser.
    - "Disable Inactive Timer" : When checked, the listener will run until manually stopped instead of the default timeout of 15 minutes.
    - "Auto Start on Launch" : When checked, the listener will automatically start on application launch (Effective next launch on changed).
 
