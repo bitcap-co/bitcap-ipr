@@ -237,6 +237,7 @@ class APIClient:
             parser.parse_all(sys)
         elif isinstance(parser, GoldshellParser):
             parser.parse_system_info(sys)
+            parser.parse_pools(pools)
             algo = self.client.get_algo_settings()
             parser.parse_algorithm(algo)
         elif isinstance(parser, WhatsminerParser):

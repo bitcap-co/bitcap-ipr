@@ -82,6 +82,9 @@ class GoldshellHTTPClient(BaseHTTPClient):
     def get_system_info(self) -> dict:
         return self.run_command("GET", "status")
 
+    def get_pools(self) -> dict:
+        return self.run_command("GET", "pools")
+
     def get_blink_status(self) -> bool:
         settings = self.get_settings()
         return settings["ledcontrol"]
