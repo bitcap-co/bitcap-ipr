@@ -101,6 +101,10 @@ class IceriverHTTPClient(BaseHTTPClient):
         resp = self.run_command("POST", "userpanel", data=data)
         return resp["data"]
 
+    def get_pools(self) -> dict:
+        data = self.get_system_info()
+        return data["pools"]
+
     def get_blink_status(self) -> bool:
         resp = self.get_system_info()
         return resp["locate"]
