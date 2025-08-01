@@ -234,6 +234,7 @@ class APIClient:
             or isinstance(parser, VolcminerParser)
             or isinstance(parser, SealminerParser)
         ):
+            parser.parse_pools(pools)
             parser.parse_all(sys)
         elif isinstance(parser, GoldshellParser):
             parser.parse_system_info(sys)
