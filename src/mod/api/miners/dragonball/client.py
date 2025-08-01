@@ -52,5 +52,8 @@ class DragonballHTTPClient(BaseHTTPClient):
     def get_blink_status(self) -> bool:
         return super().get_blink_status()
 
+    def get_pools(self) -> None:
+        return super().get_pools()
+
     def blink(self, enabled: bool) -> None:
         return super().blink(enabled)
