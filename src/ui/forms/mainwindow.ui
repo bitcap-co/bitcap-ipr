@@ -422,12 +422,15 @@
                      <property name="geometry">
                       <rect>
                        <x>0</x>
-                       <y>-195</y>
+                       <y>-103</y>
                        <width>477</width>
-                       <height>427</height>
+                       <height>449</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_19">
+                      <property name="spacing">
+                       <number>10</number>
+                      </property>
                       <item>
                        <widget class="QGroupBox" name="groupSystemTray">
                         <property name="title">
@@ -621,8 +624,17 @@
                       </item>
                       <item>
                        <widget class="QGroupBox" name="groupListeners">
+                        <property name="toolTip">
+                         <string>Check to toggle all listeners.</string>
+                        </property>
                         <property name="title">
                          <string>Listener Configuraion</string>
+                        </property>
+                        <property name="checkable">
+                         <bool>true</bool>
+                        </property>
+                        <property name="checked">
+                         <bool>false</bool>
                         </property>
                         <layout class="QVBoxLayout" name="verticalLayout_11">
                          <item>
@@ -826,7 +838,7 @@
                        <x>0</x>
                        <y>0</y>
                        <width>477</width>
-                       <height>710</height>
+                       <height>744</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_13">

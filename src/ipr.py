@@ -24,6 +24,7 @@ from PySide6.QtGui import (
     QPixmap,
 )
 from PySide6.QtWidgets import (
+    QWidget,
     QApplication,
     QButtonGroup,
     QFileDialog,
@@ -130,6 +131,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.labelLogo.setPixmap(QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg"))
 
         # listener config
+        for child in self.groupListeners.children():
+            if isinstance(child, QWidget):
+                child.setEnabled(True)
+        self.groupListeners.toggled.connect(self.toggle_all_listeners)
+
         self.listenerConfig = QButtonGroup(exclusive=False)
         self.listenerConfig.addButton(self.checkListenAntminer, 1)
         self.listenerConfig.addButton(self.checkListenIceRiver, 2)
@@ -527,6 +533,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionCopySelectedElements.setEnabled(enabled)
         self.menu_bar.actionImport.setEnabled(enabled)
         self.menu_bar.actionExport.setEnabled(enabled)
+
+    def toggle_all_listeners(self, enabled: bool):
+        for button in self.listenerConfig.buttons():
+            button.setChecked(enabled)
+        if not enabled:
+            for child in self.groupListeners.children():
+                if isinstance(child, QWidget):
+                    child.setEnabled(True)
 
     # actions
     def create_passwd_toggle_action(self, line: QLineEdit) -> QAction:
