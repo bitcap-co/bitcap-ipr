@@ -227,20 +227,20 @@ class APIClient:
                 parser.parse_platform(log)
             else:
                 parser.parse_platform(sys)
-            parser.parse_pools(pools)
             parser.parse_system_info(sys)
+            parser.parse_pools(pools)
         elif (
             isinstance(parser, IceriverParser)
             or isinstance(parser, VolcminerParser)
             or isinstance(parser, SealminerParser)
         ):
-            parser.parse_pools(pools)
             parser.parse_all(sys)
+            parser.parse_pools(pools)
         elif isinstance(parser, GoldshellParser):
             parser.parse_system_info(sys)
-            parser.parse_pools(pools)
             algo = self.client.get_algo_settings()
             parser.parse_algorithm(algo)
+            parser.parse_pools(pools)
         elif isinstance(parser, WhatsminerParser):
             parser.parse_system_info(sys)
             devs = self.client.get_dev_details()
@@ -253,9 +253,9 @@ class APIClient:
             parser.parse_miner_info(dev)
         elif isinstance(parser, ElphapexParser):
             parser.parse_system_info(sys)
-            parser.parse_pools(pools)
             dev = self.client.get_miner_info()
             parser.parse_platform(dev)
+            parser.parse_pools(pools)
         elif isinstance(parser, DragonballParser):
             parser.parse_system_info(sys)
         return parser.get_target()
