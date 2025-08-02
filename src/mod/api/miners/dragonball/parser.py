@@ -25,10 +25,10 @@ class DragonballParser(Parser):
     def parse_platform(self, obj: Dict[str, Any]) -> None:
         return super().parse_platform(obj)
 
-    def parse_pools(self, obj: Dict[str, Any]) -> None:
-        return super().parse_pools(obj)
-
     def parse_system_info(self, obj: Dict[str, Any]) -> None:
         self.parse_serial(obj)
         self.parse_subtype(obj)
         self.parse_firmware(obj)
+
+    def parse_pools(self, obj: Dict[str, Any]) -> None:
+        return super().parse_pools(obj)

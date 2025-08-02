@@ -47,6 +47,12 @@ class BitmainParser(Parser):
                     self.target["platform"] = cb
                     break
 
+    def parse_system_info(self, obj: Dict[str, Any]) -> None:
+        self.parse_algorithm(obj)
+        self.parse_firmware(obj)
+        self.parse_subtype(obj)
+        self.parse_serial(obj)
+
     def parse_pools(self, obj: Dict[str, Any]) -> None:
         if "POOLS" in obj:
             pools = obj["POOLS"]
@@ -57,9 +63,3 @@ class BitmainParser(Parser):
                 self.target["pool"] = pool["url"]
                 self.target["worker"] = pool["user"]
                 break
-
-    def parse_system_info(self, obj: Dict[str, Any]) -> None:
-        self.parse_algorithm(obj)
-        self.parse_firmware(obj)
-        self.parse_subtype(obj)
-        self.parse_serial(obj)

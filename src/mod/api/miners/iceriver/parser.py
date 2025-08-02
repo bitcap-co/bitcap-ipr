@@ -33,12 +33,12 @@ class IceriverParser(Parser):
     def parse_platform(self, obj: Dict[str, Any]) -> None:
         return super().parse_platform(obj)
 
+    def parse_system_info(self, obj: Dict[str, Any]) -> None:
+        return super().parse_system_info(obj)
+
     def parse_pools(self, obj: Dict[str, Any]) -> None:
         for pool in obj:
             if pool["connect"]:
                 self.target["pool"] = pool["addr"]
                 self.target["worker"] = pool["user"]
                 break
-
-    def parse_system_info(self, obj: Dict[str, Any]) -> None:
-        return super().parse_system_info(obj)
