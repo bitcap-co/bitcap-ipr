@@ -33,3 +33,10 @@ class WhatsminerV3Parser(Parser):
     def parse_miner_info(self, obj: Dict[str, Any]) -> None:
         self.parse_serial(obj)
         self.parse_subtype(obj)
+
+    def parse_pools(self, obj: Dict[str, Any]) -> None:
+        for pool in obj:
+            if pool["status"] == "alive":
+                self.target["pool"] = pool["url"]
+                self.target["worker"] = pool["account"]
+                break

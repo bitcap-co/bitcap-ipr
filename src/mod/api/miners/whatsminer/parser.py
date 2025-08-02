@@ -34,6 +34,12 @@ class WhatsminerParser(Parser):
     def parse_system_info(self, obj: Dict[str, Any]) -> None:
         self.parse_serial(obj)
 
+    def parse_pools(self, obj: Dict[str, Any]) -> None:
+        for pool in obj["POOLS"]:
+            if pool["Status"] == "Alive":
+                self.target["pool"] == pool["URL"]
+                self.target["worker"] == pool["User"]
+
     def parse_version_info(self, obj: Dict[str, Any]) -> None:
         self.parse_firmware(obj)
         self.parse_platform(obj)

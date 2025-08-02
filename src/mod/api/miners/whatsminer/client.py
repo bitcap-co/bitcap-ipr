@@ -156,6 +156,9 @@ class WhatsminerRPCClient(BaseRPCClient):
             info="ip,proto,netmask,gateway,dns,hostname,mac,ledstat,gateway",
         )
 
+    def get_pools(self) -> dict:
+        return self.run_command("pools")
+
     def blink(
         self,
         enabled: bool,

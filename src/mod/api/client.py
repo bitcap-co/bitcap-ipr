@@ -247,10 +247,12 @@ class APIClient:
             parser.parse_subtype(devs)
             ver = self.client.get_version()
             parser.parse_version_info(ver)
+            parser.parse_pools(pools)
         elif isinstance(parser, WhatsminerV3Parser):
             parser.parse_system_info(sys)
             dev = self.client.get_miner_info()
             parser.parse_miner_info(dev)
+            parser.parse_pools(pools)
         elif isinstance(parser, ElphapexParser):
             parser.parse_system_info(sys)
             dev = self.client.get_miner_info()
