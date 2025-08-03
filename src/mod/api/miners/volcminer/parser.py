@@ -6,7 +6,7 @@ from ...parser import Parser
 class VolcminerParser(Parser):
     def __init__(self, target: Dict[str, str]):
         super().__init__(target)
-        self.target["algorithm"] = "SCRYPT"
+        self.target["algorithm"] = "scrypt"
 
     def parse_serial(self, obj: Dict[str, Any]) -> None:
         return super().parse_serial(obj)

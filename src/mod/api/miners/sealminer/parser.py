@@ -6,7 +6,7 @@ from ...parser import Parser
 class SealminerParser(Parser):
     def __init__(self, target: Dict[str, str]):
         super().__init__(target)
-        self.target["algorithm"] = "SHA256"
+        self.target["algorithm"] = "sha256"
 
     def parse_serial(self, obj: Dict[str, Any]) -> None:
         return super().parse_serial(obj)

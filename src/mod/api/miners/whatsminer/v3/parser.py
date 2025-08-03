@@ -5,7 +5,7 @@ from ....parser import Parser
 class WhatsminerV3Parser(Parser):
     def __init__(self, target: dict):
         super().__init__(target)
-        self.target["algorithm"] = "SHA256"
+        self.target["algorithm"] = "sha256"
 
     def parse_serial(self, obj: Dict[str, Any]) -> None:
         if "miner-sn" in obj and obj["miner-sn"]:
