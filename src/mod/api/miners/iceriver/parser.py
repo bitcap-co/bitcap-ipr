@@ -27,6 +27,11 @@ class IceriverParser(Parser):
         if "algo" in obj:
             if not obj["algo"] == "none":
                 self.target["algorithm"] = obj["algo"]
+            else:
+                if self.target["subtype"] == "AL3":
+                    self.target["algorithm"] = "blake3"
+                elif self.target["subtype"].__contains__("KS"):
+                    self.target["algorithm"] = "kHeavyHash"
 
     def parse_firmware(self, obj: Dict[str, Any]) -> None:
         if "softver1" in obj:
