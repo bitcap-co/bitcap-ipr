@@ -14,10 +14,12 @@ class IceriverParser(Parser):
         if "model" in obj:
             if obj["model"] == "none":
                 if "softver1" in obj:
-                    model = "".join(obj["softver1"].split("_")[-2:])
-                    self.target["subtype"] = model[
-                        model.rfind("ks") : model.rfind("miner")
-                    ].upper()
+                    slug: str = obj["softver1"]
+                    model_name = slug.split("_")[-2]
+                    if model_name == "10306":
+                        self.target["subtype"] = "AL3"
+                    else:
+                        self.target["subtype"] = model_name.upper()
             else:
                 self.target["subtype"] = obj["model"]
 
