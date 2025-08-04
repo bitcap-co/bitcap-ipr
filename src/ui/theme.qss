@@ -59,7 +59,7 @@ QGroupBox::title:disabled {
 
 QGroupBox::indicator {
   margin-left: 2px;
-  margin-top: 2px;
+  margin-top: 4px;
   padding: 0;
   height: 14px;
   width: 14px;
