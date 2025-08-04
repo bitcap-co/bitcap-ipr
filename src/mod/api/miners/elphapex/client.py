@@ -56,6 +56,9 @@ class ElphapexHTTPClient(BaseHTTPClient):
     def get_system_info(self) -> dict:
         return self.run_command("GET", "get_system_info")
 
+    def get_pools(self) -> dict:
+        return self.run_command("GET", "pools")
+
     def get_blink_status(self) -> bool:
         return super().get_blink_status()
 

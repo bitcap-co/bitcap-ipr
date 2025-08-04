@@ -29,3 +29,6 @@ class DragonballParser(Parser):
         self.parse_serial(obj)
         self.parse_subtype(obj)
         self.parse_firmware(obj)
+
+    def parse_pools(self, obj: Dict[str, Any]) -> None:
+        return super().parse_pools(obj)

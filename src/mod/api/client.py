@@ -35,6 +35,8 @@ class APIClient:
             "serial": "N/A",
             "subtype": "N/A",
             "algorithm": "N/A",
+            "pool": "N/A",
+            "worker": "N/A",
             "firmware": "N/A",
             "platform": "N/A",
         }
@@ -218,6 +220,7 @@ class APIClient:
                 result[k] = "Failed"
             return result
         sys = self.client.get_system_info()
+        pools = self.client.get_pools()
         if isinstance(parser, BitmainParser):
             if not self.client.is_custom:
                 log = self.client.get_bitmain_system_log()
@@ -225,30 +228,36 @@ class APIClient:
             else:
                 parser.parse_platform(sys)
             parser.parse_system_info(sys)
+            parser.parse_pools(pools)
         elif (
             isinstance(parser, IceriverParser)
             or isinstance(parser, VolcminerParser)
             or isinstance(parser, SealminerParser)
         ):
             parser.parse_all(sys)
+            parser.parse_pools(pools)
         elif isinstance(parser, GoldshellParser):
             parser.parse_system_info(sys)
             algo = self.client.get_algo_settings()
             parser.parse_algorithm(algo)
+            parser.parse_pools(pools)
         elif isinstance(parser, WhatsminerParser):
             parser.parse_system_info(sys)
             devs = self.client.get_dev_details()
             parser.parse_subtype(devs)
             ver = self.client.get_version()
             parser.parse_version_info(ver)
+            parser.parse_pools(pools)
         elif isinstance(parser, WhatsminerV3Parser):
             parser.parse_system_info(sys)
             dev = self.client.get_miner_info()
             parser.parse_miner_info(dev)
+            parser.parse_pools(pools)
         elif isinstance(parser, ElphapexParser):
             parser.parse_system_info(sys)
-            info = self.client.get_miner_info()
-            parser.parse_platform(info)
+            dev = self.client.get_miner_info()
+            parser.parse_platform(dev)
+            parser.parse_pools(pools)
         elif isinstance(parser, DragonballParser):
             parser.parse_system_info(sys)
         return parser.get_target()

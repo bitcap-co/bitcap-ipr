@@ -160,6 +160,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "TYPE",
                 "SUBTYPE",
                 "ALGORITHM",
+                "POOL",
+                "WORKER",
                 "FIRMWARE",
                 "PLATFORM",
             ]
@@ -170,7 +172,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.idTable.setColumnWidth(2, 120)
         self.idTable.setColumnWidth(3, 135)
         self.idTable.setColumnWidth(5, 130)
-        self.idTable.setColumnWidth(7, 180)
+        self.idTable.setColumnWidth(7, 250)
+        self.idTable.setColumnWidth(8, 180)
+        self.idTable.setColumnWidth(9, 180)
         self.idTable.doubleClicked.connect(self.double_click_item)
         self.idTable.cellClicked.connect(self.locate_miner)
 
@@ -707,7 +711,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         cols = self.idTable.columnCount()
         if not rows:
             return
-        out = "IP,MAC,SERIAL,TYPE,SUBTYPE,ALGORITHM,FIRMWARE,PLATFORM\n"
+        out = "IP,MAC,SERIAL,TYPE,SUBTYPE,ALGORITHM,POOL,WORKER,FIRMWARE,PLATFORM\n"
         for i in range(rows):
             for j in range(1, cols):
                 out += self.idTable.item(i, j).text()
@@ -1027,10 +1031,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.idTable.setItem(rowPosition, 5, QTableWidgetItem(self.result["subtype"]))
         # ALGO
         self.idTable.setItem(rowPosition, 6, QTableWidgetItem(self.result["algorithm"]))
+        # ACTIVE POOL
+        self.idTable.setItem(rowPosition, 7, QTableWidgetItem(self.result["pool"]))
+        # ACTIVE WORKER
+        self.idTable.setItem(rowPosition, 8, QTableWidgetItem(self.result["worker"]))
         # FIRMWARE
-        self.idTable.setItem(rowPosition, 7, QTableWidgetItem(self.result["firmware"]))
+        self.idTable.setItem(rowPosition, 9, QTableWidgetItem(self.result["firmware"]))
         # PLATFORM
-        self.idTable.setItem(rowPosition, 8, QTableWidgetItem(self.result["platform"]))
+        self.idTable.setItem(rowPosition, 10, QTableWidgetItem(self.result["platform"]))
         self.idTable.scrollToBottom()
 
     def locate_miner(self, row: int, col: int):

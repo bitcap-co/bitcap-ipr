@@ -150,6 +150,10 @@ class BaseHTTPClient(ABC):
         pass
 
     @abstractmethod
+    def get_pools(self) -> dict:
+        pass
+
+    @abstractmethod
     def get_blink_status(self) -> bool:
         pass
 

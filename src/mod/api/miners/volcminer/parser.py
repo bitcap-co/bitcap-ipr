@@ -27,3 +27,10 @@ class VolcminerParser(Parser):
 
     def parse_system_info(self, obj: Dict[str, Any]) -> None:
         return super().parse_system_info(obj)
+
+    def parse_pools(self, obj: Dict[str, Any]) -> None:
+        for pool in obj:
+            if pool["status"] == "Alive":
+                self.target["pool"] = pool["url"]
+                self.target["worker"] = pool["user"]
+                break

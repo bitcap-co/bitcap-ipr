@@ -80,6 +80,8 @@ class BitmainHTTPClient(BaseHTTPClient):
                     command = "/info"
                 case "get_blink_status":
                     command = "/status"
+                case "pools":
+                    command = "/summary"
                 case "blink":
                     command = "/find-miner"
             path = self.command_format["vnish"] + command
@@ -134,6 +136,11 @@ class BitmainHTTPClient(BaseHTTPClient):
 
     def get_system_info(self) -> dict:
         return self.run_command("GET", "get_system_info")
+
+    def get_pools(self) -> dict:
+        if self.is_custom and not self.is_unlocked:
+            self.unlock_vnish_session()
+        return self.run_command("GET", "pools")
 
     def get_blink_status(self) -> bool:
         resp = self.run_command("GET", "get_blink_status")

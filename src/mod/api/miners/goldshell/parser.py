@@ -30,3 +30,10 @@ class GoldshellParser(Parser):
     def parse_system_info(self, obj: Dict[str, Any]) -> None:
         self.parse_firmware(obj)
         self.parse_subtype(obj)
+
+    def parse_pools(self, obj: Dict[str, Any]) -> None:
+        for pool in obj:
+            if pool["active"]:
+                self.target["pool"] = pool["url"]
+                self.target["worker"] = pool["user"]
+                break

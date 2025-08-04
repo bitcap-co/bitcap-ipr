@@ -1,3 +1,6 @@
+import json
+import logging
+import re
 from string import Template
 from typing import Any, Dict, Optional
 
@@ -7,6 +10,8 @@ from requests.auth import HTTPDigestAuth
 from mod.api import settings
 from mod.api.errors import AuthenticationError
 from mod.api.http import BaseHTTPClient
+
+logger = logging.getLogger(__name__)
 
 
 class VolcminerHTTPClient(BaseHTTPClient):
@@ -53,7 +58,7 @@ class VolcminerHTTPClient(BaseHTTPClient):
         try:
             resj = res.json()
         except requests.exceptions.JSONDecodeError:
-            resj = {}
+            resj = res.text
         return resj
 
     def get_mac_addr(self) -> str:
@@ -61,6 +66,12 @@ class VolcminerHTTPClient(BaseHTTPClient):
 
     def get_system_info(self) -> dict:
         return self.run_command("GET", "get_system_info")
+
+    def get_pools(self) -> dict:
+        status = self.run_command("GET", "get_miner_statusV1")
+        cleaned_status = re.sub(r'\s{4,}', "", status)
+        pool_data = re.search(r'"pool_dtls": "\[(.*?)\]"', cleaned_status).group(1)
+        return json.loads("[" + pool_data + "]")
 
     def get_blink_status(self) -> bool:
         return super().get_blink_status()

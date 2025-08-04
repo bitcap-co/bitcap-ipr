@@ -31,3 +31,10 @@ class ElphapexParser(Parser):
         self.parse_subtype(obj)
         self.parse_firmware(obj)
         self.parse_algorithm(obj)
+
+    def parse_pools(self, obj: Dict[str, Any]) -> None:
+        for pool in obj["POOLS"]:
+            if pool["status"] == "Alive":
+                self.target["pool"] = pool["url"]
+                self.target["worker"] = pool["user"]
+                break
