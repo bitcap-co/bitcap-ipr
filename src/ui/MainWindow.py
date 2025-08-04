@@ -115,8 +115,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_10.setObjectName(u"verticalLayout_10")
         self.verticalLayout_10.setContentsMargins(0, 0, 0, 0)
         self.idTable = QTableWidget(self.tableView)
-        if (self.idTable.columnCount() < 9):
-            self.idTable.setColumnCount(9)
+        if (self.idTable.columnCount() < 11):
+            self.idTable.setColumnCount(11)
         self.idTable.setObjectName(u"idTable")
         self.idTable.setEnabled(True)
         sizePolicy1.setHeightForWidth(self.idTable.sizePolicy().hasHeightForWidth())
