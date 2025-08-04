@@ -78,6 +78,8 @@ class BitmainHTTPClient(BaseHTTPClient):
             match command:
                 case "get_system_info":
                     command = "/info"
+                case "get_miner_info":
+                    command = "/settings"
                 case "get_blink_status":
                     command = "/status"
                 case "pools":
@@ -136,6 +138,11 @@ class BitmainHTTPClient(BaseHTTPClient):
 
     def get_system_info(self) -> dict:
         return self.run_command("GET", "get_system_info")
+
+    def get_miner_conf(self) -> dict:
+        if self.is_custom and not self.is_unlocked:
+            self.unlock_vnish_session()
+        return self.run_command("GET", "get_miner_conf")
 
     def get_pools(self) -> dict:
         if self.is_custom and not self.is_unlocked:
