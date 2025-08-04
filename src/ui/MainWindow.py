@@ -75,6 +75,196 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_2.addWidget(self.menubar)
 
+        self.poolConfig = QWidget(self.topbar)
+        self.poolConfig.setObjectName(u"poolConfig")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.poolConfig.sizePolicy().hasHeightForWidth())
+        self.poolConfig.setSizePolicy(sizePolicy1)
+        self.verticalLayout_12 = QVBoxLayout(self.poolConfig)
+        self.verticalLayout_12.setSpacing(10)
+        self.verticalLayout_12.setObjectName(u"verticalLayout_12")
+        self.verticalLayout_12.setContentsMargins(9, 0, -1, -1)
+        self.frame = QFrame(self.poolConfig)
+        self.frame.setObjectName(u"frame")
+        self.frame.setFrameShape(QFrame.Shape.NoFrame)
+        self.frame.setFrameShadow(QFrame.Shadow.Plain)
+        self.verticalLayout_21 = QVBoxLayout(self.frame)
+        self.verticalLayout_21.setSpacing(10)
+        self.verticalLayout_21.setObjectName(u"verticalLayout_21")
+        self.preset = QWidget(self.frame)
+        self.preset.setObjectName(u"preset")
+        self.preset.setMinimumSize(QSize(0, 50))
+        self.horizontalLayout_30 = QHBoxLayout(self.preset)
+        self.horizontalLayout_30.setObjectName(u"horizontalLayout_30")
+        self.label_25 = QLabel(self.preset)
+        self.label_25.setObjectName(u"label_25")
+        self.label_25.setMaximumSize(QSize(50, 32))
+
+        self.horizontalLayout_30.addWidget(self.label_25)
+
+        self.comboPoolPreset = QComboBox(self.preset)
+        self.comboPoolPreset.addItem("")
+        self.comboPoolPreset.addItem("")
+        self.comboPoolPreset.addItem("")
+        self.comboPoolPreset.addItem("")
+        self.comboPoolPreset.addItem("")
+        self.comboPoolPreset.setObjectName(u"comboPoolPreset")
+        self.comboPoolPreset.setMinimumSize(QSize(250, 25))
+        self.comboPoolPreset.setMaximumSize(QSize(250, 25))
+
+        self.horizontalLayout_30.addWidget(self.comboPoolPreset)
+
+        self.horizontalSpacer_8 = QSpacerItem(80, 20, QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_30.addItem(self.horizontalSpacer_8)
+
+        self.actionIPRClearPreset = QPushButton(self.preset)
+        self.actionIPRClearPreset.setObjectName(u"actionIPRClearPreset")
+
+        self.horizontalLayout_30.addWidget(self.actionIPRClearPreset)
+
+        self.actionIPRSavePreset = QPushButton(self.preset)
+        self.actionIPRSavePreset.setObjectName(u"actionIPRSavePreset")
+
+        self.horizontalLayout_30.addWidget(self.actionIPRSavePreset)
+
+
+        self.verticalLayout_21.addWidget(self.preset)
+
+        self.pool1 = QWidget(self.frame)
+        self.pool1.setObjectName(u"pool1")
+        self.pool1.setMinimumSize(QSize(0, 50))
+        self.horizontalLayout_22 = QHBoxLayout(self.pool1)
+        self.horizontalLayout_22.setObjectName(u"horizontalLayout_22")
+        self.label_19 = QLabel(self.pool1)
+        self.label_19.setObjectName(u"label_19")
+
+        self.horizontalLayout_22.addWidget(self.label_19)
+
+        self.linePoolURL = QLineEdit(self.pool1)
+        self.linePoolURL.setObjectName(u"linePoolURL")
+        self.linePoolURL.setMinimumSize(QSize(140, 0))
+
+        self.horizontalLayout_22.addWidget(self.linePoolURL)
+
+        self.label_20 = QLabel(self.pool1)
+        self.label_20.setObjectName(u"label_20")
+
+        self.horizontalLayout_22.addWidget(self.label_20)
+
+        self.linePoolUser = QLineEdit(self.pool1)
+        self.linePoolUser.setObjectName(u"linePoolUser")
+        self.linePoolUser.setMinimumSize(QSize(140, 0))
+
+        self.horizontalLayout_22.addWidget(self.linePoolUser)
+
+        self.label_21 = QLabel(self.pool1)
+        self.label_21.setObjectName(u"label_21")
+
+        self.horizontalLayout_22.addWidget(self.label_21)
+
+        self.linePoolPasswd = QLineEdit(self.pool1)
+        self.linePoolPasswd.setObjectName(u"linePoolPasswd")
+        self.linePoolPasswd.setMaximumSize(QSize(150, 16777215))
+        self.linePoolPasswd.setEchoMode(QLineEdit.EchoMode.Password)
+
+        self.horizontalLayout_22.addWidget(self.linePoolPasswd)
+
+
+        self.verticalLayout_21.addWidget(self.pool1)
+
+        self.pool2 = QWidget(self.frame)
+        self.pool2.setObjectName(u"pool2")
+        self.pool2.setMinimumSize(QSize(0, 50))
+        self.horizontalLayout_29 = QHBoxLayout(self.pool2)
+        self.horizontalLayout_29.setObjectName(u"horizontalLayout_29")
+        self.label_22 = QLabel(self.pool2)
+        self.label_22.setObjectName(u"label_22")
+
+        self.horizontalLayout_29.addWidget(self.label_22)
+
+        self.linePoolURL_2 = QLineEdit(self.pool2)
+        self.linePoolURL_2.setObjectName(u"linePoolURL_2")
+        self.linePoolURL_2.setMinimumSize(QSize(140, 0))
+
+        self.horizontalLayout_29.addWidget(self.linePoolURL_2)
+
+        self.label_23 = QLabel(self.pool2)
+        self.label_23.setObjectName(u"label_23")
+
+        self.horizontalLayout_29.addWidget(self.label_23)
+
+        self.linePoolUser_2 = QLineEdit(self.pool2)
+        self.linePoolUser_2.setObjectName(u"linePoolUser_2")
+        self.linePoolUser_2.setMinimumSize(QSize(140, 0))
+
+        self.horizontalLayout_29.addWidget(self.linePoolUser_2)
+
+        self.label_24 = QLabel(self.pool2)
+        self.label_24.setObjectName(u"label_24")
+
+        self.horizontalLayout_29.addWidget(self.label_24)
+
+        self.linePoolPasswd_2 = QLineEdit(self.pool2)
+        self.linePoolPasswd_2.setObjectName(u"linePoolPasswd_2")
+        self.linePoolPasswd_2.setMaximumSize(QSize(150, 16777215))
+        self.linePoolPasswd_2.setEchoMode(QLineEdit.EchoMode.Password)
+
+        self.horizontalLayout_29.addWidget(self.linePoolPasswd_2)
+
+
+        self.verticalLayout_21.addWidget(self.pool2)
+
+        self.pool3 = QWidget(self.frame)
+        self.pool3.setObjectName(u"pool3")
+        self.pool3.setMinimumSize(QSize(0, 50))
+        self.horizontalLayout_19 = QHBoxLayout(self.pool3)
+        self.horizontalLayout_19.setObjectName(u"horizontalLayout_19")
+        self.label_3 = QLabel(self.pool3)
+        self.label_3.setObjectName(u"label_3")
+
+        self.horizontalLayout_19.addWidget(self.label_3)
+
+        self.linePoolURL_3 = QLineEdit(self.pool3)
+        self.linePoolURL_3.setObjectName(u"linePoolURL_3")
+        self.linePoolURL_3.setMinimumSize(QSize(140, 0))
+
+        self.horizontalLayout_19.addWidget(self.linePoolURL_3)
+
+        self.label_17 = QLabel(self.pool3)
+        self.label_17.setObjectName(u"label_17")
+
+        self.horizontalLayout_19.addWidget(self.label_17)
+
+        self.linePoolUser_3 = QLineEdit(self.pool3)
+        self.linePoolUser_3.setObjectName(u"linePoolUser_3")
+        self.linePoolUser_3.setMinimumSize(QSize(140, 0))
+
+        self.horizontalLayout_19.addWidget(self.linePoolUser_3)
+
+        self.label_18 = QLabel(self.pool3)
+        self.label_18.setObjectName(u"label_18")
+
+        self.horizontalLayout_19.addWidget(self.label_18)
+
+        self.linePoolPasswd_3 = QLineEdit(self.pool3)
+        self.linePoolPasswd_3.setObjectName(u"linePoolPasswd_3")
+        self.linePoolPasswd_3.setMaximumSize(QSize(150, 16777215))
+        self.linePoolPasswd_3.setEchoMode(QLineEdit.EchoMode.Password)
+
+        self.horizontalLayout_19.addWidget(self.linePoolPasswd_3)
+
+
+        self.verticalLayout_21.addWidget(self.pool3)
+
+
+        self.verticalLayout_12.addWidget(self.frame)
+
+
+        self.verticalLayout_2.addWidget(self.poolConfig)
+
 
         self.verticalLayout.addWidget(self.topbar)
 
@@ -96,17 +286,13 @@ class Ui_MainWindow(object):
         self.verticalLayout_9.setSpacing(0)
         self.verticalLayout_9.setObjectName(u"verticalLayout_9")
         self.verticalLayout_9.setContentsMargins(0, 0, 0, 0)
-        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred)
-
-        self.verticalLayout_9.addItem(self.verticalSpacer)
-
         self.stackedWidget = QStackedWidget(self.vwrapper)
         self.stackedWidget.setObjectName(u"stackedWidget")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.stackedWidget.sizePolicy().hasHeightForWidth())
-        self.stackedWidget.setSizePolicy(sizePolicy1)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.stackedWidget.sizePolicy().hasHeightForWidth())
+        self.stackedWidget.setSizePolicy(sizePolicy2)
         self.stackedWidget.setMinimumSize(QSize(531, 370))
         self.tableView = QWidget()
         self.tableView.setObjectName(u"tableView")
@@ -115,12 +301,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_10.setObjectName(u"verticalLayout_10")
         self.verticalLayout_10.setContentsMargins(0, 0, 0, 0)
         self.idTable = QTableWidget(self.tableView)
-        if (self.idTable.columnCount() < 9):
-            self.idTable.setColumnCount(9)
+        if (self.idTable.columnCount() < 11):
+            self.idTable.setColumnCount(11)
         self.idTable.setObjectName(u"idTable")
         self.idTable.setEnabled(True)
-        sizePolicy1.setHeightForWidth(self.idTable.sizePolicy().hasHeightForWidth())
-        self.idTable.setSizePolicy(sizePolicy1)
+        sizePolicy2.setHeightForWidth(self.idTable.sizePolicy().hasHeightForWidth())
+        self.idTable.setSizePolicy(sizePolicy2)
         self.idTable.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.idTable.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.idTable.setProperty(u"showDropIndicator", False)
@@ -140,11 +326,11 @@ class Ui_MainWindow(object):
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
         self.labelLogo = QLabel(self.logoView)
         self.labelLogo.setObjectName(u"labelLogo")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.labelLogo.sizePolicy().hasHeightForWidth())
-        self.labelLogo.setSizePolicy(sizePolicy2)
+        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.labelLogo.sizePolicy().hasHeightForWidth())
+        self.labelLogo.setSizePolicy(sizePolicy3)
         self.labelLogo.setMinimumSize(QSize(256, 256))
         self.labelLogo.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -170,11 +356,11 @@ class Ui_MainWindow(object):
 
         self.configTabs = QTabWidget(self.configView)
         self.configTabs.setObjectName(u"configTabs")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.configTabs.sizePolicy().hasHeightForWidth())
-        self.configTabs.setSizePolicy(sizePolicy3)
+        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        sizePolicy4.setHorizontalStretch(0)
+        sizePolicy4.setVerticalStretch(0)
+        sizePolicy4.setHeightForWidth(self.configTabs.sizePolicy().hasHeightForWidth())
+        self.configTabs.setSizePolicy(sizePolicy4)
         self.configTabs.setMinimumSize(QSize(0, 0))
         self.tabGeneral = QWidget()
         self.tabGeneral.setObjectName(u"tabGeneral")
@@ -191,7 +377,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, -195, 477, 427))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 477, 427))
         self.verticalLayout_19 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
         self.groupSystemTray = QGroupBox(self.scrollGeneral)
@@ -200,11 +386,11 @@ class Ui_MainWindow(object):
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
         self.checkEnableSysTray = QCheckBox(self.groupSystemTray)
         self.checkEnableSysTray.setObjectName(u"checkEnableSysTray")
-        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-        sizePolicy4.setHorizontalStretch(0)
-        sizePolicy4.setVerticalStretch(0)
-        sizePolicy4.setHeightForWidth(self.checkEnableSysTray.sizePolicy().hasHeightForWidth())
-        self.checkEnableSysTray.setSizePolicy(sizePolicy4)
+        sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        sizePolicy5.setHorizontalStretch(0)
+        sizePolicy5.setVerticalStretch(0)
+        sizePolicy5.setHeightForWidth(self.checkEnableSysTray.sizePolicy().hasHeightForWidth())
+        self.checkEnableSysTray.setSizePolicy(sizePolicy5)
 
         self.verticalLayout_5.addWidget(self.checkEnableSysTray)
 
@@ -321,8 +507,8 @@ class Ui_MainWindow(object):
         self.gridLayout.setVerticalSpacing(20)
         self.checkListenElphapex = QCheckBox(self.groupAdditional)
         self.checkListenElphapex.setObjectName(u"checkListenElphapex")
-        sizePolicy4.setHeightForWidth(self.checkListenElphapex.sizePolicy().hasHeightForWidth())
-        self.checkListenElphapex.setSizePolicy(sizePolicy4)
+        sizePolicy5.setHeightForWidth(self.checkListenElphapex.sizePolicy().hasHeightForWidth())
+        self.checkListenElphapex.setSizePolicy(sizePolicy5)
         self.checkListenElphapex.setMaximumSize(QSize(100, 30))
 
         self.gridLayout.addWidget(self.checkListenElphapex, 1, 0, 1, 1)
@@ -575,8 +761,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_26.setContentsMargins(0, 6, 0, 0)
         self.checkVnishUseAntminerLogin = QCheckBox(self.hwrapper_12)
         self.checkVnishUseAntminerLogin.setObjectName(u"checkVnishUseAntminerLogin")
-        sizePolicy4.setHeightForWidth(self.checkVnishUseAntminerLogin.sizePolicy().hasHeightForWidth())
-        self.checkVnishUseAntminerLogin.setSizePolicy(sizePolicy4)
+        sizePolicy5.setHeightForWidth(self.checkVnishUseAntminerLogin.sizePolicy().hasHeightForWidth())
+        self.checkVnishUseAntminerLogin.setSizePolicy(sizePolicy5)
         self.checkVnishUseAntminerLogin.setMinimumSize(QSize(100, 25))
 
         self.horizontalLayout_26.addWidget(self.checkVnishUseAntminerLogin, 0, Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
@@ -883,6 +1069,24 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"BitCap IPReporter", None))
+        self.label_25.setText(QCoreApplication.translate("MainWindow", u"Preset:", None))
+        self.comboPoolPreset.setItemText(0, QCoreApplication.translate("MainWindow", u"Saved Pool 1", None))
+        self.comboPoolPreset.setItemText(1, QCoreApplication.translate("MainWindow", u"Saved Pool 2", None))
+        self.comboPoolPreset.setItemText(2, QCoreApplication.translate("MainWindow", u"Saved Pool 3", None))
+        self.comboPoolPreset.setItemText(3, QCoreApplication.translate("MainWindow", u"Saved Pool 4", None))
+        self.comboPoolPreset.setItemText(4, QCoreApplication.translate("MainWindow", u"Saved Pool 5", None))
+
+        self.actionIPRClearPreset.setText(QCoreApplication.translate("MainWindow", u"Clear Preset", None))
+        self.actionIPRSavePreset.setText(QCoreApplication.translate("MainWindow", u"Save Pool", None))
+        self.label_19.setText(QCoreApplication.translate("MainWindow", u"Pool 1:", None))
+        self.label_20.setText(QCoreApplication.translate("MainWindow", u"User:", None))
+        self.label_21.setText(QCoreApplication.translate("MainWindow", u"Password:", None))
+        self.label_22.setText(QCoreApplication.translate("MainWindow", u"Pool 2:", None))
+        self.label_23.setText(QCoreApplication.translate("MainWindow", u"User:", None))
+        self.label_24.setText(QCoreApplication.translate("MainWindow", u"Password:", None))
+        self.label_3.setText(QCoreApplication.translate("MainWindow", u"Pool 3:", None))
+        self.label_17.setText(QCoreApplication.translate("MainWindow", u"User:", None))
+        self.label_18.setText(QCoreApplication.translate("MainWindow", u"Password:", None))
         self.labelLogo.setText("")
         self.label.setText(QCoreApplication.translate("MainWindow", u"Configuration", None))
         self.label.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
