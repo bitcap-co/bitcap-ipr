@@ -144,6 +144,20 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
 
+        self.poolConfig.hide()
+        self.actionTogglePoolPasswd = self.create_passwd_toggle_action(
+            self.linePoolPasswd
+        )
+        self.actionTogglePoolPasswd2 = self.create_passwd_toggle_action(
+            self.linePoolPasswd_2
+        )
+        self.actionTogglePoolPasswd3 = self.create_passwd_toggle_action(
+            self.linePoolPasswd_3
+        )
+        self.comboPoolPreset.currentIndexChanged.connect(self.read_pool_preset)
+        self.actionIPRSavePreset.clicked.connect(self.write_pool_preset)
+        self.actionIPRClearPreset.clicked.connect(self.clear_pool_preset)
+
         # initialize ID Table
         self.idTable.setHorizontalHeaderLabels(
             [
@@ -606,6 +620,17 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionContextImport.triggered.connect(self.import_table)
         self.actionContextExport = self.table_context.addAction("Export")
         self.actionContextExport.triggered.connect(self.export_table)
+        if self.poolConfig.isVisible():
+            self.actionContextSetPools = self.table_context.addAction(
+                "Hide Pool Config"
+            )
+            self.actionContextSetPools.triggered.connect(self.toggle_pool_config)
+        else:
+            self.actionContextSetPools = self.table_context.addAction(
+                "Show Pool Config"
+            )
+            self.actionContextSetPools.triggered.connect(self.toggle_pool_config)
+
         self.table_context.exec(QCursor.pos())
 
     def double_click_item(self, model_index: QModelIndex):
@@ -721,6 +746,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         outfile = QTextStream(file)
         outfile << out << "\n"
         self.iprStatus.showMessage(f"Status :: Wrote table as .CSV to {p}.", 3000)
+
+    def toggle_pool_config(self):
+        self.poolConfig.setVisible(not self.poolConfig.isVisible())
 
     # listener
     def start_listen(self):
