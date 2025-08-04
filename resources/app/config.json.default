@@ -40,6 +40,64 @@
       "onMaxLogSize": 0,
       "flushInterval": 0
     },
+    "selectedPoolPreset": 0,
+    "savedPools": [
+      {
+        "pool": "",
+        "user": "",
+        "passwd": "",
+        "pool2": "",
+        "user2": "",
+        "passwd2": "",
+        "pool3": "",
+        "user3": "",
+        "passwd3": ""
+      },
+      {
+        "pool": "",
+        "user": "",
+        "passwd": "",
+        "pool2": "",
+        "user2": "",
+        "passwd2": "",
+        "pool3": "",
+        "user3": "",
+        "passwd3": ""
+      },
+      {
+        "pool": "",
+        "user": "",
+        "passwd": "",
+        "pool2": "",
+        "user2": "",
+        "passwd2": "",
+        "pool3": "",
+        "user3": "",
+        "passwd3": ""
+      },
+      {
+        "pool": "",
+        "user": "",
+        "passwd": "",
+        "pool2": "",
+        "user2": "",
+        "passwd2": "",
+        "pool3": "",
+        "user3": "",
+        "passwd3": ""
+      },
+      {
+        "pool": "",
+        "user": "",
+        "passwd": "",
+        "pool2": "",
+        "user2": "",
+        "passwd2": "",
+        "pool3": "",
+        "user3": "",
+        "passwd3": ""
+      }
+    ],
     "instance": {
       "geometry": {
         "mainWindow": []

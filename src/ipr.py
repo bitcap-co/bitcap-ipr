@@ -34,6 +34,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QSystemTrayIcon,
     QTableWidgetItem,
+    QWidget,
 )
 
 import ui.resources  # noqa F401
@@ -401,6 +402,40 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.config["logs"]["flushInterval"]
             )
 
+            # pools
+            self.comboPoolPreset.setCurrentIndex(self.config["selectedPoolPreset"])
+            self.linePoolURL.setText(
+                self.config["savedPools"][self.comboPoolPreset.currentIndex()]["pool"]
+            )
+            self.linePoolURL_2.setText(
+                self.config["savedPools"][self.comboPoolPreset.currentIndex()]["pool2"]
+            )
+            self.linePoolURL_3.setText(
+                self.config["savedPools"][self.comboPoolPreset.currentIndex()]["pool3"]
+            )
+            self.linePoolUser.setText(
+                self.config["savedPools"][self.comboPoolPreset.currentIndex()]["user"]
+            )
+            self.linePoolUser_2.setText(
+                self.config["savedPools"][self.comboPoolPreset.currentIndex()]["user2"]
+            )
+            self.linePoolUser_3.setText(
+                self.config["savedPools"][self.comboPoolPreset.currentIndex()]["user3"]
+            )
+            self.linePoolPasswd.setText(
+                self.config["savedPools"][self.comboPoolPreset.currentIndex()]["passwd"]
+            )
+            self.linePoolPasswd_2.setText(
+                self.config["savedPools"][self.comboPoolPreset.currentIndex()][
+                    "passwd2"
+                ]
+            )
+            self.linePoolPasswd_3.setText(
+                self.config["savedPools"][self.comboPoolPreset.currentIndex()][
+                    "passwd3"
+                ]
+            )
+
             # instance
             window = self.config["instance"]["geometry"]["mainWindow"]
             if window:
@@ -437,6 +472,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             },
             "table": {"enableIDTable": self.menu_bar.actionEnableIDTable.isChecked()},
         }
+        savedPools = self.update_current_preset_to_config()
         config = {
             "general": {
                 "enableSysTray": self.checkEnableSysTray.isChecked(),
@@ -479,6 +515,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "onMaxLogSize": self.comboOnMaxLogSize.currentIndex(),
                 "flushInterval": self.comboFlushInterval.currentIndex(),
             },
+            "selectedPoolPreset": self.comboPoolPreset.currentIndex(),
+            "savedPools": savedPools,
             "instance": instance,
         }
         self.config = config
@@ -510,6 +548,77 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.iprStatus.showMessage(
                 "Status :: Successfully restored to default settings.", 5000
             )
+
+    def update_current_preset_to_config(self) -> List[Dict[str, str]]:
+        savedPools = self.config["savedPools"]
+        savedPools[self.comboPoolPreset.currentIndex()]["pool"] = (
+            self.linePoolURL.text()
+        )
+        savedPools[self.comboPoolPreset.currentIndex()]["pool2"] = (
+            self.linePoolURL_2.text()
+        )
+        savedPools[self.comboPoolPreset.currentIndex()]["pool3"] = (
+            self.linePoolURL_3.text()
+        )
+        savedPools[self.comboPoolPreset.currentIndex()]["user"] = (
+            self.linePoolUser.text()
+        )
+        savedPools[self.comboPoolPreset.currentIndex()]["user2"] = (
+            self.linePoolUser_2.text()
+        )
+        savedPools[self.comboPoolPreset.currentIndex()]["user3"] = (
+            self.linePoolUser_3.text()
+        )
+        savedPools[self.comboPoolPreset.currentIndex()]["passwd"] = (
+            self.linePoolPasswd.text()
+        )
+        savedPools[self.comboPoolPreset.currentIndex()]["passwd2"] = (
+            self.linePoolPasswd_2.text()
+        )
+        savedPools[self.comboPoolPreset.currentIndex()]["passwd3"] = (
+            self.linePoolPasswd_3.text()
+        )
+        return savedPools
+
+    def read_pool_preset(self, index: int) -> None:
+        # logger.info(f" read pool preset {index}.")
+        self.config_path = get_config_file_path()
+        self.config = read_config(self.config_path)
+        pool_preset = self.config["savedPools"][index]
+        self.linePoolURL.setText(pool_preset["pool"])
+        self.linePoolURL_2.setText(pool_preset["pool2"])
+        self.linePoolURL_3.setText(pool_preset["pool3"])
+        self.linePoolUser.setText(pool_preset["user"])
+        self.linePoolUser_2.setText(pool_preset["user2"])
+        self.linePoolUser_3.setText(pool_preset["user3"])
+        self.linePoolPasswd.setText(pool_preset["passwd"])
+        self.linePoolPasswd_2.setText(pool_preset["passwd2"])
+        self.linePoolPasswd_3.setText(pool_preset["passwd3"])
+
+    def write_pool_preset(self):
+        currentIndex = self.comboPoolPreset.currentIndex()
+        self.config["savedPools"][currentIndex]["pool"] = self.linePoolURL.text()
+        self.config["savedPools"][currentIndex]["pool2"] = self.linePoolURL_2.text()
+        self.config["savedPools"][currentIndex]["pool3"] = self.linePoolURL_3.text()
+        self.config["savedPools"][currentIndex]["user"] = self.linePoolUser.text()
+        self.config["savedPools"][currentIndex]["user2"] = self.linePoolUser_2.text()
+        self.config["savedPools"][currentIndex]["user3"] = self.linePoolUser_3.text()
+        self.config["savedPools"][currentIndex]["passwd"] = self.linePoolPasswd.text()
+        self.config["savedPools"][currentIndex]["passwd2"] = (
+            self.linePoolPasswd_2.text()
+        )
+        self.config["savedPools"][currentIndex]["passwd3"] = (
+            self.linePoolPasswd_3.text()
+        )
+        write_config(self.config_path, self.config)
+        self.iprStatus.showMessage("Status :: successfully wrote pool preset.", 3000)
+
+    def clear_pool_preset(self):
+        for child in self.frame.children():
+            if isinstance(child, QWidget):
+                for line in child.children():
+                    if isinstance(line, QLineEdit):
+                        line.setText("")
 
     def update_inactive_timer(self):
         self.groupInactiveTimer.setEnabled(
