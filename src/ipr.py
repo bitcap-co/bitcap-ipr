@@ -404,36 +404,29 @@ class IPR(QMainWindow, Ui_MainWindow):
 
             # pools
             self.comboPoolPreset.setCurrentIndex(self.config["selectedPoolPreset"])
-            self.linePoolURL.setText(
-                self.config["savedPools"][self.comboPoolPreset.currentIndex()]["pool"]
-            )
+            current_index = self.comboPoolPreset.currentIndex()
+            self.linePoolURL.setText(self.config["savedPools"][current_index]["pool"])
             self.linePoolURL_2.setText(
-                self.config["savedPools"][self.comboPoolPreset.currentIndex()]["pool2"]
+                self.config["savedPools"][current_index]["pool2"]
             )
             self.linePoolURL_3.setText(
-                self.config["savedPools"][self.comboPoolPreset.currentIndex()]["pool3"]
+                self.config["savedPools"][current_index]["pool3"]
             )
-            self.linePoolUser.setText(
-                self.config["savedPools"][self.comboPoolPreset.currentIndex()]["user"]
-            )
+            self.linePoolUser.setText(self.config["savedPools"][current_index]["user"])
             self.linePoolUser_2.setText(
-                self.config["savedPools"][self.comboPoolPreset.currentIndex()]["user2"]
+                self.config["savedPools"][current_index]["user2"]
             )
             self.linePoolUser_3.setText(
-                self.config["savedPools"][self.comboPoolPreset.currentIndex()]["user3"]
+                self.config["savedPools"][current_index]["user3"]
             )
             self.linePoolPasswd.setText(
-                self.config["savedPools"][self.comboPoolPreset.currentIndex()]["passwd"]
+                self.config["savedPools"][current_index]["passwd"]
             )
             self.linePoolPasswd_2.setText(
-                self.config["savedPools"][self.comboPoolPreset.currentIndex()][
-                    "passwd2"
-                ]
+                self.config["savedPools"][current_index]["passwd2"]
             )
             self.linePoolPasswd_3.setText(
-                self.config["savedPools"][self.comboPoolPreset.currentIndex()][
-                    "passwd3"
-                ]
+                self.config["savedPools"][current_index]["passwd3"]
             )
 
             # instance
@@ -551,38 +544,19 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def update_current_preset_to_config(self) -> List[Dict[str, str]]:
         savedPools = self.config["savedPools"]
-        savedPools[self.comboPoolPreset.currentIndex()]["pool"] = (
-            self.linePoolURL.text()
-        )
-        savedPools[self.comboPoolPreset.currentIndex()]["pool2"] = (
-            self.linePoolURL_2.text()
-        )
-        savedPools[self.comboPoolPreset.currentIndex()]["pool3"] = (
-            self.linePoolURL_3.text()
-        )
-        savedPools[self.comboPoolPreset.currentIndex()]["user"] = (
-            self.linePoolUser.text()
-        )
-        savedPools[self.comboPoolPreset.currentIndex()]["user2"] = (
-            self.linePoolUser_2.text()
-        )
-        savedPools[self.comboPoolPreset.currentIndex()]["user3"] = (
-            self.linePoolUser_3.text()
-        )
-        savedPools[self.comboPoolPreset.currentIndex()]["passwd"] = (
-            self.linePoolPasswd.text()
-        )
-        savedPools[self.comboPoolPreset.currentIndex()]["passwd2"] = (
-            self.linePoolPasswd_2.text()
-        )
-        savedPools[self.comboPoolPreset.currentIndex()]["passwd3"] = (
-            self.linePoolPasswd_3.text()
-        )
+        current_index = self.comboPoolPreset.currentIndex()
+        savedPools[current_index]["pool"] = self.linePoolURL.text()
+        savedPools[current_index]["pool2"] = self.linePoolURL_2.text()
+        savedPools[current_index]["pool3"] = self.linePoolURL_3.text()
+        savedPools[current_index]["user"] = self.linePoolUser.text()
+        savedPools[current_index]["user2"] = self.linePoolUser_2.text()
+        savedPools[current_index]["user3"] = self.linePoolUser_3.text()
+        savedPools[current_index]["passwd"] = self.linePoolPasswd.text()
+        savedPools[current_index]["passwd2"] = self.linePoolPasswd_2.text()
+        savedPools[current_index]["passwd3"] = self.linePoolPasswd_3.text()
         return savedPools
 
     def read_pool_preset(self, index: int) -> None:
-        # logger.info(f" read pool preset {index}.")
-        self.config_path = get_config_file_path()
         self.config = read_config(self.config_path)
         pool_preset = self.config["savedPools"][index]
         self.linePoolURL.setText(pool_preset["pool"])
@@ -596,18 +570,18 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.linePoolPasswd_3.setText(pool_preset["passwd3"])
 
     def write_pool_preset(self):
-        currentIndex = self.comboPoolPreset.currentIndex()
-        self.config["savedPools"][currentIndex]["pool"] = self.linePoolURL.text()
-        self.config["savedPools"][currentIndex]["pool2"] = self.linePoolURL_2.text()
-        self.config["savedPools"][currentIndex]["pool3"] = self.linePoolURL_3.text()
-        self.config["savedPools"][currentIndex]["user"] = self.linePoolUser.text()
-        self.config["savedPools"][currentIndex]["user2"] = self.linePoolUser_2.text()
-        self.config["savedPools"][currentIndex]["user3"] = self.linePoolUser_3.text()
-        self.config["savedPools"][currentIndex]["passwd"] = self.linePoolPasswd.text()
-        self.config["savedPools"][currentIndex]["passwd2"] = (
+        current_index = self.comboPoolPreset.currentIndex()
+        self.config["savedPools"][current_index]["pool"] = self.linePoolURL.text()
+        self.config["savedPools"][current_index]["pool2"] = self.linePoolURL_2.text()
+        self.config["savedPools"][current_index]["pool3"] = self.linePoolURL_3.text()
+        self.config["savedPools"][current_index]["user"] = self.linePoolUser.text()
+        self.config["savedPools"][current_index]["user2"] = self.linePoolUser_2.text()
+        self.config["savedPools"][current_index]["user3"] = self.linePoolUser_3.text()
+        self.config["savedPools"][current_index]["passwd"] = self.linePoolPasswd.text()
+        self.config["savedPools"][current_index]["passwd2"] = (
             self.linePoolPasswd_2.text()
         )
-        self.config["savedPools"][currentIndex]["passwd3"] = (
+        self.config["savedPools"][current_index]["passwd3"] = (
             self.linePoolPasswd_3.text()
         )
         write_config(self.config_path, self.config)
@@ -619,6 +593,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 for line in child.children():
                     if isinstance(line, QLineEdit):
                         line.setText("")
+        self.write_pool_preset()
 
     def update_inactive_timer(self):
         self.groupInactiveTimer.setEnabled(
@@ -1044,9 +1019,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         else:
             confirm = IPRConfirmation()
             # IPRConfirmation Signals
-            confirm.actionOpenBrowser.clicked.connect(
-                lambda: self.open_dashboard(url)
-            )
+            confirm.actionOpenBrowser.clicked.connect(lambda: self.open_dashboard(url))
             confirm.accept.clicked.connect(confirm.hide)
             # copy action
             confirm.lineIPField.actionCopy = self.create_copy_text_action(
