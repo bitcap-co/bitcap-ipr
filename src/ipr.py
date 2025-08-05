@@ -1221,7 +1221,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             if not client:
                 logger.error(f"Failed to create client. {client._error}")
                 return
-            current_pool_preset = self.comboPoolPreset.currentIndex()
             urls = [self.linePoolURL.text(), self.linePoolURL_2.text(), self.linePoolURL_3.text()]
             users = [self.linePoolUser.text(), self.linePoolUser_2.text(), self.linePoolUser_3.text()]
             passwds = [self.linePoolPasswd.text(), self.linePoolPasswd_2.text(), self.linePoolPasswd_3.text()]
