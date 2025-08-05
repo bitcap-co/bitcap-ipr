@@ -713,8 +713,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "Show Pool Config"
             )
             self.actionContextShowPoolConfig.triggered.connect(self.toggle_pool_config)
-        self.actionContextSetPools = self.table_context.addAction("Set Pool From Preset")
-        self.actionContextSetPools.triggered.connect(self.update_miner_pools)
+        if self.poolConfig.isVisible():
+            self.actionContextSetPools = self.table_context.addAction("Set Pool From Selected Preset")
+            self.actionContextSetPools.triggered.connect(self.update_miner_pools)
 
         self.table_context.exec(QCursor.pos())
 
