@@ -835,6 +835,10 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def toggle_pool_config(self):
         self.poolConfig.setVisible(not self.poolConfig.isVisible())
+        if self.poolConfig.isVisible():
+            self.setGeometry(self.x(), self.y(), self.width(), self.maximumHeight())
+        else:
+            self.setGeometry(self.x(), self.y(), self.width(), self.height() - (self.poolConfig.height() / 2))
 
     # listener
     def start_listen(self):
