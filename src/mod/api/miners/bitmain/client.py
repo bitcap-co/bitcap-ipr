@@ -78,7 +78,7 @@ class BitmainHTTPClient(BaseHTTPClient):
             match command:
                 case "get_system_info":
                     command = "/info"
-                case "get_miner_info":
+                case "get_miner_conf":
                     command = "/settings"
                 case "get_blink_status":
                     command = "/status"
