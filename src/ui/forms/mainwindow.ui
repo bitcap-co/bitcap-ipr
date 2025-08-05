@@ -163,6 +163,12 @@
           </property>
           <item>
            <widget class="QFrame" name="frame">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>171</height>
+             </size>
+            </property>
             <property name="frameShape">
              <enum>QFrame::Shape::NoFrame</enum>
             </property>
@@ -739,7 +745,7 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>477</width>
+                       <width>459</width>
                        <height>427</height>
                       </rect>
                      </property>
@@ -1141,7 +1147,7 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>477</width>
+                       <width>368</width>
                        <height>710</height>
                       </rect>
                      </property>
