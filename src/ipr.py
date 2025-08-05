@@ -4,7 +4,7 @@ import time
 import webbrowser
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from PySide6.QtCore import (
     QFile,
@@ -714,7 +714,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
             self.actionContextShowPoolConfig.triggered.connect(self.toggle_pool_config)
         if self.poolConfig.isVisible():
-            self.actionContextSetPools = self.table_context.addAction("Set Pool From Selected Preset")
+            self.actionContextSetPools = self.table_context.addAction(
+                "Set Pool From Selected Preset"
+            )
             self.actionContextSetPools.triggered.connect(self.update_miner_pools)
 
         self.table_context.exec(QCursor.pos())
@@ -838,7 +840,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         if self.poolConfig.isVisible():
             self.setGeometry(self.x(), self.y(), self.width(), self.maximumHeight())
         else:
-            self.setGeometry(self.x(), self.y(), self.width(), self.height() - (self.poolConfig.height() / 2))
+            self.setGeometry(
+                self.x(),
+                self.y(),
+                self.width(),
+                self.height() - (self.poolConfig.height() / 2),
+            )
 
     # listener
     def start_listen(self):
@@ -1082,23 +1089,32 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.populate_table_row()
         self.activateWindow()
 
-    def get_target_data_from_type(self) -> Dict[str, str]:
-        ip = self.result["ip"]
-        type = self.result["type"]
-        client_auth = None
-        custom_auth = None
+    def get_client_auth_from_type(self, miner_type: str) -> Tuple[Optional[str], Optional[str]]:
+        client_auth: Optional[str] = None
+        custom_auth: Optional[str] = None
         match type:
             case "antminer":
                 client_auth = self.lineBitmainPasswd.text()
-                custom_auth = self.lineVnishPasswd.text()
-            case "volcminer":
-                client_auth = self.lineVolcminerPasswd.text()
-            case "goldshell":
-                client_auth = self.lineGoldshellPasswd.text()
+                if not self.checkVnishUseAntminerLogin.isChecked():
+                    custom_auth = self.lineVnishPasswd.text()
+                else:
+                    custom_auth = self.lineBitmainPasswd.text()
             case "iceriver":
                 custom_auth = self.linePbfarmerKey.text()
+            case "whatsminer":
+                client_auth = self.lineWhatsminerPasswd.text()
+            case "goldshell":
+                client_auth = self.lineGoldshellPasswd.text()
+            case "volcminer":
+                client_auth = self.lineVolcminerPasswd.text()
             case "sealminer":
                 client_auth = self.lineSealminerPasswd.text()
+        return client_auth, custom_auth
+
+    def get_target_data_from_type(self) -> Dict[str, str]:
+        ip = self.result["ip"]
+        type = self.result["type"]
+        client_auth, custom_auth = self.get_client_auth_from_type(type)
         self.api_client.create_client_from_type(type, ip, client_auth, custom_auth)
         if not self.api_client.client:
             self.iprStatus.showMessage(
@@ -1152,15 +1168,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "locate_miner : already locating a miner. Ignoring..."
                 )
             logger.info(f" locate miner {ip_addr}.")
-            client_auth = ""
-            custom_auth = ""
             match miner_type:
-                case "antminer":
-                    client_auth = self.lineBitmainPasswd.text()
-                    if not self.checkVnishUseAntminerLogin.isChecked():
-                        custom_auth = self.lineVnishPasswd.text()
-                    else:
-                        custom_auth = self.lineBitmainPasswd.text()
                 case "volcminer":
                     # client_auth = self.lineVolcminerPasswd.text()
                     return self.iprStatus.showMessage(
@@ -1172,18 +1180,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                         "Status :: Failed to locate miner: Dragonball is currently not supported.",
                         5000,
                     )
-                case "iceriver":
-                    custom_auth = self.linePbfarmerKey.text()
-                case "whatsminer":
-                    client_auth = self.lineWhatsminerPasswd.text()
-                case "goldshell":
-                    client_auth = self.lineGoldshellPasswd.text()
-                case "sealminer":
-                    client_auth = self.lineSealminerPasswd.text()
-                case _:
-                    return self.iprStatus.showMessage(
-                        "Status :: Failed to locate miner: Unknown miner."
-                    )
+            client_auth, custom_auth = self.get_client_auth_from_type(miner_type)
             self.api_client.create_client_from_type(
                 miner_type, ip_addr, client_auth, custom_auth
             )
@@ -1210,28 +1207,33 @@ class IPR(QMainWindow, Ui_MainWindow):
         for index in selected_ips:
             item = self.idTable.itemFromIndex(index)
             miner_type = self.idTable.item(item.row(), 4).text()
-            client_auth = ""
-            custom_auth = ""
-            match miner_type:
-                case "antminer":
-                    client_auth = self.lineBitmainPasswd.text()
-                    if not self.checkVnishUseAntminerLogin.isChecked():
-                        custom_auth = self.lineVnishPasswd.text()
-                    else:
-                        custom_auth = self.lineBitmainPasswd.text()
-                case _:
-                    return
-            self.api_client.create_client_from_type(miner_type, item.text(), client_auth, custom_auth)
+            client_auth, custom_auth = self.get_client_auth_from_type(miner_type)
+            self.api_client.create_client_from_type(
+                miner_type, item.text(), client_auth, custom_auth
+            )
             client = self.api_client.get_client()
             if not client:
-                logger.error(f"Failed to create client. {client._error}")
                 return
-            urls = [self.linePoolURL.text(), self.linePoolURL_2.text(), self.linePoolURL_3.text()]
-            users = [self.linePoolUser.text(), self.linePoolUser_2.text(), self.linePoolUser_3.text()]
-            passwds = [self.linePoolPasswd.text(), self.linePoolPasswd_2.text(), self.linePoolPasswd_3.text()]
+            urls = [
+                self.linePoolURL.text(),
+                self.linePoolURL_2.text(),
+                self.linePoolURL_3.text(),
+            ]
+            users = [
+                self.linePoolUser.text(),
+                self.linePoolUser_2.text(),
+                self.linePoolUser_3.text(),
+            ]
+            passwds = [
+                self.linePoolPasswd.text(),
+                self.linePoolPasswd_2.text(),
+                self.linePoolPasswd_3.text(),
+            ]
             client.update_pools(urls, users, passwds)
             if client._error:
-                return self.iprStatus.showMessage(f"Status :: Failed to update pools: {client._error}", 5000)
+                return self.iprStatus.showMessage(
+                    f"Status :: Failed to update pools: {client._error}", 5000
+                )
             self.iprStatus.showMessage("Status :: successfully updated pools", 3000)
 
     # exit
