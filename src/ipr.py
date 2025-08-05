@@ -593,7 +593,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                 for line in child.children():
                     if isinstance(line, QLineEdit):
                         line.setText("")
-        self.write_pool_preset()
 
     def update_inactive_timer(self):
         self.groupInactiveTimer.setEnabled(
