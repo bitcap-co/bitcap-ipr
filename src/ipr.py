@@ -704,15 +704,17 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionContextExport = self.table_context.addAction("Export")
         self.actionContextExport.triggered.connect(self.export_table)
         if self.poolConfig.isVisible():
-            self.actionContextSetPools = self.table_context.addAction(
+            self.actionContextShowPoolConfig = self.table_context.addAction(
                 "Hide Pool Config"
             )
-            self.actionContextSetPools.triggered.connect(self.toggle_pool_config)
+            self.actionContextShowPoolConfig.triggered.connect(self.toggle_pool_config)
         else:
-            self.actionContextSetPools = self.table_context.addAction(
+            self.actionContextShowPoolConfig = self.table_context.addAction(
                 "Show Pool Config"
             )
-            self.actionContextSetPools.triggered.connect(self.toggle_pool_config)
+            self.actionContextShowPoolConfig.triggered.connect(self.toggle_pool_config)
+        self.actionContextSetPools = self.table_context.addAction("Set Pool From Preset")
+        self.actionContextSetPools.triggered.connect(self.update_miner_pools)
 
         self.table_context.exec(QCursor.pos())
 
@@ -1194,6 +1196,39 @@ class IPR(QMainWindow, Ui_MainWindow):
                 f"Status :: Locating miner: {ip_addr}...",
                 self.miner_locate_duration,
             )
+
+    def update_miner_pools(self):
+        rows = self.idTable.rowCount()
+        if not rows:
+            return
+        selected_ips = [x for x in self.idTable.selectedIndexes() if x.column() == 1]
+        for index in selected_ips:
+            item = self.idTable.itemFromIndex(index)
+            miner_type = self.idTable.item(item.row(), 4).text()
+            client_auth = ""
+            custom_auth = ""
+            match miner_type:
+                case "antminer":
+                    client_auth = self.lineBitmainPasswd.text()
+                    if not self.checkVnishUseAntminerLogin.isChecked():
+                        custom_auth = self.lineVnishPasswd.text()
+                    else:
+                        custom_auth = self.lineBitmainPasswd.text()
+                case _:
+                    return
+            self.api_client.create_client_from_type(miner_type, item.text(), client_auth, custom_auth)
+            client = self.api_client.get_client()
+            if not client:
+                logger.error(f"Failed to create client. {client._error}")
+                return
+            current_pool_preset = self.comboPoolPreset.currentIndex()
+            urls = [self.linePoolURL.text(), self.linePoolURL_2.text(), self.linePoolURL_3.text()]
+            users = [self.linePoolUser.text(), self.linePoolUser_2.text(), self.linePoolUser_3.text()]
+            passwds = [self.linePoolPasswd.text(), self.linePoolPasswd_2.text(), self.linePoolPasswd_3.text()]
+            client.update_pools(urls, users, passwds)
+            if client._error:
+                return self.iprStatus.showMessage(f"Status :: Failed to update pools: {client._error}", 5000)
+            self.iprStatus.showMessage("Status :: successfully updated pools", 3000)
 
     # exit
     def close_to_tray_or_exit(self):
