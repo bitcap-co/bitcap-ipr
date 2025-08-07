@@ -1,3 +1,4 @@
+import logging
 from string import Template
 from typing import Any, Dict, List, Optional
 
@@ -5,9 +6,12 @@ import requests
 
 from mod.api import settings
 from mod.api.errors import (
+    APIError,
     FailedConnectionError,
 )
 from mod.api.http import BaseHTTPClient
+
+logger = logging.getLogger(__name__)
 
 
 class IceriverHTTPClient(BaseHTTPClient):
@@ -63,6 +67,8 @@ class IceriverHTTPClient(BaseHTTPClient):
             match command:
                 case "ipconfig":
                     command = "network"
+                case "machineconfig":
+                    command = "machine"
                 case "userpanel":
                     command = "overview"
                 case "locate":
@@ -101,6 +107,11 @@ class IceriverHTTPClient(BaseHTTPClient):
         resp = self.run_command("POST", "userpanel", data=data)
         return resp["data"]
 
+    def get_miner_conf(self) -> dict:
+        data = {"post": 1}
+        resp = self.run_command("POST", "machineconfig", data=data)
+        return resp["data"]
+
     def get_pools(self) -> dict:
         data = self.get_system_info()
         return data["pools"]
@@ -115,3 +126,42 @@ class IceriverHTTPClient(BaseHTTPClient):
             self.run_command("POST", "userpanel", data=data)
         else:
             self.run_command("POST", "locate")
+
+    def update_pools(
+        self, urls: List[str], users: List[str], passwds: List[str]
+    ) -> None:
+        if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
+            self._close_client(APIError("API Error: Invalid number of argurments."))
+        conf = self.get_miner_conf()
+
+        new_conf = {**conf}
+        if not self.is_custom:
+            data = {"post": 2}
+            data["fanratio"] = f"{new_conf['ratio']}"
+            match new_conf["mode"]:
+                case 0:
+                    data["fanmode"] = "sleep"
+                case 1:
+                    data["fanmode"] = "normal"
+
+            for i in range(0, len(urls)):
+                if (
+                    not new_conf["pools"][i]
+                    and not len(users[i])
+                    and not len(passwds[i])
+                ):
+                    continue
+                idx = i + 1
+                data[f"pool{idx}address"] = urls[i]
+                data[f"pool{idx}miner"] = users[i]
+                data[f"pool{idx}pwd"] = passwds[i]
+            self.run_command("POST", "machineconfig", data=data)
+        else:
+            for i in range(0, len(urls)):
+                data = {
+                    "id": f"{i + 1}",
+                    "pool_address": f"{urls[i]}",
+                    "wallet": f"{users[i]}",
+                    "pool_password": f"{passwds[i]}",
+                }
+                self.run_command("POST", "/pool/update", data=data)

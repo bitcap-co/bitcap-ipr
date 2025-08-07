@@ -175,7 +175,7 @@ class BitmainHTTPClient(BaseHTTPClient):
         current_conf = self.get_miner_conf()
         logger.debug(current_conf)
 
-        new_conf = { **current_conf }
+        new_conf = {**current_conf}
         if self.is_custom:
             pool_conf = new_conf["miner"]["pools"]
         else:
