@@ -1,10 +1,11 @@
 from string import Template
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import requests
 
 from mod.api import settings
 from mod.api.http import BaseHTTPClient
+from mod.api.errors import APIError
 
 
 class ElphapexHTTPClient(BaseHTTPClient):
@@ -56,6 +57,9 @@ class ElphapexHTTPClient(BaseHTTPClient):
     def get_system_info(self) -> dict:
         return self.run_command("GET", "get_system_info")
 
+    def get_miner_conf(self) -> dict:
+        return self.run_command("GETget_miner_conf")
+
     def get_pools(self) -> dict:
         return self.run_command("GET", "pools")
 
@@ -64,3 +68,19 @@ class ElphapexHTTPClient(BaseHTTPClient):
 
     def blink(self, enabled: bool) -> None:
         self.run_command("POST", "blink", payload={"blink": enabled})
+
+    def update_pools(
+        self, urls: List[str], users: List[str], passwds: List[str]
+    ) -> None:
+        if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
+            self._close_client(APIError("API Error: Invalid number of argurments."))
+        current_conf = self.get_miner_conf()
+
+        new_conf = {**current_conf}
+        pool_conf = new_conf["pools"]
+        for i in range(0, len(urls)):
+            if not pool_conf[i] and not len(users[i]) and not len(passwds[i]):
+                continue
+            pool_conf[i] = {"url": urls[i], "user": users[i], "pass": passwds[i]}
+
+        self.run_command("POST", "set_miner_conf", payload=new_conf)
