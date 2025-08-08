@@ -1,5 +1,6 @@
+import json
 from string import Template
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import requests
 
@@ -40,7 +41,7 @@ class DragonballHTTPClient(BaseHTTPClient):
         try:
             resj = res.json()
         except requests.exceptions.JSONDecodeError:
-            resj = {}
+            resj = res.text
         return resj
 
     def get_mac_addr(self) -> str:
@@ -48,6 +49,10 @@ class DragonballHTTPClient(BaseHTTPClient):
 
     def get_system_info(self) -> dict:
         return self.run_command("GET", "get_system_info")
+
+    def get_miner_conf(self) -> dict:
+        conf = self.run_command("GET", "get_miner_info")
+        return json.loads(conf)
 
     def get_blink_status(self) -> bool:
         return super().get_blink_status()
@@ -57,3 +62,6 @@ class DragonballHTTPClient(BaseHTTPClient):
 
     def blink(self, enabled: bool) -> None:
         return super().blink(enabled)
+
+    def update_pools(self, urls: List[str], users: List[str], passwds: List[str]) -> None:
+        return super().update_pools(urls, users, passwds)
