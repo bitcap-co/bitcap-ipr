@@ -27,3 +27,4 @@ class IPRConfirmation(QWidget, Ui_IPRConfirmation):
         self.ipLogo.setPixmap(QPixmap(":theme/icons/rc/wifi.png"))
 
         self.macLogo.setPixmap(QPixmap(":theme/icons/rc/stack.png"))
+        self.typeLogo.setPixmap(QPixmap(":theme/icons/rc/miner.png"))
