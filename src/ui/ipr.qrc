@@ -16,5 +16,7 @@
     <file>rc/flash.png</file>
     <file>rc/wifi.png</file>
     <file>rc/stack.png</file>
+    <file>rc/miner.png</file>
+    <file>rc/dashboard.png</file>
   </qresource>
 </RCC>
