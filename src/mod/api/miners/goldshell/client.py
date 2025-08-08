@@ -1,5 +1,5 @@
 from string import Template
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import requests
 from Crypto.Cipher import AES
@@ -70,9 +70,6 @@ class GoldshellHTTPClient(BaseHTTPClient):
             resj = {}
         return resj
 
-    def get_settings(self) -> dict:
-        return self.run_command("GET", "setting")
-
     def get_algo_settings(self) -> dict:
         return self.run_command("GET", "algosetting")
 
@@ -81,6 +78,9 @@ class GoldshellHTTPClient(BaseHTTPClient):
 
     def get_system_info(self) -> dict:
         return self.run_command("GET", "status")
+
+    def get_miner_conf(self) -> dict:
+        return self.run_command("GET", "setting")
 
     def get_pools(self) -> dict:
         return self.run_command("GET", "pools")
@@ -93,6 +93,11 @@ class GoldshellHTTPClient(BaseHTTPClient):
         settings = self.get_settings()
         settings["ledcontrol"] = enabled
         self.run_command("PUT", "setting", payload=settings)
+
+    def update_pools(
+        self, urls: List[str], users: List[str], passwds: List[str]
+    ) -> None:
+        return super().update_pools(urls, users, passwds)
 
 
 def zero_pad(data: bytes, block_size: int) -> bytes:
