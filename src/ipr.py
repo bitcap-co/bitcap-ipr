@@ -566,23 +566,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             line.setEchoMode(QLineEdit.EchoMode.Password)
             action.setIcon(QIcon(":theme/icons/rc/view.png"))
 
-    def create_copy_text_action(self, line: QLineEdit) -> QAction:
-        copy_action = line.addAction(
-            QIcon(":theme/icons/rc/copy.png"),
-            QLineEdit.ActionPosition.TrailingPosition,
-        )
-        copy_action.triggered.connect(lambda: self.copy_text(line))
-        return copy_action
-
-    def copy_text(self, line: QLineEdit):
-        line.selectAll()
-        text = line.text()
-        if line.objectName() == "lineIPField":
-            text = f"http://{line.text()}"
-        cb = QApplication.clipboard()
-        cb.clear(mode=cb.Mode.Clipboard)
-        cb.setText(text.strip(), mode=cb.Mode.Clipboard)
-
     def about(self):
         self.aboutDialog = IPRAbout(
             self,
@@ -921,17 +904,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         else:
             confirm = IPRConfirmation()
             # IPRConfirmation Signals
-            confirm.actionOpenBrowser.clicked.connect(
+            confirm.accept.clicked.connect(confirm.hide)
+            confirm.lineIPField.actionDashboard.triggered.connect(
                 lambda: self.open_dashboard(url)
             )
-            confirm.accept.clicked.connect(confirm.hide)
-            # copy action
-            confirm.lineIPField.actionCopy = self.create_copy_text_action(
-                confirm.lineIPField
-            )
-            confirm.lineMACField.actionCopy = self.create_copy_text_action(
-                confirm.lineMACField
-            )
+
             logger.info("show_confirmation : show IPRConfirmation.")
             confirm.lineIPField.setText(ip)
             confirm.lineMACField.setText(mac)
