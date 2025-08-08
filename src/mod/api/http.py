@@ -150,6 +150,10 @@ class BaseHTTPClient(ABC):
         pass
 
     @abstractmethod
+    def get_miner_conf(self) -> dict:
+        pass
+
+    @abstractmethod
     def get_pools(self) -> dict:
         pass
 
@@ -159,6 +163,10 @@ class BaseHTTPClient(ABC):
 
     @abstractmethod
     def blink(self, enabled: bool) -> None:
+        pass
+
+    @abstractmethod
+    def update_pools(self, urls: List[str], users: List[str], passwds: List[str]) -> None:
         pass
 
     def _close_client(self, error: Optional[Exception] = None) -> None:
