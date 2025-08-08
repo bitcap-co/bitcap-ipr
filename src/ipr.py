@@ -935,6 +935,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.info("show_confirmation : show IPRConfirmation.")
             confirm.lineIPField.setText(ip)
             confirm.lineMACField.setText(mac)
+            confirm.lineASICField.setText(type)
             self.confirms.append(confirm)
             if self.sys_tray and not self.isVisible():
                 if self.sys_tray.isSignalConnected(
