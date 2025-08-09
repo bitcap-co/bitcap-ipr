@@ -24,7 +24,6 @@ from PySide6.QtGui import (
     QPixmap,
 )
 from PySide6.QtWidgets import (
-    QWidget,
     QApplication,
     QButtonGroup,
     QFileDialog,
@@ -35,28 +34,26 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QSystemTrayIcon,
     QTableWidgetItem,
+    QWidget,
 )
 
 import ui.resources  # noqa F401
 from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
-
-from ui.MainWindow import Ui_MainWindow
-from ui.widgets.ipr import IPR_Titlebar, IPR_Menubar
-
 from mod.api import settings as api_settings
 from mod.api.client import APIClient
 from mod.lm.listenermanager import ListenerManager
-
+from ui.MainWindow import Ui_MainWindow
+from ui.widgets.ipr import IPR_Menubar, IPR_Titlebar
 from utils import (
     APP_INFO,
     CURR_PLATFORM,
     get_config_file_path,
     get_default_config,
     get_log_dir,
+    get_miner_url,
     read_config,
     write_config,
-    get_miner_url,
 )
 
 logger = logging.getLogger(__name__)

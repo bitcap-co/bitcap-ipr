@@ -1,6 +1,6 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication, QWidget, QLineEdit
-from PySide6.QtGui import QPixmap, QIcon, QAction
+from PySide6.QtGui import QAction, QIcon, QPixmap
+from PySide6.QtWidgets import QApplication, QLineEdit, QWidget
 
 from ui.Confirmation import Ui_IPRConfirmation
 from ui.widgets.ipr import IPR_Titlebar
