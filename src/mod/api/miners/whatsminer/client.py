@@ -12,6 +12,7 @@ from passlib.hash import md5_crypt
 
 from mod.api import settings
 from mod.api.errors import (
+    APIError,
     AuthenticationError,
     TokenOverMaxTimesError,
 )
@@ -176,3 +177,22 @@ class WhatsminerRPCClient(BaseRPCClient):
             self.send_privileged_command(
                 "set_led", color=color, period=period, duration=duration, start=start
             )
+
+    def update_pools(
+        self, urls: List[str], users: List[str], passwds: List[str]
+    ) -> None:
+        if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
+            self._close_client(APIError("API Error: Invalid number of argurments."))
+
+        params: Dict[str, str] = {
+            "pool1": urls[0],
+            "worker1": users[0],
+            "passwd1": passwds[0],
+            "pool2": urls[1],
+            "worker2": users[1],
+            "passwd2": passwds[1],
+            "pool3": urls[2],
+            "worker3": users[2],
+            "passwd3": passwds[2],
+        }
+        self.send_privileged_command("update_pools", **params)
