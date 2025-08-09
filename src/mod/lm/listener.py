@@ -26,6 +26,17 @@ class Record:
 
 
 class Listener(QObject):
+    """
+    UDP socket listener class
+
+    Args:
+        port: int - UDP port to listen on. Listens for all IPv4 interfaces (0.0.0.0)
+
+    Signals:
+        result: Signal(list) - emits on parsed datagram message and sends parts as List[str]
+        error: Signal() - emits on socket error
+    """
+
     result = Signal(list)
     error = Signal()
 

@@ -27,6 +27,13 @@ logger = logging.getLogger(__name__)
 
 
 class APIClient:
+    """
+    API client interface class
+
+    Args:
+        parent: QObject - parent object
+    """
+
     def __init__(self, parent: QObject):
         self.parent = parent
         self.client = None

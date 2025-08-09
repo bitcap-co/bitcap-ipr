@@ -12,6 +12,17 @@ logger = logging.getLogger(__name__)
 
 
 class ListenerManager(QObject):
+    """
+    Listener manager class
+
+    Args:
+        parent: QObject - parent object
+
+    Signals:
+        listen_complete: Signal(list) - emits List[str] result on Listener.result signal
+        listen_error: Signal() - emits error from Listener.error signal
+    """
+
     listen_complete = Signal(list)
     listen_error = Signal()
 
