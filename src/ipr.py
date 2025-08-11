@@ -963,7 +963,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         match type:
             case "antminer":
                 client_auth = self.lineBitmainPasswd.text()
-                custom_auth = self.lineVnishPasswd.text()
+                if not self.checkVnishUseAntminerLogin.isChecked():
+                    custom_auth = self.lineVnishPasswd.text()
+                else:
+                    custom_auth = self.lineBitmainPasswd.text()
             case "volcminer":
                 client_auth = self.lineVolcminerPasswd.text()
             case "goldshell":
