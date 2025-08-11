@@ -51,7 +51,7 @@ class DragonballHTTPClient(BaseHTTPClient):
         return self.run_command("GET", "get_system_info")
 
     def get_miner_conf(self) -> dict:
-        conf = self.run_command("GET", "get_miner_info")
+        conf = self.run_command("GET", "get_miner_conf")
         return json.loads(conf)
 
     def get_blink_status(self) -> bool:
