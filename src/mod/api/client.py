@@ -242,6 +242,17 @@ class APIClient:
         self.client.blink(enabled=False)
         self.close_client()
 
+    def update_miner_pools(
+        self, urls: List[str], users: List[str], passwds: List[str]
+    ) -> None:
+        if self.client:
+            if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
+                self.client._close_client(APIError("Invalid number of pool argurments."))
+            try:
+                self.client.update_pools(urls, users, passwds)
+            except APIError as err:
+                logger.error(err)
+
     def get_missing_mac_addr(self) -> Optional[str]:
         if isinstance(self.client, IceriverHTTPClient) or isinstance(
             self.client, ElphapexHTTPClient

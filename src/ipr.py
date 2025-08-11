@@ -1229,7 +1229,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.linePoolPasswd_2.text(),
                 self.linePoolPasswd_3.text(),
             ]
-            client.update_pools(urls, users, passwds)
+            self.api_client.update_miner_pools(urls, users, passwds)
             if client._error:
                 return self.iprStatus.showMessage(
                     f"Status :: Failed to update pools: {client._error}", 5000
