@@ -6,6 +6,7 @@ from Crypto.Cipher import AES
 
 from mod.api import settings
 from mod.api.errors import (
+    APIError,
     AuthenticationError,
 )
 from mod.api.http import BaseHTTPClient
@@ -97,7 +98,18 @@ class GoldshellHTTPClient(BaseHTTPClient):
     def update_pools(
         self, urls: List[str], users: List[str], passwds: List[str]
     ) -> None:
-        return super().update_pools(urls, users, passwds)
+        if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
+            self._close_client(APIError("API Error: Invalid number of argurments."))
+
+        for i in range(0, len(urls)):
+            if not len(urls[i]) and not len(users[i]) and not len(passwds[i]):
+                continue
+            payload = {
+                "url": urls[i],
+                "user": users[i],
+                "pass": passwds[i]
+            }
+            self.run_command("PUT", "newpool", payload=payload)
 
 
 def zero_pad(data: bytes, block_size: int) -> bytes:
