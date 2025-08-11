@@ -1,4 +1,3 @@
-import logging
 from string import Template
 from typing import Any, Dict, List, Optional
 
@@ -12,8 +11,6 @@ from mod.api.errors import (
     FailedConnectionError,
 )
 from mod.api.http import BaseHTTPClient
-
-logger = logging.getLogger(__name__)
 
 
 class BitmainHTTPClient(BaseHTTPClient):
@@ -83,6 +80,8 @@ class BitmainHTTPClient(BaseHTTPClient):
                 case "get_system_info":
                     command = "/info"
                 case "get_miner_conf":
+                    command = "/settings"
+                case "set_miner_conf":
                     command = "/settings"
                 case "get_blink_status":
                     command = "/status"
@@ -170,10 +169,7 @@ class BitmainHTTPClient(BaseHTTPClient):
     def update_pools(
         self, urls: List[str], users: List[str], passwds: List[str]
     ) -> None:
-        if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
-            self._close_client(APIError("API Error: Invalid number of argurments."))
         current_conf = self.get_miner_conf()
-        logger.debug(current_conf)
 
         new_conf = {**current_conf}
         if self.is_custom:
@@ -188,8 +184,10 @@ class BitmainHTTPClient(BaseHTTPClient):
                 "user": users[i],
                 "pass": passwds[i],
             }
-        logger.debug(new_conf)
+        res = self.run_command("POST", "set_miner_conf", payload=new_conf)
         if self.is_custom:
-            self.run_command("POST", "settings", payload=new_conf)
+            if "err" in res:
+                self._close_client(APIError(res["err"]))
         else:
-            self.run_command("POST", "set_miner_conf", payload=new_conf)
+            if "msg" in res and res["msg"] != "OK!":
+                self._close_client(APIError(res["msg"]))
