@@ -227,9 +227,12 @@ class APIClient:
                 result[k] = "Failed"
             return result
         sys = self.client.get_system_info()
-        pools = self.client.get_pools()
+        try:
+            pools = self.client.get_pools()
+            parser.parse_pools(pools)
+        except AuthenticationError as err:
+            logger.error(err)
         parser.parse_system_info(sys)
-        parser.parse_pools(pools)
         if isinstance(parser, BitmainParser):
             if not self.client.is_custom:
                 log = self.client.get_bitmain_system_log()
