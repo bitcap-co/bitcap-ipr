@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from PySide6.QtCore import (
     QObject,
@@ -8,6 +8,7 @@ from PySide6.QtCore import (
 
 from mod.api import settings
 from mod.api.errors import (
+    APIError,
     AuthenticationError,
     FailedConnectionError,
 )
@@ -147,72 +148,6 @@ class APIClient:
             case _:
                 return
 
-    def locate_miner(self, miner_type: str) -> None:
-        self.locate = QTimer(self.parent)
-        self.locate.setSingleShot(True)
-        self.locate.timeout.connect(self.stop_locate)
-        duration = settings.get("locate_duration_ms")
-        logger.info(f" locate miner for {duration}ms.")
-        match miner_type:
-            case "antminer" | "whatsminer":
-                try:
-                    self.client.blink(enabled=True)
-                    self.locate.start(duration)
-                except AuthenticationError as err:
-                    logger.error(err)
-                    self.close_client()
-            case "iceriver" | "volcminer" | "goldshell" | "sealminer" | "elphapex":
-                self.client.blink(enabled=True)
-                self.locate.start(duration)
-
-    def stop_locate(self) -> None:
-        self.client.blink(enabled=False)
-        self.close_client()
-
-    def get_missing_mac_addr(self) -> Optional[str]:
-        if isinstance(self.client, IceriverHTTPClient) or isinstance(
-            self.client, ElphapexHTTPClient
-        ):
-            mac = self.client.get_mac_addr()
-            if mac:
-                return mac
-            else:
-                return "Failed"
-
-    def get_common_miner_type(self):
-        if self.client:
-            system_info = self.client.get_system_info()
-            for k in system_info.keys():
-                if k in ["miner", "minertype"]:
-                    return system_info[k].strip().lower()
-
-    def is_antminer(self) -> bool:
-        miner_type: str = self.get_common_miner_type()
-        if miner_type and miner_type.__contains__("antminer"):
-            return True
-        return False
-
-    def is_volcminer(self) -> bool:
-        miner_type = self.get_common_miner_type()
-        if miner_type and miner_type.__contains__("volcminer"):
-            return True
-        return False
-
-    def is_dragonball(self) -> bool:
-        miner_type = self.get_common_miner_type()
-        if miner_type and miner_type == "miner":
-            return True
-        return False
-
-    def upgrade_whatsminer_client(
-        self, ip: str, user: Optional[str] = None, passwd: Optional[str] = None
-    ) -> None:
-        if self.client and isinstance(self.client, WhatsminerRPCClient):
-            ver = self.client.get_version()
-            if int(ver["Msg"]["fw_ver"][:6]) > 202412:
-                self.close_client()
-                self.create_whatsminerv3_client(ip, user, passwd)
-
     def get_target_info(self, parser: Parser) -> Dict[str, str]:
         result = parser.get_target()
         if not self.client:
@@ -284,6 +219,72 @@ class APIClient:
                 return self.get_target_info(DragonballParser(self.target_info))
             case _:
                 return self.target_info
+
+    def locate_miner(self, miner_type: str) -> None:
+        self.locate = QTimer(self.parent)
+        self.locate.setSingleShot(True)
+        self.locate.timeout.connect(self.stop_locate)
+        duration = settings.get("locate_duration_ms")
+        logger.info(f" locate miner for {duration}ms.")
+        match miner_type:
+            case "antminer" | "whatsminer":
+                try:
+                    self.client.blink(enabled=True)
+                    self.locate.start(duration)
+                except AuthenticationError as err:
+                    logger.error(err)
+                    self.close_client()
+            case "iceriver" | "volcminer" | "goldshell" | "sealminer" | "elphapex":
+                self.client.blink(enabled=True)
+                self.locate.start(duration)
+
+    def stop_locate(self) -> None:
+        self.client.blink(enabled=False)
+        self.close_client()
+
+    def get_missing_mac_addr(self) -> Optional[str]:
+        if isinstance(self.client, IceriverHTTPClient) or isinstance(
+            self.client, ElphapexHTTPClient
+        ):
+            mac = self.client.get_mac_addr()
+            if mac:
+                return mac
+            else:
+                return "Failed"
+
+    def get_common_miner_type(self):
+        if self.client:
+            system_info = self.client.get_system_info()
+            for k in system_info.keys():
+                if k in ["miner", "minertype"]:
+                    return system_info[k].strip().lower()
+
+    def is_antminer(self) -> bool:
+        miner_type: str = self.get_common_miner_type()
+        if miner_type and miner_type.__contains__("antminer"):
+            return True
+        return False
+
+    def is_volcminer(self) -> bool:
+        miner_type = self.get_common_miner_type()
+        if miner_type and miner_type.__contains__("volcminer"):
+            return True
+        return False
+
+    def is_dragonball(self) -> bool:
+        miner_type = self.get_common_miner_type()
+        if miner_type and miner_type == "miner":
+            return True
+        return False
+
+    def upgrade_whatsminer_client(
+        self, ip: str, user: Optional[str] = None, passwd: Optional[str] = None
+    ) -> None:
+        if self.client and isinstance(self.client, WhatsminerRPCClient):
+            ver = self.client.get_version()
+            if int(ver["Msg"]["fw_ver"][:6]) > 202412:
+                self.close_client()
+                self.create_whatsminerv3_client(ip, user, passwd)
 
     def close_client(self) -> None:
         if self.client:
