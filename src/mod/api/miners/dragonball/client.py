@@ -6,6 +6,7 @@ import requests
 
 from mod.api import settings
 from mod.api.http import BaseHTTPClient
+from mod.api.errors import APIError
 
 
 class DragonballHTTPClient(BaseHTTPClient):
@@ -64,4 +65,40 @@ class DragonballHTTPClient(BaseHTTPClient):
         return super().blink(enabled)
 
     def update_pools(self, urls: List[str], users: List[str], passwds: List[str]) -> None:
-        return super().update_pools(urls, users, passwds)
+        if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
+            self._close_client(APIError("API Error: Invalid number of argurments."))
+
+        conf = self.get_miner_conf()
+
+        new_conf = {**conf}
+        pool_conf = [
+            new_conf["pool1"],
+            new_conf["pool2"],
+            new_conf["pool3"],
+        ]
+
+        data = {}
+        for i in range(0, len(urls)):
+            if not pool_conf[i] and not len(users[i]) and not len(passwds[i]):
+                continue
+            idx = i + 1
+            data[f"_pool{idx}url"] = urls[i],
+            data[f"_pool{idx}user"] = users[i],
+            data[f"_pool{idx}pw"] = passwds[i]
+
+        data["_nobeeper"] = "false"
+        data["_notempoverctrl"] = "false"
+        data["_fan_customize_switch"] = "false"
+        data["_fan_customize_value"] = ""
+        data["_freq"] = conf["frequency"]
+        data["_freq1"] = conf["frequency1"]
+        data["_freq2"] = conf["frequency2"]
+        data["_freq3"] = conf["frequency3"]
+        data["_freq4"] = conf["frequency4"]
+        data["_usefrequencyAll"] = conf["usefrequencyAll"]
+        data["position"] = conf["position"]
+        data["fan1_speed"] = conf["fan1_speed"]
+        data["fan2_speed"] = conf["fan2_speed"]
+        data["temperature_threshould"] = conf["temperature_threshould"]
+        data["mhs_threshould"] = conf["mhs_threshould"]
+        self.run_command("POST", "set_miner_conf", data=data)
