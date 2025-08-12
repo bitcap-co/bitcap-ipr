@@ -51,7 +51,8 @@
         "passwd2": "",
         "pool3": "",
         "user3": "",
-        "passwd3": ""
+        "passwd3": "",
+        "preset_name": "Saved Pool 1"
       },
       {
         "pool": "",
@@ -62,7 +63,8 @@
         "passwd2": "",
         "pool3": "",
         "user3": "",
-        "passwd3": ""
+        "passwd3": "",
+        "preset_name": "Saved Pool 2"
       },
       {
         "pool": "",
@@ -73,7 +75,8 @@
         "passwd2": "",
         "pool3": "",
         "user3": "",
-        "passwd3": ""
+        "passwd3": "",
+        "preset_name": "Saved Pool 3"
       },
       {
         "pool": "",
@@ -84,7 +87,8 @@
         "passwd2": "",
         "pool3": "",
         "user3": "",
-        "passwd3": ""
+        "passwd3": "",
+        "preset_name": "Saved Pool 4"
       },
       {
         "pool": "",
@@ -95,7 +99,8 @@
         "passwd2": "",
         "pool3": "",
         "user3": "",
-        "passwd3": ""
+        "passwd3": "",
+        "preset_name": "Saved Pool 5"
       }
     ],
     "instance": {

@@ -215,6 +215,12 @@
                     <height>25</height>
                    </size>
                   </property>
+                  <property name="editable">
+                   <bool>true</bool>
+                  </property>
+                  <property name="insertPolicy">
+                   <enum>QComboBox::InsertPolicy::NoInsert</enum>
+                  </property>
                   <item>
                    <property name="text">
                     <string>Saved Pool 1</string>

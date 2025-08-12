@@ -156,6 +156,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.linePoolPasswd_3
         )
         self.comboPoolPreset.currentIndexChanged.connect(self.read_pool_preset)
+        self.comboPoolPreset.editTextChanged.connect(self.update_pool_preset)
         self.actionIPRSavePreset.clicked.connect(self.write_pool_preset)
         self.actionIPRClearPreset.clicked.connect(self.clear_pool_preset)
 
@@ -240,6 +241,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         self.update_stacked_widget()
         self.update_status_msg()
+        self.update_pool_presets()
         self.create_or_destroy_systray()
 
         if self.menu_bar.actionEnableIDTable.isChecked():
@@ -279,6 +281,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
         if not self.iprStatus.currentMessage():
             self.iprStatus.showMessage("Status :: Ready.")
+
+    def update_pool_presets(self):
+        for idx in range(0, len(self.config["savedPools"])):
+            self.comboPoolPreset.setItemText(idx, self.config["savedPools"][idx]["preset_name"])
 
     # system tray
     def create_or_destroy_systray(self):
@@ -545,6 +551,7 @@ class IPR(QMainWindow, Ui_MainWindow):
     def update_current_preset_to_config(self) -> List[Dict[str, str]]:
         savedPools = self.config["savedPools"]
         current_index = self.comboPoolPreset.currentIndex()
+        savedPools[current_index]["preset_name"] = self.comboPoolPreset.currentText()
         savedPools[current_index]["pool"] = self.linePoolURL.text()
         savedPools[current_index]["pool2"] = self.linePoolURL_2.text()
         savedPools[current_index]["pool3"] = self.linePoolURL_3.text()
@@ -555,6 +562,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         savedPools[current_index]["passwd2"] = self.linePoolPasswd_2.text()
         savedPools[current_index]["passwd3"] = self.linePoolPasswd_3.text()
         return savedPools
+
+    def update_pool_preset(self, preset_name: str):
+        current_index = self.comboPoolPreset.currentIndex()
+        self.comboPoolPreset.setItemText(current_index, preset_name)
 
     def read_pool_preset(self, index: int) -> None:
         self.config = read_config(self.config_path)
@@ -571,6 +582,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def write_pool_preset(self):
         current_index = self.comboPoolPreset.currentIndex()
+        self.config["savedPools"][current_index]["preset_name"] = self.comboPoolPreset.currentText()
         self.config["savedPools"][current_index]["pool"] = self.linePoolURL.text()
         self.config["savedPools"][current_index]["pool2"] = self.linePoolURL_2.text()
         self.config["savedPools"][current_index]["pool3"] = self.linePoolURL_3.text()
@@ -588,6 +600,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprStatus.showMessage("Status :: successfully wrote pool preset.", 3000)
 
     def clear_pool_preset(self):
+        current_index = self.comboPoolPreset.currentIndex()
+        self.update_pool_preset(preset_name=f"Saved Pool {current_index+1}")
         for child in self.frame.children():
             if isinstance(child, QWidget):
                 for line in child.children():

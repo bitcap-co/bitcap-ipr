@@ -114,6 +114,8 @@ class Ui_MainWindow(object):
         self.comboPoolPreset.setObjectName(u"comboPoolPreset")
         self.comboPoolPreset.setMinimumSize(QSize(250, 25))
         self.comboPoolPreset.setMaximumSize(QSize(250, 25))
+        self.comboPoolPreset.setEditable(True)
+        self.comboPoolPreset.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
 
         self.horizontalLayout_30.addWidget(self.comboPoolPreset)
 
