@@ -565,7 +565,10 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def update_pool_preset(self, preset_name: str):
         current_index = self.comboPoolPreset.currentIndex()
-        self.comboPoolPreset.setItemText(current_index, preset_name)
+        if preset_name:
+            self.comboPoolPreset.setItemText(current_index, preset_name)
+        else:
+            self.comboPoolPreset.setItemText(current_index, self.config["savedPools"][current_index]["preset_name"])
 
     def read_pool_preset(self, index: int) -> None:
         self.config = read_config(self.config_path)
