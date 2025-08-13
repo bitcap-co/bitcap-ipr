@@ -69,6 +69,10 @@ class SealminerHTTPClient(BaseHTTPClient):
     def get_pool_conf(self) -> dict:
         return self.get_miner_conf()["pools"]
 
+    def get_pools(self) -> dict:
+        status = self.run_command("GET", "miner-status")
+        return status["pools"]
+
     def get_blink_status(self) -> bool:
         sys = self.get_system_info()
         return True if sys["led"] == "on" else False

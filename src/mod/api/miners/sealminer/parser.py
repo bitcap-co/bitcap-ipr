@@ -30,6 +30,8 @@ class SealminerParser(Parser):
         return super().parse_system_info(obj)
 
     def parse_pools(self, obj: Dict[str, Any]) -> None:
-        pool = obj[0]
-        self.target["pool"] = pool["url"]
-        self.target["worker"] = pool["user"]
+        for pool in obj:
+            if pool["isActive"] == "true":
+                self.target["pool"] = pool["url"]
+                self.target["worker"] = pool["user"]
+                break
