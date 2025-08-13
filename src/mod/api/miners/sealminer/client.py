@@ -66,7 +66,7 @@ class SealminerHTTPClient(BaseHTTPClient):
     def get_miner_conf(self) -> dict:
         return self.run_command("GET", "get_miner_poolconf")
 
-    def get_pools(self) -> dict:
+    def get_pool_conf(self) -> dict:
         return self.get_miner_conf()["pools"]
 
     def get_blink_status(self) -> bool:
@@ -82,7 +82,7 @@ class SealminerHTTPClient(BaseHTTPClient):
     ) -> None:
         if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
             self._close_client(APIError("API Error: Invalid number of argurments."))
-        pool_conf = self.get_pools()
+        pool_conf = self.get_pool_conf()
 
         new_conf = {
             "poolurl1": "",
@@ -96,7 +96,7 @@ class SealminerHTTPClient(BaseHTTPClient):
             "poolpwd3": "",
         }
         for i in range(0, len(urls)):
-            if not pool_conf["pools"][i] and not len(users[i]) and not len(passwds[i]):
+            if not pool_conf[i] and not len(users[i]) and not len(passwds[i]):
                 continue
             idx = i + 1
             new_conf[f"poolurl{idx}"] = urls[i]
