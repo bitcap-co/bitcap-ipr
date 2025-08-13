@@ -199,6 +199,9 @@
                   <property name="text">
                    <string>Preset:</string>
                   </property>
+                  <property name="StyleClass" stdset="0">
+                   <string>setText</string>
+                  </property>
                  </widget>
                 </item>
                 <item>
@@ -295,6 +298,9 @@
                   <property name="text">
                    <string>Pool 1:</string>
                   </property>
+                  <property name="StyleClass" stdset="0">
+                   <string>setText</string>
+                  </property>
                  </widget>
                 </item>
                 <item>
@@ -312,6 +318,9 @@
                   <property name="text">
                    <string>User:</string>
                   </property>
+                  <property name="StyleClass" stdset="0">
+                   <string>setText</string>
+                  </property>
                  </widget>
                 </item>
                 <item>
@@ -328,6 +337,9 @@
                  <widget class="QLabel" name="label_21">
                   <property name="text">
                    <string>Password:</string>
+                  </property>
+                  <property name="StyleClass" stdset="0">
+                   <string>setText</string>
                   </property>
                  </widget>
                 </item>
@@ -361,6 +373,9 @@
                   <property name="text">
                    <string>Pool 2:</string>
                   </property>
+                  <property name="StyleClass" stdset="0">
+                   <string>setText</string>
+                  </property>
                  </widget>
                 </item>
                 <item>
@@ -378,6 +393,9 @@
                   <property name="text">
                    <string>User:</string>
                   </property>
+                  <property name="StyleClass" stdset="0">
+                   <string>setText</string>
+                  </property>
                  </widget>
                 </item>
                 <item>
@@ -394,6 +412,9 @@
                  <widget class="QLabel" name="label_24">
                   <property name="text">
                    <string>Password:</string>
+                  </property>
+                  <property name="StyleClass" stdset="0">
+                   <string>setText</string>
                   </property>
                  </widget>
                 </item>
@@ -427,6 +448,9 @@
                   <property name="text">
                    <string>Pool 3:</string>
                   </property>
+                  <property name="StyleClass" stdset="0">
+                   <string>setText</string>
+                  </property>
                  </widget>
                 </item>
                 <item>
@@ -444,6 +468,9 @@
                   <property name="text">
                    <string>User:</string>
                   </property>
+                  <property name="StyleClass" stdset="0">
+                   <string>setText</string>
+                  </property>
                  </widget>
                 </item>
                 <item>
@@ -460,6 +487,9 @@
                  <widget class="QLabel" name="label_18">
                   <property name="text">
                    <string>Password:</string>
+                  </property>
+                  <property name="StyleClass" stdset="0">
+                   <string>setText</string>
                   </property>
                  </widget>
                 </item>
@@ -751,8 +781,8 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>459</width>
-                       <height>427</height>
+                       <width>477</width>
+                       <height>441</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -1153,8 +1183,8 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>368</width>
-                       <height>710</height>
+                       <width>477</width>
+                       <height>744</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_13">
