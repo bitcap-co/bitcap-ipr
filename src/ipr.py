@@ -723,6 +723,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def show_table_context(self):
         self.table_context = QMenu()
+        self.table_context.setToolTipsVisible(True)
         self.actionContextOpenSelectedIPs = self.table_context.addAction(
             "Open Selected IPs"
         )
@@ -750,6 +751,11 @@ class IPR(QMainWindow, Ui_MainWindow):
                 f"Update Pool From Current Preset ({self.comboPoolPreset.currentText()})"
             )
             self.actionContextSetPools.triggered.connect(self.update_miner_pools)
+            self.actionContextGetPoolInfo = self.table_context.addAction(
+                "Get Pool Config From Selected Miner"
+            )
+            self.actionContextGetPoolInfo.setToolTip("Retreives the current pool config for the selected miner and stores in the current preset")
+            self.actionContextGetPoolInfo.triggered.connect(self.get_miner_pool)
 
         self.table_context.exec(QCursor.pos())
 
@@ -1231,6 +1237,32 @@ class IPR(QMainWindow, Ui_MainWindow):
                 f"Status :: Locating miner: {ip_addr}...",
                 self.miner_locate_duration,
             )
+
+    def get_miner_pool(self):
+        rows = self.idTable.rowCount()
+        if not rows:
+            return
+        selected_ips = [x for x in self.idTable.selectedIndexes() if x.column() == 1]
+        if len(selected_ips) != 1:
+            return
+        index = selected_ips[0]
+        item = self.idTable.itemFromIndex(index)
+        miner_type = self.idTable.item(item.row(), 4).text()
+        client_auth, custom_auth = self.get_client_auth_from_type(miner_type)
+        self.api_client.create_client_from_type(miner_type, item.text(), client_auth, custom_auth)
+        client = self.api_client.get_client()
+        if not client:
+            return
+        urls, users, passwds = self.api_client.get_miner_pool_conf(miner_type)
+        self.linePoolURL.setText(urls[0])
+        self.linePoolUser.setText(users[0])
+        self.linePoolPasswd.setText(passwds[0])
+        self.linePoolURL_2.setText(urls[1])
+        self.linePoolUser_2.setText(users[1])
+        self.linePoolPasswd_2.setText(passwds[1])
+        self.linePoolURL_3.setText(urls[2])
+        self.linePoolUser_3.setText(users[2])
+        self.linePoolPasswd_3.setText(passwds[2])
 
     def update_miner_pools(self):
         rows = self.idTable.rowCount()

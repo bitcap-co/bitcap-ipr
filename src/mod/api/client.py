@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from PySide6.QtCore import (
     QObject,
@@ -242,12 +242,55 @@ class APIClient:
         self.client.blink(enabled=False)
         self.close_client()
 
+    def get_miner_pool_conf(
+        self, miner_type: str
+    ) -> Tuple[List[str], List[str], List[str]]:
+        urls: List[str] = []
+        users: List[str] = []
+        passwds: List[str] = []
+        if self.client:
+            pool_conf: List[Dict[str, str] | str] = self.client.get_pool_conf()
+            match miner_type:
+                case "antminer" | "sealminer" | "volcminer" | "elphapex" | "iceriver":
+                    for pool in pool_conf:
+                        if "addr" in pool:
+                            urls.append(pool["addr"])
+                        else:
+                            urls.append(pool["url"])
+                        users.append(pool["user"])
+                        passwds.append(pool["pass"])
+                case "whatsminer":
+                    if isinstance(self.client, WhatsminerV3Client):
+                        url_key = "url"
+                        user_key = "account"
+                    else:
+                        url_key = "URL"
+                        user_key = "User"
+                    for pool in pool_conf:
+                        urls.append(pool[url_key])
+                        users.append(pool[user_key])
+                        passwds.append("")
+                case "goldshell":
+                    for i in range(0, 2):
+                        urls.append(pool_conf[i]["url"])
+                        users.append(pool_conf[i]["user"])
+                        passwds.append(pool_conf[i]["pass"])
+                case "dragonball":
+                    for pool in pool_conf:
+                        url, user, passwd = pool.split("|")
+                        urls.append(url)
+                        users.append(user)
+                        passwds.append(passwd)
+            return (urls, users, passwds)
+
     def update_miner_pools(
         self, urls: List[str], users: List[str], passwds: List[str]
     ) -> None:
         if self.client:
             if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
-                self.client._close_client(APIError("Invalid number of pool argurments."))
+                self.client._close_client(
+                    APIError("Invalid number of pool argurments.")
+                )
             try:
                 self.client.update_pools(urls, users, passwds)
             except APIError as err:
