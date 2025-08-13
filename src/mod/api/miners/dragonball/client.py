@@ -1,4 +1,3 @@
-import json
 from string import Template
 from typing import Any, Dict, List, Optional
 
@@ -52,14 +51,22 @@ class DragonballHTTPClient(BaseHTTPClient):
         return self.run_command("GET", "get_system_info")
 
     def get_miner_conf(self) -> dict:
-        conf = self.run_command("GET", "get_miner_conf")
-        return json.loads(conf)
+        return self.run_command("GET", "get_miner_conf")
 
-    def get_blink_status(self) -> bool:
-        return super().get_blink_status()
+    def get_pool_conf(self) -> dict:
+        conf = self.get_miner_conf()
+        pool_conf = [
+            conf["pool1"],
+            conf["pool2"],
+            conf["pool3"]
+        ]
+        return pool_conf
 
     def get_pools(self) -> dict:
         return super().get_pools()
+
+    def get_blink_status(self) -> bool:
+        return super().get_blink_status()
 
     def blink(self, enabled: bool) -> None:
         return super().blink(enabled)

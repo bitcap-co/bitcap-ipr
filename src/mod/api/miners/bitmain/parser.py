@@ -54,11 +54,7 @@ class BitmainParser(Parser):
         self.parse_serial(obj)
 
     def parse_pools(self, obj: Dict[str, Any]) -> None:
-        if "POOLS" in obj:
-            pools = obj["POOLS"]
-        elif "miner" in obj:
-            pools = obj["miner"]["pools"]
-        for pool in pools:
+        for pool in obj:
             if pool["status"] == "active" or pool["status"] == "Alive":
                 self.target["pool"] = pool["url"]
                 self.target["worker"] = pool["user"]

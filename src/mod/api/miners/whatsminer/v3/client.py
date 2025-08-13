@@ -99,6 +99,9 @@ class WhatsminerV3Client(BaseTCPClient):
         sys_info = self.run_command("get.device.info", "system")
         return sys_info["system"]
 
+    def get_pool_conf(self) -> Dict[str, Any]:
+        return self.get_pools()
+
     def get_pools(self) -> Dict[str, Any]:
         pools = self.run_command("get.miner.status", "pools")
         return pools["pools"]

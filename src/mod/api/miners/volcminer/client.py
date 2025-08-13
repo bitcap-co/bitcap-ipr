@@ -84,6 +84,9 @@ class VolcminerHTTPClient(BaseHTTPClient):
         }
         return conf
 
+    def get_pool_conf(self) -> dict:
+        conf = self.get_miner_conf()
+        return conf["pools"]
 
     def get_pools(self) -> dict:
         status = self.run_command("GET", "get_miner_statusV1")

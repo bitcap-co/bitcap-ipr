@@ -83,6 +83,9 @@ class GoldshellHTTPClient(BaseHTTPClient):
     def get_miner_conf(self) -> dict:
         return self.run_command("GET", "setting")
 
+    def get_pool_conf(self) -> dict:
+        return self.get_pools()
+
     def get_pools(self) -> dict:
         return self.run_command("GET", "pools")
 

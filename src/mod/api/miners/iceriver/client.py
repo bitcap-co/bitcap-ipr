@@ -112,6 +112,10 @@ class IceriverHTTPClient(BaseHTTPClient):
         resp = self.run_command("POST", "machineconfig", data=data)
         return resp["data"]
 
+    def get_pool_conf(self) -> dict:
+        conf = self.get_miner_conf()
+        return conf["pools"]
+
     def get_pools(self) -> dict:
         data = self.get_system_info()
         return data["pools"]

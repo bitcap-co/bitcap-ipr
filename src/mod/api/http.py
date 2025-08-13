@@ -154,6 +154,10 @@ class BaseHTTPClient(ABC):
         pass
 
     @abstractmethod
+    def get_pool_conf(self) -> dict:
+        pass
+
+    @abstractmethod
     def get_pools(self) -> dict:
         pass
 

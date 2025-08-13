@@ -58,7 +58,11 @@ class ElphapexHTTPClient(BaseHTTPClient):
         return self.run_command("GET", "get_system_info")
 
     def get_miner_conf(self) -> dict:
-        return self.run_command("GETget_miner_conf")
+        return self.run_command("GET", "get_miner_conf")
+
+    def get_pool_conf(self) -> dict:
+        conf = self.get_miner_conf()
+        return conf["pools"]
 
     def get_pools(self) -> dict:
         return self.run_command("GET", "pools")

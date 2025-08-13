@@ -157,6 +157,9 @@ class WhatsminerRPCClient(BaseRPCClient):
             info="ip,proto,netmask,gateway,dns,hostname,mac,ledstat,gateway",
         )
 
+    def get_pool_conf(self) -> dict:
+        return self.get_pools()
+
     def get_pools(self) -> dict:
         return self.run_command("pools")
 
