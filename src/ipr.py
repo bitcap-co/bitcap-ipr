@@ -122,6 +122,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionImport.triggered.connect(self.import_table)
         self.menu_bar.actionExport.triggered.connect(self.export_table)
         self.menu_bar.actionShowPoolConfig.toggled.connect(self.toggle_pool_settings)
+        self.menu_bar.actionSetPoolFromPreset.triggered.connect(self.update_miner_pools)
         self.menu_bar.actionSettings.triggered.connect(
             lambda: self.update_stacked_widget(view_index=2)
         )
