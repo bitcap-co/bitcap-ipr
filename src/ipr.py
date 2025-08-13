@@ -114,12 +114,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionQuit.triggered.connect(self.quit)
         self.menu_bar.menuOptions.triggered.connect(self.update_settings)
         self.menu_bar.menuTable.triggered.connect(self.update_settings)
+        self.menu_bar.menuPools.triggered.connect(self.update_settings)
         self.menu_bar.actionEnableIDTable.triggered.connect(self.update_stacked_widget)
         self.menu_bar.actionEnableIDTable.toggled.connect(self.toggle_table_settings)
         self.menu_bar.actionOpenSelectedIPs.triggered.connect(self.open_selected_ips)
         self.menu_bar.actionCopySelectedElements.triggered.connect(self.copy_selected)
         self.menu_bar.actionImport.triggered.connect(self.import_table)
         self.menu_bar.actionExport.triggered.connect(self.export_table)
+        self.menu_bar.actionShowPoolConfig.toggled.connect(self.toggle_pool_settings)
         self.menu_bar.actionSettings.triggered.connect(
             lambda: self.update_stacked_widget(view_index=2)
         )
@@ -246,6 +248,9 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         if self.menu_bar.actionEnableIDTable.isChecked():
             self.toggle_table_settings(True)
+
+        if self.menu_bar.actionShowPoolConfig.isChecked():
+            self.toggle_pool_settings(True)
 
         if self.menu_bar.actionAutoStartOnLaunch.isChecked():
             self.start_listen()
@@ -452,6 +457,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.menu_bar.actionEnableIDTable.setChecked(
                 self.config["instance"]["table"]["enableIDTable"]
             )
+            self.menu_bar.actionShowPoolConfig.setChecked(
+                self.config["instance"]["pools"]["showPoolConfig"]
+            )
 
     def update_settings(self):
         logger.info(" update settings to config.")
@@ -470,6 +478,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "autoStartOnLaunch": self.menu_bar.actionAutoStartOnLaunch.isChecked(),
             },
             "table": {"enableIDTable": self.menu_bar.actionEnableIDTable.isChecked()},
+            "pools": {"showPoolConfig": self.menu_bar.actionShowPoolConfig.isChecked()},
         }
         savedPools = self.update_current_preset_to_config()
         config = {
@@ -645,6 +654,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionCopySelectedElements.setEnabled(enabled)
         self.menu_bar.actionImport.setEnabled(enabled)
         self.menu_bar.actionExport.setEnabled(enabled)
+        self.menu_bar.actionShowPoolConfig.setEnabled(enabled)
+
+    def toggle_pool_settings(self, enabled: bool):
+        self.menu_bar.actionSetPoolFromPreset.setEnabled(enabled)
+        self.toggle_pool_config(enabled)
 
     # actions
     def create_passwd_toggle_action(self, line: QLineEdit) -> QAction:
@@ -724,12 +738,12 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.actionContextShowPoolConfig = self.table_context.addAction(
                 "Hide Pool Config"
             )
-            self.actionContextShowPoolConfig.triggered.connect(self.toggle_pool_config)
+            self.actionContextShowPoolConfig.triggered.connect(lambda: self.toggle_pool_config(enabled=False))
         else:
             self.actionContextShowPoolConfig = self.table_context.addAction(
                 "Show Pool Config"
             )
-            self.actionContextShowPoolConfig.triggered.connect(self.toggle_pool_config)
+            self.actionContextShowPoolConfig.triggered.connect(lambda: self.toggle_pool_config(enabled=True))
         if self.poolConfig.isVisible():
             self.actionContextSetPools = self.table_context.addAction(
                 f"Update Pool From Current Preset ({self.comboPoolPreset.currentText()})"
@@ -852,8 +866,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         outfile << out << "\n"
         self.iprStatus.showMessage(f"Status :: Wrote table as .CSV to {p}.", 3000)
 
-    def toggle_pool_config(self):
-        self.poolConfig.setVisible(not self.poolConfig.isVisible())
+    def toggle_pool_config(self, enabled: bool = False):
+        self.menu_bar.actionShowPoolConfig.setChecked(enabled)
+        self.poolConfig.setVisible(enabled)
         if self.poolConfig.isVisible():
             self.setGeometry(self.x(), self.y(), self.width(), self.maximumHeight())
         else:

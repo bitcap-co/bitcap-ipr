@@ -114,6 +114,9 @@
       },
       "table": {
         "enableIDTable": false
+      },
+      "pools": {
+        "showPoolConfig": false
       }
     }
 }
