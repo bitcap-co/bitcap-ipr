@@ -87,4 +87,6 @@ class ElphapexHTTPClient(BaseHTTPClient):
                 continue
             pool_conf[i] = {"url": urls[i], "user": users[i], "pass": passwds[i]}
 
-        self.run_command("POST", "set_miner_conf", payload=new_conf)
+        res = self.run_command("POST", "set_miner_conf", payload=new_conf)
+        if "msg" in res and res["msg"] != "OK!":
+            self._close_client(APIError(res["msg"]))
