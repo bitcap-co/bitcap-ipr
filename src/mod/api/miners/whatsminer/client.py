@@ -158,7 +158,7 @@ class WhatsminerRPCClient(BaseRPCClient):
         )
 
     def get_pool_conf(self) -> dict:
-        return self.get_pools()
+        return self.get_pools()["POOLS"]
 
     def get_pools(self) -> dict:
         return self.run_command("pools")

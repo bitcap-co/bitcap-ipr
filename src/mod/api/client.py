@@ -261,17 +261,17 @@ class APIClient:
                         passwds.append(pool["pass"])
                 case "whatsminer":
                     if isinstance(self.client, WhatsminerV3Client):
-                        url_key = "url"
-                        user_key = "account"
+                        for pool in pool_conf:
+                            urls.append(pool["url"])
+                            users.append(pool["account"])
+                            passwds.append("")
                     else:
-                        url_key = "URL"
-                        user_key = "User"
-                    for pool in pool_conf:
-                        urls.append(pool[url_key])
-                        users.append(pool[user_key])
-                        passwds.append("")
+                        for pool in pool_conf:
+                            urls.append(pool["URL"])
+                            users.append(pool["User"])
+                            passwds.append("")
                 case "goldshell":
-                    for i in range(0, 2):
+                    for i in range(0, len(pool_conf)):
                         urls.append(pool_conf[i]["url"])
                         users.append(pool_conf[i]["user"])
                         passwds.append(pool_conf[i]["pass"])
@@ -281,6 +281,10 @@ class APIClient:
                         urls.append(url)
                         users.append(user)
                         passwds.append(passwd)
+            while len(urls) < 3:
+                urls.append("")
+                users.append("")
+                passwds.append("")
             return (urls, users, passwds)
 
     def update_miner_pools(
