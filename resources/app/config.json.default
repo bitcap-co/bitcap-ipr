@@ -116,7 +116,7 @@
         "enableIDTable": false
       },
       "pools": {
-        "showPoolConfig": false
+        "enablePoolConfigurator": false
       }
     }
 }

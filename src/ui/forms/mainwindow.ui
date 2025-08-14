@@ -144,7 +144,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QWidget" name="poolConfig" native="true">
+        <widget class="QWidget" name="poolConfigurator" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
            <horstretch>0</horstretch>
@@ -162,7 +162,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QFrame" name="frame">
+           <widget class="QFrame" name="pcwrapper">
             <property name="minimumSize">
              <size>
               <width>532</width>
@@ -186,7 +186,7 @@
               <number>10</number>
              </property>
              <item>
-              <widget class="QWidget" name="preset" native="true">
+              <widget class="QWidget" name="presetControl" native="true">
                <property name="minimumSize">
                 <size>
                  <width>0</width>
@@ -291,7 +291,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QWidget" name="pool1" native="true">
+              <widget class="QWidget" name="pool1Config" native="true">
                <property name="minimumSize">
                 <size>
                  <width>0</width>
@@ -366,7 +366,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QWidget" name="pool2" native="true">
+              <widget class="QWidget" name="pool2Config" native="true">
                <property name="minimumSize">
                 <size>
                  <width>0</width>
@@ -441,7 +441,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QWidget" name="pool3" native="true">
+              <widget class="QWidget" name="pool3Config" native="true">
                <property name="minimumSize">
                 <size>
                  <width>0</width>
@@ -787,8 +787,8 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>477</width>
-                       <height>441</height>
+                       <width>472</width>
+                       <height>392</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -1189,8 +1189,8 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>375</width>
-                       <height>744</height>
+                       <width>361</width>
+                       <height>644</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_13">

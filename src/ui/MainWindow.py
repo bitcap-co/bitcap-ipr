@@ -75,38 +75,38 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_2.addWidget(self.menubar)
 
-        self.poolConfig = QWidget(self.topbar)
-        self.poolConfig.setObjectName(u"poolConfig")
+        self.poolConfigurator = QWidget(self.topbar)
+        self.poolConfigurator.setObjectName(u"poolConfigurator")
         sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.poolConfig.sizePolicy().hasHeightForWidth())
-        self.poolConfig.setSizePolicy(sizePolicy1)
-        self.verticalLayout_12 = QVBoxLayout(self.poolConfig)
+        sizePolicy1.setHeightForWidth(self.poolConfigurator.sizePolicy().hasHeightForWidth())
+        self.poolConfigurator.setSizePolicy(sizePolicy1)
+        self.verticalLayout_12 = QVBoxLayout(self.poolConfigurator)
         self.verticalLayout_12.setSpacing(10)
         self.verticalLayout_12.setObjectName(u"verticalLayout_12")
         self.verticalLayout_12.setContentsMargins(9, 0, -1, -1)
-        self.frame = QFrame(self.poolConfig)
-        self.frame.setObjectName(u"frame")
-        self.frame.setMinimumSize(QSize(532, 171))
-        self.frame.setMaximumSize(QSize(1182, 185))
-        self.frame.setFrameShape(QFrame.Shape.NoFrame)
-        self.frame.setFrameShadow(QFrame.Shadow.Plain)
-        self.verticalLayout_21 = QVBoxLayout(self.frame)
+        self.pcwrapper = QFrame(self.poolConfigurator)
+        self.pcwrapper.setObjectName(u"pcwrapper")
+        self.pcwrapper.setMinimumSize(QSize(532, 171))
+        self.pcwrapper.setMaximumSize(QSize(1182, 185))
+        self.pcwrapper.setFrameShape(QFrame.Shape.NoFrame)
+        self.pcwrapper.setFrameShadow(QFrame.Shadow.Plain)
+        self.verticalLayout_21 = QVBoxLayout(self.pcwrapper)
         self.verticalLayout_21.setSpacing(10)
         self.verticalLayout_21.setObjectName(u"verticalLayout_21")
-        self.preset = QWidget(self.frame)
-        self.preset.setObjectName(u"preset")
-        self.preset.setMinimumSize(QSize(0, 50))
-        self.horizontalLayout_30 = QHBoxLayout(self.preset)
+        self.presetControl = QWidget(self.pcwrapper)
+        self.presetControl.setObjectName(u"presetControl")
+        self.presetControl.setMinimumSize(QSize(0, 50))
+        self.horizontalLayout_30 = QHBoxLayout(self.presetControl)
         self.horizontalLayout_30.setObjectName(u"horizontalLayout_30")
-        self.label_25 = QLabel(self.preset)
+        self.label_25 = QLabel(self.presetControl)
         self.label_25.setObjectName(u"label_25")
         self.label_25.setMaximumSize(QSize(50, 32))
 
         self.horizontalLayout_30.addWidget(self.label_25)
 
-        self.comboPoolPreset = QComboBox(self.preset)
+        self.comboPoolPreset = QComboBox(self.presetControl)
         self.comboPoolPreset.addItem("")
         self.comboPoolPreset.addItem("")
         self.comboPoolPreset.addItem("")
@@ -124,52 +124,52 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_30.addItem(self.horizontalSpacer_8)
 
-        self.actionIPRClearPreset = QPushButton(self.preset)
+        self.actionIPRClearPreset = QPushButton(self.presetControl)
         self.actionIPRClearPreset.setObjectName(u"actionIPRClearPreset")
 
         self.horizontalLayout_30.addWidget(self.actionIPRClearPreset)
 
-        self.actionIPRSavePreset = QPushButton(self.preset)
+        self.actionIPRSavePreset = QPushButton(self.presetControl)
         self.actionIPRSavePreset.setObjectName(u"actionIPRSavePreset")
 
         self.horizontalLayout_30.addWidget(self.actionIPRSavePreset)
 
 
-        self.verticalLayout_21.addWidget(self.preset)
+        self.verticalLayout_21.addWidget(self.presetControl)
 
-        self.pool1 = QWidget(self.frame)
-        self.pool1.setObjectName(u"pool1")
-        self.pool1.setMinimumSize(QSize(0, 50))
-        self.horizontalLayout_22 = QHBoxLayout(self.pool1)
+        self.pool1Config = QWidget(self.pcwrapper)
+        self.pool1Config.setObjectName(u"pool1Config")
+        self.pool1Config.setMinimumSize(QSize(0, 50))
+        self.horizontalLayout_22 = QHBoxLayout(self.pool1Config)
         self.horizontalLayout_22.setObjectName(u"horizontalLayout_22")
-        self.label_19 = QLabel(self.pool1)
+        self.label_19 = QLabel(self.pool1Config)
         self.label_19.setObjectName(u"label_19")
 
         self.horizontalLayout_22.addWidget(self.label_19)
 
-        self.linePoolURL = QLineEdit(self.pool1)
+        self.linePoolURL = QLineEdit(self.pool1Config)
         self.linePoolURL.setObjectName(u"linePoolURL")
         self.linePoolURL.setMinimumSize(QSize(140, 0))
 
         self.horizontalLayout_22.addWidget(self.linePoolURL)
 
-        self.label_20 = QLabel(self.pool1)
+        self.label_20 = QLabel(self.pool1Config)
         self.label_20.setObjectName(u"label_20")
 
         self.horizontalLayout_22.addWidget(self.label_20)
 
-        self.linePoolUser = QLineEdit(self.pool1)
+        self.linePoolUser = QLineEdit(self.pool1Config)
         self.linePoolUser.setObjectName(u"linePoolUser")
         self.linePoolUser.setMinimumSize(QSize(140, 0))
 
         self.horizontalLayout_22.addWidget(self.linePoolUser)
 
-        self.label_21 = QLabel(self.pool1)
+        self.label_21 = QLabel(self.pool1Config)
         self.label_21.setObjectName(u"label_21")
 
         self.horizontalLayout_22.addWidget(self.label_21)
 
-        self.linePoolPasswd = QLineEdit(self.pool1)
+        self.linePoolPasswd = QLineEdit(self.pool1Config)
         self.linePoolPasswd.setObjectName(u"linePoolPasswd")
         self.linePoolPasswd.setMaximumSize(QSize(150, 16777215))
         self.linePoolPasswd.setEchoMode(QLineEdit.EchoMode.Password)
@@ -177,41 +177,41 @@ class Ui_MainWindow(object):
         self.horizontalLayout_22.addWidget(self.linePoolPasswd)
 
 
-        self.verticalLayout_21.addWidget(self.pool1)
+        self.verticalLayout_21.addWidget(self.pool1Config)
 
-        self.pool2 = QWidget(self.frame)
-        self.pool2.setObjectName(u"pool2")
-        self.pool2.setMinimumSize(QSize(0, 50))
-        self.horizontalLayout_29 = QHBoxLayout(self.pool2)
+        self.pool2Config = QWidget(self.pcwrapper)
+        self.pool2Config.setObjectName(u"pool2Config")
+        self.pool2Config.setMinimumSize(QSize(0, 50))
+        self.horizontalLayout_29 = QHBoxLayout(self.pool2Config)
         self.horizontalLayout_29.setObjectName(u"horizontalLayout_29")
-        self.label_22 = QLabel(self.pool2)
+        self.label_22 = QLabel(self.pool2Config)
         self.label_22.setObjectName(u"label_22")
 
         self.horizontalLayout_29.addWidget(self.label_22)
 
-        self.linePoolURL_2 = QLineEdit(self.pool2)
+        self.linePoolURL_2 = QLineEdit(self.pool2Config)
         self.linePoolURL_2.setObjectName(u"linePoolURL_2")
         self.linePoolURL_2.setMinimumSize(QSize(140, 0))
 
         self.horizontalLayout_29.addWidget(self.linePoolURL_2)
 
-        self.label_23 = QLabel(self.pool2)
+        self.label_23 = QLabel(self.pool2Config)
         self.label_23.setObjectName(u"label_23")
 
         self.horizontalLayout_29.addWidget(self.label_23)
 
-        self.linePoolUser_2 = QLineEdit(self.pool2)
+        self.linePoolUser_2 = QLineEdit(self.pool2Config)
         self.linePoolUser_2.setObjectName(u"linePoolUser_2")
         self.linePoolUser_2.setMinimumSize(QSize(140, 0))
 
         self.horizontalLayout_29.addWidget(self.linePoolUser_2)
 
-        self.label_24 = QLabel(self.pool2)
+        self.label_24 = QLabel(self.pool2Config)
         self.label_24.setObjectName(u"label_24")
 
         self.horizontalLayout_29.addWidget(self.label_24)
 
-        self.linePoolPasswd_2 = QLineEdit(self.pool2)
+        self.linePoolPasswd_2 = QLineEdit(self.pool2Config)
         self.linePoolPasswd_2.setObjectName(u"linePoolPasswd_2")
         self.linePoolPasswd_2.setMaximumSize(QSize(150, 16777215))
         self.linePoolPasswd_2.setEchoMode(QLineEdit.EchoMode.Password)
@@ -219,41 +219,41 @@ class Ui_MainWindow(object):
         self.horizontalLayout_29.addWidget(self.linePoolPasswd_2)
 
 
-        self.verticalLayout_21.addWidget(self.pool2)
+        self.verticalLayout_21.addWidget(self.pool2Config)
 
-        self.pool3 = QWidget(self.frame)
-        self.pool3.setObjectName(u"pool3")
-        self.pool3.setMinimumSize(QSize(0, 50))
-        self.horizontalLayout_19 = QHBoxLayout(self.pool3)
+        self.pool3Config = QWidget(self.pcwrapper)
+        self.pool3Config.setObjectName(u"pool3Config")
+        self.pool3Config.setMinimumSize(QSize(0, 50))
+        self.horizontalLayout_19 = QHBoxLayout(self.pool3Config)
         self.horizontalLayout_19.setObjectName(u"horizontalLayout_19")
-        self.label_3 = QLabel(self.pool3)
+        self.label_3 = QLabel(self.pool3Config)
         self.label_3.setObjectName(u"label_3")
 
         self.horizontalLayout_19.addWidget(self.label_3)
 
-        self.linePoolURL_3 = QLineEdit(self.pool3)
+        self.linePoolURL_3 = QLineEdit(self.pool3Config)
         self.linePoolURL_3.setObjectName(u"linePoolURL_3")
         self.linePoolURL_3.setMinimumSize(QSize(140, 0))
 
         self.horizontalLayout_19.addWidget(self.linePoolURL_3)
 
-        self.label_17 = QLabel(self.pool3)
+        self.label_17 = QLabel(self.pool3Config)
         self.label_17.setObjectName(u"label_17")
 
         self.horizontalLayout_19.addWidget(self.label_17)
 
-        self.linePoolUser_3 = QLineEdit(self.pool3)
+        self.linePoolUser_3 = QLineEdit(self.pool3Config)
         self.linePoolUser_3.setObjectName(u"linePoolUser_3")
         self.linePoolUser_3.setMinimumSize(QSize(140, 0))
 
         self.horizontalLayout_19.addWidget(self.linePoolUser_3)
 
-        self.label_18 = QLabel(self.pool3)
+        self.label_18 = QLabel(self.pool3Config)
         self.label_18.setObjectName(u"label_18")
 
         self.horizontalLayout_19.addWidget(self.label_18)
 
-        self.linePoolPasswd_3 = QLineEdit(self.pool3)
+        self.linePoolPasswd_3 = QLineEdit(self.pool3Config)
         self.linePoolPasswd_3.setObjectName(u"linePoolPasswd_3")
         self.linePoolPasswd_3.setMaximumSize(QSize(150, 16777215))
         self.linePoolPasswd_3.setEchoMode(QLineEdit.EchoMode.Password)
@@ -261,13 +261,13 @@ class Ui_MainWindow(object):
         self.horizontalLayout_19.addWidget(self.linePoolPasswd_3)
 
 
-        self.verticalLayout_21.addWidget(self.pool3)
+        self.verticalLayout_21.addWidget(self.pool3Config)
 
 
-        self.verticalLayout_12.addWidget(self.frame)
+        self.verticalLayout_12.addWidget(self.pcwrapper)
 
 
-        self.verticalLayout_2.addWidget(self.poolConfig)
+        self.verticalLayout_2.addWidget(self.poolConfigurator)
 
 
         self.verticalLayout.addWidget(self.topbar)
@@ -384,7 +384,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 477, 441))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 472, 392))
         self.verticalLayout_19 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
         self.groupSystemTray = QGroupBox(self.scrollGeneral)
@@ -568,7 +568,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 375, 744))
+        self.scrollAPI.setGeometry(QRect(0, 0, 361, 644))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
         self.verticalLayout_13.setContentsMargins(9, 9, 9, 9)

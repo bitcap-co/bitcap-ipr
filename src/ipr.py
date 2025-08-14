@@ -148,7 +148,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionIPRStart.clicked.connect(self.start_listen)
         self.actionIPRStop.clicked.connect(self.stop_listen)
 
-        self.poolConfig.hide()
+        self.poolConfigurator.hide()
         self.actionTogglePoolPasswd = self.create_passwd_toggle_action(
             self.linePoolPasswd
         )
@@ -244,13 +244,13 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         self.update_stacked_widget()
         self.update_status_msg()
-        self.update_pool_presets()
+        self.update_pool_preset_names()
         self.create_or_destroy_systray()
 
         if self.menu_bar.actionEnableIDTable.isChecked():
             self.toggle_table_settings(True)
 
-        if self.menu_bar.actionShowPoolConfig.isChecked():
+        if self.menu_bar.actionShowPoolConfigurator.isChecked():
             self.toggle_pool_settings(True)
 
         if self.menu_bar.actionAutoStartOnLaunch.isChecked():
@@ -288,9 +288,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         if not self.iprStatus.currentMessage():
             self.iprStatus.showMessage("Status :: Ready.")
 
-    def update_pool_presets(self):
+    def update_pool_preset_names(self):
         for idx in range(0, len(self.config["savedPools"])):
-            self.comboPoolPreset.setItemText(idx, self.config["savedPools"][idx]["preset_name"])
+            self.comboPoolPreset.setItemText(
+                idx, self.config["savedPools"][idx]["preset_name"]
+            )
 
     # system tray
     def create_or_destroy_systray(self):
@@ -416,29 +418,19 @@ class IPR(QMainWindow, Ui_MainWindow):
 
             # pools
             self.comboPoolPreset.setCurrentIndex(self.config["selectedPoolPreset"])
-            current_index = self.comboPoolPreset.currentIndex()
-            self.linePoolURL.setText(self.config["savedPools"][current_index]["pool"])
-            self.linePoolURL_2.setText(
-                self.config["savedPools"][current_index]["pool2"]
-            )
-            self.linePoolURL_3.setText(
-                self.config["savedPools"][current_index]["pool3"]
-            )
-            self.linePoolUser.setText(self.config["savedPools"][current_index]["user"])
-            self.linePoolUser_2.setText(
-                self.config["savedPools"][current_index]["user2"]
-            )
-            self.linePoolUser_3.setText(
-                self.config["savedPools"][current_index]["user3"]
-            )
-            self.linePoolPasswd.setText(
-                self.config["savedPools"][current_index]["passwd"]
-            )
+            preset_idx = self.comboPoolPreset.currentIndex()
+            self.linePoolURL.setText(self.config["savedPools"][preset_idx]["pool"])
+            self.linePoolURL_2.setText(self.config["savedPools"][preset_idx]["pool2"])
+            self.linePoolURL_3.setText(self.config["savedPools"][preset_idx]["pool3"])
+            self.linePoolUser.setText(self.config["savedPools"][preset_idx]["user"])
+            self.linePoolUser_2.setText(self.config["savedPools"][preset_idx]["user2"])
+            self.linePoolUser_3.setText(self.config["savedPools"][preset_idx]["user3"])
+            self.linePoolPasswd.setText(self.config["savedPools"][preset_idx]["passwd"])
             self.linePoolPasswd_2.setText(
-                self.config["savedPools"][current_index]["passwd2"]
+                self.config["savedPools"][preset_idx]["passwd2"]
             )
             self.linePoolPasswd_3.setText(
-                self.config["savedPools"][current_index]["passwd3"]
+                self.config["savedPools"][preset_idx]["passwd3"]
             )
 
             # instance
@@ -458,8 +450,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.menu_bar.actionEnableIDTable.setChecked(
                 self.config["instance"]["table"]["enableIDTable"]
             )
-            self.menu_bar.actionShowPoolConfig.setChecked(
-                self.config["instance"]["pools"]["showPoolConfig"]
+            self.menu_bar.actionShowPoolConfigurator.setChecked(
+                self.config["instance"]["pools"]["enablePoolConfigurator"]
             )
 
     def update_settings(self):
@@ -479,7 +471,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "autoStartOnLaunch": self.menu_bar.actionAutoStartOnLaunch.isChecked(),
             },
             "table": {"enableIDTable": self.menu_bar.actionEnableIDTable.isChecked()},
-            "pools": {"showPoolConfig": self.menu_bar.actionShowPoolConfig.isChecked()},
+            "pools": {
+                "enabledPoolConfigurator": self.menu_bar.actionShowPoolConfigurator.isChecked()
+            },
         }
         savedPools = self.update_current_preset_to_config()
         config = {
@@ -578,7 +572,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         if preset_name:
             self.comboPoolPreset.setItemText(current_index, preset_name)
         else:
-            self.comboPoolPreset.setItemText(current_index, self.config["savedPools"][current_index]["preset_name"])
+            self.comboPoolPreset.setItemText(
+                current_index, self.config["savedPools"][current_index]["preset_name"]
+            )
 
     def read_pool_preset(self, index: int) -> None:
         self.config = read_config(self.config_path)
@@ -595,7 +591,9 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def write_pool_preset(self):
         current_index = self.comboPoolPreset.currentIndex()
-        self.config["savedPools"][current_index]["preset_name"] = self.comboPoolPreset.currentText()
+        self.config["savedPools"][current_index]["preset_name"] = (
+            self.comboPoolPreset.currentText()
+        )
         self.config["savedPools"][current_index]["pool"] = self.linePoolURL.text()
         self.config["savedPools"][current_index]["pool2"] = self.linePoolURL_2.text()
         self.config["savedPools"][current_index]["pool3"] = self.linePoolURL_3.text()
@@ -614,8 +612,8 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def clear_pool_preset(self):
         current_index = self.comboPoolPreset.currentIndex()
-        self.update_pool_preset(preset_name=f"Saved Pool {current_index+1}")
-        for child in self.frame.children():
+        self.update_pool_preset(preset_name=f"Saved Pool {current_index + 1}")
+        for child in self.pcwrapper.children():
             if isinstance(child, QWidget):
                 for line in child.children():
                     if isinstance(line, QLineEdit):
@@ -655,7 +653,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionCopySelectedElements.setEnabled(enabled)
         self.menu_bar.actionImport.setEnabled(enabled)
         self.menu_bar.actionExport.setEnabled(enabled)
-        self.menu_bar.actionShowPoolConfig.setEnabled(enabled)
+        self.menu_bar.actionShowPoolConfigurator.setEnabled(enabled)
 
     def toggle_pool_settings(self, enabled: bool):
         self.menu_bar.actionSetPoolFromPreset.setEnabled(enabled)
@@ -736,17 +734,21 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionContextImport.triggered.connect(self.import_table)
         self.actionContextExport = self.table_context.addAction("Export")
         self.actionContextExport.triggered.connect(self.export_table)
-        if self.poolConfig.isVisible():
+        if self.poolConfigurator.isVisible():
             self.actionContextShowPoolConfig = self.table_context.addAction(
                 "Hide Pool Config"
             )
-            self.actionContextShowPoolConfig.triggered.connect(lambda: self.toggle_pool_config(enabled=False))
+            self.actionContextShowPoolConfig.triggered.connect(
+                lambda: self.toggle_pool_config(enabled=False)
+            )
         else:
             self.actionContextShowPoolConfig = self.table_context.addAction(
                 "Show Pool Config"
             )
-            self.actionContextShowPoolConfig.triggered.connect(lambda: self.toggle_pool_config(enabled=True))
-        if self.poolConfig.isVisible():
+            self.actionContextShowPoolConfig.triggered.connect(
+                lambda: self.toggle_pool_config(enabled=True)
+            )
+        if self.poolConfigurator.isVisible():
             self.actionContextSetPools = self.table_context.addAction(
                 f"Update Pool From Current Preset ({self.comboPoolPreset.currentText()})"
             )
@@ -754,7 +756,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.actionContextGetPoolInfo = self.table_context.addAction(
                 "Get Pool Config From Selected Miner"
             )
-            self.actionContextGetPoolInfo.setToolTip("Retreives the current pool config for the selected miner and stores in the current preset")
+            self.actionContextGetPoolInfo.setToolTip(
+                "Retreives pool configuration from the selected miner and fills the current preset"
+            )
             self.actionContextGetPoolInfo.triggered.connect(self.get_miner_pool)
 
         self.table_context.exec(QCursor.pos())
@@ -874,16 +878,16 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprStatus.showMessage(f"Status :: Wrote table as .CSV to {p}.", 3000)
 
     def toggle_pool_config(self, enabled: bool = False):
-        self.menu_bar.actionShowPoolConfig.setChecked(enabled)
-        self.poolConfig.setVisible(enabled)
-        if self.poolConfig.isVisible():
+        self.menu_bar.actionShowPoolConfigurator.setChecked(enabled)
+        self.poolConfigurator.setVisible(enabled)
+        if self.poolConfigurator.isVisible():
             self.setGeometry(self.x(), self.y(), self.width(), self.maximumHeight())
         else:
             self.setGeometry(
                 self.x(),
                 self.y(),
                 self.width(),
-                self.height() - (self.poolConfig.height() / 2),
+                self.height() - (self.poolConfigurator.height() / 2),
             )
 
     # listener
@@ -1128,10 +1132,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.populate_table_row()
         self.activateWindow()
 
-    def get_client_auth_from_type(self, miner_type: str) -> Tuple[Optional[str], Optional[str]]:
+    def get_client_auth_from_type(
+        self, miner_type: str
+    ) -> Tuple[Optional[str], Optional[str]]:
         client_auth: Optional[str] = None
         custom_auth: Optional[str] = None
-        match type:
+        match miner_type:
             case "antminer":
                 client_auth = self.lineBitmainPasswd.text()
                 if not self.checkVnishUseAntminerLogin.isChecked():
@@ -1249,7 +1255,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         item = self.idTable.itemFromIndex(index)
         miner_type = self.idTable.item(item.row(), 4).text()
         client_auth, custom_auth = self.get_client_auth_from_type(miner_type)
-        self.api_client.create_client_from_type(miner_type, item.text(), client_auth, custom_auth)
+        self.api_client.create_client_from_type(
+            miner_type, item.text(), client_auth, custom_auth
+        )
         client = self.api_client.get_client()
         if not client:
             return
