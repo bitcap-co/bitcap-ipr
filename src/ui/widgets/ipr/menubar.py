@@ -97,6 +97,11 @@ class IPR_Menubar(QMenuBar):
         self.actionShowPoolConfigurator.setToolTip(
             "Get, store, and apply pool configurations"
         )
+        self.actionGetMinerPoolConfig = self.menuPools.addAction(
+            "Get Miner Pool Config"
+        )
+        self.actionGetMinerPoolConfig.setEnabled(False)
+        self.actionGetMinerPoolConfig.setToolTip("Retrieve miner pool configuration")
         self.actionSetPoolFromPreset = self.menuPools.addAction(
             "Set Pool From Current Preset"
         )

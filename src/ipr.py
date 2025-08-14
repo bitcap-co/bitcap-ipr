@@ -121,7 +121,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionCopySelectedElements.triggered.connect(self.copy_selected)
         self.menu_bar.actionImport.triggered.connect(self.import_table)
         self.menu_bar.actionExport.triggered.connect(self.export_table)
-        self.menu_bar.actionShowPoolConfig.toggled.connect(self.toggle_pool_settings)
+        self.menu_bar.actionShowPoolConfigurator.toggled.connect(self.toggle_pool_settings)
+        self.menu_bar.actionGetMinerPoolConfig.triggered.connect(self.get_miner_pool)
         self.menu_bar.actionSetPoolFromPreset.triggered.connect(self.update_miner_pools)
         self.menu_bar.actionSettings.triggered.connect(
             lambda: self.update_stacked_widget(view_index=2)
@@ -656,6 +657,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionShowPoolConfigurator.setEnabled(enabled)
 
     def toggle_pool_settings(self, enabled: bool):
+        self.menu_bar.actionGetMinerPoolConfig.setEnabled(enabled)
         self.menu_bar.actionSetPoolFromPreset.setEnabled(enabled)
         self.toggle_pool_config(enabled)
 
