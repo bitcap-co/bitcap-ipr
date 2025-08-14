@@ -159,7 +159,9 @@ class IceriverHTTPClient(BaseHTTPClient):
                 data[f"pool{idx}address"] = urls[i]
                 data[f"pool{idx}miner"] = users[i]
                 data[f"pool{idx}pwd"] = passwds[i]
-            self.run_command("POST", "machineconfig", data=data)
+            res = self.run_command("POST", "machineconfig", data=data)
+            if "error" in res and res["error"] != 0:
+                self._close_client(APIError(res["message"]))
         else:
             for i in range(0, len(urls)):
                 data = {
