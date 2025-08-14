@@ -55,11 +55,7 @@ class DragonballHTTPClient(BaseHTTPClient):
 
     def get_pool_conf(self) -> dict:
         conf = self.get_miner_conf()
-        pool_conf = [
-            conf["pool1"],
-            conf["pool2"],
-            conf["pool3"]
-        ]
+        pool_conf = [conf["pool1"], conf["pool2"], conf["pool3"]]
         return pool_conf
 
     def get_pools(self) -> dict:
@@ -71,17 +67,18 @@ class DragonballHTTPClient(BaseHTTPClient):
     def blink(self, enabled: bool) -> None:
         return super().blink(enabled)
 
-    def update_pools(self, urls: List[str], users: List[str], passwds: List[str]) -> None:
+    def update_pools(
+        self, urls: List[str], users: List[str], passwds: List[str]
+    ) -> None:
         if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
             self._close_client(APIError("API Error: Invalid number of argurments."))
 
         conf = self.get_miner_conf()
 
-        new_conf = {**conf}
         pool_conf = [
-            new_conf["pool1"],
-            new_conf["pool2"],
-            new_conf["pool3"],
+            conf["pool1"],
+            conf["pool2"],
+            conf["pool3"],
         ]
 
         data = {}
@@ -89,8 +86,8 @@ class DragonballHTTPClient(BaseHTTPClient):
             if not pool_conf[i] and not len(users[i]) and not len(passwds[i]):
                 continue
             idx = i + 1
-            data[f"_pool{idx}url"] = urls[i],
-            data[f"_pool{idx}user"] = users[i],
+            data[f"_pool{idx}url"] = urls[i]
+            data[f"_pool{idx}user"] = users[i]
             data[f"_pool{idx}pw"] = passwds[i]
 
         data["_nobeeper"] = "false"
