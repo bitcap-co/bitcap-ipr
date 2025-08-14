@@ -107,4 +107,6 @@ class SealminerHTTPClient(BaseHTTPClient):
             new_conf[f"pooluser{idx}"] = users[i]
             new_conf[f"poolpwd{idx}"] = passwds[i]
 
-        self.run_command("POST", "set_miner_poolconf", payload=new_conf)
+        res = self.run_command("POST", "set_miner_poolconf", payload=new_conf)
+        if "result" not in res or "api" not in res or "fileWrite" not in res:
+            self._close_client(APIError(res["msg"]))
