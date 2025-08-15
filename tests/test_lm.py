@@ -21,7 +21,7 @@ def read_payload(filename: str) -> str:
     return payload
 
 
-def zlib_compress(filename: str) -> str:
+def compress_paylaod(filename: str) -> str:
     with open(Path(filename).resolve(), "rb") as f:
         data = f.read()
     return binascii.hexlify(zlib.compress(data)).decode("utf-8")
@@ -61,8 +61,6 @@ class ListenerSpy:
         self.bound = self.listener.bound
 
     def emit_result(self, result: List[str]):
-        print("received result")
-        print(f"{result}")
         self.result = result
 
     def emit_error(self):
@@ -74,10 +72,6 @@ class ListenerSpy:
 
 
 class TestListeners(unittest.TestCase):
-    def setUp(self):
-        self.result: List[str] = []
-        self.error: bool = False
-
     def tearDown(self) -> None:
         app.quit()
 
@@ -106,6 +100,7 @@ class TestListeners(unittest.TestCase):
         listen_spy.close()
 
     def test_bitmain_common_listen(self):
+        """Test bitmain-common payload (port 14235)"""
         test = {
             "port": 14235,
             "payload": "10.10.1.0,ab:cd:ef:ab:cd:ef",
@@ -118,6 +113,7 @@ class TestListeners(unittest.TestCase):
         )
 
     def test_iceriver_listen(self):
+        """Test iceriver payload (port 11503)"""
         test = {
             "port": 11503,
             "payload": "addr:172.16.1.100",
@@ -130,6 +126,7 @@ class TestListeners(unittest.TestCase):
         )
 
     def test_whatsminer_listen(self):
+        """Test whatsminer payload (port 8888)"""
         test = {
             "port": 8888,
             "payload": "IP:192.168.100.10MAC:ab:cd:ef:ab:cd:ef",
@@ -147,9 +144,10 @@ class TestListeners(unittest.TestCase):
         )
 
     def test_sealminer_listen(self):
+        """Test sealminer payload (port 18650)"""
         test = {
             "port": 18650,
-            "payload": f"{zlib_compress('tests/payloads/sealminer_a2.json')}",
+            "payload": f"{compress_paylaod('tests/payloads/sealminer_a2.json')}",
             "expected_result": ["192.168.1.168", "ab:cd:ef:ab:cd:ef", "sealminer", ""],
         }
         self.listenFor(
@@ -160,6 +158,7 @@ class TestListeners(unittest.TestCase):
         )
 
     def test_goldshell_listen(self):
+        """Test goldshell payload (port 1314)"""
         test = {
             "port": 1314,
             "payload": f"{read_payload('tests/payloads/goldshell.json')}",
@@ -177,6 +176,7 @@ class TestListeners(unittest.TestCase):
         )
 
     def test_elphapex_listen(self):
+        "Test elphapex payload (port 9999)"
         test = {
             "port": 9999,
             "payload": "DG_IPREPORT_ONLY",
@@ -190,4 +190,4 @@ class TestListeners(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=2)
