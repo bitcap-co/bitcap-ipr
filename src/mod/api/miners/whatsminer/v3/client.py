@@ -158,4 +158,6 @@ class WhatsminerV3Client(BaseTCPClient):
                 "passwd": passwds[2],
             },
         ]
-        self.run_command("set.miner.pools", param_data, True)
+        res = self.run_command("set.miner.pools", param_data, True)
+        if "code" in res and res["code"] != 0:
+            self._close_client(APIError(res["msg"]))

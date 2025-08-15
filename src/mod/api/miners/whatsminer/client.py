@@ -198,4 +198,6 @@ class WhatsminerRPCClient(BaseRPCClient):
             "worker3": users[2],
             "passwd3": passwds[2],
         }
-        self.send_privileged_command("update_pools", **params)
+        res = self.send_privileged_command("update_pools", **params)
+        if "code" in res and res["code"] != 131:
+            self._close_client(APIError(res["Msg"]))
