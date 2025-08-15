@@ -41,7 +41,7 @@ class ListenerSpy:
     def __init__(self, port: int):
         self.port = port
         self.result: List[str] = []
-        self.error: bool = False
+        self.error: str = ""
         self.result_spy: Optional[QSignalSpy] = None
         self.error_spy: Optional[QSignalSpy] = None
         self.listener = None
@@ -63,9 +63,8 @@ class ListenerSpy:
     def emit_result(self, result: List[str]):
         self.result = result
 
-    def emit_error(self):
-        print("received error")
-        self.error = True
+    def emit_error(self, err: str):
+        self.error = err
 
     def close(self):
         self.listener.close()
@@ -92,6 +91,7 @@ class TestListeners(unittest.TestCase):
     ):
         listen_spy = ListenerSpy(port)
         self.assertTrue(listen_spy.bound, True)
+        self.assertEqual(listen_spy.error, "")
         send_udp_dgram(port, payload, compressed)
         QTest.qWait(500)
         self.assertEqual(listen_spy.result_spy.count(), 1)
