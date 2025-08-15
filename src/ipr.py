@@ -473,7 +473,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             },
             "table": {"enableIDTable": self.menu_bar.actionEnableIDTable.isChecked()},
             "pools": {
-                "enabledPoolConfigurator": self.menu_bar.actionShowPoolConfigurator.isChecked()
+                "enablePoolConfigurator": self.menu_bar.actionShowPoolConfigurator.isChecked()
             },
         }
         savedPools = self.update_current_preset_to_config()
