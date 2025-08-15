@@ -66,7 +66,7 @@ class IPReportDatagram:
         data = self.data[data_start:]
         try:
             out = zlib.decompress(data)
-        except zlib.errror as e:
+        except zlib.error as e:
             raise e
         # fix data to valid json
         out = out.replace(b"\x00", b"")
