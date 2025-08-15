@@ -224,6 +224,9 @@
                     <height>25</height>
                    </size>
                   </property>
+                  <property name="focusPolicy">
+                   <enum>Qt::FocusPolicy::NoFocus</enum>
+                  </property>
                   <property name="editable">
                    <bool>true</bool>
                   </property>
@@ -787,8 +790,13 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
+<<<<<<< Updated upstream
                        <width>472</width>
                        <height>392</height>
+=======
+                       <width>451</width>
+                       <height>441</height>
+>>>>>>> Stashed changes
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_19">
