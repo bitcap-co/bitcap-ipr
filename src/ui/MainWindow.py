@@ -385,11 +385,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-<<<<<<< Updated upstream
-        self.scrollGeneral.setGeometry(QRect(0, 0, 472, 392))
-=======
         self.scrollGeneral.setGeometry(QRect(0, 0, 451, 441))
->>>>>>> Stashed changes
         self.verticalLayout_19 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
         self.groupSystemTray = QGroupBox(self.scrollGeneral)
@@ -1271,4 +1267,3 @@ class Ui_MainWindow(object):
         self.iprStatus.setToolTip(QCoreApplication.translate("MainWindow", u"Current IPR Status", None))
 #endif // QT_CONFIG(tooltip)
     # retranslateUi
-
