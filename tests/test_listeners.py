@@ -75,12 +75,12 @@ class TestListeners(unittest.TestCase):
         app.quit()
 
     def assertResult(
-        self, listen_spy: ListenerSpy, ip: str, mac: str, type: str, sn: str
+        self, listener: ListenerSpy, ip: str, mac: str, type: str, sn: str
     ):
-        self.assertEqual(listen_spy.result[0], ip)
-        self.assertEqual(listen_spy.result[1], mac)
-        self.assertEqual(listen_spy.result[2], type)
-        self.assertEqual(listen_spy.result[3], sn)
+        self.assertEqual(listener.result[0], ip)
+        self.assertEqual(listener.result[1], mac)
+        self.assertEqual(listener.result[2], type)
+        self.assertEqual(listener.result[3], sn)
 
     def listenFor(
         self,
@@ -89,15 +89,15 @@ class TestListeners(unittest.TestCase):
         expected_result: List[str],
         compressed: bool = False,
     ):
-        listen_spy = ListenerSpy(port)
-        self.assertTrue(listen_spy.bound, True)
-        self.assertEqual(listen_spy.error, "")
+        listener = ListenerSpy(port)
+        self.assertTrue(listener.bound, True)
+        self.assertEqual(listener.error, "")
         send_udp_dgram(port, payload, compressed)
         QTest.qWait(500)
-        self.assertEqual(listen_spy.result_spy.count(), 1)
-        self.assertEqual(listen_spy.error_spy.count(), 0)
-        self.assertResult(listen_spy, *expected_result)
-        listen_spy.close()
+        self.assertEqual(listener.result_spy.count(), 1)
+        self.assertEqual(listener.error_spy.count(), 0)
+        self.assertResult(listener, *expected_result)
+        listener.close()
 
     def test_bitmain_common_listen(self):
         """Test bitmain-common payload (port 14235)"""
@@ -187,6 +187,21 @@ class TestListeners(unittest.TestCase):
             payload=test["payload"],
             expected_result=test["expected_result"],
         )
+
+    def test_duplicate_datagram(self):
+        """Test duplicate datagrams"""
+        port = 14235
+        payload = "10.10.1.0,ab:cd:ef:ab:cd:ef"
+        listener = ListenerSpy(port)
+        self.assertTrue(listener.bound, True)
+        self.assertEqual(listener.error, "")
+        send_udp_dgram(port, payload)
+        QTest.qWait(500)
+        send_udp_dgram(port, payload)
+        QTest.qWait(500)
+        self.assertEqual(listener.result_spy.count(), 1)
+        self.assertEqual(listener.error_spy.count(), 0)
+        listener.close()
 
 
 if __name__ == "__main__":
