@@ -24,7 +24,7 @@ class ListenerManager(QObject):
     """
 
     listen_complete = Signal(list)
-    listen_error = Signal()
+    listen_error = Signal(str)
 
     def __init__(self, parent: QObject):
         super().__init__(parent)
@@ -78,6 +78,6 @@ class ListenerManager(QObject):
         logger.debug(f" result: {result}.")
         self.listen_complete.emit(result)
 
-    def emit_listen_error(self):
+    def emit_listen_error(self, err: str):
         logger.error(" listen_error signal result!")
-        self.listen_error.emit()
+        self.listen_error.emit(err)

@@ -3,7 +3,7 @@ import logging
 from typing import Any, Dict, List
 
 from PySide6.QtCore import QObject, Signal, Slot
-from PySide6.QtNetwork import QUdpSocket, QHostAddress
+from PySide6.QtNetwork import QAbstractSocket, QUdpSocket, QHostAddress
 
 from .ipreport import IPReportDatagram
 
@@ -38,7 +38,7 @@ class Listener(QObject):
     """
 
     result = Signal(list)
-    error = Signal()
+    error = Signal(str)
 
     def __init__(self, parent: QObject, port: int):
         super().__init__(parent)
@@ -106,9 +106,9 @@ class Listener(QObject):
         }
         self.result.emit(received)
 
-    def emit_error(self, err) -> None:
+    def emit_error(self, err: QAbstractSocket.SocketError) -> None:
         logger.error(f"Listener[{self.port}] : emit error! got {err}")
-        self.error.emit()
+        self.error.emit(err.__str__())
 
     def close(self) -> None:
         logger.info(f"Listener[{self.port}] : close socket.")
