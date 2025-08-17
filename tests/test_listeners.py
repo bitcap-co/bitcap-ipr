@@ -10,7 +10,7 @@ from PySide6.QtCore import QMetaMethod
 from PySide6.QtTest import QSignalSpy, QTest
 from PySide6.QtWidgets import QApplication
 
-from src.mod.lm.listener import Listener
+from src.mod.lm.listener import Listener, Record
 
 app = QApplication(sys.argv)
 
@@ -44,6 +44,7 @@ class ListenerSpy:
         self.error: str = ""
         self.result_spy: Optional[QSignalSpy] = None
         self.error_spy: Optional[QSignalSpy] = None
+        self.record_spy: Optional[Record] = None
         self.listener = None
         self.bound = False
         self.__init_listener()
@@ -59,6 +60,7 @@ class ListenerSpy:
             self.listener, QMetaMethod.fromSignal(self.listener.error)
         )
         self.bound = self.listener.bound
+        self.record_spy = self.listener.record
 
     def emit_result(self, result: List[str]):
         self.result = result
@@ -96,6 +98,7 @@ class TestListeners(unittest.TestCase):
         QTest.qWait(500)
         self.assertEqual(listener.result_spy.count(), 1)
         self.assertEqual(listener.error_spy.count(), 0)
+        self.assertEqual(len(listener.record_spy.dict), 1)
         self.assertResult(listener, *expected_result)
         listener.close()
 
@@ -201,6 +204,7 @@ class TestListeners(unittest.TestCase):
         QTest.qWait(500)
         self.assertEqual(listener.result_spy.count(), 1)
         self.assertEqual(listener.error_spy.count(), 0)
+        self.assertEqual(len(listener.record_spy.dict), 1)
         listener.close()
 
 
