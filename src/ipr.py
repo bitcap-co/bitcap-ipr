@@ -738,21 +738,21 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionContextExport.triggered.connect(self.export_table)
         if self.poolConfigurator.isVisible():
             self.actionContextShowPoolConfig = self.table_context.addAction(
-                "Hide Pool Config"
+                "Hide Pool Configurator"
             )
             self.actionContextShowPoolConfig.triggered.connect(
                 lambda: self.toggle_pool_config(enabled=False)
             )
         else:
             self.actionContextShowPoolConfig = self.table_context.addAction(
-                "Show Pool Config"
+                "Show Pool Configurator"
             )
             self.actionContextShowPoolConfig.triggered.connect(
                 lambda: self.toggle_pool_config(enabled=True)
             )
         if self.poolConfigurator.isVisible():
             self.actionContextSetPools = self.table_context.addAction(
-                f"Update Pool From Current Preset ({self.comboPoolPreset.currentText()})"
+                f"Update Pool Config From Current Preset ({self.comboPoolPreset.currentText()})"
             )
             self.actionContextSetPools.triggered.connect(self.update_miner_pools)
             self.actionContextGetPoolInfo = self.table_context.addAction(
