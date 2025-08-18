@@ -155,7 +155,11 @@ class APIClient:
                 result[k] = "Failed"
             return result
         sys = self.client.get_system_info()
-        pools = self.client.get_pools()
+        try:
+            pools = self.client.get_pools()
+        except AuthenticationError as err:
+            logger.error(err)
+            pools = {}
         if isinstance(parser, BitmainParser):
             if not self.client.is_custom:
                 log = self.client.get_bitmain_system_log()
@@ -250,41 +254,42 @@ class APIClient:
         passwds: List[str] = []
         if self.client:
             pool_conf: List[Dict[str, str] | str] = self.client.get_pool_conf()
-            match miner_type:
-                case "antminer" | "sealminer" | "volcminer" | "elphapex" | "iceriver":
-                    for pool in pool_conf:
-                        if "addr" in pool:
-                            urls.append(pool["addr"])
+            if not self.client._error:
+                match miner_type:
+                    case "antminer" | "sealminer" | "volcminer" | "elphapex" | "iceriver":
+                        for pool in pool_conf:
+                            if "addr" in pool:
+                                urls.append(pool["addr"])
+                            else:
+                                urls.append(pool["url"])
+                            users.append(pool["user"])
+                            passwds.append(pool["pass"])
+                    case "whatsminer":
+                        if isinstance(self.client, WhatsminerV3Client):
+                            for pool in pool_conf:
+                                urls.append(pool["url"])
+                                users.append(pool["account"])
+                                passwds.append("")
                         else:
-                            urls.append(pool["url"])
-                        users.append(pool["user"])
-                        passwds.append(pool["pass"])
-                case "whatsminer":
-                    if isinstance(self.client, WhatsminerV3Client):
+                            for pool in pool_conf:
+                                urls.append(pool["URL"])
+                                users.append(pool["User"])
+                                passwds.append("")
+                    case "goldshell":
+                        for i in range(0, len(pool_conf)):
+                            urls.append(pool_conf[i]["url"])
+                            users.append(pool_conf[i]["user"])
+                            passwds.append(pool_conf[i]["pass"])
+                    case "dragonball":
                         for pool in pool_conf:
-                            urls.append(pool["url"])
-                            users.append(pool["account"])
-                            passwds.append("")
-                    else:
-                        for pool in pool_conf:
-                            urls.append(pool["URL"])
-                            users.append(pool["User"])
-                            passwds.append("")
-                case "goldshell":
-                    for i in range(0, len(pool_conf)):
-                        urls.append(pool_conf[i]["url"])
-                        users.append(pool_conf[i]["user"])
-                        passwds.append(pool_conf[i]["pass"])
-                case "dragonball":
-                    for pool in pool_conf:
-                        url, user, passwd = pool.split("|")
-                        urls.append(url)
-                        users.append(user)
-                        passwds.append(passwd)
-            while len(urls) < 3:
-                urls.append("")
-                users.append("")
-                passwds.append("")
+                            url, user, passwd = pool.split("|")
+                            urls.append(url)
+                            users.append(user)
+                            passwds.append(passwd)
+                while len(urls) < 3:
+                    urls.append("")
+                    users.append("")
+                    passwds.append("")
             return (urls, users, passwds)
 
     def update_miner_pools(
@@ -297,7 +302,7 @@ class APIClient:
                 )
             try:
                 self.client.update_pools(urls, users, passwds)
-            except APIError as err:
+            except (APIError, AuthenticationError) as err:
                 logger.error(err)
 
     def get_missing_mac_addr(self) -> Optional[str]:

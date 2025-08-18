@@ -1251,8 +1251,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         if not rows:
             return
         selected_ips = [x for x in self.idTable.selectedIndexes() if x.column() == 1]
-        if len(selected_ips) != 1:
-            return
         index = selected_ips[0]
         item = self.idTable.itemFromIndex(index)
         miner_type = self.idTable.item(item.row(), 4).text()
@@ -1264,6 +1262,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         if not client:
             return
         urls, users, passwds = self.api_client.get_miner_pool_conf(miner_type)
+        if client._error:
+            return self.iprStatus.showMessage(f"Status :: Failed to get pool config: {client._error}", 5000)
         self.linePoolURL.setText(urls[0])
         self.linePoolUser.setText(users[0])
         self.linePoolPasswd.setText(passwds[0])
@@ -1273,6 +1273,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.linePoolURL_3.setText(urls[2])
         self.linePoolUser_3.setText(users[2])
         self.linePoolPasswd_3.setText(passwds[2])
+        self.iprStatus.showMessage(f"Status :: Updated {self.comboPoolPreset.currentText()} preset from {item.text()}.", 3000)
 
     def update_miner_pools(self):
         rows = self.idTable.rowCount()
@@ -1312,10 +1313,10 @@ class IPR(QMainWindow, Ui_MainWindow):
                 failed.append(ip_addr)
                 continue
 
-            if len(failed) > 0:
-                return self.iprStatus.showMessage(f"Status :: Failed to update pool config for [{failed}]", 5000)
-            else:
-                self.iprStatus.showMessage("Status :: Successfully updated pools", 3000)
+        if len(failed) > 0:
+            return self.iprStatus.showMessage(f"Status :: Failed to update pool config for {failed}", 5000)
+        else:
+            self.iprStatus.showMessage("Status :: Successfully updated pools", 3000)
 
     # exit
     def close_to_tray_or_exit(self):

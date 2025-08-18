@@ -148,7 +148,10 @@ class BitmainHTTPClient(BaseHTTPClient):
         return self.run_command("GET", "get_miner_conf")
 
     def get_pool_conf(self) -> dict:
-        conf = self.get_miner_conf()
+        try:
+            conf = self.get_miner_conf()
+        except AuthenticationError:
+            return
         if self.is_custom:
             pool_conf = conf["miner"]["pools"]
         else:
