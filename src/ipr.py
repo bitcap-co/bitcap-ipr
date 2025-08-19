@@ -119,7 +119,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionCopySelectedElements.triggered.connect(self.copy_selected)
         self.menu_bar.actionImport.triggered.connect(self.import_table)
         self.menu_bar.actionExport.triggered.connect(self.export_table)
-        self.menu_bar.actionShowPoolConfigurator.toggled.connect(self.toggle_pool_settings)
+        self.menu_bar.actionShowPoolConfigurator.toggled.connect(
+            self.toggle_pool_settings
+        )
         self.menu_bar.actionGetMinerPoolConfig.triggered.connect(self.get_miner_pool)
         self.menu_bar.actionSetPoolFromPreset.triggered.connect(self.update_miner_pools)
         self.menu_bar.actionSettings.triggered.connect(
@@ -880,14 +882,14 @@ class IPR(QMainWindow, Ui_MainWindow):
     def toggle_pool_config(self, enabled: bool = False):
         self.menu_bar.actionShowPoolConfigurator.setChecked(enabled)
         self.poolConfigurator.setVisible(enabled)
-        if self.poolConfigurator.isVisible():
+        if self.menu_bar.actionShowPoolConfigurator.isChecked():
             self.setGeometry(self.x(), self.y(), self.width(), self.maximumHeight())
         else:
             self.setGeometry(
                 self.x(),
                 self.y(),
                 self.width(),
-                self.height() - (self.poolConfigurator.height() / 2),
+                self.config["instance"]["geometry"]["mainWindow"][3],
             )
 
     # listener
@@ -1261,7 +1263,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             return
         urls, users, passwds = self.api_client.get_miner_pool_conf(miner_type)
         if client._error:
-            return self.iprStatus.showMessage(f"Status :: Failed to get pool config: {client._error}", 5000)
+            return self.iprStatus.showMessage(
+                f"Status :: Failed to get pool config: {client._error}", 5000
+            )
         self.linePoolURL.setText(urls[0])
         self.linePoolUser.setText(users[0])
         self.linePoolPasswd.setText(passwds[0])
@@ -1271,7 +1275,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.linePoolURL_3.setText(urls[2])
         self.linePoolUser_3.setText(users[2])
         self.linePoolPasswd_3.setText(passwds[2])
-        self.iprStatus.showMessage(f"Status :: Updated {self.comboPoolPreset.currentText()} preset from {item.text()}.", 3000)
+        self.iprStatus.showMessage(
+            f"Status :: Updated {self.comboPoolPreset.currentText()} preset from {item.text()}.",
+            3000,
+        )
 
     def update_miner_pools(self):
         rows = self.idTable.rowCount()
@@ -1312,7 +1319,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                 continue
 
         if len(failed) > 0:
-            return self.iprStatus.showMessage(f"Status :: Failed to update pool config for {failed}", 5000)
+            return self.iprStatus.showMessage(
+                f"Status :: Failed to update pool config for {failed}", 5000
+            )
         else:
             self.iprStatus.showMessage("Status :: Successfully updated pools", 3000)
 
