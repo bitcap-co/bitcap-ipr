@@ -113,8 +113,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionKillAllConfirmations.triggered.connect(self.killall)
         self.menu_bar.actionQuit.triggered.connect(self.quit)
         self.menu_bar.menuOptions.triggered.connect(self.update_settings)
-        self.menu_bar.menuTable.triggered.connect(self.update_settings)
-        self.menu_bar.menuPools.triggered.connect(self.update_settings)
         self.menu_bar.actionEnableIDTable.triggered.connect(self.update_stacked_widget)
         self.menu_bar.actionEnableIDTable.toggled.connect(self.toggle_table_settings)
         self.menu_bar.actionOpenSelectedIPs.triggered.connect(self.open_selected_ips)
