@@ -53,9 +53,7 @@ By default, it will use the default authentication. If you have an alternative p
 
 
 ## Known Issues & Workarounds
- ~~- ### Main window not movable by mouse (Ubuntu 24.04+ with wayland)
-> See [Issue](https://github.com/bitcap-co/bitcap-ipr/issues/21) for more details~~
-
+ - ~~### Main window not movable by mouse (Ubuntu 24.04+ with wayland)~~
 > [!NOTE]
 > This has now been patched. See [Release](https://github.com/bitcap-co/bitcap-ipr/releases/tag/v1.2.7)
 
