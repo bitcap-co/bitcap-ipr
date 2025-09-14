@@ -32,11 +32,11 @@ If the API client failed to authenticate or timeouts, "Failed" will be shown for
    - "Import" : Once triggered, opens a file dialog to import a .csv file into the table view.
    - "Export" : Once triggered, the current data in the table will be exported to a .CSV file located in system's documents path.
 
-#### "Settings" Menu
+### "Settings" Menu
 Application settings:
    - "Settings..." : When triggered, updates the current view to the configuration view.
 
-### Application Settings ("Settings" Menu)
+#### Application Settings ("Settings" Menu)
 In the menubar, go to Settings -> "Settings..." to change the current view to the configuration view.
 > [!NOTE]
 > On MacOS, go to "Preferences..." (Command + ,)
