@@ -62,10 +62,11 @@ Here is where you can change general, API, and log settings in their respective 
          - "Dragonball" : When checked, enable listening for Dragonball miners.
 
    #### "API" tab
-   "Settings" section:
-    - Locate Duration : configure the blink duration when locating a miner. Default is 10s.
+   "Settings" group:
+    - Locate Duration : Configure the blink duration when locating a miner. Default is 10s.
+
   "Authentication" section:
-   If you have an alternative password other then the default, you can set it here for the respective miner type to be able use with the ID Table view:
+   If you have an alternative password other then the default, you can set it here for the respective miner type/firmware to be able use with the ID Table view:
    - Bitmain/Antminer:
      - "Set Login Password" : Set alternative login password for Antminers. If blank, "root" is used for authentication.
    - Whatsminer:
