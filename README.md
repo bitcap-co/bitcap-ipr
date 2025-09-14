@@ -53,8 +53,8 @@ By default, it will use the default authentication. If you have an alternative p
 
 
 ## Known Issues & Workarounds
- - ### Main window not movable by mouse (Ubuntu 24.04+ with wayland)
-> See [Issue](https://github.com/bitcap-co/bitcap-ipr/issues/21) for more details
+ ~~- ### Main window not movable by mouse (Ubuntu 24.04+ with wayland)
+> See [Issue](https://github.com/bitcap-co/bitcap-ipr/issues/21) for more details~~
 
 > [!NOTE]
 > This has now been patched. See [Release](https://github.com/bitcap-co/bitcap-ipr/releases/tag/v1.2.7)
@@ -63,7 +63,7 @@ By default, it will use the default authentication. If you have an alternative p
 > macOS binaries are not signed. Due to this, the IP Reporter will probably fail to launch and get an error stating the the app is from an unknown source.
 > To Fix: Manully allow through System Settings -> `Security and Privacy`.
 >
-> If macOS complains that the app is damaged, run the following command:
+> If macOS complains that the app is damaged, run the following command to remove the entry from the anti-virus:
 > ```bash
 > sudo xattr -dr com.apple.quarantine /path/to/BitCapIPR.app
 > ```
