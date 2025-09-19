@@ -225,7 +225,7 @@
                    </size>
                   </property>
                   <property name="focusPolicy">
-                   <enum>Qt::FocusPolicy::NoFocus</enum>
+                   <enum>Qt::FocusPolicy::ClickFocus</enum>
                   </property>
                   <property name="editable">
                    <bool>true</bool>
@@ -791,7 +791,7 @@
                        <x>0</x>
                        <y>0</y>
                        <width>451</width>
-                       <height>441</height>
+                       <height>435</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -1192,8 +1192,8 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>361</width>
-                       <height>644</height>
+                       <width>375</width>
+                       <height>738</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_13">

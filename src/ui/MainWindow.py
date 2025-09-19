@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.9.1
+## Created by: Qt User Interface Compiler version 6.9.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -115,7 +115,7 @@ class Ui_MainWindow(object):
         self.comboPoolPreset.setObjectName(u"comboPoolPreset")
         self.comboPoolPreset.setMinimumSize(QSize(250, 25))
         self.comboPoolPreset.setMaximumSize(QSize(250, 25))
-        self.comboPoolPreset.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.comboPoolPreset.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
         self.comboPoolPreset.setEditable(True)
         self.comboPoolPreset.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
 
@@ -385,7 +385,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 451, 441))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 451, 435))
         self.verticalLayout_19 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
         self.groupSystemTray = QGroupBox(self.scrollGeneral)
@@ -569,7 +569,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 361, 644))
+        self.scrollAPI.setGeometry(QRect(0, 0, 375, 738))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
         self.verticalLayout_13.setContentsMargins(9, 9, 9, 9)
@@ -1267,3 +1267,4 @@ class Ui_MainWindow(object):
         self.iprStatus.setToolTip(QCoreApplication.translate("MainWindow", u"Current IPR Status", None))
 #endif // QT_CONFIG(tooltip)
     # retranslateUi
+
