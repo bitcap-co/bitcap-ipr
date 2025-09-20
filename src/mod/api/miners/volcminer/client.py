@@ -70,18 +70,15 @@ class VolcminerHTTPClient(BaseHTTPClient):
     def get_miner_conf(self) -> dict:
         conf = self.run_command("GET", "get_miner_confV1")
         cleaned_conf = re.sub(r"\s{4,}", "", conf)
-        parts = re.search(r'"{ "cfgs": "\[(.*?)\]",.*?, "debug": "{(.*?)}",(.*?)}"', cleaned_conf)
+        parts = re.search(
+            r'"{ "cfgs": "\[(.*?)\]",.*?, "debug": "{(.*?)}",(.*?)}"', cleaned_conf
+        )
 
         miner_conf = json.loads(parts.group(1))
         debug_conf = json.loads("{" + parts.group(2) + "}")
         config_conf = json.loads("{" + parts.group(3) + "}")
 
-        conf = {
-            **miner_conf,
-            "keeppower": "0",
-            **debug_conf,
-            **config_conf
-        }
+        conf = {**miner_conf, "keeppower": "0", **debug_conf, **config_conf}
         return conf
 
     def get_pool_conf(self) -> dict:
@@ -101,7 +98,9 @@ class VolcminerHTTPClient(BaseHTTPClient):
         data = {"_bb_type": "rgOn" if enabled else "rgOff"}
         self.run_command("POST", "post_led_onoff", data=data)
 
-    def update_pools(self, urls: List[str], users: List[str], passwds: List[str]) -> None:
+    def update_pools(
+        self, urls: List[str], users: List[str], passwds: List[str]
+    ) -> None:
         if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
             self._close_client(APIError("API Error: Invalid number of argurments."))
 
@@ -122,11 +121,11 @@ class VolcminerHTTPClient(BaseHTTPClient):
         data["_bb_nobeeper"] = ""
         data["_bb_notempoverctrl"] = "false"
         if new_conf["fan-ctrl"]:
-            data["_bb_fan_customize_switch"] =  "true"
+            data["_bb_fan_customize_switch"] = "true"
             data["_bb_fan_customize_value_front"] = new_conf["fan-pwm-front"]
             data["_bb_fan_customize_value_back"] = new_conf["fan-pwm-back"]
         else:
-            data["_bb_fan_customize_switch"] =  "false"
+            data["_bb_fan_customize_switch"] = "false"
             data["_bb_fan_customize_value_front"] = ""
             data["_bb_fan_customize_value_back"] = ""
 

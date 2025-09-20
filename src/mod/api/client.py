@@ -256,7 +256,9 @@ class APIClient:
             pool_conf: List[Dict[str, str] | str] = self.client.get_pool_conf()
             if not self.client._error:
                 match miner_type:
-                    case "antminer" | "sealminer" | "volcminer" | "elphapex" | "iceriver":
+                    case (
+                        "antminer" | "sealminer" | "volcminer" | "elphapex" | "iceriver"
+                    ):
                         for pool in pool_conf:
                             if "addr" in pool:
                                 urls.append(pool["addr"])

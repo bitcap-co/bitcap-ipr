@@ -170,7 +170,9 @@ class BaseHTTPClient(ABC):
         pass
 
     @abstractmethod
-    def update_pools(self, urls: List[str], users: List[str], passwds: List[str]) -> None:
+    def update_pools(
+        self, urls: List[str], users: List[str], passwds: List[str]
+    ) -> None:
         pass
 
     def _close_client(self, error: Optional[Exception] = None) -> None:

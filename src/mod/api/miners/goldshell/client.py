@@ -107,11 +107,7 @@ class GoldshellHTTPClient(BaseHTTPClient):
         for i in range(0, len(urls)):
             if not len(urls[i]) and not len(users[i]) and not len(passwds[i]):
                 continue
-            payload = {
-                "url": urls[i],
-                "user": users[i],
-                "pass": passwds[i]
-            }
+            payload = {"url": urls[i], "user": users[i], "pass": passwds[i]}
             self.run_command("PUT", "newpool", payload=payload)
 
 
