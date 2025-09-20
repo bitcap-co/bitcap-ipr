@@ -69,7 +69,7 @@ class VolcminerHTTPClient(BaseHTTPClient):
 
     def get_pools(self) -> dict:
         status = self.run_command("GET", "get_miner_statusV1")
-        cleaned_status = re.sub(r'\s{4,}', "", status)
+        cleaned_status = re.sub(r"\s{4,}", "", status)
         pool_data = re.search(r'"pool_dtls": "\[(.*?)\]"', cleaned_status).group(1)
         return json.loads("[" + pool_data + "]")
 

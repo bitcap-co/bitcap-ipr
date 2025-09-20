@@ -83,6 +83,7 @@ def flush_log():
         f.truncate(0)
         f.seek(0)
 
+
 def get_miner_url(ip_addr: str, miner_type: str) -> str:
     port = 80
     match miner_type:

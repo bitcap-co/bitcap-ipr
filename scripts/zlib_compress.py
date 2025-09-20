@@ -17,7 +17,7 @@ if __name__ == "__main__":
     args = parse_arguments()
 
     if args.file:
-        with open(Path(args.file).resolve(), 'rb') as f:
+        with open(Path(args.file).resolve(), "rb") as f:
             data = f.read()
 
     if args.msg:
@@ -25,4 +25,4 @@ if __name__ == "__main__":
 
     compressed = zlib.compress(data, level=args.level)
 
-    print(binascii.hexlify(compressed).decode('utf-8'))
+    print(binascii.hexlify(compressed).decode("utf-8"))
