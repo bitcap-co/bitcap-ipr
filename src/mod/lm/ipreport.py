@@ -6,7 +6,9 @@ import zlib
 
 from PySide6.QtNetwork import QNetworkDatagram
 
-reg_ip = r"((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?){4}"
+reg_ip = (
+    r"((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.)){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)"
+)
 reg_mac = r"([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})"
 msg_patterns = {
     "common": re.compile(f"^{reg_ip},{reg_mac}"),
