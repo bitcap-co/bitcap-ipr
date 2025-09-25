@@ -277,6 +277,17 @@
                  </spacer>
                 </item>
                 <item>
+                 <widget class="QCheckBox" name="checkAppendWorker">
+                  <property name="toolTip">
+                   <string>Automatically append the current worker name to user field.
+If there is no current worker name, it will append last of serial or mac addr if available</string>
+                  </property>
+                  <property name="text">
+                   <string>Append Worker</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
                  <widget class="QPushButton" name="actionIPRClearPreset">
                   <property name="text">
                    <string>Clear Preset</string>
@@ -790,7 +801,7 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>451</width>
+                       <width>477</width>
                        <height>435</height>
                       </rect>
                      </property>
@@ -1192,7 +1203,7 @@
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>375</width>
+                       <width>701</width>
                        <height>738</height>
                       </rect>
                      </property>

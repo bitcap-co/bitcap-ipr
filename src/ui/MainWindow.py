@@ -125,6 +125,11 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_30.addItem(self.horizontalSpacer_8)
 
+        self.checkAppendWorker = QCheckBox(self.presetControl)
+        self.checkAppendWorker.setObjectName(u"checkAppendWorker")
+
+        self.horizontalLayout_30.addWidget(self.checkAppendWorker)
+
         self.actionIPRClearPreset = QPushButton(self.presetControl)
         self.actionIPRClearPreset.setObjectName(u"actionIPRClearPreset")
 
@@ -385,7 +390,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 451, 435))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 477, 435))
         self.verticalLayout_19 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
         self.groupSystemTray = QGroupBox(self.scrollGeneral)
@@ -569,7 +574,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 375, 738))
+        self.scrollAPI.setGeometry(QRect(0, 0, 701, 738))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
         self.verticalLayout_13.setContentsMargins(9, 9, 9, 9)
@@ -1085,6 +1090,11 @@ class Ui_MainWindow(object):
         self.comboPoolPreset.setItemText(3, QCoreApplication.translate("MainWindow", u"Saved Pool 4", None))
         self.comboPoolPreset.setItemText(4, QCoreApplication.translate("MainWindow", u"Saved Pool 5", None))
 
+#if QT_CONFIG(tooltip)
+        self.checkAppendWorker.setToolTip(QCoreApplication.translate("MainWindow", u"Automatically append the current worker name to user field.\n"
+"If there is no current worker name, it will append last of serial or mac addr if available", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkAppendWorker.setText(QCoreApplication.translate("MainWindow", u"Append Worker", None))
         self.actionIPRClearPreset.setText(QCoreApplication.translate("MainWindow", u"Clear Preset", None))
         self.actionIPRSavePreset.setText(QCoreApplication.translate("MainWindow", u"Save Pool", None))
         self.label_19.setText(QCoreApplication.translate("MainWindow", u"Pool 1:", None))

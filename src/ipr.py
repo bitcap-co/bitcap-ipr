@@ -1290,6 +1290,16 @@ class IPR(QMainWindow, Ui_MainWindow):
             item = self.idTable.itemFromIndex(index)
             ip_addr = item.text()
             miner_type = self.idTable.item(item.row(), 4).text()
+            serial = self.idTable.item(item.row(), 3).text()
+            macaddr = self.idTable.item(item.row(), 2).text()
+            worker = self.idTable.item(item.row(), 8).text().split(".")[1]
+            if not worker:
+                if serial and (
+                    serial != "N/A" and serial != "Unknown" and serial != "Failed"
+                ):
+                    worker = f".{serial[-5:]}"
+                elif macaddr and (macaddr != "N/A" and macaddr != "Failed"):
+                    worker = f".{macaddr.replace(':', '')[-5:]}"
             client_auth, custom_auth = self.get_client_auth_from_type(miner_type)
             self.api_client.create_client_from_type(
                 miner_type, ip_addr, client_auth, custom_auth
@@ -1308,6 +1318,17 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.linePoolUser_2.text(),
                 self.linePoolUser_3.text(),
             ]
+            # append worker name
+            if self.checkAppendWorker.isChecked():
+                if not worker:
+                    logger.warning(
+                        "update_miner_pools : failed to find applicable worker name. Continuing.."
+                    )
+                else:
+                    for idx in range(0, len(users)):
+                        if users[idx]:
+                            users[idx] = users[idx] + worker
+
             passwds = [
                 self.linePoolPasswd.text(),
                 self.linePoolPasswd_2.text(),
