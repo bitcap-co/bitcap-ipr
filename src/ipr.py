@@ -1290,10 +1290,12 @@ class IPR(QMainWindow, Ui_MainWindow):
             item = self.idTable.itemFromIndex(index)
             ip_addr = item.text()
             miner_type = self.idTable.item(item.row(), 4).text()
-            serial = self.idTable.item(item.row(), 3).text()
-            macaddr = self.idTable.item(item.row(), 2).text()
-            worker = self.idTable.item(item.row(), 8).text().split(".")[1]
-            if not worker:
+            worker = self.idTable.item(item.row(), 8).text().split(".")
+            if len(worker) == 2:
+                worker = f".{worker[1]}"
+            else:
+                macaddr = self.idTable.item(item.row(), 2).text()
+                serial = self.idTable.item(item.row(), 3).text()
                 if serial and (
                     serial != "N/A" and serial != "Unknown" and serial != "Failed"
                 ):
