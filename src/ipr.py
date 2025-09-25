@@ -1325,15 +1325,13 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.linePoolUser_3.text(),
             ]
             # append worker name
-            if self.checkAppendWorker.isChecked():
-                if not worker:
-                    logger.warning(
-                        "update_miner_pools : failed to find applicable worker name. Continuing.."
-                    )
-                else:
+            if self.checkAppendWorkerNames.isChecked():
+                if worker:
                     for idx in range(0, len(users)):
                         if users[idx]:
                             users[idx] = users[idx] + worker
+                else:
+                    logger.warning("update_miner_pools : failed to find applicable worker name. Continuing..")
 
             passwds = [
                 self.linePoolPasswd.text(),
