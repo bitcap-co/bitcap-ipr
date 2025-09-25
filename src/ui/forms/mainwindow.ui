@@ -212,9 +212,15 @@
                 </item>
                 <item>
                  <widget class="QComboBox" name="comboPoolPreset">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="minimumSize">
                    <size>
-                    <width>250</width>
+                    <width>150</width>
                     <height>25</height>
                    </size>
                   </property>
@@ -266,11 +272,11 @@
                    <enum>Qt::Orientation::Horizontal</enum>
                   </property>
                   <property name="sizeType">
-                   <enum>QSizePolicy::Policy::MinimumExpanding</enum>
+                   <enum>QSizePolicy::Policy::Preferred</enum>
                   </property>
                   <property name="sizeHint" stdset="0">
                    <size>
-                    <width>80</width>
+                    <width>400</width>
                     <height>20</height>
                    </size>
                   </property>
@@ -801,8 +807,8 @@ If there is no current worker name, it will append last of serial or mac addr if
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>477</width>
-                       <height>435</height>
+                       <width>459</width>
+                       <height>421</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -1203,8 +1209,8 @@ If there is no current worker name, it will append last of serial or mac addr if
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>701</width>
-                       <height>738</height>
+                       <width>368</width>
+                       <height>704</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_13">
