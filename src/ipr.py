@@ -290,7 +290,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.iprStatus.showMessage("Status :: Ready.")
 
     def update_pool_preset_names(self):
-        for idx in range(0, len(self.config["savedPools"])):
+        for idx in range(1, len(self.config["savedPools"])):
             self.comboPoolPreset.setItemText(
                 idx, self.config["savedPools"][idx]["preset_name"]
             )
@@ -574,12 +574,13 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def update_pool_preset(self, preset_name: str):
         current_index = self.comboPoolPreset.currentIndex()
-        if preset_name:
+        if current_index != 0:
             self.comboPoolPreset.setItemText(current_index, preset_name)
-        else:
-            self.comboPoolPreset.setItemText(
-                current_index, self.config["savedPools"][current_index]["preset_name"]
-            )
+            if self.comboPoolPreset.currentText() == "":
+                self.comboPoolPreset.setItemText(
+                    current_index,
+                    self.config["savedPools"][current_index]["preset_name"],
+                )
 
     def read_pool_preset(self, index: int) -> None:
         self.config = read_config(self.config_path)
@@ -617,7 +618,8 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def clear_pool_preset(self):
         current_index = self.comboPoolPreset.currentIndex()
-        self.update_pool_preset(preset_name=f"Saved Pool {current_index + 1}")
+        if current_index != 0:
+            self.update_pool_preset(preset_name=f"Saved Pool {current_index + 1}")
         for child in self.pcwrapper.children():
             if isinstance(child, QWidget):
                 for line in child.children():
@@ -1270,6 +1272,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             return self.iprStatus.showMessage(
                 f"Status :: Failed to get pool config: {client._error}", 5000
             )
+        # set to "current" preset
+        self.comboPoolPreset.setCurrentIndex(0)
         self.linePoolURL.setText(urls[0])
         self.linePoolUser.setText(users[0])
         self.linePoolPasswd.setText(passwds[0])
@@ -1279,6 +1283,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.linePoolURL_3.setText(urls[2])
         self.linePoolUser_3.setText(users[2])
         self.linePoolPasswd_3.setText(passwds[2])
+        self.write_pool_preset()
         self.iprStatus.showMessage(
             f"Status :: Updated {self.comboPoolPreset.currentText()} preset from {item.text()}.",
             3000,
@@ -1331,7 +1336,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                         if users[idx]:
                             users[idx] = users[idx] + worker
                 else:
-                    logger.warning("update_miner_pools : failed to find applicable worker name. Continuing..")
+                    logger.warning(
+                        "update_miner_pools : failed to find applicable worker name. Continuing.."
+                    )
 
             passwds = [
                 self.linePoolPasswd.text(),
