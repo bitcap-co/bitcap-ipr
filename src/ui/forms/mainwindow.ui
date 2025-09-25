@@ -283,13 +283,25 @@
                  </spacer>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="checkAppendWorker">
+                 <widget class="QCheckBox" name="checkAppendWorkerNames">
+                  <property name="minimumSize">
+                   <size>
+                    <width>120</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>120</width>
+                    <height>25</height>
+                   </size>
+                  </property>
                   <property name="toolTip">
-                   <string>Automatically append the current worker name to user field.
-If there is no current worker name, it will append last of serial or mac addr if available</string>
+                   <string>Append the current worker name as suffix.
+If not available, will append last of serial number or MAC address.</string>
                   </property>
                   <property name="text">
-                   <string>Append Worker</string>
+                   <string>Append Workers</string>
                   </property>
                  </widget>
                 </item>
