@@ -454,6 +454,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.menu_bar.actionShowPoolConfigurator.setChecked(
                 self.config["instance"]["pools"]["enablePoolConfigurator"]
             )
+            self.checkAppendWorkerNames.setChecked(
+                self.config["instance"]["pools"]["appendWorkerNames"]
+            )
 
     def update_settings(self):
         logger.info(" update settings to config.")
@@ -473,7 +476,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             },
             "table": {"enableIDTable": self.menu_bar.actionEnableIDTable.isChecked()},
             "pools": {
-                "enablePoolConfigurator": self.menu_bar.actionShowPoolConfigurator.isChecked()
+                "enablePoolConfigurator": self.menu_bar.actionShowPoolConfigurator.isChecked(),
+                "appendWorkerNames": self.checkAppendWorkerNames.isChecked(),
             },
         }
         savedPools = self.update_current_preset_to_config()
