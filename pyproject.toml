@@ -19,11 +19,6 @@ package-mode = false
 
 [tool.poetry.group.dev.dependencies]
 nuitka = "^2.7"
-pyinstaller = "^6.13.0"
-
-
-[tool.poetry.group.test.dependencies]
-pytest = "^8.3.5"
 scapy = "^2.6.1"
 
 [build-system]
