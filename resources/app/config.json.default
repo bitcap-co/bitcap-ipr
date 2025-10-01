@@ -40,6 +40,81 @@
       "onMaxLogSize": 0,
       "flushInterval": 0
     },
+    "selectedPoolPreset": 0,
+    "savedPools": [
+      {
+        "pool": "",
+        "user": "",
+        "passwd": "",
+        "pool2": "",
+        "user2": "",
+        "passwd2": "",
+        "pool3": "",
+        "user3": "",
+        "passwd3": "",
+        "preset_name": "Current"
+      },
+      {
+        "pool": "",
+        "user": "",
+        "passwd": "",
+        "pool2": "",
+        "user2": "",
+        "passwd2": "",
+        "pool3": "",
+        "user3": "",
+        "passwd3": "",
+        "preset_name": "Saved Pool 1"
+      },
+      {
+        "pool": "",
+        "user": "",
+        "passwd": "",
+        "pool2": "",
+        "user2": "",
+        "passwd2": "",
+        "pool3": "",
+        "user3": "",
+        "passwd3": "",
+        "preset_name": "Saved Pool 2"
+      },
+      {
+        "pool": "",
+        "user": "",
+        "passwd": "",
+        "pool2": "",
+        "user2": "",
+        "passwd2": "",
+        "pool3": "",
+        "user3": "",
+        "passwd3": "",
+        "preset_name": "Saved Pool 3"
+      },
+      {
+        "pool": "",
+        "user": "",
+        "passwd": "",
+        "pool2": "",
+        "user2": "",
+        "passwd2": "",
+        "pool3": "",
+        "user3": "",
+        "passwd3": "",
+        "preset_name": "Saved Pool 4"
+      },
+      {
+        "pool": "",
+        "user": "",
+        "passwd": "",
+        "pool2": "",
+        "user2": "",
+        "passwd2": "",
+        "pool3": "",
+        "user3": "",
+        "passwd3": "",
+        "preset_name": "Saved Pool 5"
+      }
+    ],
     "instance": {
       "geometry": {
         "mainWindow": []
@@ -51,6 +126,10 @@
       },
       "table": {
         "enableIDTable": false
+      },
+      "pools": {
+        "enablePoolConfigurator": false,
+        "appendWorkerNames": false
       }
     }
 }

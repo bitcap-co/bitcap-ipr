@@ -1,10 +1,10 @@
 from string import Template
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import requests
 
 from mod.api import settings
-from mod.api.errors import AuthenticationError
+from mod.api.errors import APIError, AuthenticationError
 from mod.api.http import BaseHTTPClient
 
 
@@ -63,8 +63,15 @@ class SealminerHTTPClient(BaseHTTPClient):
     def get_system_info(self):
         return self.run_command("GET", "get_system_info")
 
-    def get_pools(self) -> dict:
+    def get_miner_conf(self) -> dict:
         return self.run_command("GET", "get_miner_poolconf")
+
+    def get_pool_conf(self) -> dict:
+        return self.get_miner_conf()["pools"]
+
+    def get_pools(self) -> dict:
+        status = self.run_command("GET", "miner-status")
+        return status["pools"]
 
     def get_blink_status(self) -> bool:
         sys = self.get_system_info()
@@ -73,3 +80,33 @@ class SealminerHTTPClient(BaseHTTPClient):
     def blink(self, enabled: bool):
         data = '{"key":"led","value": "%s"}' % ("on" if enabled else "off")
         self.run_command("POST", "led_conf", data=data)
+
+    def update_pools(
+        self, urls: List[str], users: List[str], passwds: List[str]
+    ) -> None:
+        if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
+            self._close_client(APIError("API Error: Invalid number of argurments."))
+        pool_conf = self.get_pool_conf()
+
+        new_conf = {
+            "poolurl1": "",
+            "pooluser1": "",
+            "poolpwd1": "",
+            "poolurl2": "",
+            "pooluser2": "",
+            "poolpwd2": "",
+            "poolurl3": "",
+            "pooluser3": "",
+            "poolpwd3": "",
+        }
+        for i in range(0, len(urls)):
+            if not pool_conf[i] and not len(users[i]) and not len(passwds[i]):
+                continue
+            idx = i + 1
+            new_conf[f"poolurl{idx}"] = urls[i]
+            new_conf[f"pooluser{idx}"] = users[i]
+            new_conf[f"poolpwd{idx}"] = passwds[i]
+
+        res = self.run_command("POST", "set_miner_poolconf", payload=new_conf)
+        if "result" not in res or "api" not in res or "fileWrite" not in res:
+            self._close_client(APIError(res["msg"]))

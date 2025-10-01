@@ -6,6 +6,7 @@ from requests.auth import HTTPDigestAuth
 
 from mod.api import settings
 from mod.api.errors import (
+    APIError,
     AuthenticationError,
     FailedConnectionError,
 )
@@ -78,6 +79,10 @@ class BitmainHTTPClient(BaseHTTPClient):
             match command:
                 case "get_system_info":
                     command = "/info"
+                case "get_miner_conf":
+                    command = "/settings"
+                case "set_miner_conf":
+                    command = "/settings"
                 case "get_blink_status":
                     command = "/status"
                 case "pools":
@@ -137,10 +142,31 @@ class BitmainHTTPClient(BaseHTTPClient):
     def get_system_info(self) -> dict:
         return self.run_command("GET", "get_system_info")
 
+    def get_miner_conf(self) -> dict:
+        if self.is_custom and not self.is_unlocked:
+            self.unlock_vnish_session()
+        return self.run_command("GET", "get_miner_conf")
+
+    def get_pool_conf(self) -> dict:
+        try:
+            conf = self.get_miner_conf()
+        except AuthenticationError:
+            return
+        if self.is_custom:
+            pool_conf = conf["miner"]["pools"]
+        else:
+            pool_conf = conf["pools"]
+        return pool_conf
+
     def get_pools(self) -> dict:
         if self.is_custom and not self.is_unlocked:
             self.unlock_vnish_session()
-        return self.run_command("GET", "pools")
+        pool_conf = self.run_command("GET", "pools")
+        if self.is_custom:
+            pools = pool_conf["miner"]["pools"]
+        else:
+            pools = pool_conf["POOLS"]
+        return pools
 
     def get_blink_status(self) -> bool:
         resp = self.run_command("GET", "get_blink_status")
@@ -155,3 +181,28 @@ class BitmainHTTPClient(BaseHTTPClient):
             self.run_command("POST", "blink")
         else:
             self.run_command("POST", "blink", payload={"blink": enabled})
+
+    def update_pools(
+        self, urls: List[str], users: List[str], passwds: List[str]
+    ) -> None:
+        conf = self.get_miner_conf()
+
+        if self.is_custom:
+            pool_conf = conf["miner"]["pools"]
+        else:
+            pool_conf = conf["pools"]
+        for i in range(0, len(urls)):
+            if not pool_conf[i] and not len(users[i]) and not len(passwds[i]):
+                continue
+            pool_conf[i] = {
+                "url": urls[i],
+                "user": users[i],
+                "pass": passwds[i],
+            }
+        res = self.run_command("POST", "set_miner_conf", payload=conf)
+        if self.is_custom:
+            if "err" in res:
+                self._close_client(APIError(res["err"]))
+        else:
+            if "msg" in res and res["msg"] != "OK!":
+                self._close_client(APIError(res["msg"]))

@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Optional
+from typing import Dict, List, Optional, Tuple
 
 from PySide6.QtCore import (
     QObject,
@@ -8,6 +8,7 @@ from PySide6.QtCore import (
 
 from mod.api import settings
 from mod.api.errors import (
+    APIError,
     AuthenticationError,
     FailedConnectionError,
 )
@@ -154,6 +155,82 @@ class APIClient:
             case _:
                 return
 
+    def get_target_info(self, parser: Parser) -> Dict[str, str]:
+        result = parser.get_target()
+        if not self.client:
+            for k in result.keys():
+                result[k] = "Failed"
+            return result
+        sys = self.client.get_system_info()
+        try:
+            pools = self.client.get_pools()
+        except AuthenticationError as err:
+            logger.error(err)
+            pools = {}
+        if isinstance(parser, BitmainParser):
+            if not self.client.is_custom:
+                log = self.client.get_bitmain_system_log()
+                parser.parse_platform(log)
+            else:
+                parser.parse_platform(sys)
+            parser.parse_system_info(sys)
+            parser.parse_pools(pools)
+        elif (
+            isinstance(parser, IceriverParser)
+            or isinstance(parser, VolcminerParser)
+            or isinstance(parser, SealminerParser)
+        ):
+            parser.parse_all(sys)
+            parser.parse_pools(pools)
+        elif isinstance(parser, GoldshellParser):
+            parser.parse_system_info(sys)
+            algo = self.client.get_algo_settings()
+            parser.parse_algorithm(algo)
+            parser.parse_pools(pools)
+        elif isinstance(parser, WhatsminerParser):
+            parser.parse_system_info(sys)
+            devs = self.client.get_dev_details()
+            parser.parse_subtype(devs)
+            ver = self.client.get_version()
+            parser.parse_version_info(ver)
+            parser.parse_pools(pools)
+        elif isinstance(parser, WhatsminerV3Parser):
+            parser.parse_system_info(sys)
+            dev = self.client.get_miner_info()
+            parser.parse_miner_info(dev)
+            parser.parse_pools(pools)
+        elif isinstance(parser, ElphapexParser):
+            parser.parse_system_info(sys)
+            dev = self.client.get_miner_info()
+            parser.parse_platform(dev)
+            parser.parse_pools(pools)
+        elif isinstance(parser, DragonballParser):
+            parser.parse_system_info(sys)
+        return parser.get_target()
+
+    def get_target_data_from_type(self, miner_type: str) -> Dict[str, str]:
+        match miner_type:
+            case "antminer":
+                return self.get_target_info(BitmainParser(self.target_info))
+            case "iceriver":
+                return self.get_target_info(IceriverParser(self.target_info))
+            case "whatsminer":
+                if isinstance(self.client, WhatsminerV3Client):
+                    return self.get_target_info(WhatsminerV3Parser(self.target_info))
+                return self.get_target_info(WhatsminerParser(self.target_info))
+            case "volcminer":
+                return self.get_target_info(VolcminerParser(self.target_info))
+            case "goldshell":
+                return self.get_target_info(GoldshellParser(self.target_info))
+            case "sealminer":
+                return self.get_target_info(SealminerParser(self.target_info))
+            case "elphapex":
+                return self.get_target_info(ElphapexParser(self.target_info))
+            case "dragonball":
+                return self.get_target_info(DragonballParser(self.target_info))
+            case _:
+                return self.target_info
+
     def locate_miner(self, miner_type: str) -> None:
         self.locate = QTimer(self.parent)
         self.locate.setSingleShot(True)
@@ -175,6 +252,67 @@ class APIClient:
     def stop_locate(self) -> None:
         self.client.blink(enabled=False)
         self.close_client()
+
+    def get_miner_pool_conf(
+        self, miner_type: str
+    ) -> Tuple[List[str], List[str], List[str]]:
+        urls: List[str] = []
+        users: List[str] = []
+        passwds: List[str] = []
+        if self.client:
+            pool_conf: List[Dict[str, str] | str] = self.client.get_pool_conf()
+            if not self.client._error:
+                match miner_type:
+                    case (
+                        "antminer" | "sealminer" | "volcminer" | "elphapex" | "iceriver"
+                    ):
+                        for pool in pool_conf:
+                            if "addr" in pool:
+                                urls.append(pool["addr"])
+                            else:
+                                urls.append(pool["url"])
+                            users.append(pool["user"])
+                            passwds.append(pool["pass"])
+                    case "whatsminer":
+                        if isinstance(self.client, WhatsminerV3Client):
+                            for pool in pool_conf:
+                                urls.append(pool["url"])
+                                users.append(pool["account"])
+                                passwds.append("")
+                        else:
+                            for pool in pool_conf:
+                                urls.append(pool["URL"])
+                                users.append(pool["User"])
+                                passwds.append("")
+                    case "goldshell":
+                        for i in range(0, len(pool_conf)):
+                            urls.append(pool_conf[i]["url"])
+                            users.append(pool_conf[i]["user"])
+                            passwds.append(pool_conf[i]["pass"])
+                    case "dragonball":
+                        for pool in pool_conf:
+                            url, user, passwd = pool.split("|")
+                            urls.append(url)
+                            users.append(user)
+                            passwds.append(passwd)
+                while len(urls) < 3:
+                    urls.append("")
+                    users.append("")
+                    passwds.append("")
+            return (urls, users, passwds)
+
+    def update_miner_pools(
+        self, urls: List[str], users: List[str], passwds: List[str]
+    ) -> None:
+        if self.client:
+            if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
+                self.client._close_client(
+                    APIError("Invalid number of pool argurments.")
+                )
+            try:
+                self.client.update_pools(urls, users, passwds)
+            except (APIError, AuthenticationError) as err:
+                logger.error(err)
 
     def get_missing_mac_addr(self) -> Optional[str]:
         if isinstance(self.client, IceriverHTTPClient) or isinstance(
@@ -219,65 +357,6 @@ class APIClient:
             if int(ver["Msg"]["fw_ver"][:6]) > 202412:
                 self.close_client()
                 self.create_whatsminerv3_client(ip, user, passwd)
-
-    def get_target_info(self, parser: Parser) -> Dict[str, str]:
-        result = parser.get_target()
-        if not self.client:
-            for k in result.keys():
-                result[k] = "Failed"
-            return result
-        sys = self.client.get_system_info()
-        try:
-            pools = self.client.get_pools()
-            parser.parse_pools(pools)
-        except AuthenticationError as err:
-            logger.error(err)
-        parser.parse_system_info(sys)
-        if isinstance(parser, BitmainParser):
-            if not self.client.is_custom:
-                log = self.client.get_bitmain_system_log()
-                parser.parse_platform(log)
-            else:
-                parser.parse_platform(sys)
-        elif isinstance(parser, GoldshellParser):
-            algo = self.client.get_algo_settings()
-            parser.parse_algorithm(algo)
-        elif isinstance(parser, WhatsminerParser):
-            devs = self.client.get_dev_details()
-            parser.parse_subtype(devs)
-            ver = self.client.get_version()
-            parser.parse_version_info(ver)
-        elif isinstance(parser, WhatsminerV3Parser):
-            dev = self.client.get_miner_info()
-            parser.parse_miner_info(dev)
-        elif isinstance(parser, ElphapexParser):
-            parser.parse_system_info(sys)
-            dev = self.client.get_miner_info()
-            parser.parse_platform(dev)
-        return parser.get_target()
-
-    def get_target_data_from_type(self, miner_type: str) -> Dict[str, str]:
-        match miner_type:
-            case "antminer":
-                return self.get_target_info(BitmainParser(self.target_info))
-            case "iceriver":
-                return self.get_target_info(IceriverParser(self.target_info))
-            case "whatsminer":
-                if isinstance(self.client, WhatsminerV3Client):
-                    return self.get_target_info(WhatsminerV3Parser(self.target_info))
-                return self.get_target_info(WhatsminerParser(self.target_info))
-            case "volcminer":
-                return self.get_target_info(VolcminerParser(self.target_info))
-            case "goldshell":
-                return self.get_target_info(GoldshellParser(self.target_info))
-            case "sealminer":
-                return self.get_target_info(SealminerParser(self.target_info))
-            case "elphapex":
-                return self.get_target_info(ElphapexParser(self.target_info))
-            case "dragonball":
-                return self.get_target_info(DragonballParser(self.target_info))
-            case _:
-                return self.target_info
 
     def close_client(self) -> None:
         if self.client:

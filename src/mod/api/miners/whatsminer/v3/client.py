@@ -3,7 +3,9 @@ import hashlib
 import json
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
+
+from Crypto.Cipher import AES
 
 from mod.api import settings
 from mod.api.errors import APIError
@@ -43,6 +45,15 @@ class WhatsminerV3Client(BaseTCPClient):
         token_info = base64.b64encode(aes_key).decode("utf-8")
         return token_info[:8]
 
+    def _encrypt_param(self, param: str, command: str, ts: int) -> str:
+        src = f"{command}{self.passwd}{self.salt}{ts}"
+        aes_key = hashlib.sha256(src.encode("utf-8")).digest()
+        pad_len = 16 - (len(param) % 16)
+        padded_param = param + (chr(pad_len) * pad_len)
+        cipher = AES.new(aes_key, AES.MODE_ECB)
+        enc_param = cipher.encrypt(padded_param.encode())
+        return base64.b64encode(enc_param).decode()
+
     def create_get_cmd(self, command: str, param: Optional[Any] = None) -> str:
         cmd = json.dumps({"cmd": command, "param": param})
         return cmd
@@ -54,6 +65,16 @@ class WhatsminerV3Client(BaseTCPClient):
         cmd["ts"] = ts
         cmd["token"] = token
         cmd["account"] = self.username
+        if command == "set.miner.pools":
+            ts = int(time.time())
+            cmd.update(
+                {
+                    "ts": ts,
+                    "token": token,
+                    "account": self.username,
+                    "param": self._encrypt_param(json.dumps(param), command, ts),
+                }
+            )
         return json.dumps(cmd)
 
     def run_command(
@@ -77,6 +98,9 @@ class WhatsminerV3Client(BaseTCPClient):
     def get_system_info(self) -> Dict[str, Any]:
         sys_info = self.run_command("get.device.info", "system")
         return sys_info["system"]
+
+    def get_pool_conf(self) -> Dict[str, Any]:
+        return self.get_pools()
 
     def get_pools(self) -> Dict[str, Any]:
         pools = self.run_command("get.miner.status", "pools")
@@ -110,3 +134,30 @@ class WhatsminerV3Client(BaseTCPClient):
                 },
             ]
             self.run_command("set.system.led", param_data, True)
+
+    def update_pools(
+        self, urls: List[str], users: List[str], passwds: List[str]
+    ) -> None:
+        if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
+            self._close_client(APIError("API Error: Invalid number of argurments."))
+
+        param_data = [
+            {
+                "pool": urls[0],
+                "worker": users[0],
+                "passwd": passwds[0],
+            },
+            {
+                "pool": urls[1],
+                "worker": users[1],
+                "passwd": passwds[1],
+            },
+            {
+                "pool": urls[2],
+                "worker": users[2],
+                "passwd": passwds[2],
+            },
+        ]
+        res = self.run_command("set.miner.pools", param_data, True)
+        if "code" in res and res["code"] != 0:
+            self._close_client(APIError(res["msg"]))

@@ -21,6 +21,8 @@ class IPR_Menubar(QMenuBar):
         self.menuOptions.setToolTipsVisible(True)
         self.menuTable = self.addMenu("ID Table")
         self.menuTable.setToolTipsVisible(True)
+        self.menuPools = self.addMenu("Pools")
+        self.menuPools.setToolTipsVisible(True)
         self.menuSettings = self.addMenu("Settings")
         self.menuSettings.setToolTipsVisible(True)
         self.menuQuit = self.addMenu("Quit")
@@ -85,6 +87,28 @@ class IPR_Menubar(QMenuBar):
         self.actionExport = self.menuTable.addAction("Export")
         self.actionExport.setEnabled(False)
         self.actionExport.setToolTip("Export current table as .CSV file")
+
+        # pools
+        self.actionShowPoolConfigurator = self.menuPools.addAction(
+            "Show Pool Configurator"
+        )
+        self.actionShowPoolConfigurator.setEnabled(False)
+        self.actionShowPoolConfigurator.setCheckable(True)
+        self.actionShowPoolConfigurator.setToolTip(
+            "Get, store, and apply pool configurations"
+        )
+        self.actionGetMinerPoolConfig = self.menuPools.addAction(
+            "Get Miner Pool Config"
+        )
+        self.actionGetMinerPoolConfig.setEnabled(False)
+        self.actionGetMinerPoolConfig.setToolTip("Retrieve miner pool configuration")
+        self.actionSetPoolFromPreset = self.menuPools.addAction(
+            "Set Pool From Current Preset"
+        )
+        self.actionSetPoolFromPreset.setEnabled(False)
+        self.actionSetPoolFromPreset.setToolTip(
+            "Set pool from current preset to selected miners"
+        )
 
         # settings
         self.actionSettings = self.menuSettings.addAction("Settings...")
