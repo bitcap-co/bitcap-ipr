@@ -852,7 +852,11 @@ class IPR(QMainWindow, Ui_MainWindow):
                         type = "dragonball"
                         self.api_client.close_client()
                         break
-            if type not in enabled_common_filter:
+            # workaround: check all listeners to accept unknown types
+            if (
+                type not in enabled_common_filter
+                and not self.groupListeners.isChecked()
+            ):
                 logger.warning(
                     f"process_result : recieved miner type {type} outside of filter: {enabled_common_filter}. Ignoring..."
                 )
@@ -861,8 +865,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                     8000,
                 )
                 return
-            if type == "bitmain-common":
-                type = "Failed"
+            elif type == "bitmain-common":
+                type = "Unknown"
         # get missing mac addr
         match type:
             case "iceriver":
