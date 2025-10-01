@@ -824,8 +824,8 @@ If not available, will append last of serial number or MAC address.</string>
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>459</width>
-                       <height>421</height>
+                       <width>472</width>
+                       <height>408</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -1238,8 +1238,8 @@ If not available, will append last of serial number or MAC address.</string>
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>368</width>
-                       <height>704</height>
+                       <width>361</width>
+                       <height>660</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_13">
