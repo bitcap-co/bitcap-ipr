@@ -57,6 +57,24 @@ QGroupBox::title:disabled {
   color: #828282;
 }
 
+QGroupBox::indicator {
+  margin-left: 2px;
+  margin-top: 4px;
+  padding: 0;
+  height: 14px;
+  width: 14px;
+}
+
+QGroupBox::indicator:unchecked {
+  background-color: #151d28;
+  border: 1px solid #434343;
+}
+
+QGroupBox::indicator:checked {
+  background-color: #92beff;
+  border: 1px solid #434343;
+}
+
 /* sub group boxes */
 QGroupBox QGroupBox {
     border: 1px solid #383e46;
@@ -336,7 +354,8 @@ QLineEdit {
 }
 
 QLineEdit#lineIPField,
-QLineEdit#lineMACField {
+QLineEdit#lineMACField,
+QLineEdit#lineASICField {
   background-color: #6b7076;
   padding-top: 2px;
   /* This QLineEdit fix  103, 111 */

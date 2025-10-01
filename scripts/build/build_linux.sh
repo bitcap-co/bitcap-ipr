@@ -28,17 +28,19 @@ shift $(( OPTIND - 1 ))
 
 [[ -z "$VERSION" ]] && echo "ERROR: Supply version string." && exit 1
 
+[ -e dist ] && rm -rf dist
 python3 -m nuitka src/main.py --assume-yes-for-downloads --standalone --output-file=BitCapIPR --output-dir=dist/BitCapIPR
 
 mv dist/BitCapIPR/main.dist dist/BitCapIPR/ipr
 cp README.md dist/BitCapIPR
 cp CONFIGURATION.md dist/BitCapIPR
-zip -r "dist/$PNAME-$VERSION-${OS,,}-$PLATFORM-portable.zip" dist/BitCapIPR
-rm dist/BitCapIPR/README.md dist/BitCapIPR/CONFIGURATION.md
+cd dist/BitCapIPR
+ln -s ipr/BitCapIPR BitCapIPR
+zip -r --symlinks "$PNAME-$VERSION-${OS,,}-$PLATFORM-portable.zip" .
+rm README.md CONFIGURATION.md BitCapIPR
 
 [[ ARCHIVE -eq 1 ]] && exit 1;
 
-[ -e package ] && rm -rf package
 mkdir -p package/DEBIAN
 mkdir -p package/opt
 mkdir -p package/usr/share/applications
@@ -52,13 +54,13 @@ echo "Architecture: amd64" >> package/DEBIAN/control
 echo "Homepage: https://github.com/bitcap-co/bitcap-ipr" >> package/DEBIAN/control
 echo "Description: cross-platform IP reporter that listens for Antminers, IceRivers, and Whatsminers." >> package/DEBIAN/control
 
-cp -r dist/BitCapIPR package/opt/
-cp resources/app/icons/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png package/usr/share/icons/hicolor/128x128/apps/
-cp resources/linux/ipr.desktop package/usr/share/applications/
+cp -r ipr package/opt/
+cp ../../resources/app/icons/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png package/usr/share/icons/hicolor/128x128/apps/
+cp ../../resources/linux/ipr.desktop package/usr/share/applications/
 
-find package/opt/BitCapIPR -type f -exec chmod 644 -- {} +
-find package/opt/BitCapIPR -type d -exec chmod 755 -- {} +
+find package/opt/ipr -type f -exec chmod 644 -- {} +
+find package/opt/ipr -type d -exec chmod 755 -- {} +
 find package/usr/share -type f -exec chmod 644 -- {} +
-chmod +x package/opt/BitCapIPR/ipr/BitCapIPR
+chmod +x package/opt/ipr/BitCapIPR
 
-dpkg-deb --build --root-owner-group package "dist/$PNAME-$VERSION-${OS,,}-$PLATFORM.deb"
+dpkg-deb --build --root-owner-group package "$PNAME-$VERSION-${OS,,}-$PLATFORM.deb"

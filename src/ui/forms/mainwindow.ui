@@ -829,6 +829,9 @@ If not available, will append last of serial number or MAC address.</string>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_19">
+                      <property name="spacing">
+                       <number>15</number>
+                      </property>
                       <item>
                        <widget class="QGroupBox" name="groupSystemTray">
                         <property name="title">
@@ -1022,8 +1025,17 @@ If not available, will append last of serial number or MAC address.</string>
                       </item>
                       <item>
                        <widget class="QGroupBox" name="groupListeners">
+                        <property name="toolTip">
+                         <string>Check to toggle all listeners.</string>
+                        </property>
                         <property name="title">
                          <string>Listener Configuraion</string>
+                        </property>
+                        <property name="checkable">
+                         <bool>true</bool>
+                        </property>
+                        <property name="checked">
+                         <bool>false</bool>
                         </property>
                         <layout class="QVBoxLayout" name="verticalLayout_11">
                          <item>
@@ -1231,17 +1243,8 @@ If not available, will append last of serial number or MAC address.</string>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_13">
-                      <property name="leftMargin">
-                       <number>9</number>
-                      </property>
-                      <property name="topMargin">
-                       <number>9</number>
-                      </property>
-                      <property name="rightMargin">
-                       <number>9</number>
-                      </property>
-                      <property name="bottomMargin">
-                       <number>9</number>
+                      <property name="spacing">
+                       <number>15</number>
                       </property>
                       <item>
                        <widget class="QGroupBox" name="groupAPISettings">

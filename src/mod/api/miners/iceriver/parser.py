@@ -14,10 +14,12 @@ class IceriverParser(Parser):
         if "model" in obj:
             if obj["model"] == "none":
                 if "softver1" in obj:
-                    model = "".join(obj["softver1"].split("_")[-2:])
-                    self.target["subtype"] = model[
-                        model.rfind("ks") : model.rfind("miner")
-                    ].upper()
+                    slug: str = obj["softver1"]
+                    model_name = slug.split("_")[-2]
+                    if model_name == "10306":
+                        self.target["subtype"] = "AL3"
+                    else:
+                        self.target["subtype"] = model_name.upper()
             else:
                 self.target["subtype"] = obj["model"]
 
@@ -25,6 +27,11 @@ class IceriverParser(Parser):
         if "algo" in obj:
             if not obj["algo"] == "none":
                 self.target["algorithm"] = obj["algo"]
+            else:
+                if self.target["subtype"] == "AL3":
+                    self.target["algorithm"] = "blake3"
+                elif self.target["subtype"].__contains__("KS"):
+                    self.target["algorithm"] = "kHeavyHash"
 
     def parse_firmware(self, obj: Dict[str, Any]) -> None:
         if "softver1" in obj:

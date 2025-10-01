@@ -40,23 +40,20 @@ from PySide6.QtWidgets import (
 import ui.resources  # noqa F401
 from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
-
-from ui.MainWindow import Ui_MainWindow
-from ui.widgets.ipr import IPR_Titlebar, IPR_Menubar
-
 from mod.api import settings as api_settings
 from mod.api.client import APIClient
 from mod.lm.listenermanager import ListenerManager
-
+from ui.MainWindow import Ui_MainWindow
+from ui.widgets.ipr import IPR_Menubar, IPR_Titlebar
 from utils import (
     APP_INFO,
     CURR_PLATFORM,
     get_config_file_path,
     get_default_config,
     get_log_dir,
+    get_miner_url,
     read_config,
     write_config,
-    get_miner_url,
 )
 
 logger = logging.getLogger(__name__)
@@ -135,6 +132,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.labelLogo.setPixmap(QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg"))
 
         # listener config
+        for child in self.groupListeners.children():
+            if isinstance(child, QWidget):
+                child.setEnabled(True)
+        self.groupListeners.toggled.connect(self.toggle_all_listeners)
+
         self.listenerConfig = QButtonGroup(exclusive=False)
         self.listenerConfig.addButton(self.checkListenAntminer, 1)
         self.listenerConfig.addButton(self.checkListenIceRiver, 2)
@@ -186,8 +188,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.idTable.setColumnWidth(2, 120)
         self.idTable.setColumnWidth(3, 135)
         self.idTable.setColumnWidth(5, 130)
-        self.idTable.setColumnWidth(7, 250)
-        self.idTable.setColumnWidth(8, 180)
+        self.idTable.setColumnWidth(7, 385)
+        self.idTable.setColumnWidth(8, 300)
         self.idTable.setColumnWidth(9, 180)
         self.idTable.doubleClicked.connect(self.double_click_item)
         self.idTable.cellClicked.connect(self.locate_miner)
@@ -667,6 +669,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionSetPoolFromPreset.setEnabled(enabled)
         self.toggle_pool_config(enabled)
 
+    def toggle_all_listeners(self, enabled: bool):
+        for button in self.listenerConfig.buttons():
+            button.setChecked(enabled)
+        if not enabled:
+            for child in self.groupListeners.children():
+                if isinstance(child, QWidget):
+                    child.setEnabled(True)
+
     # actions
     def create_passwd_toggle_action(self, line: QLineEdit) -> QAction:
         passwd_action = line.addAction(
@@ -686,23 +696,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         elif line.echoMode() == QLineEdit.EchoMode.Normal:
             line.setEchoMode(QLineEdit.EchoMode.Password)
             action.setIcon(QIcon(":theme/icons/rc/view.png"))
-
-    def create_copy_text_action(self, line: QLineEdit) -> QAction:
-        copy_action = line.addAction(
-            QIcon(":theme/icons/rc/copy.png"),
-            QLineEdit.ActionPosition.TrailingPosition,
-        )
-        copy_action.triggered.connect(lambda: self.copy_text(line))
-        return copy_action
-
-    def copy_text(self, line: QLineEdit):
-        line.selectAll()
-        text = line.text()
-        if line.objectName() == "lineIPField":
-            text = f"http://{line.text()}"
-        cb = QApplication.clipboard()
-        cb.clear(mode=cb.Mode.Clipboard)
-        cb.setText(text.strip(), mode=cb.Mode.Clipboard)
 
     def about(self):
         self.aboutDialog = IPRAbout(
@@ -1034,7 +1027,11 @@ class IPR(QMainWindow, Ui_MainWindow):
                         type = "dragonball"
                         self.api_client.close_client()
                         break
-            if type not in enabled_common_filter:
+            # workaround: check all listeners to accept unknown types
+            if (
+                type not in enabled_common_filter
+                and not self.groupListeners.isChecked()
+            ):
                 logger.warning(
                     f"process_result : recieved miner type {type} outside of filter: {enabled_common_filter}. Ignoring..."
                 )
@@ -1043,8 +1040,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                     8000,
                 )
                 return
-            if type == "bitmain-common":
-                type = "Failed"
+            elif type == "bitmain-common":
+                type = "Unknown"
         # get missing mac addr
         match type:
             case "iceriver":
@@ -1083,18 +1080,15 @@ class IPR(QMainWindow, Ui_MainWindow):
         else:
             confirm = IPRConfirmation()
             # IPRConfirmation Signals
-            confirm.actionOpenBrowser.clicked.connect(lambda: self.open_dashboard(url))
             confirm.accept.clicked.connect(confirm.hide)
-            # copy action
-            confirm.lineIPField.actionCopy = self.create_copy_text_action(
-                confirm.lineIPField
+            confirm.lineIPField.actionDashboard.triggered.connect(
+                lambda: self.open_dashboard(url)
             )
-            confirm.lineMACField.actionCopy = self.create_copy_text_action(
-                confirm.lineMACField
-            )
+
             logger.info("show_confirmation : show IPRConfirmation.")
             confirm.lineIPField.setText(ip)
             confirm.lineMACField.setText(mac)
+            confirm.lineASICField.setText(type)
             self.confirms.append(confirm)
             if self.sys_tray and not self.isVisible():
                 if self.sys_tray.isSignalConnected(

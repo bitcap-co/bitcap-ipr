@@ -1,6 +1,6 @@
 [project]
 name = "bitcap-ipr"
-version = "1.2.7"
+version = "1.2.8"
 description = ""
 authors = [{ name = "MatthewWertman", email = "matthewwertman57@gmail.com" }]
 license = { text = "GPL-3.0-only" }

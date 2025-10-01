@@ -6,7 +6,9 @@ import zlib
 
 from PySide6.QtNetwork import QNetworkDatagram
 
-reg_ip = r"((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?){4}"
+reg_ip = (
+    r"((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.)){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)"
+)
 reg_mac = r"([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})"
 msg_patterns = {
     "common": re.compile(f"^{reg_ip},{reg_mac}"),
@@ -66,7 +68,7 @@ class IPReportDatagram:
         data = self.data[data_start:]
         try:
             out = zlib.decompress(data)
-        except zlib.errror as e:
+        except zlib.error as e:
             raise e
         # fix data to valid json
         out = out.replace(b"\x00", b"")
@@ -101,7 +103,14 @@ class IPReportDatagram:
             if self.is_msg_compressed:
                 self.__decompress_data_from_type()
             else:
-                self.msg = self.data.decode().rstrip("\x00")
+                try:
+                    self.msg = self.data.decode().rstrip("\x00")
+                except UnicodeDecodeError:
+                    logger.debug(self.data)
+                    logger.warning(
+                        f"{self.miner_type}[{self.src_addr}] : failed to decode datagram. Possibly intercepted from another source."
+                    )
+                    return
 
             match self.miner_type:
                 case "bitmain-common":

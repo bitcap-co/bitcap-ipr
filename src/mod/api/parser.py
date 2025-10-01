@@ -36,15 +36,12 @@ class Parser(ABC):
 
     @abstractmethod
     def parse_system_info(self, obj: Dict[str, Any]) -> None:
-        pass
-
-    @abstractmethod
-    def parse_pools(self, obj: Dict[str, Any]) -> None:
-        pass
-
-    def parse_all(self, obj: Dict[str, Any]) -> None:
         self.parse_serial(obj)
         self.parse_subtype(obj)
         self.parse_algorithm(obj)
         self.parse_firmware(obj)
         self.parse_platform(obj)
+
+    @abstractmethod
+    def parse_pools(self, obj: Dict[str, Any]) -> None:
+        pass

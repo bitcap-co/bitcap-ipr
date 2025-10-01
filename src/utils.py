@@ -9,7 +9,7 @@ from PySide6.QtCore import __version__ as QT_VERSION
 APP_INFO = {
     "name": "BitCap IPReporter",
     "appname": "BitCapIPR",
-    "appversion": "1.2.7",
+    "appversion": "1.2.8",
     "qt": QT_VERSION,
     "python": ".".join(map(str, sys.version_info[:3])),
     "appauthor": "BitCap",
@@ -82,6 +82,7 @@ def flush_log():
     with open(get_log_file_path(), "r+") as f:
         f.truncate(0)
         f.seek(0)
+
 
 def get_miner_url(ip_addr: str, miner_type: str) -> str:
     port = 80
