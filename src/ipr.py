@@ -44,7 +44,7 @@ from mod.api import settings as api_settings
 from mod.api.client import APIClient
 from mod.lm.listenermanager import ListenerManager
 from ui.MainWindow import Ui_MainWindow
-from ui.widgets.ipr import IPR_Menubar, IPR_Titlebar
+from ui.widgets.ipr import IPR_Menubar, IPR_Titlebar, IPTableWidgetItem
 from utils import (
     APP_INFO,
     CURR_PLATFORM,
@@ -193,7 +193,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.idTable.setColumnWidth(9, 180)
         self.idTable.doubleClicked.connect(self.double_click_item)
         self.idTable.cellClicked.connect(self.locate_miner)
-
+        self.idTable.setSortingEnabled(True)
+        self.header = self.idTable.horizontalHeader()
+        self.header.sectionDoubleClicked.connect(self.select_column)
         # read-only spinboxes
         self.spinLocateDuration.lineEdit().setReadOnly(True)
         self.spinInactiveTimeout.lineEdit().setReadOnly(True)
@@ -822,6 +824,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         cb.setText(out.strip(), mode=cb.Mode.Clipboard)
         self.iprStatus.showMessage("Status :: Copied elements to clipboard.", 3000)
 
+    def select_column(self, section: int):
+        rows = self.idTable.rowCount()
+        if not rows:
+            return
+        for row in range(rows):
+            item = self.idTable.item(row, section)
+            item.setSelected(True)
+
     def import_table(self):
         logger.info("import table.")
         table_file, _ = QFileDialog.getOpenFileName(
@@ -1187,7 +1197,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         actionLocateMiner.setPixmap(QPixmap(":theme/icons/rc/flash.png"))
         actionLocateMiner.setToolTip("Locate Miner")
         self.idTable.setCellWidget(rowPosition, 0, actionLocateMiner)
-        self.idTable.setItem(rowPosition, 1, QTableWidgetItem(self.result["ip"]))
+        self.idTable.setItem(rowPosition, 1, IPTableWidgetItem(self.result["ip"]))
         self.idTable.setItem(rowPosition, 2, QTableWidgetItem(self.result["mac"]))
         self.idTable.setItem(rowPosition, 3, QTableWidgetItem(self.result["serial"]))
         # ASIC TYPE
