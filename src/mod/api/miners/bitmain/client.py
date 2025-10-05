@@ -162,11 +162,16 @@ class BitmainHTTPClient(BaseHTTPClient):
         if self.is_custom and not self.is_unlocked:
             self.unlock_vnish_session()
         pool_conf = self.run_command("GET", "pools")
-        if self.is_custom:
-            pools = pool_conf["miner"]["pools"]
+
+        try:
+            if self.is_custom:
+                pools = pool_conf["miner"]["pools"]
+            else:
+                pools = pool_conf["POOLS"]
+        except KeyError:
+            return {}
         else:
-            pools = pool_conf["POOLS"]
-        return pools
+            return pools
 
     def get_blink_status(self) -> bool:
         resp = self.run_command("GET", "get_blink_status")
