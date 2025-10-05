@@ -823,9 +823,9 @@ If not available, will append last of serial number or MAC address.</string>
                      <property name="geometry">
                       <rect>
                        <x>0</x>
-                       <y>0</y>
-                       <width>472</width>
-                       <height>408</height>
+                       <y>-225</y>
+                       <width>477</width>
+                       <height>439</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -1186,22 +1186,6 @@ If not available, will append last of serial number or MAC address.</string>
                               </property>
                              </widget>
                             </item>
-                            <item row="1" column="1">
-                             <widget class="QCheckBox" name="checkListenDragonball">
-                              <property name="maximumSize">
-                               <size>
-                                <width>100</width>
-                                <height>30</height>
-                               </size>
-                              </property>
-                              <property name="toolTip">
-                               <string>Enable listening for Dragonball miners</string>
-                              </property>
-                              <property name="text">
-                               <string>Dragonball</string>
-                              </property>
-                             </widget>
-                            </item>
                            </layout>
                           </widget>
                          </item>
@@ -1238,8 +1222,8 @@ If not available, will append last of serial number or MAC address.</string>
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>361</width>
-                       <height>660</height>
+                       <width>368</width>
+                       <height>722</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_13">

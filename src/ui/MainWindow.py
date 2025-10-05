@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.9.3
+## Created by: Qt User Interface Compiler version 6.9.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -398,7 +398,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 472, 408))
+        self.scrollGeneral.setGeometry(QRect(0, -225, 477, 439))
         self.verticalLayout_19 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_19.setSpacing(15)
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
@@ -555,12 +555,6 @@ class Ui_MainWindow(object):
 
         self.gridLayout.addWidget(self.checkListenSealminer, 0, 2, 1, 1)
 
-        self.checkListenDragonball = QCheckBox(self.groupAdditional)
-        self.checkListenDragonball.setObjectName(u"checkListenDragonball")
-        self.checkListenDragonball.setMaximumSize(QSize(100, 30))
-
-        self.gridLayout.addWidget(self.checkListenDragonball, 1, 1, 1, 1)
-
         self.gridLayout.setRowMinimumHeight(0, 30)
         self.gridLayout.setRowMinimumHeight(1, 30)
 
@@ -585,7 +579,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 361, 660))
+        self.scrollAPI.setGeometry(QRect(0, 0, 368, 722))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_13.setSpacing(15)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
@@ -1181,10 +1175,6 @@ class Ui_MainWindow(object):
         self.checkListenSealminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Sealminers", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenSealminer.setText(QCoreApplication.translate("MainWindow", u"Sealminer", None))
-#if QT_CONFIG(tooltip)
-        self.checkListenDragonball.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Dragonball miners", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkListenDragonball.setText(QCoreApplication.translate("MainWindow", u"Dragonball", None))
         self.configTabs.setTabText(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
 #if QT_CONFIG(tooltip)
         self.configTabs.setTabToolTip(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))

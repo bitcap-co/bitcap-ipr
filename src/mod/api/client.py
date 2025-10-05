@@ -15,7 +15,6 @@ from mod.api.errors import (
 from mod.api.parser import Parser
 
 from .miners.bitmain import BitmainHTTPClient, BitmainParser
-from .miners.dragonball import DragonballHTTPClient, DragonballParser
 from .miners.elphapex import ElphapexHTTPClient, ElphapexParser
 from .miners.goldshell import GoldshellHTTPClient, GoldshellParser
 from .miners.iceriver import IceriverHTTPClient, IceriverParser
@@ -119,14 +118,6 @@ class APIClient:
         except (FailedConnectionError, AuthenticationError) as err:
             logger.error(err)
 
-    def create_dragonball_client(
-        self, ip_addr: str, passwd: Optional[str] = None
-    ) -> None:
-        try:
-            self.client = DragonballHTTPClient(ip_addr, passwd)
-        except (FailedConnectionError, AuthenticationError) as err:
-            logger.error(err)
-
     def create_client_from_type(
         self,
         miner_type: str,
@@ -150,8 +141,6 @@ class APIClient:
                 self.create_sealminer_client(ip_addr, auth)
             case "elphapex":
                 self.create_elphapex_client(ip_addr, auth)
-            case "dragonball":
-                self.create_dragonball_client(ip_addr, auth)
             case _:
                 return
 
@@ -204,8 +193,6 @@ class APIClient:
             dev = self.client.get_miner_info()
             parser.parse_platform(dev)
             parser.parse_pools(pools)
-        elif isinstance(parser, DragonballParser):
-            parser.parse_system_info(sys)
         return parser.get_target()
 
     def get_target_data_from_type(self, miner_type: str) -> Dict[str, str]:
@@ -226,8 +213,6 @@ class APIClient:
                 return self.get_target_info(SealminerParser(self.target_info))
             case "elphapex":
                 return self.get_target_info(ElphapexParser(self.target_info))
-            case "dragonball":
-                return self.get_target_info(DragonballParser(self.target_info))
             case _:
                 return self.target_info
 
@@ -289,12 +274,6 @@ class APIClient:
                             urls.append(pool_conf[i]["url"])
                             users.append(pool_conf[i]["user"])
                             passwds.append(pool_conf[i]["pass"])
-                    case "dragonball":
-                        for pool in pool_conf:
-                            url, user, passwd = pool.split("|")
-                            urls.append(url)
-                            users.append(user)
-                            passwds.append(passwd)
                 while len(urls) < 3:
                     urls.append("")
                     users.append("")
@@ -340,12 +319,6 @@ class APIClient:
     def is_volcminer(self) -> bool:
         miner_type = self.get_common_miner_type()
         if miner_type and miner_type.__contains__("volcminer"):
-            return True
-        return False
-
-    def is_dragonball(self) -> bool:
-        miner_type = self.get_common_miner_type()
-        if miner_type and miner_type == "miner":
             return True
         return False
 

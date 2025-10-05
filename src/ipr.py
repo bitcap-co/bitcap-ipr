@@ -51,7 +51,6 @@ from utils import (
     get_config_file_path,
     get_default_config,
     get_log_dir,
-    get_miner_url,
     read_config,
     write_config,
 )
@@ -145,7 +144,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.listenerConfig.addButton(self.checkListenGoldshell, 5)
         self.listenerConfig.addButton(self.checkListenSealminer, 6)
         self.listenerConfig.addButton(self.checkListenElphapex, 7)
-        self.listenerConfig.addButton(self.checkListenDragonball, 8)
         self.listenerConfig.buttonClicked.connect(self.restart_listen)
         # listener signals
         self.actionIPRStart.clicked.connect(self.start_listen)
@@ -381,9 +379,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.checkListenElphapex.setChecked(
                 self.config["general"]["listenFor"]["additional"]["elphapex"]
             )
-            self.checkListenDragonball.setChecked(
-                self.config["general"]["listenFor"]["additional"]["dragonball"]
-            )
 
             # api
             self.lineBitmainPasswd.setText(
@@ -500,7 +495,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                         "goldshell": self.checkListenGoldshell.isChecked(),
                         "sealminer": self.checkListenSealminer.isChecked(),
                         "elphapex": self.checkListenElphapex.isChecked(),
-                        "dragonball": self.checkListenDragonball.isChecked(),
                     },
                 },
             },
@@ -719,8 +713,8 @@ class IPR(QMainWindow, Ui_MainWindow):
     def open_source(self):
         webbrowser.open(f"{APP_INFO['source']}", new=2)
 
-    def open_dashboard(self, url: str):
-        webbrowser.open(url, new=2)
+    def open_dashboard(self, host: str):
+        webbrowser.open(f"http://{host}", new=2)
 
     def show_table_context(self):
         self.table_context = QMenu()
@@ -770,9 +764,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         item = self.idTable.itemFromIndex(model_index)
         match item.column():
             case 1:  # ip column
-                miner_type = self.idTable.item(item.row(), 4).text()
-                url = get_miner_url(item.text(), miner_type)
-                self.open_dashboard(url)
+                self.open_dashboard(item.text())
             case 3:  # serial column
                 self.idTable.editItem(item)
             case _:
@@ -785,9 +777,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         selected_ips = [x for x in self.idTable.selectedIndexes() if x.column() == 1]
         for index in selected_ips:
             item = self.idTable.itemFromIndex(index)
-            miner_type = self.idTable.item(item.row(), 4).text()
-            url = get_miner_url(item.text(), miner_type)
-            self.open_dashboard(url)
+            self.open_dashboard(item.text())
 
     def copy_selected(self):
         logger.info(" copy selected elements.")
@@ -807,13 +797,11 @@ class IPR(QMainWindow, Ui_MainWindow):
                 if not self.idTable.itemFromIndex(selected_indexes_in_row[index]):
                     continue
                 item = self.idTable.itemFromIndex(selected_indexes_in_row[index])
-                miner_type = self.idTable.item(item.row(), 4).text()
                 match item.column():
                     case 0:  # ignore locate
                         continue
                     case 1:  # ip
-                        url = get_miner_url(item.text(), miner_type)
-                        out += f"{url}{sep}"
+                        out += f"http://{item.text()}{sep}"
                     case _:
                         out += f"{item.text()}{sep}"
                 continue
@@ -994,7 +982,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             bitmain_common_miners = [
                 self.checkListenAntminer,
                 self.checkListenVolcminer,
-                self.checkListenDragonball,
             ]
             enabled_common_filter = [
                 btn.text().lower() for btn in bitmain_common_miners if btn.isChecked()
@@ -1025,16 +1012,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                         ):
                             continue
                         type = "volcminer"
-                        self.api_client.close_client()
-                        break
-                    case "dragonball":
-                        self.api_client.create_dragonball_client(ip, None)
-                        if (
-                            not self.api_client.client
-                            or not self.api_client.is_dragonball()
-                        ):
-                            continue
-                        type = "dragonball"
                         self.api_client.close_client()
                         break
             # workaround: check all listeners to accept unknown types
@@ -1081,9 +1058,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         ip = self.result["ip"]
         mac = self.result["mac"]
         type = self.result["type"]
-        url = get_miner_url(ip, type)
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
-            self.open_dashboard(url)
+            self.open_dashboard(ip)
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
             logger.info("show_confirmation : populate ID table.")
             self.populate_id_table()
@@ -1092,7 +1068,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             # IPRConfirmation Signals
             confirm.accept.clicked.connect(confirm.hide)
             confirm.lineIPField.actionDashboard.triggered.connect(
-                lambda: self.open_dashboard(url)
+                lambda: self.open_dashboard(ip)
             )
 
             logger.info("show_confirmation : show IPRConfirmation.")
@@ -1230,11 +1206,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                     # client_auth = self.lineVolcminerPasswd.text()
                     return self.iprStatus.showMessage(
                         "Status :: Failed to locate miner: VolcMiner is currently not supported.",
-                        5000,
-                    )
-                case "dragonball":
-                    return self.iprStatus.showMessage(
-                        "Status :: Failed to locate miner: Dragonball is currently not supported.",
                         5000,
                     )
             client_auth, custom_auth = self.get_client_auth_from_type(miner_type)

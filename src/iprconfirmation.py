@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QApplication, QLineEdit, QWidget
 
 from ui.Confirmation import Ui_IPRConfirmation
 from ui.widgets.ipr import IPR_Titlebar
-from utils import CURR_PLATFORM, get_miner_url
+from utils import CURR_PLATFORM
 
 
 class IPRConfirmation(QWidget, Ui_IPRConfirmation):
@@ -57,7 +57,7 @@ class IPRConfirmation(QWidget, Ui_IPRConfirmation):
         line.selectAll()
         text = line.text()
         if line.objectName() == "lineIPField":
-            text = get_miner_url(text, self.lineASICField.text())
+            text = f"http://{line.text()}"
         cb = QApplication.clipboard()
         cb.clear(mode=cb.Mode.Clipboard)
         cb.setText(text.strip(), mode=cb.Mode.Clipboard)

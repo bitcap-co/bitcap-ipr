@@ -84,9 +84,9 @@ def flush_log():
         f.seek(0)
 
 
-def get_miner_url(ip_addr: str, miner_type: str) -> str:
-    port = 80
-    match miner_type:
-        case "dragonball":
-            port = 16666
-    return f"http://{ip_addr}:{port}/"
+# def get_miner_url(ip_addr: str, miner_type: str) -> str:
+#     port = 80
+#     match miner_type:
+#         case "dragonball":
+#             port = 16666
+#     return f"http://{ip_addr}:{port}/"

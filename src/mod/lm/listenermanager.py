@@ -39,7 +39,7 @@ class ListenerManager(QObject):
     def start_listeners(self, conf: QButtonGroup):
         for listenFor in conf.buttons():
             match conf.id(listenFor):
-                case 1 | 4 | 8:  # antminer | volcminer / dragonball
+                case 1 | 4:  # antminer | volcminer
                     if listenFor.isChecked():
                         self.append_listener(14235)
                 case 2:  # iceriver
