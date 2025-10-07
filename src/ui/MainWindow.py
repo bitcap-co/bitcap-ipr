@@ -1098,7 +1098,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"BitCap IPReporter", None))
         self.label_25.setText(QCoreApplication.translate("MainWindow", u"Preset:", None))
         self.label_25.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
-        self.comboPoolPreset.setItemText(0, QCoreApplication.translate("MainWindow", u"Current", None))
+        self.comboPoolPreset.setItemText(0, QCoreApplication.translate("MainWindow", u"Current Buffer", None))
         self.comboPoolPreset.setItemText(1, QCoreApplication.translate("MainWindow", u"Saved Pool 1", None))
         self.comboPoolPreset.setItemText(2, QCoreApplication.translate("MainWindow", u"Saved Pool 2", None))
         self.comboPoolPreset.setItemText(3, QCoreApplication.translate("MainWindow", u"Saved Pool 3", None))

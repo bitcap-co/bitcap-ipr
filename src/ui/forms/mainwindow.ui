@@ -241,7 +241,7 @@
                   </property>
                   <item>
                    <property name="text">
-                    <string>Current</string>
+                    <string>Current Buffer</string>
                    </property>
                   </item>
                   <item>
