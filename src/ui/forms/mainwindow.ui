@@ -350,8 +350,14 @@ Uses last 5 of SN or MAC address.</string>
                  <widget class="QLineEdit" name="linePoolURL">
                   <property name="minimumSize">
                    <size>
-                    <width>140</width>
-                    <height>0</height>
+                    <width>130</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>415</width>
+                    <height>25</height>
                    </size>
                   </property>
                  </widget>
@@ -370,8 +376,14 @@ Uses last 5 of SN or MAC address.</string>
                  <widget class="QLineEdit" name="linePoolUser">
                   <property name="minimumSize">
                    <size>
-                    <width>140</width>
-                    <height>0</height>
+                    <width>130</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>415</width>
+                    <height>25</height>
                    </size>
                   </property>
                  </widget>
@@ -388,10 +400,16 @@ Uses last 5 of SN or MAC address.</string>
                 </item>
                 <item>
                  <widget class="QLineEdit" name="linePoolPasswd">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>25</height>
+                   </size>
+                  </property>
                   <property name="maximumSize">
                    <size>
                     <width>150</width>
-                    <height>16777215</height>
+                    <height>25</height>
                    </size>
                   </property>
                   <property name="echoMode">
@@ -425,8 +443,14 @@ Uses last 5 of SN or MAC address.</string>
                  <widget class="QLineEdit" name="linePoolURL_2">
                   <property name="minimumSize">
                    <size>
-                    <width>140</width>
-                    <height>0</height>
+                    <width>130</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>415</width>
+                    <height>25</height>
                    </size>
                   </property>
                  </widget>
@@ -445,8 +469,14 @@ Uses last 5 of SN or MAC address.</string>
                  <widget class="QLineEdit" name="linePoolUser_2">
                   <property name="minimumSize">
                    <size>
-                    <width>140</width>
-                    <height>0</height>
+                    <width>130</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>415</width>
+                    <height>25</height>
                    </size>
                   </property>
                  </widget>
@@ -463,10 +493,16 @@ Uses last 5 of SN or MAC address.</string>
                 </item>
                 <item>
                  <widget class="QLineEdit" name="linePoolPasswd_2">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>25</height>
+                   </size>
+                  </property>
                   <property name="maximumSize">
                    <size>
                     <width>150</width>
-                    <height>16777215</height>
+                    <height>25</height>
                    </size>
                   </property>
                   <property name="echoMode">
@@ -500,8 +536,14 @@ Uses last 5 of SN or MAC address.</string>
                  <widget class="QLineEdit" name="linePoolURL_3">
                   <property name="minimumSize">
                    <size>
-                    <width>140</width>
+                    <width>130</width>
                     <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>415</width>
+                    <height>16777215</height>
                    </size>
                   </property>
                  </widget>
@@ -520,8 +562,14 @@ Uses last 5 of SN or MAC address.</string>
                  <widget class="QLineEdit" name="linePoolUser_3">
                   <property name="minimumSize">
                    <size>
-                    <width>140</width>
-                    <height>0</height>
+                    <width>130</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>415</width>
+                    <height>25</height>
                    </size>
                   </property>
                  </widget>
@@ -538,10 +586,16 @@ Uses last 5 of SN or MAC address.</string>
                 </item>
                 <item>
                  <widget class="QLineEdit" name="linePoolPasswd_3">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>25</height>
+                   </size>
+                  </property>
                   <property name="maximumSize">
                    <size>
                     <width>150</width>
-                    <height>16777215</height>
+                    <height>25</height>
                    </size>
                   </property>
                   <property name="echoMode">

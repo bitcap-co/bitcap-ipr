@@ -163,7 +163,8 @@ class Ui_MainWindow(object):
 
         self.linePoolURL = QLineEdit(self.pool1Config)
         self.linePoolURL.setObjectName(u"linePoolURL")
-        self.linePoolURL.setMinimumSize(QSize(140, 0))
+        self.linePoolURL.setMinimumSize(QSize(130, 25))
+        self.linePoolURL.setMaximumSize(QSize(415, 25))
 
         self.horizontalLayout_22.addWidget(self.linePoolURL)
 
@@ -174,7 +175,8 @@ class Ui_MainWindow(object):
 
         self.linePoolUser = QLineEdit(self.pool1Config)
         self.linePoolUser.setObjectName(u"linePoolUser")
-        self.linePoolUser.setMinimumSize(QSize(140, 0))
+        self.linePoolUser.setMinimumSize(QSize(130, 25))
+        self.linePoolUser.setMaximumSize(QSize(415, 25))
 
         self.horizontalLayout_22.addWidget(self.linePoolUser)
 
@@ -185,7 +187,8 @@ class Ui_MainWindow(object):
 
         self.linePoolPasswd = QLineEdit(self.pool1Config)
         self.linePoolPasswd.setObjectName(u"linePoolPasswd")
-        self.linePoolPasswd.setMaximumSize(QSize(150, 16777215))
+        self.linePoolPasswd.setMinimumSize(QSize(0, 25))
+        self.linePoolPasswd.setMaximumSize(QSize(150, 25))
         self.linePoolPasswd.setEchoMode(QLineEdit.EchoMode.Password)
 
         self.horizontalLayout_22.addWidget(self.linePoolPasswd)
@@ -205,7 +208,8 @@ class Ui_MainWindow(object):
 
         self.linePoolURL_2 = QLineEdit(self.pool2Config)
         self.linePoolURL_2.setObjectName(u"linePoolURL_2")
-        self.linePoolURL_2.setMinimumSize(QSize(140, 0))
+        self.linePoolURL_2.setMinimumSize(QSize(130, 25))
+        self.linePoolURL_2.setMaximumSize(QSize(415, 25))
 
         self.horizontalLayout_29.addWidget(self.linePoolURL_2)
 
@@ -216,7 +220,8 @@ class Ui_MainWindow(object):
 
         self.linePoolUser_2 = QLineEdit(self.pool2Config)
         self.linePoolUser_2.setObjectName(u"linePoolUser_2")
-        self.linePoolUser_2.setMinimumSize(QSize(140, 0))
+        self.linePoolUser_2.setMinimumSize(QSize(130, 25))
+        self.linePoolUser_2.setMaximumSize(QSize(415, 25))
 
         self.horizontalLayout_29.addWidget(self.linePoolUser_2)
 
@@ -227,7 +232,8 @@ class Ui_MainWindow(object):
 
         self.linePoolPasswd_2 = QLineEdit(self.pool2Config)
         self.linePoolPasswd_2.setObjectName(u"linePoolPasswd_2")
-        self.linePoolPasswd_2.setMaximumSize(QSize(150, 16777215))
+        self.linePoolPasswd_2.setMinimumSize(QSize(0, 25))
+        self.linePoolPasswd_2.setMaximumSize(QSize(150, 25))
         self.linePoolPasswd_2.setEchoMode(QLineEdit.EchoMode.Password)
 
         self.horizontalLayout_29.addWidget(self.linePoolPasswd_2)
@@ -247,7 +253,8 @@ class Ui_MainWindow(object):
 
         self.linePoolURL_3 = QLineEdit(self.pool3Config)
         self.linePoolURL_3.setObjectName(u"linePoolURL_3")
-        self.linePoolURL_3.setMinimumSize(QSize(140, 0))
+        self.linePoolURL_3.setMinimumSize(QSize(130, 0))
+        self.linePoolURL_3.setMaximumSize(QSize(415, 16777215))
 
         self.horizontalLayout_19.addWidget(self.linePoolURL_3)
 
@@ -258,7 +265,8 @@ class Ui_MainWindow(object):
 
         self.linePoolUser_3 = QLineEdit(self.pool3Config)
         self.linePoolUser_3.setObjectName(u"linePoolUser_3")
-        self.linePoolUser_3.setMinimumSize(QSize(140, 0))
+        self.linePoolUser_3.setMinimumSize(QSize(130, 25))
+        self.linePoolUser_3.setMaximumSize(QSize(415, 25))
 
         self.horizontalLayout_19.addWidget(self.linePoolUser_3)
 
@@ -269,7 +277,8 @@ class Ui_MainWindow(object):
 
         self.linePoolPasswd_3 = QLineEdit(self.pool3Config)
         self.linePoolPasswd_3.setObjectName(u"linePoolPasswd_3")
-        self.linePoolPasswd_3.setMaximumSize(QSize(150, 16777215))
+        self.linePoolPasswd_3.setMinimumSize(QSize(0, 25))
+        self.linePoolPasswd_3.setMaximumSize(QSize(150, 25))
         self.linePoolPasswd_3.setEchoMode(QLineEdit.EchoMode.Password)
 
         self.horizontalLayout_19.addWidget(self.linePoolPasswd_3)
