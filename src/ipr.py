@@ -1270,6 +1270,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             return
         failed: List[str] = []
         selected_ips = [x for x in self.idTable.selectedIndexes() if x.column() == 1]
+        if not len(selected_ips):
+            return
         for index in selected_ips:
             item = self.idTable.itemFromIndex(index)
             ip_addr = item.text()
