@@ -119,7 +119,7 @@ class Ui_MainWindow(object):
         sizePolicy2.setVerticalStretch(0)
         sizePolicy2.setHeightForWidth(self.comboPoolPreset.sizePolicy().hasHeightForWidth())
         self.comboPoolPreset.setSizePolicy(sizePolicy2)
-        self.comboPoolPreset.setMinimumSize(QSize(150, 25))
+        self.comboPoolPreset.setMinimumSize(QSize(135, 25))
         self.comboPoolPreset.setMaximumSize(QSize(250, 25))
         self.comboPoolPreset.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
         self.comboPoolPreset.setEditable(True)
@@ -131,12 +131,12 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_30.addItem(self.horizontalSpacer_8)
 
-        self.checkAppendWorkerNames = QCheckBox(self.presetControl)
-        self.checkAppendWorkerNames.setObjectName(u"checkAppendWorkerNames")
-        self.checkAppendWorkerNames.setMinimumSize(QSize(120, 25))
-        self.checkAppendWorkerNames.setMaximumSize(QSize(120, 25))
+        self.checkAutomaticWorkerNames = QCheckBox(self.presetControl)
+        self.checkAutomaticWorkerNames.setObjectName(u"checkAutomaticWorkerNames")
+        self.checkAutomaticWorkerNames.setMinimumSize(QSize(130, 25))
+        self.checkAutomaticWorkerNames.setMaximumSize(QSize(130, 25))
 
-        self.horizontalLayout_30.addWidget(self.checkAppendWorkerNames)
+        self.horizontalLayout_30.addWidget(self.checkAutomaticWorkerNames)
 
         self.actionIPRClearPreset = QPushButton(self.presetControl)
         self.actionIPRClearPreset.setObjectName(u"actionIPRClearPreset")
@@ -398,7 +398,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, -225, 477, 439))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 461, 462))
         self.verticalLayout_19 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_19.setSpacing(15)
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
@@ -579,7 +579,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 368, 722))
+        self.scrollAPI.setGeometry(QRect(0, 0, 375, 767))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_13.setSpacing(15)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
@@ -1097,10 +1097,10 @@ class Ui_MainWindow(object):
         self.comboPoolPreset.setItemText(5, QCoreApplication.translate("MainWindow", u"Saved Pool 5", None))
 
 #if QT_CONFIG(tooltip)
-        self.checkAppendWorkerNames.setToolTip(QCoreApplication.translate("MainWindow", u"Append the current worker name as suffix.\n"
-"If not available, will append last of serial number or MAC address.", None))
+        self.checkAutomaticWorkerNames.setToolTip(QCoreApplication.translate("MainWindow", u"Automatically append unique worker names.\n"
+"Uses last 5 of SN or MAC address.", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkAppendWorkerNames.setText(QCoreApplication.translate("MainWindow", u"Append Workers", None))
+        self.checkAutomaticWorkerNames.setText(QCoreApplication.translate("MainWindow", u"Auto Set Workers", None))
         self.actionIPRClearPreset.setText(QCoreApplication.translate("MainWindow", u"Clear Preset", None))
         self.actionIPRSavePreset.setText(QCoreApplication.translate("MainWindow", u"Save Pool", None))
         self.label_19.setText(QCoreApplication.translate("MainWindow", u"Pool 1:", None))

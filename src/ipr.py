@@ -453,8 +453,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.menu_bar.actionShowPoolConfigurator.setChecked(
                 self.config["instance"]["pools"]["enablePoolConfigurator"]
             )
-            self.checkAppendWorkerNames.setChecked(
-                self.config["instance"]["pools"]["appendWorkerNames"]
+            self.checkAutomaticWorkerNames.setChecked(
+                self.config["instance"]["pools"]["automaticWorkerNames"]
             )
 
     def update_settings(self):
@@ -476,7 +476,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             "table": {"enableIDTable": self.menu_bar.actionEnableIDTable.isChecked()},
             "pools": {
                 "enablePoolConfigurator": self.menu_bar.actionShowPoolConfigurator.isChecked(),
-                "appendWorkerNames": self.checkAppendWorkerNames.isChecked(),
+                "automaticWorkerNames": self.checkAutomaticWorkerNames.isChecked(),
             },
         }
         savedPools = self.update_current_preset_to_config()
@@ -1274,18 +1274,14 @@ class IPR(QMainWindow, Ui_MainWindow):
             item = self.idTable.itemFromIndex(index)
             ip_addr = item.text()
             miner_type = self.idTable.item(item.row(), 4).text()
-            worker = self.idTable.item(item.row(), 8).text().split(".")
-            if len(worker) == 2:
-                worker = f".{worker[1]}"
-            else:
-                macaddr = self.idTable.item(item.row(), 2).text()
-                serial = self.idTable.item(item.row(), 3).text()
-                if serial and (
-                    serial != "N/A" and serial != "Unknown" and serial != "Failed"
-                ):
-                    worker = f".{serial[-5:]}"
-                elif macaddr and (macaddr != "N/A" and macaddr != "Failed"):
-                    worker = f".{macaddr.replace(':', '')[-5:]}"
+            macaddr = self.idTable.item(item.row(), 2).text()
+            serial = self.idTable.item(item.row(), 3).text()
+            if serial and (
+                serial != "N/A" and serial != "Unknown" and serial != "Failed"
+            ):
+                worker = f".{serial[-5:]}"
+            elif macaddr and (macaddr != "N/A" and macaddr != "Failed"):
+                worker = f".{macaddr.replace(':', '')[-5:]}"
             client_auth, custom_auth = self.get_client_auth_from_type(miner_type)
             self.api_client.create_client_from_type(
                 miner_type, ip_addr, client_auth, custom_auth
@@ -1305,7 +1301,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.linePoolUser_3.text(),
             ]
             # append worker name
-            if self.checkAppendWorkerNames.isChecked():
+            if self.checkAutomaticWorkerNames.isChecked():
                 if worker:
                     for idx in range(0, len(users)):
                         if users[idx]:

@@ -220,7 +220,7 @@
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>150</width>
+                    <width>135</width>
                     <height>25</height>
                    </size>
                   </property>
@@ -288,25 +288,25 @@
                  </spacer>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="checkAppendWorkerNames">
+                 <widget class="QCheckBox" name="checkAutomaticWorkerNames">
                   <property name="minimumSize">
                    <size>
-                    <width>120</width>
+                    <width>130</width>
                     <height>25</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>120</width>
+                    <width>130</width>
                     <height>25</height>
                    </size>
                   </property>
                   <property name="toolTip">
-                   <string>Append the current worker name as suffix.
-If not available, will append last of serial number or MAC address.</string>
+                   <string>Automatically append unique worker names.
+Uses last 5 of SN or MAC address.</string>
                   </property>
                   <property name="text">
-                   <string>Append Workers</string>
+                   <string>Auto Set Workers</string>
                   </property>
                  </widget>
                 </item>
@@ -823,9 +823,9 @@ If not available, will append last of serial number or MAC address.</string>
                      <property name="geometry">
                       <rect>
                        <x>0</x>
-                       <y>-225</y>
-                       <width>477</width>
-                       <height>439</height>
+                       <y>0</y>
+                       <width>461</width>
+                       <height>462</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -1222,8 +1222,8 @@ If not available, will append last of serial number or MAC address.</string>
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>368</width>
-                       <height>722</height>
+                       <width>375</width>
+                       <height>767</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_13">

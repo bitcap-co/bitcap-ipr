@@ -128,7 +128,7 @@
       },
       "pools": {
         "enablePoolConfigurator": false,
-        "appendWorkerNames": false
+        "automaticWorkerNames": false
       }
     }
 }
