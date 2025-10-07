@@ -1042,7 +1042,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         if missing_mac:
             mac = missing_mac
         logger.info(f"process_result : got updated result {ip},{mac},{sn},{type}.")
-        self.iprStatus.showMessage(f"Status :: Got {type}: IP:{ip}, MAC:{mac}", 3000)
+        self.iprStatus.showMessage(f"Status :: Got {type}: IP:{ip}, MAC:{mac}", 5000)
         self.result: Dict[str, str] = {
             "ip": ip,
             "mac": mac.upper(),
