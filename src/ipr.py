@@ -977,7 +977,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         # reset inactive timer
         if self.inactive.isActive():
             self.inactive.start()
-        ip, mac, type, sn = result
+        ip, mac, type, sn, timestamp = result
         logger.debug(f"process_result : got {ip},{mac},{sn},{type} from listener.")
         if type == "bitmain-common":
             bitmain_common_miners = [
@@ -1049,6 +1049,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             "mac": mac.upper(),
             "type": type,
             "sn": sn,
+            "timestamp": timestamp,
             **self.api_client.target_info,
         }
         self.show_confirmation()
