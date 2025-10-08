@@ -1288,6 +1288,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         selected_ips = [x for x in self.idTable.selectedIndexes() if x.column() == 1]
         if not len(selected_ips):
             return
+        logger.info(f"update_miner_pools : update pool confs for {selected_ips}...")
         for index in selected_ips:
             item = self.idTable.itemFromIndex(index)
             ip_addr = item.text()
@@ -1340,10 +1341,12 @@ class IPR(QMainWindow, Ui_MainWindow):
                 continue
 
         if len(failed) > 0:
+            logger.error(f"update_miner_pools : failed to update pool confs for {failed}.")
             return self.iprStatus.showMessage(
                 f"Status :: Failed to update pool config for {failed}", 5000
             )
         else:
+            logger.info("update_miner_pools : successfully updated pools.")
             self.iprStatus.showMessage("Status :: Successfully updated pools", 3000)
 
     # exit
