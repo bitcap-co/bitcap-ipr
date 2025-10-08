@@ -44,7 +44,12 @@ from mod.api import settings as api_settings
 from mod.api.client import APIClient
 from mod.lm.listenermanager import ListenerManager
 from ui.MainWindow import Ui_MainWindow
-from ui.widgets.ipr import IPR_Menubar, IPR_Titlebar, IPTableWidgetItem, IndexWidgetItem
+from ui.widgets.ipr import (
+    IPR_Menubar,
+    IPR_Titlebar,
+    IPRIPWidgetItem,
+    IPRIndexWidgetItem,
+)
 from utils import (
     APP_INFO,
     CURR_PLATFORM,
@@ -1186,11 +1191,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.idTable.setCellWidget(rowPosition, 0, actionLocateMiner)
         if "timestamp" in self.result:
             self.idTable.setItem(
-                rowPosition, 0, QTableWidgetItem(str(self.result["timestamp"]))
+                rowPosition, 0, IPRIndexWidgetItem(self.result["timestamp"])
             )
         else:
-            self.idTable.setItem(rowPosition, 0, IndexWidgetItem(rowPosition))
-        self.idTable.setItem(rowPosition, 1, IPTableWidgetItem(self.result["ip"]))
+            self.idTable.setItem(rowPosition, 0, IPRIndexWidgetItem(rowPosition))
+        self.idTable.setItem(rowPosition, 1, IPRIPWidgetItem(self.result["ip"]))
         self.idTable.setItem(rowPosition, 2, QTableWidgetItem(self.result["mac"]))
         self.idTable.setItem(rowPosition, 3, QTableWidgetItem(self.result["serial"]))
         # ASIC TYPE

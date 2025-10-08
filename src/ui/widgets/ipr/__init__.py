@@ -1,4 +1,3 @@
 from .titlebar import IPR_Titlebar
 from .menubar import IPR_Menubar
-from .ipwidgetitem import IPTableWidgetItem
-from .indexwidgetitem import IndexWidgetItem
+from .idtable import IPRIPWidgetItem, IPRIndexWidgetItem
