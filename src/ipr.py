@@ -44,7 +44,7 @@ from mod.api import settings as api_settings
 from mod.api.client import APIClient
 from mod.lm.listenermanager import ListenerManager
 from ui.MainWindow import Ui_MainWindow
-from ui.widgets.ipr import IPR_Menubar, IPR_Titlebar, IPTableWidgetItem
+from ui.widgets.ipr import IPR_Menubar, IPR_Titlebar, IPTableWidgetItem, IndexWidgetItem
 from utils import (
     APP_INFO,
     CURR_PLATFORM,
@@ -727,6 +727,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             "Copy Selected Elements"
         )
         self.actionContextCopySelectedElements.triggered.connect(self.copy_selected)
+        self.actionContextResetSort = self.table_context.addAction(
+            "Reset Sort"
+        )
+        self.actionContextResetSort.triggered.connect(self.reset_sort)
         self.actionContextImport = self.table_context.addAction("Import")
         self.actionContextImport.triggered.connect(self.import_table)
         self.actionContextExport = self.table_context.addAction("Export")
@@ -820,6 +824,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             for row in range(rows):
                 item = self.idTable.item(row, section)
                 item.setSelected(True)
+
+    def reset_sort(self):
+        self.idTable.sortByColumn(0, Qt.SortOrder.AscendingOrder)
+        self.header.setSortIndicator(-1, Qt.SortOrder.AscendingOrder)
 
     def import_table(self):
         logger.info("import table.")
