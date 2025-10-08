@@ -816,9 +816,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         rows = self.idTable.rowCount()
         if not rows:
             return
-        for row in range(rows):
-            item = self.idTable.item(row, section)
-            item.setSelected(True)
+        if section != 0:
+            for row in range(rows):
+                item = self.idTable.item(row, section)
+                item.setSelected(True)
 
     def import_table(self):
         logger.info("import table.")
