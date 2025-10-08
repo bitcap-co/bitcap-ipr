@@ -852,9 +852,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         cols = self.idTable.columnCount()
         if not rows:
             return
-        out = "IP,MAC,SERIAL,TYPE,SUBTYPE,ALGORITHM,POOL,WORKER,FIRMWARE,PLATFORM\n"
+        out = "TIMESTAMP,IP,MAC,SERIAL,TYPE,SUBTYPE,ALGORITHM,POOL,WORKER,FIRMWARE,PLATFORM\n"
         for i in range(rows):
-            for j in range(1, cols):
+            for j in range(0, cols):
                 out += self.idTable.item(i, j).text()
                 out += ","
             out += "\n"
