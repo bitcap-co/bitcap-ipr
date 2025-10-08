@@ -1175,6 +1175,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         actionLocateMiner.setPixmap(QPixmap(":theme/icons/rc/flash.png"))
         actionLocateMiner.setToolTip("Locate Miner")
         self.idTable.setCellWidget(rowPosition, 0, actionLocateMiner)
+        self.idTable.setItem(rowPosition, 0, QTableWidgetItem(str(self.result["timestamp"])))
         self.idTable.setItem(rowPosition, 1, IPTableWidgetItem(self.result["ip"]))
         self.idTable.setItem(rowPosition, 2, QTableWidgetItem(self.result["mac"]))
         self.idTable.setItem(rowPosition, 3, QTableWidgetItem(self.result["serial"]))
