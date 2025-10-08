@@ -729,9 +729,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             "Copy Selected Elements"
         )
         self.actionContextCopySelectedElements.triggered.connect(self.copy_selected)
-        self.actionContextResetSort = self.table_context.addAction(
-            "Reset Sort Order"
-        )
+        self.actionContextResetSort = self.table_context.addAction("Reset Sort Order")
         self.actionContextResetSort.triggered.connect(self.reset_sort)
         self.actionContextImport = self.table_context.addAction("Import")
         self.actionContextImport.triggered.connect(self.import_table)
@@ -840,6 +838,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             ".CSV Files (*.csv)",
         )
         self.idTable.setRowCount(0)
+        self.reset_sort()
         table_csv = QFile(table_file)
         if table_csv.open(QFile.OpenModeFlag.ReadOnly | QFile.OpenModeFlag.Text):
             stream = QTextStream(table_csv)
@@ -1186,7 +1185,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         actionLocateMiner.setToolTip("Locate Miner")
         self.idTable.setCellWidget(rowPosition, 0, actionLocateMiner)
         if "timestamp" in self.result:
-            self.idTable.setItem(rowPosition, 0, QTableWidgetItem(str(self.result["timestamp"])))
+            self.idTable.setItem(
+                rowPosition, 0, QTableWidgetItem(str(self.result["timestamp"]))
+            )
         else:
             self.idTable.setItem(rowPosition, 0, IndexWidgetItem(rowPosition))
         self.idTable.setItem(rowPosition, 1, IPTableWidgetItem(self.result["ip"]))
@@ -1341,7 +1342,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                 continue
 
         if len(failed) > 0:
-            logger.error(f"update_miner_pools : failed to update pool confs for {failed}.")
+            logger.error(
+                f"update_miner_pools : failed to update pool confs for {failed}."
+            )
             return self.iprStatus.showMessage(
                 f"Status :: Failed to update pool config for {failed}", 5000
             )
