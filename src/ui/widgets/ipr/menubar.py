@@ -81,6 +81,9 @@ class IPR_Menubar(QMenuBar):
         self.actionCopySelectedElements.setToolTip(
             "Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows"
         )
+        self.actionResetSort = self.menuTable.addAction("Reset Sort Order")
+        self.actionResetSort.setEnabled(False)
+        self.actionResetSort.setToolTip("Reset sort order back to default.")
         self.actionImport = self.menuTable.addAction("Import")
         self.actionImport.setEnabled(False)
         self.actionImport.setToolTip("Import existing .CSV file into the ID Table")
