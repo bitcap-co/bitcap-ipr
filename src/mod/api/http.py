@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 
 import requests
 from requests.auth import HTTPDigestAuth
+from requests.adapters import HTTPAdapter
 
 from mod.api import settings
 from mod.api.errors import FailedConnectionError
@@ -24,6 +25,7 @@ class BaseHTTPClient(ABC):
         self.auth: Optional[HTTPDigestAuth] = None
         self.bearer: Optional[str] = None
         self.session = requests.Session()
+        self.session.mount("http://", HTTPAdapter(max_retries=0))
 
         self.is_custom = False
         self.is_unlocked = False
@@ -127,7 +129,14 @@ class BaseHTTPClient(ABC):
             )
             req.data = data
         r = req.prepare()
-        res = self.__retry_send(r, timeout=timeout, verify=self.session.verify)
+        if method == "POST" or method == "PUT":
+            try:
+                res = self.session.send(r, timeout=timeout, verify=self.session.verify)
+            except requests.Timeout:
+                logger.warning(" _do_http : timeout.")
+                return requests.Response()
+        else:
+            res = self.__retry_send(r, timeout=timeout, verify=self.session.verify)
         return res
 
     @abstractmethod
