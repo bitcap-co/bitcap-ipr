@@ -1324,7 +1324,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 if worker:
                     for idx in range(0, len(users)):
                         if users[idx]:
-                            users[idx] = users[idx] + worker
+                            users[idx] = users[idx].split(".")[0] + worker
                 else:
                     logger.warning(
                         "update_miner_pools : failed to find applicable worker name. Continuing.."
