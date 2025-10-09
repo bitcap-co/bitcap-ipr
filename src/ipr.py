@@ -588,6 +588,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.info(" reset settings.")
             config = read_config(get_default_config())
             write_config(self.config_path, config)
+            self.toggle_pool_config()
             self.read_settings()
             self.update_inactive_timer()
             self.update_miner_locate_duration()
