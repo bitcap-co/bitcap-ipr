@@ -47,6 +47,7 @@ from ui.MainWindow import Ui_MainWindow
 from ui.widgets.ipr import (
     IPR_Menubar,
     IPR_Titlebar,
+    IPRTableContextMenu,
     IPRIPWidgetItem,
     IPRIndexWidgetItem,
 )
@@ -186,8 +187,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "PLATFORM",
             ]
         )
-        self.idTable.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.idTable.customContextMenuRequested.connect(self.show_table_context)
         self.idTable.setColumnWidth(0, 15)
         self.idTable.setColumnWidth(2, 120)
         self.idTable.setColumnWidth(3, 145)
@@ -198,8 +197,38 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.idTable.doubleClicked.connect(self.double_click_item)
         self.idTable.cellClicked.connect(self.locate_miner)
         self.idTable.setSortingEnabled(True)
-        self.header = self.idTable.horizontalHeader()
-        self.header.sectionDoubleClicked.connect(self.select_column)
+        self.id_header = self.idTable.horizontalHeader()
+        self.id_header.sectionDoubleClicked.connect(self.select_column)
+
+        # id table context menu
+        self.id_context_menu = IPRTableContextMenu()
+        self.id_context_menu.contextActionOpenSelectedIPs.triggered.connect(
+            self.open_selected_ips
+        )
+        self.id_context_menu.contextActionCopySelected.triggered.connect(
+            self.copy_selected
+        )
+        self.id_context_menu.contextActionTableImport.triggered.connect(
+            self.import_table
+        )
+        self.id_context_menu.contextActionTableExport.triggered.connect(
+            self.export_table
+        )
+        self.id_context_menu.contextActionTableResetSortOrder.triggered.connect(
+            self.reset_sort
+        )
+        self.id_context_menu.contextActionConfiguratorShowHide.toggled.connect(
+            self.toggle_pool_config
+        )
+        self.id_context_menu.contextActionConfiguratorGetPool.triggered.connect(
+            self.get_miner_pool
+        )
+        self.id_context_menu.contextActionConfiguratorSetPools.triggered.connect(
+            self.update_miner_pools
+        )
+        self.idTable.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.idTable.customContextMenuRequested.connect(self.show_table_context)
+
         # read-only spinboxes
         self.spinLocateDuration.lineEdit().setReadOnly(True)
         self.spinInactiveTimeout.lineEdit().setReadOnly(True)
@@ -724,50 +753,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         webbrowser.open(f"http://{host}", new=2)
 
     def show_table_context(self):
-        self.table_context = QMenu()
-        self.table_context.setToolTipsVisible(True)
-        self.actionContextOpenSelectedIPs = self.table_context.addAction(
-            "Open Selected IPs"
-        )
-        self.actionContextOpenSelectedIPs.triggered.connect(self.open_selected_ips)
-        self.actionContextCopySelectedElements = self.table_context.addAction(
-            "Copy Selected Elements"
-        )
-        self.actionContextCopySelectedElements.triggered.connect(self.copy_selected)
-        self.actionContextResetSort = self.table_context.addAction("Reset Sort Order")
-        self.actionContextResetSort.triggered.connect(self.reset_sort)
-        self.actionContextImport = self.table_context.addAction("Import")
-        self.actionContextImport.triggered.connect(self.import_table)
-        self.actionContextExport = self.table_context.addAction("Export")
-        self.actionContextExport.triggered.connect(self.export_table)
-        if self.poolConfigurator.isVisible():
-            self.actionContextShowPoolConfig = self.table_context.addAction(
-                "Hide Pool Configurator"
-            )
-            self.actionContextShowPoolConfig.triggered.connect(
-                lambda: self.toggle_pool_config(enabled=False)
-            )
-        else:
-            self.actionContextShowPoolConfig = self.table_context.addAction(
-                "Show Pool Configurator"
-            )
-            self.actionContextShowPoolConfig.triggered.connect(
-                lambda: self.toggle_pool_config(enabled=True)
-            )
-        if self.poolConfigurator.isVisible():
-            self.actionContextSetPools = self.table_context.addAction(
-                f"Update Pool Config From Current Preset ({self.comboPoolPreset.currentText()})"
-            )
-            self.actionContextSetPools.triggered.connect(self.update_miner_pools)
-            self.actionContextGetPoolInfo = self.table_context.addAction(
-                "Get Pool Config From Selected Miner"
-            )
-            self.actionContextGetPoolInfo.setToolTip(
-                "Retreives pool configuration from the selected miner and fills the current preset"
-            )
-            self.actionContextGetPoolInfo.triggered.connect(self.get_miner_pool)
-
-        self.table_context.exec(QCursor.pos())
+        self.id_context_menu.exec(QCursor.pos())
 
     def double_click_item(self, model_index: QModelIndex):
         item = self.idTable.itemFromIndex(model_index)
@@ -832,7 +818,10 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def reset_sort(self):
         self.idTable.sortByColumn(0, Qt.SortOrder.AscendingOrder)
-        self.header.setSortIndicator(-1, Qt.SortOrder.AscendingOrder)
+        self.id_header.setSortIndicator(-1, Qt.SortOrder.AscendingOrder)
+
+    def clear_table(self):
+        return self.idTable.setRowCount(0)
 
     def import_table(self):
         logger.info("import table.")
@@ -893,6 +882,9 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def toggle_pool_config(self, enabled: bool = False):
         self.menu_bar.actionShowPoolConfigurator.setChecked(enabled)
+        self.id_context_menu.contextActionConfiguratorShowHide.setChecked(enabled)
+        self.id_context_menu.contextActionConfiguratorGetPool.setEnabled(enabled)
+        self.id_context_menu.contextActionConfiguratorSetPools.setEnabled(enabled)
         self.poolConfigurator.setVisible(enabled)
         if self.menu_bar.actionShowPoolConfigurator.isChecked():
             self.setGeometry(self.x(), self.y(), self.width(), self.maximumHeight())
