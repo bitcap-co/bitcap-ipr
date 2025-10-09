@@ -484,6 +484,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.menu_bar.actionAutoStartOnLaunch.setChecked(
                 self.config["instance"]["options"]["autoStartOnLaunch"]
             )
+            self.menu_bar.actionClearTableAfterStopListen.setChecked(
+                self.config["instance"]["options"]["clearTableAfterStopListen"]
+            )
             self.menu_bar.actionEnableIDTable.setChecked(
                 self.config["instance"]["table"]["enableIDTable"]
             )
@@ -509,6 +512,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "alwaysOpenIPInBrowser": self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked(),
                 "disableInactiveTimer": self.menu_bar.actionDisableInactiveTimer.isChecked(),
                 "autoStartOnLaunch": self.menu_bar.actionAutoStartOnLaunch.isChecked(),
+                "clearTableAfterStopListen": self.menu_bar.actionClearTableAfterStopListen.isChecked(),
             },
             "table": {"enableIDTable": self.menu_bar.actionEnableIDTable.isChecked()},
             "pools": {
@@ -946,10 +950,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.actionSysStopListen.setEnabled(False)
         if (
             self.menu_bar.actionEnableIDTable.isChecked()
-            and not timeout
-            and not restart
+            and self.menu_bar.actionClearTableAfterStopListen.isChecked()
         ):
-            self.idTable.setRowCount(0)
+            self.clear_table()
         self.actionIPRStart.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
         self.lm.stop_listeners()

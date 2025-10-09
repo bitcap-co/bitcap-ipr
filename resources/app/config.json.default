@@ -121,7 +121,8 @@
       "options": {
         "alwaysOpenIPInBrowser": false,
         "disableInactiveTimer": false,
-        "autoStartOnLaunch": false
+        "autoStartOnLaunch": false,
+        "clearTableAfterStopListen": false
       },
       "table": {
         "enableIDTable": false

@@ -64,6 +64,13 @@ class IPR_Menubar(QMenuBar):
         self.actionAutoStartOnLaunch.setToolTip(
             "Automatically start listeners on launch (Takes effect on next launch)"
         )
+        self.actionClearTableAfterStopListen = self.menuOptions.addAction(
+            "Clear ID Table When Stopped"
+        )
+        self.actionClearTableAfterStopListen.setCheckable(True)
+        self.actionClearTableAfterStopListen.setToolTip(
+            "Clear ID Table data when listener is stopped."
+        )
 
         # table
         self.actionEnableIDTable = self.menuTable.addAction("Enable ID Table")
