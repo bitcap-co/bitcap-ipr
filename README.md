@@ -1,6 +1,6 @@
 ## BitCap IPReporter
 
-## A cross-platfrom IP Reporter tool for Antminer, Whatsminer, and IceRiver ASICs.
+## A cross-platform IP Reporter tool for Antminer, Whatsminer, and IceRiver ASICs.
 
 ![BitCap IPReporter running on Windows](/.github/imgs/ipr.png)
 
