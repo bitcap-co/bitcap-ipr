@@ -208,6 +208,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.id_context_menu.contextActionCopySelected.triggered.connect(
             self.copy_selected
         )
+        self.id_context_menu.contextActionClearTable.triggered.connect(self.clear_table)
         self.id_context_menu.contextActionTableImport.triggered.connect(
             self.import_table
         )
