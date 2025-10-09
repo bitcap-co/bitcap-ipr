@@ -54,6 +54,7 @@ from ui.widgets.ipr import (
 from utils import (
     APP_INFO,
     CURR_PLATFORM,
+    deep_update,
     get_config_file_path,
     get_default_config,
     get_log_dir,
@@ -835,28 +836,31 @@ class IPR(QMainWindow, Ui_MainWindow):
         return self.idTable.setRowCount(0)
 
     def import_table(self):
-        logger.info("import table.")
-        table_file, _ = QFileDialog.getOpenFileName(
+        logger.info(" import table.")
+        file_name, _ = QFileDialog.getOpenFileName(
             self,
             "Open .CSV",
             Path(Path.home(), "Documents", "ipr").resolve().__str__(),
             ".CSV Files (*.csv)",
         )
-        self.idTable.setRowCount(0)
+        self.clear_table()
         self.reset_sort()
-        table_csv = QFile(table_file)
-        if table_csv.open(QFile.OpenModeFlag.ReadOnly | QFile.OpenModeFlag.Text):
-            stream = QTextStream(table_csv)
-            header = stream.readLine()
-            headers = [x.strip().lower() for x in header.split(",")]
-            stream.seek(len(header) + 1)
-            while not stream.atEnd():
-                line = stream.readLine()
+        csv = QFile(file_name)
+        if csv.open(QFile.OpenModeFlag.ReadOnly | QFile.OpenModeFlag.Text):
+            data_stream = QTextStream(csv)
+            header_line = data_stream.readLine()
+            included_headers = [x.strip().lower() for x in header_line.split(",")]
+            data_stream.seek(len(header_line) + 1)
+            while not data_stream.atEnd():
+                line = data_stream.readLine()
                 if line:
-                    row = dict(zip(headers, line.split(",")))
+                    row = deep_update(
+                        self.api_client.target_info.copy(),
+                        dict(zip(included_headers, line.split(","))),
+                    )
                     self.populate_table_row(row)
         else:
-            logger.error(f"import_table : failed to read file {table_file}.")
+            logger.error(f"import_table : failed to read file {file_name}.")
             self.iprStatus.showMessage("Status :: Failed to import table.", 5000)
             return
 
