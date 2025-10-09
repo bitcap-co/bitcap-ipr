@@ -120,6 +120,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionOpenSelectedIPs.triggered.connect(self.open_selected_ips)
         self.menu_bar.actionCopySelectedElements.triggered.connect(self.copy_selected)
         self.menu_bar.actionResetSort.triggered.connect(self.reset_sort)
+        self.menu_bar.actionClearTable.triggered.connect(self.clear_table)
         self.menu_bar.actionImport.triggered.connect(self.import_table)
         self.menu_bar.actionExport.triggered.connect(self.export_table)
         self.menu_bar.actionShowPoolConfigurator.toggled.connect(
@@ -692,6 +693,9 @@ class IPR(QMainWindow, Ui_MainWindow):
     def toggle_table_settings(self, enabled: bool):
         self.menu_bar.actionOpenSelectedIPs.setEnabled(enabled)
         self.menu_bar.actionCopySelectedElements.setEnabled(enabled)
+        self.menu_bar.menuTableAction.setEnabled(enabled)
+        self.menu_bar.actionResetSort.setEnabled(enabled)
+        self.menu_bar.actionClearTable.setEnabled(enabled)
         self.menu_bar.actionResetSort.setEnabled(enabled)
         self.menu_bar.actionImport.setEnabled(enabled)
         self.menu_bar.actionExport.setEnabled(enabled)

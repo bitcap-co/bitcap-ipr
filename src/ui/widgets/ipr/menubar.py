@@ -81,15 +81,22 @@ class IPR_Menubar(QMenuBar):
         self.actionCopySelectedElements.setToolTip(
             "Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows"
         )
-        self.actionResetSort = self.menuTable.addAction("Reset Sort Order")
+        self.menuTableAction = self.menuTable.addMenu("Table Actions")
+        self.menuTableAction.setEnabled(False)
+        self.menuTableAction.setToolTipsVisible(True)
+        self.actionResetSort = self.menuTableAction.addAction("Reset Sort Order")
         self.actionResetSort.setEnabled(False)
-        self.actionResetSort.setToolTip("Reset sort order back to default.")
-        self.actionImport = self.menuTable.addAction("Import")
+        self.actionResetSort.setToolTip("Reset the current sort order to default.")
+        self.actionClearTable = self.menuTableAction.addAction("Clear Table")
+        self.actionClearTable.setEnabled(False)
+        self.actionClearTable.setToolTip("Clear the current data in table.")
+
+        self.actionImport = self.menuTable.addAction("Import..")
         self.actionImport.setEnabled(False)
-        self.actionImport.setToolTip("Import existing .CSV file into the ID Table")
-        self.actionExport = self.menuTable.addAction("Export")
+        self.actionImport.setToolTip("Import existing .CSV file.")
+        self.actionExport = self.menuTable.addAction("Export..")
         self.actionExport.setEnabled(False)
-        self.actionExport.setToolTip("Export current table as .CSV file")
+        self.actionExport.setToolTip("Export current table as .CSV file.")
 
         # pools
         self.actionShowPoolConfigurator = self.menuPools.addAction(
