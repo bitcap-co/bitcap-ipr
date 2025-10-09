@@ -153,7 +153,7 @@ class APIClient:
         sys = self.client.get_system_info()
         try:
             pools = self.client.get_pools()
-        except AuthenticationError as err:
+        except (AuthenticationError, APIError) as err:
             logger.error(err)
             pools = {}
         if isinstance(parser, BitmainParser):
