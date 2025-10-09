@@ -695,6 +695,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionResetSort.setEnabled(enabled)
         self.menu_bar.actionImport.setEnabled(enabled)
         self.menu_bar.actionExport.setEnabled(enabled)
+        if not enabled:
+            self.menu_bar.actionShowPoolConfigurator.setChecked(enabled)
         self.menu_bar.actionShowPoolConfigurator.setEnabled(enabled)
 
     def toggle_pool_settings(self, enabled: bool):
