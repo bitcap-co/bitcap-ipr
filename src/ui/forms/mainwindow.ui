@@ -320,7 +320,7 @@ Uses last 5 of SN or MAC address.</string>
                 <item>
                  <widget class="QPushButton" name="actionIPRSavePreset">
                   <property name="text">
-                   <string>Save Pool</string>
+                   <string>Save Preset</string>
                   </property>
                  </widget>
                 </item>
@@ -878,8 +878,8 @@ Uses last 5 of SN or MAC address.</string>
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>461</width>
-                       <height>462</height>
+                       <width>430</width>
+                       <height>412</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -1276,8 +1276,8 @@ Uses last 5 of SN or MAC address.</string>
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>375</width>
-                       <height>767</height>
+                       <width>361</width>
+                       <height>662</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_13">

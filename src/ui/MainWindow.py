@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.9.2
+## Created by: Qt User Interface Compiler version 6.10.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -407,7 +407,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 461, 462))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 430, 412))
         self.verticalLayout_19 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_19.setSpacing(15)
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
@@ -588,7 +588,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 375, 767))
+        self.scrollAPI.setGeometry(QRect(0, 0, 361, 662))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_13.setSpacing(15)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
@@ -1111,7 +1111,7 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.checkAutomaticWorkerNames.setText(QCoreApplication.translate("MainWindow", u"Auto Set Workers", None))
         self.actionIPRClearPreset.setText(QCoreApplication.translate("MainWindow", u"Clear Preset", None))
-        self.actionIPRSavePreset.setText(QCoreApplication.translate("MainWindow", u"Save Pool", None))
+        self.actionIPRSavePreset.setText(QCoreApplication.translate("MainWindow", u"Save Preset", None))
         self.label_19.setText(QCoreApplication.translate("MainWindow", u"Pool 1:", None))
         self.label_19.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.label_20.setText(QCoreApplication.translate("MainWindow", u"User:", None))
