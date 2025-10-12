@@ -98,14 +98,13 @@ class Listener(QObject):
 
     def emit_result(self, received: List[str]) -> None:
         logger.info(f"Listener[{self.port}] : emit result.")
+        created_at = time.time()
         ip, mac, type, *_ = received
-        timestamp = time.time()
         self.record[ip] = {
             "type": type,
             "mac": mac,
-            "created_at": timestamp,
+            "created_at": created_at,
         }
-        received.append(timestamp)
         self.result.emit(received)
 
     def emit_error(self, err: QAbstractSocket.SocketError) -> None:

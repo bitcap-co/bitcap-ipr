@@ -876,9 +876,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         cols = self.idTable.columnCount()
         if not rows:
             return
-        out = "TIMESTAMP,IP,MAC,SERIAL,TYPE,SUBTYPE,ALGORITHM,POOL,WORKER,FIRMWARE,PLATFORM\n"
+        out = "IP,MAC,SERIAL,TYPE,SUBTYPE,ALGORITHM,POOL,WORKER,FIRMWARE,PLATFORM\n"
         for i in range(rows):
-            for j in range(0, cols):
+            for j in range(1, cols):
                 out += self.idTable.item(i, j).text()
                 out += ","
             out += "\n"
@@ -1003,7 +1003,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         # reset inactive timer
         if self.inactive.isActive():
             self.inactive.start()
-        ip, mac, type, sn, timestamp = result
+        ip, mac, type, sn = result
         logger.debug(f"process_result : got {ip},{mac},{sn},{type} from listener.")
         if type == "bitmain-common":
             bitmain_common_miners = [
@@ -1075,7 +1075,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             "mac": mac.upper(),
             "type": type,
             "sn": sn,
-            "timestamp": timestamp,
             **self.api_client.target_info,
         }
         self.show_confirmation()
@@ -1201,12 +1200,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         actionLocateMiner.setPixmap(QPixmap(":theme/icons/rc/flash.png"))
         actionLocateMiner.setToolTip("Locate Miner")
         self.idTable.setCellWidget(rowPosition, 0, actionLocateMiner)
-        if "timestamp" in self.result:
-            self.idTable.setItem(
-                rowPosition, 0, IPRIndexWidgetItem(self.result["timestamp"])
-            )
-        else:
-            self.idTable.setItem(rowPosition, 0, IPRIndexWidgetItem(rowPosition))
+        self.idTable.setItem(rowPosition, 0, IPRIndexWidgetItem(rowPosition))
         self.idTable.setItem(rowPosition, 1, IPRIPWidgetItem(self.result["ip"]))
         self.idTable.setItem(rowPosition, 2, QTableWidgetItem(self.result["mac"]))
         self.idTable.setItem(rowPosition, 3, QTableWidgetItem(self.result["serial"]))

@@ -1,10 +1,9 @@
-from typing import Union
 from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QTableWidgetItem
 
 
 class IPRIndexWidgetItem(QTableWidgetItem):
-    def __init__(self, value: Union[int, float]):
+    def __init__(self, value: int):
         super().__init__()
         self.setData(Qt.ItemDataRole.UserRole, value)
 
