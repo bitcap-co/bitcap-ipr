@@ -1308,6 +1308,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             miner_type = self.idTable.item(item.row(), 4).text()
             macaddr = self.idTable.item(item.row(), 2).text()
             serial = self.idTable.item(item.row(), 3).text()
+            worker = ""
             if serial and (
                 serial != "N/A" and serial != "Unknown" and serial != "Failed"
             ):
