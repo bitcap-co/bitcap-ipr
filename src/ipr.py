@@ -312,6 +312,8 @@ class IPR(QMainWindow, Ui_MainWindow):
     def update_stacked_widget(self, view_index: Optional[int] = None, *_):
         logger.info(" update view.")
         if not view_index:
+            if self.menu_bar.actionShowPoolConfigurator.isChecked():
+                self.poolConfigurator.setVisible(True)
             if self.menu_bar.actionEnableIDTable.isChecked():
                 self.stackedWidget.setCurrentIndex(0)
             else:
@@ -319,6 +321,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         elif view_index < self.stackedWidget.count():
             if self.sys_tray and not self.isVisible():
                 self.toggle_visibility()
+            if self.menu_bar.actionShowPoolConfigurator.isChecked():
+                if view_index == 2:
+                    self.poolConfigurator.setVisible(False)
             self.stackedWidget.setCurrentIndex(view_index)
 
     def update_status_msg(self):
