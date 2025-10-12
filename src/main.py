@@ -28,6 +28,7 @@ import sys
 import logging
 import logging.handlers
 import traceback
+from typing import List
 
 from PySide6.QtCore import QSystemSemaphore, QSharedMemory, QUrl
 from PySide6.QtGui import QIcon, QDesktopServices
@@ -37,16 +38,16 @@ from PySide6.QtWidgets import (
 )
 from ipr import IPR
 from utils import (
-    get_stylesheet,
+    IPR_THEME,
+    IPR_DEFAULT_CONFIG,
     MAX_ROTATE_LOG_FILES,
-    get_log_dir,
-    get_log_file_path,
-    flush_log,
-    get_default_config,
     get_config_dir,
     get_config_file_path,
-    read_config,
-    write_config,
+    get_log_dir,
+    get_log_file_path,
+    read_config_file,
+    write_config_file,
+    flush_log,
     deep_update,
 )
 
@@ -63,38 +64,38 @@ except ImportError:
     pass
 
 
-class main:
-    def __init__(self, args: list = []):
-        self.args = args
-        self.config_dir = get_config_dir()
-        self.log_dir = get_log_dir()
-        self.default_config = get_default_config()
+class Main:
+    def __init__(self, argv: List[str]):
+        self.argv = argv
+        self.is_running = False
+
         self.config_path = get_config_file_path()
         self.log_path = get_log_file_path()
-        self.stylesheet = get_stylesheet()
 
-        self.init_configuration()
-        self.init_logger()
-        self.is_running = False
-        self.launch_app(self.args)
+        self.config = read_config_file(IPR_DEFAULT_CONFIG)
 
-    def init_configuration(self):
-        os.makedirs(self.config_dir, exist_ok=True)
-        os.makedirs(self.log_dir, exist_ok=True)
+        self._init_conf()
+        self._init_log()
+        self._ipr_entry()
 
-        config = read_config(self.default_config)
-        if not os.path.exists(self.config_path):
-            self.config = config
-            write_config(self.config_path, config)
-        else:
-            curr_config = read_config(self.config_path)
-            config = deep_update(config, curr_config)
-            self.config = config
-            write_config(self.config_path, config)
+    def _init_conf(self):
+        os.makedirs(get_config_dir(), exist_ok=True)
+        os.makedirs(get_log_dir(), exist_ok=True)
 
-    def init_logger(self):
-        max_log_size = int(self.config["logs"]["maxLogSize"]) * 1000
-        match self.config["logs"]["onMaxLogSize"]:
+        if os.path.exists(self.config_path):
+            curr_config = read_config_file(self.config_path)
+            self.config = deep_update(self.config, curr_config)
+        write_config_file(self.config_path, self.config)
+
+    def _init_log(self):
+        log_level: str = self.config["logs"]["logLevel"]
+        max_log_size_kb: int = int(self.config["logs"]["maxLogSize"]) * 1000
+        on_max_log_size: int = self.config["log"]["onMaxLogSize"]
+
+        rfh = logging.handlers.RotatingFileHandler(
+            self.log_path, maxBytes=max_log_size_kb, backupCount=1
+        )
+        match on_max_log_size:
             case 0:
 
                 def namer(name):
@@ -104,17 +105,10 @@ class main:
                     # override rotator to clear log instead
                     flush_log()
 
-                rfh = logging.handlers.RotatingFileHandler(
-                    self.log_path, maxBytes=max_log_size, backupCount=1
-                )
                 rfh.rotator = rotator
                 rfh.namer = namer
             case 1:
-                rfh = logging.handlers.RotatingFileHandler(
-                    self.log_path,
-                    maxBytes=max_log_size,
-                    backupCount=MAX_ROTATE_LOG_FILES,
-                )
+                rfh.backupCount = MAX_ROTATE_LOG_FILES
 
         logging.basicConfig(
             format="%(asctime)s - %(levelname)s - %(name)s:%(message)s",
@@ -125,15 +119,13 @@ class main:
 
         logger.info("init_logger : init finished.")
 
-        logger.manager.root.setLevel(self.config["logs"]["logLevel"])
-        logger.info(
-            f"init_logger : set logger to log level {self.config['logs']['logLevel']}."
-        )
+        logger.manager.root.setLevel(log_level)
+        logger.info(f"init_logger : set logger to log level {log_level}.")
 
-    def launch_app(self, args: list = []):
+    def _ipr_entry(self):
         logger.info("launch_app: start app.")
-        self.app = QApplication(args)
-        with open(self.stylesheet) as theme:
+        self.app = QApplication(self.argv)
+        with open(IPR_THEME) as theme:
             self.app.setStyleSheet(theme.read())
 
         window_key = "BitCapIPR"
@@ -172,10 +164,10 @@ class main:
         self.main_window = IPR()
         self.main_window.show()
 
-        sys.excepthook = self.exception_hook
+        sys.excepthook = self._exception_hook
         sys.exit(self.app.exec())
 
-    def exception_hook(self, exc_type, exc_value, exc_tb):
+    def _exception_hook(self, exc_type, exc_value, exc_tb):
         tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
         logger.critical("exception_hook : exception caught!")
         logger.critical(f"exception_hook : {tb}")
@@ -204,4 +196,4 @@ class main:
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    Main(sys.argv)
