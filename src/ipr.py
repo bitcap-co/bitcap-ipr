@@ -802,7 +802,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         selected_text = [self.idTable.itemFromIndex(x).text() for x in selected]
         logger.info(f"{action} : running action for {selected_text}...")
         status_msg = (
-            f"Running action: {action} for [{','.join(selected_text[0:3])}...]..."
+            f"Status :: Running action: {action} for [{','.join(selected_text[0:3])}...]..."
         )
         self.iprStatus.showMessage(status_msg, 3000)
         return selected
@@ -1317,6 +1317,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
 
     def update_miner_pools(self):
+        passed:List[str] = []
         failed: List[str] = []
         selected_ips = self.get_selected_indexes_for_action(
             "update_miner_pools", section=1
@@ -1379,17 +1380,13 @@ class IPR(QMainWindow, Ui_MainWindow):
                 failed.append(ip_addr)
                 continue
             self.api_client.close_client()
+            passed.append(ip_addr)
 
+        # action status
+        logger.info(f"status for action 'update_miner_pools': passed - {passed}, failed - {failed}")
         if len(failed) > 0:
-            logger.error(
-                f"update_miner_pools : failed to update pool confs for {failed}."
-            )
-            return self.iprStatus.showMessage(
-                f"Status :: Failed to update pool config for {failed}", 5000
-            )
-        else:
-            logger.info("update_miner_pools : successfully updated pools.")
-            self.iprStatus.showMessage("Status :: Successfully updated pools", 3000)
+            return self.iprStatus.showMessage(f"Status :: Failed to update pools for {failed}.", 5000)
+        self.iprStatus.showMessage("Status :: Successfully updated pools.", 3000)
 
     # exit
     def close_to_tray_or_exit(self):
