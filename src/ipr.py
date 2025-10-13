@@ -402,9 +402,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
 
             # listeners
-            self.groupListeners.setChecked(
-                self.config["general"]["enableAllListeners"]
-            )
+            self.groupListeners.setChecked(self.config["general"]["enableAllListeners"])
             self.checkListenAntminer.setChecked(
                 self.config["general"]["listenFor"]["antminer"]
             )
