@@ -15,31 +15,22 @@ logger = logging.getLogger(__name__)
 
 
 class IceriverHTTPClient(BaseHTTPClient):
-    """Iceriver HTTP Client with support for pbfarmer"""
+    """Iceriver HTTP Client"""
 
     def __init__(
-        self, ip_addr: str, passwd: Optional[str] = None, pb_key: Optional[str] = None
+        self, ip_addr: str, passwd: Optional[str] = None
     ):
         super().__init__(ip_addr)
         self.url = f"http://{self.ip}:{self.port}/"
         if passwd:
-            self.passwds: List[str] = [passwd, settings.get("default_iceriver_passwd")]
-        self.bearer: str = settings.get("default_pbfarmer_auth")
-        if pb_key:
-            self.bearer = pb_key
-        self.command_format = {
-            "pb": Template("api/${cmd}"),
-            "stock": Template("user/${cmd}"),
-        }
+            self.passwds = [passwd, settings.get("default_iceriver_passwd")]
+        self.command_format = Template("user/${cmd}")
 
         self._initialize_session()
 
     def _initialize_session(self) -> None:
-        self.session.verify = False
         try:
-            self.is_custom = self.__is_pbfarmer()
-            if not self.is_custom:
-                self.session.head(self.url, timeout=5.0, verify=self.session.verify)
+            self.session.head(self.url, timeout=5.0)
         except (
             requests.exceptions.ConnectionError,
             requests.exceptions.ConnectTimeout,
@@ -62,18 +53,7 @@ class IceriverHTTPClient(BaseHTTPClient):
         payload: Optional[Dict[str, Any]] = None,
         data: Optional[Dict[str, Any]] = None,
     ) -> Any:
-        path = self.command_format["stock"].substitute(cmd=command)
-        if self.is_custom:
-            match command:
-                case "ipconfig":
-                    command = "network"
-                case "machineconfig":
-                    command = "machine"
-                case "userpanel":
-                    command = "overview"
-                case "locate":
-                    command = "machine/locate"
-            path = self.command_format["pb"].substitute(cmd=command)
+        path = self.command_format.substitute(cmd=command)
         res = self._do_http(
             method, path, params=params, payload=payload, data=data, timeout=10.0
         )
@@ -82,16 +62,6 @@ class IceriverHTTPClient(BaseHTTPClient):
         except requests.exceptions.JSONDecodeError:
             resj = {}
         return resj
-
-    # pbfarmer support
-    def __is_pbfarmer(self):
-        res = self.session.head(
-            self.url + "api", timeout=5.0, verify=self.session.verify
-        )
-        if res.status_code == 301:
-            self.url = f"https://{self.ip}:{self.port}/"
-            return True
-        return False
 
     def get_mac_addr(self) -> str:
         data = {"post": 1}
@@ -125,11 +95,8 @@ class IceriverHTTPClient(BaseHTTPClient):
         return resp["locate"]
 
     def blink(self, enabled: bool) -> None:
-        if not self.is_custom:
-            data = {"post": 5, "locate": "1" if enabled else "0"}
-            self.run_command("POST", "userpanel", data=data)
-        else:
-            self.run_command("POST", "locate")
+        data = {"post": 5, "locate": "1" if enabled else "0"}
+        self.run_command("POST", "userpanel", data=data)
 
     def update_pools(
         self, urls: List[str], users: List[str], passwds: List[str]
@@ -139,35 +106,25 @@ class IceriverHTTPClient(BaseHTTPClient):
         conf = self.get_miner_conf()
 
         new_conf = {**conf}
-        if not self.is_custom:
-            data = {"post": 2}
-            data["fanratio"] = f"{new_conf['ratio']}"
-            match new_conf["mode"]:
-                case 0:
-                    data["fanmode"] = "sleep"
-                case 1:
-                    data["fanmode"] = "normal"
+        data = {"post": 2}
+        data["fanratio"] = f"{new_conf['ratio']}"
+        match new_conf["mode"]:
+            case 0:
+                data["fanmode"] = "sleep"
+            case 1:
+                data["fanmode"] = "normal"
 
-            for i in range(0, len(urls)):
-                if (
-                    not new_conf["pools"][i]
-                    and not len(users[i])
-                    and not len(passwds[i])
-                ):
-                    continue
-                idx = i + 1
-                data[f"pool{idx}address"] = urls[i]
-                data[f"pool{idx}miner"] = users[i]
-                data[f"pool{idx}pwd"] = passwds[i]
-            res = self.run_command("POST", "machineconfig", data=data)
-            if "error" in res and res["error"] != 0:
-                self._close_client(APIError(res["message"]))
-        else:
-            for i in range(0, len(urls)):
-                data = {
-                    "id": f"{i + 1}",
-                    "pool_address": f"{urls[i]}",
-                    "wallet": f"{users[i]}",
-                    "pool_password": f"{passwds[i]}",
-                }
-                self.run_command("POST", "/pool/update", data=data)
+        for i in range(0, len(urls)):
+            if (
+                not new_conf["pools"][i]
+                and not len(users[i])
+                and not len(passwds[i])
+            ):
+                continue
+            idx = i + 1
+            data[f"pool{idx}address"] = urls[i]
+            data[f"pool{idx}miner"] = users[i]
+            data[f"pool{idx}pwd"] = passwds[i]
+        res = self.run_command("POST", "machineconfig", data=data)
+        if "error" in res and res["error"] != 0:
+            self._close_client(APIError(res["message"]))

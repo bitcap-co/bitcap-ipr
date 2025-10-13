@@ -254,9 +254,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionToggleSealminerPasswd = self.create_passwd_toggle_action(
             self.lineSealminerPasswd
         )
-        self.actionTogglePbfarmerKey = self.create_passwd_toggle_action(
-            self.linePbfarmerKey
-        )
         self.actionToggleVnishPasswd = self.create_passwd_toggle_action(
             self.lineVnishPasswd
         )
@@ -442,9 +439,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.lineVnishPasswd.setText(
                 self.config["api"]["auth"]["firmware"]["vnishAltPasswd"]
             )
-            self.linePbfarmerKey.setText(
-                self.config["api"]["auth"]["firmware"]["pbfarmerKey"]
-            )
 
             # api settings
             self.spinLocateDuration.setValue(
@@ -558,7 +552,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "bitdeerAltPasswd": self.lineSealminerPasswd.text(),
                     "firmware": {
                         "vnishAltPasswd": self.lineVnishPasswd.text(),
-                        "pbfarmerKey": self.linePbfarmerKey.text(),
                     },
                 },
                 "settings": {
@@ -803,9 +796,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             return
         selected_text = [self.idTable.itemFromIndex(x).text() for x in selected]
         logger.info(f"{action} : running action for {selected_text}...")
-        status_msg = (
-            f"Status :: Running action: {action} for [{','.join(selected_text[0:3])}...]..."
-        )
+        status_msg = f"Status :: Running action: {action} for [{','.join(selected_text[0:3])}...]..."
         self.iprStatus.showMessage(status_msg, 3000)
         return selected
 
@@ -1085,9 +1076,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         # get missing mac addr
         match type:
             case "iceriver":
-                self.api_client.create_iceriver_client(
-                    ip, None, self.linePbfarmerKey.text()
-                )
+                self.api_client.create_iceriver_client(ip, None)
             case "elphapex":
                 self.api_client.create_elphapex_client(ip, None)
         missing_mac = self.api_client.get_missing_mac_addr()
@@ -1185,8 +1174,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                     custom_auth = self.lineVnishPasswd.text()
                 else:
                     custom_auth = self.lineBitmainPasswd.text()
-            case "iceriver":
-                custom_auth = self.linePbfarmerKey.text()
             case "whatsminer":
                 client_auth = self.lineWhatsminerPasswd.text()
             case "goldshell":
@@ -1319,7 +1306,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
 
     def update_miner_pools(self):
-        passed:List[str] = []
+        passed: List[str] = []
         failed: List[str] = []
         selected_ips = self.get_selected_indexes_for_action(
             "update_miner_pools", section=1
@@ -1385,9 +1372,13 @@ class IPR(QMainWindow, Ui_MainWindow):
             passed.append(ip_addr)
 
         # action status
-        logger.info(f"status for action 'update_miner_pools': passed - {passed}, failed - {failed}")
+        logger.info(
+            f"status for action 'update_miner_pools': passed - {passed}, failed - {failed}"
+        )
         if len(failed) > 0:
-            return self.iprStatus.showMessage(f"Status :: Failed to update pools for {failed}.", 5000)
+            return self.iprStatus.showMessage(
+                f"Status :: Failed to update pools for {failed}.", 5000
+            )
         self.iprStatus.showMessage("Status :: Successfully updated pools.", 3000)
 
     # exit

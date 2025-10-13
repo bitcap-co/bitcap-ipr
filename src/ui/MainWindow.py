@@ -407,7 +407,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 430, 412))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 477, 462))
         self.verticalLayout_19 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_19.setSpacing(15)
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
@@ -588,7 +588,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 361, 662))
+        self.scrollAPI.setGeometry(QRect(0, 0, 477, 691))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_13.setSpacing(15)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
@@ -799,30 +799,6 @@ class Ui_MainWindow(object):
 
 
         self.verticalLayout_15.addWidget(self.groupVnish)
-
-        self.groupPbfarmer = QGroupBox(self.groupFirmwares)
-        self.groupPbfarmer.setObjectName(u"groupPbfarmer")
-        self.horizontalLayout_13 = QHBoxLayout(self.groupPbfarmer)
-        self.horizontalLayout_13.setObjectName(u"horizontalLayout_13")
-        self.label_12 = QLabel(self.groupPbfarmer)
-        self.label_12.setObjectName(u"label_12")
-        self.label_12.setFont(font1)
-
-        self.horizontalLayout_13.addWidget(self.label_12)
-
-        self.linePbfarmerKey = QLineEdit(self.groupPbfarmer)
-        self.linePbfarmerKey.setObjectName(u"linePbfarmerKey")
-        sizePolicy.setHeightForWidth(self.linePbfarmerKey.sizePolicy().hasHeightForWidth())
-        self.linePbfarmerKey.setSizePolicy(sizePolicy)
-        self.linePbfarmerKey.setMinimumSize(QSize(180, 25))
-        self.linePbfarmerKey.setFont(font1)
-        self.linePbfarmerKey.setEchoMode(QLineEdit.EchoMode.Password)
-        self.linePbfarmerKey.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
-
-        self.horizontalLayout_13.addWidget(self.linePbfarmerKey)
-
-
-        self.verticalLayout_15.addWidget(self.groupPbfarmer)
 
 
         self.verticalLayout_13.addWidget(self.groupFirmwares)
@@ -1236,12 +1212,6 @@ class Ui_MainWindow(object):
         self.checkVnishUseAntminerLogin.setToolTip(QCoreApplication.translate("MainWindow", u"Check to use configured Antminer Login as alternative instead.", None))
 #endif // QT_CONFIG(tooltip)
         self.checkVnishUseAntminerLogin.setText(QCoreApplication.translate("MainWindow", u"Use Antminer Login", None))
-        self.groupPbfarmer.setTitle(QCoreApplication.translate("MainWindow", u"PBfarmer", None))
-        self.label_12.setText(QCoreApplication.translate("MainWindow", u"Set API Key:", None))
-        self.label_12.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
-#if QT_CONFIG(tooltip)
-        self.linePbfarmerKey.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative API Key for pbfarmer. Default API key is supplied if blank", None))
-#endif // QT_CONFIG(tooltip)
         self.configTabs.setTabText(self.configTabs.indexOf(self.tabAPI), QCoreApplication.translate("MainWindow", u"API", None))
 #if QT_CONFIG(tooltip)
         self.configTabs.setTabToolTip(self.configTabs.indexOf(self.tabAPI), QCoreApplication.translate("MainWindow", u"API Settings", None))
