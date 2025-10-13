@@ -402,6 +402,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
 
             # listeners
+            self.groupListeners.setChecked(
+                self.config["general"]["enableAllListeners"]
+            )
             self.checkListenAntminer.setChecked(
                 self.config["general"]["listenFor"]["antminer"]
             )
@@ -535,6 +538,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "onWindowClose": self.comboOnWindowClose.currentIndex(),
                 "useCustomTimeout": self.checkUseCustomTimeout.isChecked(),
                 "inactiveTimeoutMins": self.spinInactiveTimeout.value(),
+                "enableAllListeners": self.groupListeners.isChecked(),
                 "listenFor": {
                     "antminer": self.checkListenAntminer.isChecked(),
                     "whatsminer": self.checkListenWhatsminer.isChecked(),
