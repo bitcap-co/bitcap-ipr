@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from PySide6.QtCore import (
+    QEventLoop,
     QFile,
     QIODevice,
     QMetaMethod,
@@ -70,6 +71,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info(" start IPR() init.")
         super().__init__(flags=Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
+        self._app_instance = QApplication.instance()
         self.confirms: List[IPRConfirmation] = []
         self.sys_tray: Optional[QSystemTrayIcon] = None
 
@@ -783,6 +785,28 @@ class IPR(QMainWindow, Ui_MainWindow):
             case _:
                 return
 
+    def get_selected_indexes_for_action(
+        self, action: str, section: Optional[int] = None
+    ) -> Optional[List[QModelIndex]]:
+        rows = self.idTable.rowCount()
+        if not rows:
+            return
+        if section is not None and section != 0:
+            selected = [
+                x for x in self.idTable.selectedIndexes() if x.column() == section
+            ]
+        else:
+            selected = self.idTable.selectedIndexes()
+        if not len(selected):
+            return
+        selected_text = [self.idTable.itemFromIndex(x).text() for x in selected]
+        logger.info(f"{action} : running action for {selected_text}...")
+        status_msg = (
+            f"Running action: {action} for [{','.join(selected_text[0:3])}...]..."
+        )
+        self.iprStatus.showMessage(status_msg, 3000)
+        return selected
+
     def open_selected_ips(self):
         rows = self.idTable.rowCount()
         if not rows:
@@ -1293,14 +1317,16 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
 
     def update_miner_pools(self):
-        rows = self.idTable.rowCount()
-        if not rows:
-            return
         failed: List[str] = []
-        selected_ips = [x for x in self.idTable.selectedIndexes() if x.column() == 1]
-        if not len(selected_ips):
+        selected_ips = self.get_selected_indexes_for_action(
+            "update_miner_pools", section=1
+        )
+        self._app_instance.processEvents(
+            QEventLoop.ProcessEventsFlag.AllEvents
+            | QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents
+        )
+        if selected_ips is None:
             return
-        logger.info(f"update_miner_pools : update pool confs for {selected_ips}...")
         for index in selected_ips:
             item = self.idTable.itemFromIndex(index)
             ip_addr = item.text()
@@ -1352,6 +1378,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             if client._error:
                 failed.append(ip_addr)
                 continue
+            self.api_client.close_client()
 
         if len(failed) > 0:
             logger.error(
@@ -1408,4 +1435,4 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.root.handlers[0].doRollover()
         self.close_root_logger(logger)
         self.close()
-        self = None
+        del self
