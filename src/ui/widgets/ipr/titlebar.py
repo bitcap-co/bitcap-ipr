@@ -1,10 +1,5 @@
 from PySide6.QtCore import Qt
-from PySide6.QtGui import (
-    QIcon,
-    QPixmap,
-    QColor,
-    QMouseEvent
-)
+from PySide6.QtGui import QIcon, QPixmap, QColor, QMouseEvent
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QWidget,
@@ -143,8 +138,7 @@ class IPR_Titlebar(QWidget):
             if self.pos is not None:
                 offset = event.position().toPoint() - self.pos
                 self._window.move(
-                    self._window.x() + offset.x(),
-                    self._window.y() + offset.y()
+                    self._window.x() + offset.x(), self._window.y() + offset.y()
                 )
         return event.accept()
 

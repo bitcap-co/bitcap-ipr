@@ -17,9 +17,7 @@ logger = logging.getLogger(__name__)
 class IceriverHTTPClient(BaseHTTPClient):
     """Iceriver HTTP Client"""
 
-    def __init__(
-        self, ip_addr: str, passwd: Optional[str] = None
-    ):
+    def __init__(self, ip_addr: str, passwd: Optional[str] = None):
         super().__init__(ip_addr)
         self.url = f"http://{self.ip}:{self.port}/"
         if passwd:
@@ -115,11 +113,7 @@ class IceriverHTTPClient(BaseHTTPClient):
                 data["fanmode"] = "normal"
 
         for i in range(0, len(urls)):
-            if (
-                not new_conf["pools"][i]
-                and not len(users[i])
-                and not len(passwds[i])
-            ):
+            if not new_conf["pools"][i] and not len(users[i]) and not len(passwds[i]):
                 continue
             idx = i + 1
             data[f"pool{idx}address"] = urls[i]
