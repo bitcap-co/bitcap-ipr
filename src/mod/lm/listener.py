@@ -1,28 +1,39 @@
-import time
 import logging
-from typing import Any, Dict, List
+import time
+from collections import OrderedDict
+from typing import Any, List, Optional
 
 from PySide6.QtCore import QObject, Signal, Slot
-from PySide6.QtNetwork import QAbstractSocket, QUdpSocket, QHostAddress
+from PySide6.QtNetwork import QAbstractSocket, QHostAddress, QUdpSocket
 
 from .ipreport import IPReportDatagram
 
 logger = logging.getLogger(__name__)
+
 RECORD_MIN_AGE = 10.0
 
 
-class Record:
-    def __init__(self, size: int):
-        self.size = size
-        self.dict: Dict[str, Any] = {}
+class Record(OrderedDict[str, Any]):
+    """
+    Record is a OrderedDict with a set size of record entries.
+    """
 
-    def __setitem__(self, key: str, value: Any):
-        if len(self.dict) >= self.size:
-            self.dict.popitem()
-        self.dict[key] = value
+    def __init__(self, size: int, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._record_size = size
+        self._check_record_size()
 
-    def __getitem__(self, key: str):
-        return self.dict[key]
+    def __setitem__(self, key, value):
+        super().__setitem__(key, value)
+        self._check_record_size()
+
+    def _check_record_size(self):
+        while len(self) > self._record_size:
+            self.popitem(last=False)
+
+    @property
+    def size(self) -> int:
+        return self._record_size
 
 
 class Listener(QObject):
@@ -34,85 +45,79 @@ class Listener(QObject):
 
     Signals:
         result: Signal(list) - emits on parsed datagram message and sends parts as List[str]
-        error: Signal() - emits on socket error
+        error: Signal(str) - emits on socket error with error message
     """
 
-    result = Signal(list)
+    result = Signal(dict)
     error = Signal(str)
 
-    def __init__(self, parent: QObject, port: int):
+    def __init__(self, port: int, parent: Optional[QObject] = None) -> None:
         super().__init__(parent)
-        self.port = port
-        self.max_buf = 1024
-        self.record = Record(size=10)
-        self.msg = ""
-        self.addr = QHostAddress()
-        self.addr.setAddress(QHostAddress.SpecialAddress.AnyIPv4)
-        self.sock = QUdpSocket()
-        self.bound = self.sock.bind(self.addr, self.port)
+        self._addr = QHostAddress()
+        self._addr.setAddress(QHostAddress.SpecialAddress.AnyIPv4)
+        self._port = port
+        self._buf_size = 1024
+        self._sock = QUdpSocket()
+        self.bound = self._sock.bind(self._addr, self._port)
+        self.record: Record = Record(size=10)
 
-        self.sock.errorOccurred.connect(self.emit_error)
-        self.sock.readyRead.connect(self.process_datagram)
+        self._sock.errorOccurred.connect(self._emit_error)
+        self._sock.readyRead.connect(self._process_datagram)
 
-    def is_dup_packet(self, parsed_msg: List[str]) -> bool:
-        prev_entry = False
-        self.record.dict = dict(
-            sorted(
-                self.record.dict.items(),
-                reverse=True,
-                key=lambda item: float(item[1]["created_at"]),
-            )
-        )
-        ip, mac, type, *_ = parsed_msg
-        for ip_record in self.record.dict.keys():
-            rec_data = self.record.dict.get(ip_record)
-            if ip == ip_record and mac == rec_data["mac"] and type == rec_data["type"]:
-                prev_entry = True
-                if time.time() - rec_data["created_at"] <= RECORD_MIN_AGE:
-                    logger.warning(f"Listener[{self.port}] : duplicate packet.")
-                    return True
-                else:
-                    return False
-        if not prev_entry:
-            return False
+    @property
+    def port(self) -> int:
+        return self._port
+
+    def _is_dup_packet(self, received: List[str]) -> bool:
+        ip, mac, miner_type, *_ = received
+        if len(self.record):
+            for rec in self.record.items():
+                rec_key, rec_data = rec
+                if rec_key == ip and rec_data["mac"] == mac:
+                    if time.time() - rec_data["updated_at"] <= RECORD_MIN_AGE:
+                        logger.warning(f"Listener[{self._port}] : dupicate packet.")
+                        return True
+                    else:
+                        return False
+        return False
 
     @Slot()
-    def process_datagram(self) -> None:
-        while self.sock.hasPendingDatagrams():
-            datagram = self.sock.receiveDatagram(self.max_buf)
+    def _process_datagram(self) -> None:
+        while self._sock.hasPendingDatagrams():
+            datagram = self._sock.receiveDatagram(self._buf_size)
             if not datagram.isValid():
                 return
-            logger.info(f"Listener[{self.port}] : received datagram.")
-            ipreport = IPReportDatagram(datagram)
-            if not ipreport.is_msg_valid:
+            logger.info(f"Listener[{self._port}] : received datagram.")
+            ip_report = IPReportDatagram(datagram)
+            if not ip_report.valid:
                 logger.warning(
-                    f"Listener[{self.port}] : invalid IP report datagram. Ignoring..."
+                    f"Listener[{self._port}] : invalid IP Report datagram. Ignoring..."
                 )
                 return
-            parsed_msg = ipreport.parse_msg()
-            if self.record.dict:
-                if not self.is_dup_packet(parsed_msg):
-                    self.emit_result(parsed_msg)
-            else:
-                self.emit_result(parsed_msg)
+            if not self._is_dup_packet(ip_report.result):
+                self._emit_result(ip_report)
 
-    def emit_result(self, received: List[str]) -> None:
-        logger.info(f"Listener[{self.port}] : emit result.")
-        created_at = time.time()
-        ip, mac, type, *_ = received
-        self.record[ip] = {
-            "type": type,
-            "mac": mac,
-            "created_at": created_at,
+    def _emit_result(self, ip_report: IPReportDatagram) -> None:
+        logger.info(f"Listener[{self._port}] : emit result.")
+        self.record[ip_report.ip] = {
+            "miner_type": ip_report.miner_type,
+            "ip": ip_report.ip,
+            "mac": ip_report.mac,
+            "serial": ip_report.serial,
+            "created_at": ip_report.created_at,
+            "updated_at": time.time(),
         }
-        self.result.emit(received)
+        self.result.emit(self.record[ip_report.ip])
 
-    def emit_error(self, err: QAbstractSocket.SocketError) -> None:
-        logger.error(f"Listener[{self.port}] : emit error! got {err}")
-        self.error.emit(err.__str__())
+    def _emit_error(self, error: QAbstractSocket.SocketError) -> None:
+        logger.error(
+            f"Listener[{self._port}] : emit error! got {self._sock.errorString()}"
+        )
+        self.error.emit(error._name_)
 
     def close(self) -> None:
-        logger.info(f"Listener[{self.port}] : close socket.")
-        self.record.dict = {}  # clear record
-        self.sock.close()
-        del self.sock
+        logger.info(f"Listener[{self._port}] : close socket.")
+        self.record.clear()
+        self._sock.close()
+        del self._sock
+        del self
