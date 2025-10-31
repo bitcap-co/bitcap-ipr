@@ -4,6 +4,7 @@
       "onWindowClose": 0,
       "useCustomTimeout": false,
       "inactiveTimeoutMins": 15,
+      "enableAllListeners": false,
       "listenFor": {
         "antminer": true,
         "whatsminer": true,
@@ -24,8 +25,7 @@
         "goldshellAltPasswd": "",
         "bitdeerAltPasswd": "",
         "firmware": {
-          "vnishAltPasswd": "",
-          "pbfarmerKey": ""
+          "vnishAltPasswd": ""
         }
       },
       "settings": {

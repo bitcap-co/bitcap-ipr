@@ -63,10 +63,10 @@ class APIClient:
             logger.error(err)
 
     def create_iceriver_client(
-        self, ip_addr: str, passwd: Optional[str] = None, pb_key: Optional[str] = None
+        self, ip_addr: str, passwd: Optional[str] = None
     ) -> None:
         try:
-            self.client = IceriverHTTPClient(ip_addr, passwd, pb_key)
+            self.client = IceriverHTTPClient(ip_addr, passwd)
         except FailedConnectionError as err:
             logger.error(err)
 
@@ -129,7 +129,7 @@ class APIClient:
             case "antminer":
                 self.create_bitmain_client(ip_addr, auth, custom_auth)
             case "iceriver":
-                self.create_iceriver_client(ip_addr, auth, custom_auth)
+                self.create_iceriver_client(ip_addr, auth)
             case "whatsminer":
                 self.create_whatsminer_client(ip_addr, auth)
                 self.upgrade_whatsminer_client(ip_addr)

@@ -86,9 +86,9 @@ class BaseHTTPClient(ABC):
                 requests.exceptions.ConnectionError,
                 requests.exceptions.ChunkedEncodingError,
             ) as e:
-                if isinstance(e, requests.exceptions.ConnectionError) or isinstance(
-                    e, requests.exceptions.ConnectTimeout
-                ):
+                if not isinstance(e, requests.exceptions.ChunkedEncodingError):
+                    logger.warning(f"__retry_send : {e}. Ignore..")
+                    success = True
                     break
                 else:
                     logger.warning(
@@ -97,7 +97,7 @@ class BaseHTTPClient(ABC):
                     time.sleep(delay)
         if not success:
             logger.error(" __retry_send : request failed after max retries.")
-            return requests.Response()
+        return requests.Response()
 
     def _do_http(
         self,
@@ -129,14 +129,7 @@ class BaseHTTPClient(ABC):
             )
             req.data = data
         r = req.prepare()
-        if method == "POST" or method == "PUT":
-            try:
-                res = self.session.send(r, timeout=timeout, verify=self.session.verify)
-            except requests.Timeout:
-                logger.warning(" _do_http : timeout.")
-                return requests.Response()
-        else:
-            res = self.__retry_send(r, timeout=timeout, verify=self.session.verify)
+        res = self.__retry_send(r, timeout=timeout, verify=self.session.verify)
         return res
 
     @abstractmethod

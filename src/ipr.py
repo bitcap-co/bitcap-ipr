@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from PySide6.QtCore import (
+    QEventLoop,
     QFile,
     QIODevice,
     QMetaMethod,
@@ -70,6 +71,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info(" start IPR() init.")
         super().__init__(flags=Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
+        self._app_instance = QApplication.instance()
         self.confirms: List[IPRConfirmation] = []
         self.sys_tray: Optional[QSystemTrayIcon] = None
 
@@ -252,9 +254,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionToggleSealminerPasswd = self.create_passwd_toggle_action(
             self.lineSealminerPasswd
         )
-        self.actionTogglePbfarmerKey = self.create_passwd_toggle_action(
-            self.linePbfarmerKey
-        )
         self.actionToggleVnishPasswd = self.create_passwd_toggle_action(
             self.lineVnishPasswd
         )
@@ -312,6 +311,8 @@ class IPR(QMainWindow, Ui_MainWindow):
     def update_stacked_widget(self, view_index: Optional[int] = None, *_):
         logger.info(" update view.")
         if not view_index:
+            if self.menu_bar.actionShowPoolConfigurator.isChecked():
+                self.poolConfigurator.setVisible(True)
             if self.menu_bar.actionEnableIDTable.isChecked():
                 self.stackedWidget.setCurrentIndex(0)
             else:
@@ -319,6 +320,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         elif view_index < self.stackedWidget.count():
             if self.sys_tray and not self.isVisible():
                 self.toggle_visibility()
+            if self.menu_bar.actionShowPoolConfigurator.isChecked():
+                if view_index == 2:
+                    self.poolConfigurator.setVisible(False)
             self.stackedWidget.setCurrentIndex(view_index)
 
     def update_status_msg(self):
@@ -395,6 +399,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
 
             # listeners
+            self.groupListeners.setChecked(self.config["general"]["enableAllListeners"])
             self.checkListenAntminer.setChecked(
                 self.config["general"]["listenFor"]["antminer"]
             )
@@ -433,9 +438,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
             self.lineVnishPasswd.setText(
                 self.config["api"]["auth"]["firmware"]["vnishAltPasswd"]
-            )
-            self.linePbfarmerKey.setText(
-                self.config["api"]["auth"]["firmware"]["pbfarmerKey"]
             )
 
             # api settings
@@ -528,6 +530,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "onWindowClose": self.comboOnWindowClose.currentIndex(),
                 "useCustomTimeout": self.checkUseCustomTimeout.isChecked(),
                 "inactiveTimeoutMins": self.spinInactiveTimeout.value(),
+                "enableAllListeners": self.groupListeners.isChecked(),
                 "listenFor": {
                     "antminer": self.checkListenAntminer.isChecked(),
                     "whatsminer": self.checkListenWhatsminer.isChecked(),
@@ -549,7 +552,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "bitdeerAltPasswd": self.lineSealminerPasswd.text(),
                     "firmware": {
                         "vnishAltPasswd": self.lineVnishPasswd.text(),
-                        "pbfarmerKey": self.linePbfarmerKey.text(),
                     },
                 },
                 "settings": {
@@ -778,6 +780,26 @@ class IPR(QMainWindow, Ui_MainWindow):
             case _:
                 return
 
+    def get_selected_indexes_for_action(
+        self, action: str, section: Optional[int] = None
+    ) -> Optional[List[QModelIndex]]:
+        rows = self.idTable.rowCount()
+        if not rows:
+            return
+        if section is not None and section != 0:
+            selected = [
+                x for x in self.idTable.selectedIndexes() if x.column() == section
+            ]
+        else:
+            selected = self.idTable.selectedIndexes()
+        if not len(selected):
+            return
+        selected_text = [self.idTable.itemFromIndex(x).text() for x in selected]
+        logger.info(f"{action} : running action for {selected_text}...")
+        status_msg = f"Status :: Running action: {action} for [{','.join(selected_text[0:3])}...]..."
+        self.iprStatus.showMessage(status_msg, 3000)
+        return selected
+
     def open_selected_ips(self):
         rows = self.idTable.rowCount()
         if not rows:
@@ -871,9 +893,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         cols = self.idTable.columnCount()
         if not rows:
             return
-        out = "TIMESTAMP,IP,MAC,SERIAL,TYPE,SUBTYPE,ALGORITHM,POOL,WORKER,FIRMWARE,PLATFORM\n"
+        out = "IP,MAC,SERIAL,TYPE,SUBTYPE,ALGORITHM,POOL,WORKER,FIRMWARE,PLATFORM\n"
         for i in range(rows):
-            for j in range(0, cols):
+            for j in range(1, cols):
                 out += self.idTable.item(i, j).text()
                 out += ","
             out += "\n"
@@ -998,7 +1020,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         # reset inactive timer
         if self.inactive.isActive():
             self.inactive.start()
-        ip, mac, type, sn, timestamp = result
+        ip, mac, type, sn = result
         logger.debug(f"process_result : got {ip},{mac},{sn},{type} from listener.")
         if type == "bitmain-common":
             bitmain_common_miners = [
@@ -1054,9 +1076,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         # get missing mac addr
         match type:
             case "iceriver":
-                self.api_client.create_iceriver_client(
-                    ip, None, self.linePbfarmerKey.text()
-                )
+                self.api_client.create_iceriver_client(ip, None)
             case "elphapex":
                 self.api_client.create_elphapex_client(ip, None)
         missing_mac = self.api_client.get_missing_mac_addr()
@@ -1070,7 +1090,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             "mac": mac.upper(),
             "type": type,
             "sn": sn,
-            "timestamp": timestamp,
             **self.api_client.target_info,
         }
         self.show_confirmation()
@@ -1155,8 +1174,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                     custom_auth = self.lineVnishPasswd.text()
                 else:
                     custom_auth = self.lineBitmainPasswd.text()
-            case "iceriver":
-                custom_auth = self.linePbfarmerKey.text()
             case "whatsminer":
                 client_auth = self.lineWhatsminerPasswd.text()
             case "goldshell":
@@ -1196,12 +1213,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         actionLocateMiner.setPixmap(QPixmap(":theme/icons/rc/flash.png"))
         actionLocateMiner.setToolTip("Locate Miner")
         self.idTable.setCellWidget(rowPosition, 0, actionLocateMiner)
-        if "timestamp" in self.result:
-            self.idTable.setItem(
-                rowPosition, 0, IPRIndexWidgetItem(self.result["timestamp"])
-            )
-        else:
-            self.idTable.setItem(rowPosition, 0, IPRIndexWidgetItem(rowPosition))
+        self.idTable.setItem(rowPosition, 0, IPRIndexWidgetItem(rowPosition))
         self.idTable.setItem(rowPosition, 1, IPRIPWidgetItem(self.result["ip"]))
         self.idTable.setItem(rowPosition, 2, QTableWidgetItem(self.result["mac"]))
         self.idTable.setItem(rowPosition, 3, QTableWidgetItem(self.result["serial"]))
@@ -1294,20 +1306,24 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
 
     def update_miner_pools(self):
-        rows = self.idTable.rowCount()
-        if not rows:
-            return
+        passed: List[str] = []
         failed: List[str] = []
-        selected_ips = [x for x in self.idTable.selectedIndexes() if x.column() == 1]
-        if not len(selected_ips):
+        selected_ips = self.get_selected_indexes_for_action(
+            "update_miner_pools", section=1
+        )
+        self._app_instance.processEvents(
+            QEventLoop.ProcessEventsFlag.AllEvents
+            | QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents
+        )
+        if selected_ips is None:
             return
-        logger.info(f"update_miner_pools : update pool confs for {selected_ips}...")
         for index in selected_ips:
             item = self.idTable.itemFromIndex(index)
             ip_addr = item.text()
             miner_type = self.idTable.item(item.row(), 4).text()
             macaddr = self.idTable.item(item.row(), 2).text()
             serial = self.idTable.item(item.row(), 3).text()
+            worker = ""
             if serial and (
                 serial != "N/A" and serial != "Unknown" and serial != "Failed"
             ):
@@ -1352,17 +1368,18 @@ class IPR(QMainWindow, Ui_MainWindow):
             if client._error:
                 failed.append(ip_addr)
                 continue
+            self.api_client.close_client()
+            passed.append(ip_addr)
 
+        # action status
+        logger.info(
+            f"status for action 'update_miner_pools': passed - {passed}, failed - {failed}"
+        )
         if len(failed) > 0:
-            logger.error(
-                f"update_miner_pools : failed to update pool confs for {failed}."
-            )
             return self.iprStatus.showMessage(
-                f"Status :: Failed to update pool config for {failed}", 5000
+                f"Status :: Failed to update pools for {failed}.", 5000
             )
-        else:
-            logger.info("update_miner_pools : successfully updated pools.")
-            self.iprStatus.showMessage("Status :: Successfully updated pools", 3000)
+        self.iprStatus.showMessage("Status :: Successfully updated pools.", 3000)
 
     # exit
     def close_to_tray_or_exit(self):
@@ -1408,4 +1425,4 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.root.handlers[0].doRollover()
         self.close_root_logger(logger)
         self.close()
-        self = None
+        del self

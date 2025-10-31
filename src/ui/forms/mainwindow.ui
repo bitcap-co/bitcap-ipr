@@ -878,8 +878,8 @@ Uses last 5 of SN or MAC address.</string>
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>430</width>
-                       <height>412</height>
+                       <width>477</width>
+                       <height>462</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -1276,8 +1276,8 @@ Uses last 5 of SN or MAC address.</string>
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>361</width>
-                       <height>662</height>
+                       <width>477</width>
+                       <height>691</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="verticalLayout_13">
@@ -1726,60 +1726,6 @@ Uses last 5 of SN or MAC address.</string>
                                 </widget>
                                </item>
                               </layout>
-                             </widget>
-                            </item>
-                           </layout>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QGroupBox" name="groupPbfarmer">
-                           <property name="title">
-                            <string>PBfarmer</string>
-                           </property>
-                           <layout class="QHBoxLayout" name="horizontalLayout_13">
-                            <item>
-                             <widget class="QLabel" name="label_12">
-                              <property name="font">
-                               <font>
-                                <pointsize>10</pointsize>
-                               </font>
-                              </property>
-                              <property name="text">
-                               <string>Set API Key:</string>
-                              </property>
-                              <property name="StyleClass" stdset="0">
-                               <string>setText</string>
-                              </property>
-                             </widget>
-                            </item>
-                            <item>
-                             <widget class="QLineEdit" name="linePbfarmerKey">
-                              <property name="sizePolicy">
-                               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                                <horstretch>0</horstretch>
-                                <verstretch>0</verstretch>
-                               </sizepolicy>
-                              </property>
-                              <property name="minimumSize">
-                               <size>
-                                <width>180</width>
-                                <height>25</height>
-                               </size>
-                              </property>
-                              <property name="font">
-                               <font>
-                                <pointsize>10</pointsize>
-                               </font>
-                              </property>
-                              <property name="toolTip">
-                               <string>Set alternative API Key for pbfarmer. Default API key is supplied if blank</string>
-                              </property>
-                              <property name="echoMode">
-                               <enum>QLineEdit::EchoMode::Password</enum>
-                              </property>
-                              <property name="alignment">
-                               <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-                              </property>
                              </widget>
                             </item>
                            </layout>
