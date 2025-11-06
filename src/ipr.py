@@ -48,9 +48,9 @@ from ui.MainWindow import Ui_MainWindow
 from ui.widgets.ipr import (
     IPR_Menubar,
     IPR_Titlebar,
-    IPRTableContextMenu,
-    IPRIPWidgetItem,
     IPRIndexWidgetItem,
+    IPRIPWidgetItem,
+    IPRTableContextMenu,
 )
 from utils import (
     APP_INFO,
@@ -1106,7 +1106,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.info("show_confirmation : populate ID table.")
             self.populate_id_table()
         else:
-            confirm = IPRConfirmation()
+            confirm = IPRConfirmation(self)
             # IPRConfirmation Signals
             confirm.accept.clicked.connect(confirm.hide)
             confirm.lineIPField.actionDashboard.triggered.connect(

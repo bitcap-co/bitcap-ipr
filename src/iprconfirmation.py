@@ -1,14 +1,15 @@
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon, QPixmap
-from PySide6.QtWidgets import QApplication, QLineEdit, QWidget
+from PySide6.QtWidgets import QApplication, QDialog, QLineEdit, QWidget
 
 from ui.Confirmation import Ui_IPRConfirmation
 from ui.widgets.ipr import IPR_Titlebar
 from utils import CURR_PLATFORM
 
 
-class IPRConfirmation(QWidget, Ui_IPRConfirmation):
-    def __init__(self):
+class IPRConfirmation(QDialog, Ui_IPRConfirmation):
+    def __init__(self, parent: QWidget):
+        self._parent = parent
         super().__init__(f=Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
 
