@@ -1144,12 +1144,14 @@ class IPR(QMainWindow, Ui_MainWindow):
                         15000,
                     )
             else:
-                confirm.show()
+                confirm.showNormal()
                 confirm.activateWindow()
+                confirm.raise_()
 
     def show_confirm_from_sys_tray(self, confirm: IPRConfirmation):
-        confirm.show()
+        confirm.showNormal()
         confirm.activateWindow()
+        confirm.raise_()
         self.sys_tray.messageClicked.disconnect()
 
     # ID table
