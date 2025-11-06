@@ -1091,7 +1091,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprStatus.showMessage(f"Status :: Got {type}: IP:{ip}, MAC:{mac}", 5000)
         self.result: Dict[str, str] = {
             "ip": ip,
-            "mac": mac.upper(),
+            "mac": mac.lower(),
             "type": type,
             "sn": sn,
             **self.api_client.target_info,
