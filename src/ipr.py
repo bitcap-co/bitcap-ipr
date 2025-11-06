@@ -73,6 +73,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self._app_instance = QApplication.instance()
         self.confirms: List[IPRConfirmation] = []
+        self.aboutDialog: Optional[IPRAbout] = None
         self.sys_tray: Optional[QSystemTrayIcon] = None
 
         logger.info(" init inactive timer for 900000ms.")
@@ -745,13 +746,16 @@ class IPR(QMainWindow, Ui_MainWindow):
             action.setIcon(QIcon(":theme/icons/rc/view.png"))
 
     def about(self):
-        self.aboutDialog = IPRAbout(
-            self,
-            "About",
-            f"{APP_INFO['name']} is a {APP_INFO['desc']}\nVersion {APP_INFO['appversion']}\nQt Version {APP_INFO['qt']}\nPython Version {APP_INFO['python']}\n{APP_INFO['author']}\nPowered by {APP_INFO['company']}\n",
-        )
-        self.aboutDialog._acceptButton.clicked.connect(self.aboutDialog.window().close)
-        self.aboutDialog.show()
+        if not self.aboutDialog or not self.aboutDialog.isVisible():
+            self.aboutDialog = IPRAbout(
+                self,
+                "About",
+                f"{APP_INFO['name']} is a {APP_INFO['desc']}\nVersion {APP_INFO['appversion']}\nQt Version {APP_INFO['qt']}\nPython Version {APP_INFO['python']}\n{APP_INFO['author']}\nPowered by {APP_INFO['company']}\n",
+            )
+            self.aboutDialog._acceptButton.clicked.connect(
+                self.aboutDialog.window().close
+            )
+            self.aboutDialog.show()
 
     def open_log(self):
         QDesktopServices.openUrl(
