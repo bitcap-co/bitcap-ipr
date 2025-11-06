@@ -724,6 +724,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             for child in self.groupListeners.children():
                 if isinstance(child, QWidget):
                     child.setEnabled(True)
+        self.restart_listen()
 
     # actions
     def create_passwd_toggle_action(self, line: QLineEdit) -> QAction:
