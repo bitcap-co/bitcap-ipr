@@ -48,9 +48,9 @@ from ui.MainWindow import Ui_MainWindow
 from ui.widgets.ipr import (
     IPR_Menubar,
     IPR_Titlebar,
-    IPRTableContextMenu,
-    IPRIPWidgetItem,
     IPRIndexWidgetItem,
+    IPRIPWidgetItem,
+    IPRTableContextMenu,
 )
 from utils import (
     APP_INFO,
@@ -73,6 +73,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self._app_instance = QApplication.instance()
         self.confirms: List[IPRConfirmation] = []
+        self.aboutDialog: Optional[IPRAbout] = None
         self.sys_tray: Optional[QSystemTrayIcon] = None
 
         logger.info(" init inactive timer for 900000ms.")
@@ -723,6 +724,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             for child in self.groupListeners.children():
                 if isinstance(child, QWidget):
                     child.setEnabled(True)
+        self.restart_listen()
 
     # actions
     def create_passwd_toggle_action(self, line: QLineEdit) -> QAction:
@@ -745,13 +747,16 @@ class IPR(QMainWindow, Ui_MainWindow):
             action.setIcon(QIcon(":theme/icons/rc/view.png"))
 
     def about(self):
-        self.aboutDialog = IPRAbout(
-            self,
-            "About",
-            f"{APP_INFO['name']} is a {APP_INFO['desc']}\nVersion {APP_INFO['appversion']}\nQt Version {APP_INFO['qt']}\nPython Version {APP_INFO['python']}\n{APP_INFO['author']}\nPowered by {APP_INFO['company']}\n",
-        )
-        self.aboutDialog._acceptButton.clicked.connect(self.aboutDialog.window().close)
-        self.aboutDialog.show()
+        if not self.aboutDialog or not self.aboutDialog.isVisible():
+            self.aboutDialog = IPRAbout(
+                self,
+                "About",
+                f"{APP_INFO['name']} is a {APP_INFO['desc']}\nVersion {APP_INFO['appversion']}\nQt Version {APP_INFO['qt']}\nPython Version {APP_INFO['python']}\n{APP_INFO['author']}\nPowered by {APP_INFO['company']}\n",
+            )
+            self.aboutDialog._acceptButton.clicked.connect(
+                self.aboutDialog.window().close
+            )
+            self.aboutDialog.show()
 
     def open_log(self):
         QDesktopServices.openUrl(
@@ -1087,7 +1092,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprStatus.showMessage(f"Status :: Got {type}: IP:{ip}, MAC:{mac}", 5000)
         self.result: Dict[str, str] = {
             "ip": ip,
-            "mac": mac.upper(),
+            "mac": mac.lower(),
             "type": type,
             "sn": sn,
             **self.api_client.target_info,
@@ -1106,7 +1111,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.info("show_confirmation : populate ID table.")
             self.populate_id_table()
         else:
-            confirm = IPRConfirmation()
+            confirm = IPRConfirmation(self)
             # IPRConfirmation Signals
             confirm.accept.clicked.connect(confirm.hide)
             confirm.lineIPField.actionDashboard.triggered.connect(
@@ -1144,12 +1149,14 @@ class IPR(QMainWindow, Ui_MainWindow):
                         15000,
                     )
             else:
-                confirm.show()
+                confirm.showNormal()
                 confirm.activateWindow()
+                confirm.raise_()
 
     def show_confirm_from_sys_tray(self, confirm: IPRConfirmation):
-        confirm.show()
+        confirm.showNormal()
         confirm.activateWindow()
+        confirm.raise_()
         self.sys_tray.messageClicked.disconnect()
 
     # ID table
