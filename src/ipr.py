@@ -53,14 +53,14 @@ from ui.widgets.ipr import (
     IPRTableContextMenu,
 )
 from utils import (
-    APP_INFO,
     CURR_PLATFORM,
+    IPR_DEFAULT_CONFIG,
+    IPR_METADATA,
     deep_update,
     get_config_file_path,
-    get_default_config,
     get_log_dir,
-    read_config,
-    write_config,
+    read_config_file,
+    write_config_file,
 )
 
 logger = logging.getLogger(__name__)
@@ -386,7 +386,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info(" read config.")
         self.config_path = get_config_file_path()
         if os.path.exists(self.config_path):
-            self.config = read_config(self.config_path)
+            self.config = read_config_file(self.config_path)
             # general
             self.checkEnableSysTray.setChecked(self.config["general"]["enableSysTray"])
             self.comboOnWindowClose.setCurrentIndex(
@@ -578,7 +578,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def write_settings(self):
         self.update_settings()
-        write_config(self.config_path, self.config)
+        write_config_file(self.config_path, self.config)
 
     def reset_settings(self):
         ok = QMessageBox.warning(
@@ -589,8 +589,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         if ok == QMessageBox.StandardButton.Ok:
             logger.info(" reset settings.")
-            config = read_config(get_default_config())
-            write_config(self.config_path, config)
+            config = read_config_file(IPR_DEFAULT_CONFIG)
+            write_config_file(self.config_path, config)
             self.toggle_pool_config()
             self.read_settings()
             self.update_inactive_timer()
@@ -627,7 +627,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 )
 
     def read_pool_preset(self, index: int) -> None:
-        self.config = read_config(self.config_path)
+        self.config = read_config_file(self.config_path)
         pool_preset = self.config["savedPools"][index]
         self.linePoolURL.setText(pool_preset["pool"])
         self.linePoolURL_2.setText(pool_preset["pool2"])
@@ -657,7 +657,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.config["savedPools"][current_index]["passwd3"] = (
             self.linePoolPasswd_3.text()
         )
-        write_config(self.config_path, self.config)
+        write_config_file(self.config_path, self.config)
         self.iprStatus.showMessage("Status :: successfully wrote pool preset.", 3000)
 
     def clear_pool_preset(self):
@@ -751,7 +751,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.aboutDialog = IPRAbout(
                 self,
                 "About",
-                f"{APP_INFO['name']} is a {APP_INFO['desc']}\nVersion {APP_INFO['appversion']}\nQt Version {APP_INFO['qt']}\nPython Version {APP_INFO['python']}\n{APP_INFO['author']}\nPowered by {APP_INFO['company']}\n",
+                f"{IPR_METADATA['name']} is a {IPR_METADATA['desc']}\nVersion {IPR_METADATA['appversion']}\nQt Version {IPR_METADATA['qt']}\nPython Version {IPR_METADATA['python']}\n{IPR_METADATA['author']}\nPowered by {IPR_METADATA['company']}\n",
             )
             self.aboutDialog._acceptButton.clicked.connect(
                 self.aboutDialog.window().close
@@ -764,10 +764,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
 
     def open_issues(self):
-        webbrowser.open(f"{APP_INFO['source']}/issues", new=2)
+        webbrowser.open(f"{IPR_METADATA['source']}/issues", new=2)
 
     def open_source(self):
-        webbrowser.open(f"{APP_INFO['source']}", new=2)
+        webbrowser.open(f"{IPR_METADATA['source']}", new=2)
 
     def open_dashboard(self, host: str):
         webbrowser.open(f"http://{host}", new=2)
