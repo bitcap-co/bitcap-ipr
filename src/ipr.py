@@ -10,7 +10,6 @@ from PySide6.QtCore import (
     QEventLoop,
     QFile,
     QIODevice,
-    QMetaMethod,
     QModelIndex,
     Qt,
     QTextStream,
