@@ -71,9 +71,30 @@ class IPR(QMainWindow, Ui_MainWindow):
         super().__init__(flags=Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
         self._app_instance = QApplication.instance()
+        self.about_dialog: Optional[IPRAbout] = None
         self.confirms: List[IPRConfirmation] = []
-        self.aboutDialog: Optional[IPRAbout] = None
-        self.sys_tray: Optional[QSystemTrayIcon] = None
+        self.sys_tray = QSystemTrayIcon(
+            QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"),
+            parent=self,
+            toolTip="BitCap IPReporter",
+            visible=False,
+        )
+        self.sys_tray_context = QMenu()
+        self.sys_tray_context.addAction("Show/Hide", self.toggle_visibility)
+        self.sys_tray_context.addAction("Open Log", self.open_log)
+        self.actionSysStartListen = self.sys_tray_context.addAction(
+            "Start Listen", self.start_listen
+        )
+        self.actionSysStopListen = self.sys_tray_context.addAction(
+            "Stop Listen", self.stop_listen
+        )
+        self.actionSysStopListen.setEnabled(False)
+        self.sys_tray_context.addSeparator()
+        self.sys_tray_context.addAction(
+            "Settings", lambda: self.update_stacked_widget(view_index=2)
+        )
+        self.sys_tray_context.addAction("Quit", self.quit)
+        self.sys_tray.setContextMenu(self.sys_tray_context)
 
         logger.info(" init inactive timer for 900000ms.")
         self.inactive = QTimer()
@@ -267,8 +288,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprStatus.messageChanged.connect(self.update_status_msg)
 
         # system tray signals
-        self.checkEnableSysTray.toggled.connect(self.toggle_sys_tray_settings)
-        self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
+        self.checkEnableSysTray.toggled.connect(self.toggle_system_tray_settings)
+        self.checkEnableSysTray.stateChanged.connect(self.update_system_tray_visibility)
 
         # configuration signals
         self.checkUseCustomTimeout.toggled.connect(self.update_inactive_timer_settings)
@@ -305,7 +326,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.setVisible(not self.isVisible())
 
     def is_minimized_to_tray(self) -> bool:
-        if self.sys_tray is not None and not self.isVisible():
+        if self.sys_tray.isVisible() and not self.isVisible():
             return True
         return False
 
@@ -340,38 +361,11 @@ class IPR(QMainWindow, Ui_MainWindow):
                 idx, self.config["savedPools"][idx]["preset_name"]
             )
 
-    # system tray
-    def create_or_destroy_systray(self):
+    def update_system_tray_visibility(self):
         if self.checkEnableSysTray.isChecked():
-            self.sys_tray = QSystemTrayIcon(
-                QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"),
-                parent=self,
-                toolTip="BitCap IPReporter",
-                visible=True,
-            )
-            self.system_tray_menu = QMenu()
-            self.system_tray_menu.addAction("Show/Hide", self.toggle_visibility)
-            self.system_tray_menu.addAction("Open Log", self.open_log)
-            self.actionSysStartListen = self.system_tray_menu.addAction(
-                "Start Listen", self.start_listen
-            )
-            self.actionSysStopListen = self.system_tray_menu.addAction(
-                "Stop Listen", self.stop_listen
-            )
-            self.actionSysStopListen.setEnabled(False)
-            self.system_tray_menu.addSeparator()
-            self.system_tray_menu.addAction(
-                "Settings", lambda: self.update_stacked_widget(view_index=2)
-            )
-            self.system_tray_menu.addAction("Quit", self.quit)
-            if self.lm.listeners:
-                self.actionSysStartListen.setEnabled(False)
-                self.actionSysStopListen.setEnabled(True)
-            self.sys_tray.setContextMenu(self.system_tray_menu)
+            self.sys_tray.show()
         else:
-            if self.sys_tray:
-                self.sys_tray.hide()
-            self.sys_tray = None
+            self.sys_tray.hide()
 
     # configuration
     def read_settings(self):
@@ -683,7 +677,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.spinInactiveTimeout.setValue(self.spinInactiveTimeout.minimum())
             self.spinInactiveTimeout.setEnabled(False)
 
-    def toggle_sys_tray_settings(self):
+    def toggle_system_tray_settings(self):
         if self.checkEnableSysTray.isChecked():
             self.comboOnWindowClose.setEnabled(True)
         else:
@@ -738,16 +732,16 @@ class IPR(QMainWindow, Ui_MainWindow):
             action.setIcon(QIcon(":theme/icons/rc/view.png"))
 
     def about(self):
-        if not self.aboutDialog or not self.aboutDialog.isVisible():
-            self.aboutDialog = IPRAbout(
+        if not self.about_dialog or not self.about_dialog.isVisible():
+            self.about_dialog = IPRAbout(
                 self,
                 "About",
                 f"{IPR_METADATA['name']} is a {IPR_METADATA['desc']}\nVersion {IPR_METADATA['appversion']}\nQt Version {IPR_METADATA['qt']}\nPython Version {IPR_METADATA['python']}\n{IPR_METADATA['author']}\nPowered by {IPR_METADATA['company']}\n",
             )
-            self.aboutDialog._acceptButton.clicked.connect(
-                self.aboutDialog.window().close
+            self.about_dialog._acceptButton.clicked.connect(
+                self.about_dialog.window().close
             )
-            self.aboutDialog.show()
+            self.about_dialog.show()
 
     def open_log(self):
         QDesktopServices.openUrl(
@@ -1384,9 +1378,7 @@ class IPR(QMainWindow, Ui_MainWindow):
     def quit(self):
         if self.is_minimized_to_tray():
             self.toggle_visibility()
-        if self.sys_tray:
-            self.sys_tray.hide()
-        self.sys_tray = None
+        self.sys_tray.hide()
         self.lm.stop()
         self.killall()
         logger.info(" write settings to disk.")
