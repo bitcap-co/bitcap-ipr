@@ -23,32 +23,33 @@
 # nuitka-project: --product-version=0.0.0.0
 
 
-import os
-import sys
 import logging
 import logging.handlers
+import os
+import sys
 import traceback
 from typing import List
 
-from PySide6.QtCore import QSystemSemaphore, QSharedMemory, QUrl
-from PySide6.QtGui import QIcon, QDesktopServices
+from PySide6.QtCore import QSharedMemory, QSystemSemaphore, QUrl
+from PySide6.QtGui import QDesktopServices, QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QMessageBox,
 )
+
 from ipr import IPR
 from utils import (
-    IPR_THEME,
     IPR_DEFAULT_CONFIG,
+    IPR_THEME,
     MAX_ROTATE_LOG_FILES,
+    deep_update,
+    flush_log,
     get_config_dir,
     get_config_file_path,
     get_log_dir,
     get_log_file_path,
     read_config_file,
     write_config_file,
-    flush_log,
-    deep_update,
 )
 
 # logger
@@ -90,7 +91,7 @@ class Main:
     def _init_log(self):
         log_level: str = self.config["logs"]["logLevel"]
         max_log_size_kb: int = int(self.config["logs"]["maxLogSize"]) * 1000
-        on_max_log_size: int = self.config["log"]["onMaxLogSize"]
+        on_max_log_size: int = self.config["logs"]["onMaxLogSize"]
 
         rfh = logging.handlers.RotatingFileHandler(
             self.log_path, maxBytes=max_log_size_kb, backupCount=1
