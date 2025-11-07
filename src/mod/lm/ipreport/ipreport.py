@@ -22,15 +22,22 @@ class IPReportDatagram:
     Small wrapper around QNetworkDatagram that automatically handle IP Report messages from various ASIC types.
 
     Args:
-        datagram: QNetworkDatagram - initial datagram received by Listener.
+        datagram (QNetworkDatagram): Root datagram received by Listener.
+
+    Attributes:
+        src_addr: A string of the sender IP address in datagram.
+        src_port: An integer of the sender port in datagram.
+        dst_port: A string of the destination IP address in datagram.
+        dst_port: An integer of the destination port in datagram.
+        data: A QByteArray of the data in datagram.
     """
 
     def __init__(self, datagram: QNetworkDatagram):
-        self._src_addr = datagram.senderAddress().toString()
-        self._src_port = datagram.senderPort()
-        self._dst_addr = datagram.destinationAddress().toString()
-        self._dst_port = datagram.destinationPort()
-        self._data = datagram.data()
+        self.src_addr = datagram.senderAddress().toString()
+        self.src_port = datagram.senderPort()
+        self.dst_addr = datagram.destinationAddress().toString()
+        self.dst_port = datagram.destinationPort()
+        self.data = datagram.data()
         self._is_valid = False
         self._port_type = PortType(0)
         self._is_compressed = False
@@ -46,30 +53,61 @@ class IPReportDatagram:
 
     @property
     def valid(self) -> bool:
+        """Get whether is valid IP report message."""
         return self._is_valid
 
     @property
     def created_at(self) -> float:
+        """Get the created at time of IPReportDatagram.
+
+        Returns:
+            float: The creation time in seconds since epoch.
+        """
         return self._created_at
 
     @property
+    def miner_type(self) -> str:
+        """Get the miner type of IPReportDatagram.
+
+        Returns:
+            str: The miner type based from destination port.
+        """
+        return self._miner_type
+
+    @property
     def ip(self) -> str:
+        """Get the IP address from the IP report message.
+
+        Returns:
+            str: The IP address from datagram payload.
+        """
         return self._ip_addr
 
     @property
     def mac(self) -> str:
+        """Get MAC address from the IP report message.
+
+        Returns:
+            str: The MAC address from datagram payload.
+        """
         return self._mac_addr
 
     @property
-    def miner_type(self) -> str:
-        return self._miner_type
-
-    @property
     def serial(self) -> str:
+        """Get serial number from the IP report message.
+
+        Returns:
+            str: The serial number from datagram payload.
+        """
         return self._serial
 
     @property
     def result(self) -> List[str]:
+        """Get result of the IPRReportDatagram.
+
+        Returns:
+            List[str]: The ip, mac, miner_type, and serial of the IPRReportDatagram.
+        """
         if not self._mac_addr:
             self._mac_addr = self._miner_type
         return [
@@ -81,7 +119,7 @@ class IPReportDatagram:
 
     def _get_miner_type(self):
         try:
-            self._port_type = PortType.from_port(self._dst_port)
+            self._port_type = PortType.from_port(self.dst_port)
         except ValueError:
             pass
         self._miner_type = self._port_type.name.lower()
@@ -94,16 +132,16 @@ class IPReportDatagram:
 
         if not decomp:
             logger.warning(
-                f"{self._miner_type}[{self._src_addr}] : unable to decompress. Ignore"
+                f"{self._miner_type}[{self.src_addr}] : unable to decompress. Ignore"
             )
             return False
         self._msg = decomp.decode().rstrip("\x00")
         return True
 
     def _decompress_sealminer(self) -> bytes:
-        if self._data.contains(ZLIB_DEFAULT_MAGIC):
-            data_start = self._data.indexOf(ZLIB_DEFAULT_MAGIC)
-            data = self._data.slice(data_start)
+        if self.data.contains(ZLIB_DEFAULT_MAGIC):
+            data_start = self.data.indexOf(ZLIB_DEFAULT_MAGIC)
+            data = self.data.slice(data_start)
             try:
                 out = zlib.decompress(data.data())
             except zlib.error:
@@ -117,17 +155,17 @@ class IPReportDatagram:
         return bytes()
 
     def _validate_msg(self) -> bool:
-        if not self._data.isEmpty():
-            if not self._data.isValidUtf8():
+        if not self.data.isEmpty():
+            if not self.data.isValidUtf8():
                 self._is_compressed = self._try_decompress_from_type()
                 if not self._is_compressed:
                     logger.error(
-                        f"{self._miner_type}[{self._src_addr}] : failed to decode datagram. Ignore!"
+                        f"{self._miner_type}[{self.src_addr}] : failed to decode datagram. Ignore!"
                     )
                     self._is_valid = False
                     return False
             else:
-                self._msg = self._data.toStdString().rstrip("\x00")
+                self._msg = self.data.toStdString().rstrip("\x00")
 
             match self._port_type:
                 case PortType.COMMON:
@@ -147,7 +185,7 @@ class IPReportDatagram:
                 case PortType.ELPHAPEX:
                     if re.match(msg_patterns["elphapex"], self._msg):
                         self._is_valid = True
-                        self._ip_addr = self._src_addr
+                        self._ip_addr = self.src_addr
                 case PortType.SEALMINER:
                     try:
                         obj = json.loads(self._msg)
@@ -186,6 +224,6 @@ class IPReportDatagram:
 
         if not self._is_valid:
             logger.error(
-                f"{self._miner_type}[{self._src_addr}] : failed to validate ip report packet. Ignore!"
+                f"{self._miner_type}[{self.src_addr}] : failed to validate ip report packet. Ignore!"
             )
         return self._is_valid

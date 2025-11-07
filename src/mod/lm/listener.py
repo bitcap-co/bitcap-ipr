@@ -41,11 +41,16 @@ class Listener(QObject):
     UDP socket listener class
 
     Args:
-        port: int - UDP port to listen on. Listens for all IPv4 interfaces (0.0.0.0)
+        port (int): UDP port to listen on. Listens for all IPv4 interfaces (0.0.0.0).
+        parent (QObject): Optional parent object.
+
+    Attributes:
+        bound: A boolean indicating successful socket bind.
+        record: A Record with set size of parsed IPReportDatagram results.
 
     Signals:
-        result: Signal(list) - emits on parsed datagram message and sends parts as List[str]
-        error: Signal(str) - emits on socket error with error message
+        result (Signal(dict)): emits on valid IPReportDatagram with parsed result.
+        error (Signal(str)): emits on socket error with error message.
     """
 
     result = Signal(dict)
@@ -66,10 +71,15 @@ class Listener(QObject):
 
     @property
     def port(self) -> int:
+        """Get port of Listener
+
+        Returns:
+            int: the port number of Listener.
+        """
         return self._port
 
     def _is_dup_packet(self, received: List[str]) -> bool:
-        ip, mac, miner_type, *_ = received
+        ip, mac, *_ = received
         if len(self.record):
             for rec in self.record.items():
                 rec_key, rec_data = rec

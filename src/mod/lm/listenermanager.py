@@ -16,7 +16,7 @@ class ListenerResult(BaseModel):
     miner_type: str
     ip: str
     mac: str
-    serial: str
+    serial: str = ""
     created_at: float
     updated_at: float
 
@@ -26,11 +26,11 @@ class ListenerManager(QObject):
     Listener manager class
 
     Args:
-        parent: QObject - parent object
+        parent (QObject): parent object.
 
     Signals:
-        listen_complete: Signal(ListenerResult) - emits ListenerResult result on Listener.result signal
-        listen_error: Signal(str) - emits error from Listener.error signal
+        listen_complete (Signal(ListenerResult)): emits ListenerResult result from Listener.result signal.
+        listen_error (Signal(str)): emits error from Listener.error signal.
     """
 
     listen_complete = Signal(ListenerResult)
@@ -43,23 +43,52 @@ class ListenerManager(QObject):
 
     @property
     def config(self) -> QButtonGroup:
+        """Get listener configuration.
+
+        Returns:
+            QButtonGroup: The current listener configuration.
+        """
         return self._listen_config
 
     @property
+    def enabled(self) -> List[str]:
+        """Get enabled listeners from config.
+
+        Returns:
+            List[str]: All enabled listeners names from config.
+        """
+        return [btn.text() for btn in self._listen_config.buttons() if btn.isChecked()]
+
+    @property
     def listeners(self) -> List[Listener]:
+        """Get all active listeners.
+
+        Returns:
+            List[Listener]: The list of appended listeners.
+        """
         return self._listeners
 
     @property
-    def active(self) -> str:
+    def count(self) -> int:
+        """Get count of listeners.
+
+        Returns:
+            int: the length of appended listeners.
+        """
+        return len(self._listeners)
+
+    @property
+    def status(self) -> str:
+        """Get status message of active listeners.
+
+        Returns:
+            str: string of appended listener names.
+        """
         if len(self._listeners):
             return ", ".join(
                 btn.text() for btn in self._listen_config.buttons() if btn.isChecked()
             )
         return ""
-
-    @property
-    def count(self) -> int:
-        return len(self._listeners)
 
     def _append_listener(self, port: int):
         listener = Listener(port=port, parent=self)
