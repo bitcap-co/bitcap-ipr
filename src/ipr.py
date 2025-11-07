@@ -268,11 +268,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprStatus.messageChanged.connect(self.update_status_msg)
 
         # system tray signals
-        self.checkEnableSysTray.toggled.connect(self.update_sys_tray_settings)
+        self.checkEnableSysTray.toggled.connect(self.toggle_sys_tray_settings)
         self.checkEnableSysTray.stateChanged.connect(self.create_or_destroy_systray)
-        self.comboOnWindowClose.currentIndexChanged.connect(
-            self.update_sys_tray_visibility
-        )
 
         # configuration signals
         self.checkUseCustomTimeout.toggled.connect(self.update_inactive_timer_settings)
@@ -286,7 +283,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.update_stacked_widget()
         self.update_status_msg()
         self.update_pool_preset_names()
-        self.create_or_destroy_systray()
 
         if self.menu_bar.actionEnableIDTable.isChecked():
             self.toggle_table_settings(True)
@@ -309,6 +305,11 @@ class IPR(QMainWindow, Ui_MainWindow):
     def toggle_visibility(self):
         self.setVisible(not self.isVisible())
 
+    def is_minimized_to_tray(self) -> bool:
+        if self.sys_tray is not None and not self.isVisible():
+            return True
+        return False
+
     def update_stacked_widget(self, view_index: Optional[int] = None, *_):
         logger.info(" update view.")
         if not view_index:
@@ -319,7 +320,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             else:
                 self.stackedWidget.setCurrentIndex(1)
         elif view_index < self.stackedWidget.count():
-            if self.sys_tray and not self.isVisible():
+            if self.is_minimized_to_tray():
                 self.toggle_visibility()
             if self.menu_bar.actionShowPoolConfigurator.isChecked():
                 if view_index == 2:
@@ -344,7 +345,10 @@ class IPR(QMainWindow, Ui_MainWindow):
     def create_or_destroy_systray(self):
         if self.checkEnableSysTray.isChecked():
             self.sys_tray = QSystemTrayIcon(
-                QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"), self
+                QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"),
+                parent=self,
+                toolTip="BitCap IPReporter",
+                visible=True,
             )
             self.system_tray_menu = QMenu()
             self.system_tray_menu.addAction("Show/Hide", self.toggle_visibility)
@@ -365,21 +369,10 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.actionSysStartListen.setEnabled(False)
                 self.actionSysStopListen.setEnabled(True)
             self.sys_tray.setContextMenu(self.system_tray_menu)
-            self.sys_tray.setToolTip("BitCap IPR")
         else:
             if self.sys_tray:
                 self.sys_tray.hide()
             self.sys_tray = None
-
-    def update_sys_tray_visibility(self, current_index: int):
-        if self.sys_tray:
-            match current_index:
-                case 0:  # minimize to tray
-                    if self.sys_tray.isVisible():
-                        self.sys_tray.hide()
-                case 1:  # close
-                    if not self.sys_tray.isVisible():
-                        self.sys_tray.show()
 
     # configuration
     def read_settings(self):
@@ -595,7 +588,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.read_settings()
             self.update_inactive_timer()
             self.update_miner_locate_duration()
-            self.create_or_destroy_systray()
             self.update_stacked_widget()
             self.iprStatus.showMessage(
                 "Status :: Successfully restored to default settings.", 5000
@@ -692,7 +684,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.spinInactiveTimeout.setValue(self.spinInactiveTimeout.minimum())
             self.spinInactiveTimeout.setEnabled(False)
 
-    def update_sys_tray_settings(self):
+    def toggle_sys_tray_settings(self):
         if self.checkEnableSysTray.isChecked():
             self.comboOnWindowClose.setEnabled(True)
         else:
@@ -952,14 +944,14 @@ class IPR(QMainWindow, Ui_MainWindow):
             return
         if not self.menu_bar.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
-        if self.sys_tray:
+        if self.checkEnableSysTray.isChecked():
             self.actionSysStartListen.setEnabled(False)
             self.actionSysStopListen.setEnabled(True)
         self.actionIPRStart.setEnabled(False)
         self.actionIPRStop.setEnabled(True)
         self.lm.start(self.lm_config)
         logger.info(f"start_listen : listening for [{self.lm.status}].")
-        if self.sys_tray and not self.isVisible():
+        if self.is_minimized_to_tray():
             self.sys_tray.showMessage(
                 "IPR Listener: Start",
                 f"Started Listening on 0.0.0.0[{self.lm.status}]...",
@@ -973,7 +965,7 @@ class IPR(QMainWindow, Ui_MainWindow):
     def stop_listen(self, timeout: bool = False, restart: bool = False):
         logger.info(" stop listeners.")
         self.inactive.stop()
-        if self.sys_tray:
+        if self.checkEnableSysTray.isChecked():
             self.actionSysStartListen.setEnabled(True)
             self.actionSysStopListen.setEnabled(False)
         if (
@@ -989,7 +981,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.iprStatus.showMessage(
                 "Status :: Inactive timeout. Stopped listeners", 5000
             )
-            if self.sys_tray and not self.isVisible():
+            if self.is_minimized_to_tray():
                 self.sys_tray.showMessage(
                     "IPR Listener: Inactive timeout!",
                     "Timeout exceeded. Stopped listeners...",
@@ -1002,7 +994,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "Timeout",
                     "Inactive timeout exceeded! Stopped listeners...",
                 )
-        if self.sys_tray and not self.isVisible():
+        if self.is_minimized_to_tray():
             self.sys_tray.showMessage(
                 "IPR Listener: Stop",
                 "Stopped UDP listening.",
@@ -1126,41 +1118,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             confirm.lineMACField.setText(mac)
             confirm.lineASICField.setText(type)
             self.confirms.append(confirm)
-            if self.sys_tray and not self.isVisible():
-                if self.sys_tray.isSignalConnected(
-                    QMetaMethod().fromSignal(self.sys_tray.messageClicked)
-                ):
-                    self.confirms[-2].show()
-                    self.sys_tray.messageClicked.disconnect()
-                self.sys_tray.messageClicked.connect(
-                    lambda: self.show_confirm_from_sys_tray(confirm)
-                )
-                # workaround to get messageClicked signal on Linux/X11
-                # https://bugreports.qt.io/browse/QTBUG-87329
-                if CURR_PLATFORM == "linux":
-                    self.sys_tray.showMessage(
-                        "Received confirmation",
-                        "Click to show.",
-                        QSystemTrayIcon.MessageIcon.Critical,
-                        15000,
-                    )
-                else:
-                    self.sys_tray.showMessage(
-                        "Received confirmation",
-                        "Click to show.",
-                        QSystemTrayIcon.MessageIcon.Information,
-                        15000,
-                    )
-            else:
-                confirm.showNormal()
-                confirm.activateWindow()
-                confirm.raise_()
-
-    def show_confirm_from_sys_tray(self, confirm: IPRConfirmation):
-        confirm.showNormal()
-        confirm.activateWindow()
-        confirm.raise_()
-        self.sys_tray.messageClicked.disconnect()
+            confirm.showNormal()
+            confirm.activateWindow()
+            confirm.raise_()
 
     # ID table
     def populate_id_table(self) -> None:
@@ -1393,7 +1353,10 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     # exit
     def close_to_tray_or_exit(self):
-        if self.sys_tray and self.comboOnWindowClose.currentIndex() == 0:
+        if (
+            self.checkEnableSysTray.isChecked()
+            and self.comboOnWindowClose.currentIndex() == 0
+        ):
             # force disable ID table option
             self.menu_bar.actionEnableIDTable.setChecked(False)
             self.update_stacked_widget()
@@ -1420,8 +1383,11 @@ class IPR(QMainWindow, Ui_MainWindow):
             log.root.removeHandler(handler)
 
     def quit(self):
-        if self.sys_tray and not self.isVisible():
+        if self.is_minimized_to_tray():
             self.toggle_visibility()
+        if self.sys_tray:
+            self.sys_tray.hide()
+        self.sys_tray = None
         self.lm.stop()
         self.killall()
         logger.info(" write settings to disk.")
