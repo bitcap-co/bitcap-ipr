@@ -1385,11 +1385,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             c.close()
         self.iprStatus.showMessage("Status :: Killed all confirmations.", 3000)
 
-    def close_root_logger(self, log: logging.Logger):
-        for handler in log.root.handlers:
-            handler.close()
-            log.root.removeHandler(handler)
-
     def quit(self):
         if self.is_minimized_to_tray():
             self.toggle_visibility()
@@ -1405,6 +1400,5 @@ class IPR(QMainWindow, Ui_MainWindow):
             and self.comboFlushInterval.currentIndex() == 1
         ):
             logger.root.handlers[0].doRollover()
-        self.close_root_logger(logger)
         self.close()
         del self
