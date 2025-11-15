@@ -95,6 +95,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         self.sys_tray_context.addAction("Quit", self.quit)
         self.sys_tray.setContextMenu(self.sys_tray_context)
+        self.sys_tray.activated.connect(self.activate_system_tray)
 
         logger.info(" init inactive timer for 900000ms.")
         self.inactive = QTimer()
@@ -375,6 +376,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.comboPoolPreset.setItemText(
                 idx, self.config["savedPools"][idx]["preset_name"]
             )
+
+    def activate_system_tray(self, reason):
+        if reason == QSystemTrayIcon.ActivationReason.MiddleClick:
+            self.show_window()
 
     def update_system_tray_visibility(self):
         if self.checkEnableSysTray.isChecked():
