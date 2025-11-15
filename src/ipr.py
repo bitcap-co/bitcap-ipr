@@ -322,6 +322,21 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
 
     # window
+    def show_window(self):
+        if self.isHidden() or self.isMinimized():
+            self.showNormal()
+            self.activate_window()
+        else:
+            self.activate_window()
+
+    def activate_window(self):
+        self.setWindowState(
+            self.windowState() & ~Qt.WindowState.WindowMinimized
+            | Qt.WindowState.WindowActive
+        )
+        self.raise_()
+        self.activateWindow()
+
     def toggle_visibility(self):
         self.setVisible(not self.isVisible())
 
