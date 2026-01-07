@@ -20,7 +20,7 @@ package-mode = false
 
 [tool.poetry.group.dev.dependencies]
 nuitka = "^2.7"
-scapy = "^2.6.1"
+scapy = "^2.7.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
