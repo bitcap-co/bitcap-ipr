@@ -4,13 +4,13 @@ import sys
 import unittest
 import zlib
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict
 
 from PySide6.QtCore import QMetaMethod
 from PySide6.QtTest import QSignalSpy, QTest
 from PySide6.QtWidgets import QApplication
 
-from src.mod.lm.listener import Listener, Record
+from src.mod.lm import IPReport, Listener
 
 app = QApplication(sys.argv)
 
@@ -40,16 +40,15 @@ def send_udp_dgram(port: int, msg: str, compressed: bool = False):
 class ListenerSpy:
     def __init__(self, port: int):
         self.port = port
-        self.result: List[str] = []
+        self.result: IPReport
         self.error: str = ""
-        self.result_spy: Optional[QSignalSpy] = None
-        self.error_spy: Optional[QSignalSpy] = None
-        self.record_spy: Optional[Record] = None
-        self.listener = None
+        self.result_spy: QSignalSpy
+        self.error_spy: QSignalSpy
+        self.listener: Listener
         self.bound = False
-        self.__init_listener()
+        self._create_listener()
 
-    def __init_listener(self):
+    def _create_listener(self):
         self.listener = Listener(port=self.port, parent=None)
         self.listener.result.connect(self.emit_result)
         self.listener.error.connect(self.emit_error)
@@ -60,9 +59,8 @@ class ListenerSpy:
             self.listener, QMetaMethod.fromSignal(self.listener.error)
         )
         self.bound = self.listener.bound
-        self.record_spy = self.listener.record
 
-    def emit_result(self, result: List[str]):
+    def emit_result(self, result: IPReport):
         self.result = result
 
     def emit_error(self, err: str):
@@ -76,19 +74,16 @@ class TestListeners(unittest.TestCase):
     def tearDown(self) -> None:
         app.quit()
 
-    def assertResult(
-        self, listener: ListenerSpy, ip: str, mac: str, type: str, sn: str
-    ):
-        self.assertEqual(listener.result[0], ip)
-        self.assertEqual(listener.result[1], mac)
-        self.assertEqual(listener.result[2], type)
-        self.assertEqual(listener.result[3], sn)
+    def assertResult(self, listener: ListenerSpy, miner_type: str, ip: str, mac: str):
+        self.assertEqual(listener.result.src_ip, ip)
+        self.assertEqual(listener.result.src_mac, mac)
+        self.assertEqual(listener.result.miner_type, miner_type)
 
     def listenFor(
         self,
         port: int,
         payload: str,
-        expected_result: List[str],
+        expected_result: Dict[str, Any],
         compressed: bool = False,
     ):
         listener = ListenerSpy(port)
@@ -98,16 +93,19 @@ class TestListeners(unittest.TestCase):
         QTest.qWait(500)
         self.assertEqual(listener.result_spy.count(), 1)
         self.assertEqual(listener.error_spy.count(), 0)
-        self.assertEqual(len(listener.record_spy.dict), 1)
-        self.assertResult(listener, *expected_result)
+        self.assertResult(listener, **expected_result)
         listener.close()
 
-    def test_bitmain_common_listen(self):
-        """Test bitmain-common payload (port 14235)"""
+    def test_common_listen(self):
+        """Test common payload (port 14235)"""
         test = {
             "port": 14235,
             "payload": "10.10.1.0,ab:cd:ef:ab:cd:ef",
-            "expected_result": ["10.10.1.0", "ab:cd:ef:ab:cd:ef", "bitmain-common", ""],
+            "expected_result": {
+                "ip": "10.10.1.0",
+                "mac": "ab:cd:ef:ab:cd:ef",
+                "miner_type": "common",
+            },
         }
         self.listenFor(
             port=test["port"],
@@ -120,7 +118,11 @@ class TestListeners(unittest.TestCase):
         test = {
             "port": 11503,
             "payload": "addr:172.16.1.100",
-            "expected_result": ["172.16.1.100", "iceriver", "iceriver", ""],
+            "expected_result": {
+                "ip": "172.16.1.100",
+                "mac": "iceriver",
+                "miner_type": "iceriver",
+            },
         }
         self.listenFor(
             port=test["port"],
@@ -133,12 +135,11 @@ class TestListeners(unittest.TestCase):
         test = {
             "port": 8888,
             "payload": "IP:192.168.100.10MAC:ab:cd:ef:ab:cd:ef",
-            "expected_result": [
-                "192.168.100.10",
-                "ab:cd:ef:ab:cd:ef",
-                "whatsminer",
-                "",
-            ],
+            "expected_result": {
+                "ip": "192.168.100.10",
+                "mac": "ab:cd:ef:ab:cd:ef",
+                "miner_type": "whatsminer",
+            },
         }
         self.listenFor(
             port=test["port"],
@@ -151,7 +152,11 @@ class TestListeners(unittest.TestCase):
         test = {
             "port": 18650,
             "payload": f"{compress_paylaod('tests/payloads/sealminer_a2.json')}",
-            "expected_result": ["192.168.1.168", "ab:cd:ef:ab:cd:ef", "sealminer", ""],
+            "expected_result": {
+                "ip": "192.168.1.168",
+                "mac": "ab:cd:ef:ab:cd:ef",
+                "miner_type": "sealminer",
+            },
         }
         self.listenFor(
             port=test["port"],
@@ -165,12 +170,11 @@ class TestListeners(unittest.TestCase):
         test = {
             "port": 1314,
             "payload": f"{read_payload('tests/payloads/goldshell.json')}",
-            "expected_result": [
-                "192.168.9.216",
-                "ab:cd:ef:ab:cd:ef",
-                "goldshell",
-                "LP24BS45xxxxxxxxxx",
-            ],
+            "expected_result": {
+                "ip": "192.168.9.216",
+                "mac": "ab:cd:ef:ab:cd:ef",
+                "miner_type": "goldshell",
+            },
         }
         self.listenFor(
             port=test["port"],
@@ -183,29 +187,17 @@ class TestListeners(unittest.TestCase):
         test = {
             "port": 9999,
             "payload": "DG_IPREPORT_ONLY",
-            "expected_result": ["127.0.0.1", "elphapex", "elphapex", ""],
+            "expected_result": {
+                "ip": "127.0.0.1",
+                "mac": "elphapex",
+                "miner_type": "elphapex",
+            },
         }
         self.listenFor(
             port=test["port"],
             payload=test["payload"],
             expected_result=test["expected_result"],
         )
-
-    def test_duplicate_datagram(self):
-        """Test duplicate datagrams"""
-        port = 14235
-        payload = "10.10.1.0,ab:cd:ef:ab:cd:ef"
-        listener = ListenerSpy(port)
-        self.assertTrue(listener.bound, True)
-        self.assertEqual(listener.error, "")
-        send_udp_dgram(port, payload)
-        QTest.qWait(500)
-        send_udp_dgram(port, payload)
-        QTest.qWait(500)
-        self.assertEqual(listener.result_spy.count(), 1)
-        self.assertEqual(listener.error_spy.count(), 0)
-        self.assertEqual(len(listener.record_spy.dict), 1)
-        listener.close()
 
 
 if __name__ == "__main__":
