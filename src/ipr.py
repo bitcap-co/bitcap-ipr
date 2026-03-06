@@ -43,7 +43,7 @@ from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
 from mod.api import settings as api_settings
 from mod.api.client import APIClient
-from mod.lm.listenermanager import ListenerManager
+from mod.lm import IPReport, ListenerManager
 from ui.MainWindow import Ui_MainWindow
 from ui.widgets.ipr import (
     IPR_Menubar,
@@ -327,9 +327,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.stackedWidget.setCurrentIndex(view_index)
 
     def update_status_msg(self):
-        if self.lm.listeners and not self.iprStatus.currentMessage():
+        if self.lm.count and not self.iprStatus.currentMessage():
             self.iprStatus.showMessage(
-                f"Status :: UDP listening on 0.0.0.0[{self.active_miners}]..."
+                f"Status :: UDP listening on 0.0.0.0[{self.lm.status}]..."
             )
         if not self.iprStatus.currentMessage():
             self.iprStatus.showMessage("Status :: Ready.")
@@ -361,7 +361,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "Settings", lambda: self.update_stacked_widget(view_index=2)
             )
             self.system_tray_menu.addAction("Quit", self.quit)
-            if self.lm.listeners:
+            if self.lm.count:
                 self.actionSysStartListen.setEnabled(False)
                 self.actionSysStopListen.setEnabled(True)
             self.sys_tray.setContextMenu(self.system_tray_menu)
@@ -960,18 +960,15 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionIPRStart.setEnabled(False)
         self.actionIPRStop.setEnabled(True)
         self.lm.start(self.listenerConfig)
-        self.active_miners = ", ".join(
-            [btn.text() for btn in self.listenerConfig.buttons() if btn.isChecked()]
-        )
         if self.sys_tray and not self.isVisible():
             self.sys_tray.showMessage(
                 "IPR Listener: Start",
-                f"Started Listening on 0.0.0.0[{self.active_miners}]...",
+                f"Started Listening on 0.0.0.0[{self.lm.status}]...",
                 QSystemTrayIcon.MessageIcon.Information,
                 3000,
             )
         self.iprStatus.showMessage(
-            f"Status :: UDP listening on 0.0.0.0[{self.active_miners}]..."
+            f"Status :: UDP listening on 0.0.0.0[{self.lm.status}]..."
         )
 
     def stop_listen(self, timeout: bool = False, restart: bool = False):
@@ -987,7 +984,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.clear_table()
         self.actionIPRStart.setEnabled(True)
         self.actionIPRStop.setEnabled(False)
-        self.lm.stop_listeners()
+        self.lm.stop()
         if timeout:
             logger.warning("stop_listen : timeout.")
             self.iprStatus.showMessage(
@@ -1016,18 +1013,20 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprStatus.clearMessage()
 
     def restart_listen(self):
-        if self.lm.listeners:
+        if self.lm.count:
             logger.info(" restart listeners.")
             self.stop_listen(restart=True)
             self.start_listen()
 
-    def process_result(self, result: List[str]):
+    def process_result(self, result: IPReport):
         # reset inactive timer
         if self.inactive.isActive():
             self.inactive.start()
-        ip, mac, type, sn = result
-        logger.debug(f"process_result : got {ip},{mac},{sn},{type} from listener.")
-        if type == "bitmain-common":
+
+        logger.debug(
+            f"process_result : got {result.src_ip}, {result.src_mac}, {result.miner_sn}, {result.miner_type} from listener."
+        )
+        if result.miner_type == "common":
             bitmain_common_miners = [
                 self.checkListenAntminer,
                 self.checkListenVolcminer,
@@ -1039,7 +1038,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 match miner.text().lower():
                     case "antminer":
                         self.api_client.create_bitmain_client(
-                            ip,
+                            result.src_ip,
                             self.lineBitmainPasswd.text(),
                             self.lineVnishPasswd.text(),
                         )
@@ -1048,53 +1047,59 @@ class IPR(QMainWindow, Ui_MainWindow):
                             or not self.api_client.is_antminer()
                         ):
                             continue
-                        type = "antminer"
+                        result.miner_type = "antminer"
                         self.api_client.close_client()
                         break
                     case "volcminer":
                         self.api_client.create_volcminer_client(
-                            ip, self.lineVolcminerPasswd.text()
+                            result.src_ip, self.lineVolcminerPasswd.text()
                         )
                         if (
                             not self.api_client.client
                             or not self.api_client.is_volcminer()
                         ):
                             continue
-                        type = "volcminer"
+                        result.miner_type = "volcminer"
                         self.api_client.close_client()
                         break
             # workaround: check all listeners to accept unknown types
             if (
-                type not in enabled_common_filter
+                result.miner_type not in enabled_common_filter
                 and not self.groupListeners.isChecked()
             ):
                 logger.warning(
-                    f"process_result : recieved miner type {type} outside of filter: {enabled_common_filter}. Ignoring..."
+                    f"process_result : recieved miner type {result.miner_type} outside of filter: {enabled_common_filter}. Ignoring..."
                 )
                 self.iprStatus.showMessage(
-                    f"Status :: Got miner type: {type.capitalize()} outside of listener configuration.",
+                    f"Status :: Got miner type: {result.miner_type.capitalize()} outside of listener configuration.",
                     8000,
                 )
                 return
-            elif type == "bitmain-common":
-                type = "Unknown"
+            elif result.miner_type == "common":
+                result.miner_type = "Unknown"
+
         # get missing mac addr
-        match type:
+        match result.miner_type:
             case "iceriver":
-                self.api_client.create_iceriver_client(ip, None)
+                self.api_client.create_iceriver_client(result.src_ip, None)
             case "elphapex":
-                self.api_client.create_elphapex_client(ip, None)
+                self.api_client.create_elphapex_client(result.src_ip, None)
         missing_mac = self.api_client.get_missing_mac_addr()
         self.api_client.close_client()
         if missing_mac:
-            mac = missing_mac
-        logger.info(f"process_result : got updated result {ip},{mac},{sn},{type}.")
-        self.iprStatus.showMessage(f"Status :: Got {type}: IP:{ip}, MAC:{mac}", 5000)
+            result.src_mac = missing_mac
+        logger.info(
+            f"process_result : got updated result {result.src_ip},{result.src_mac},{result.miner_sn},{result.miner_type}."
+        )
+        self.iprStatus.showMessage(
+            f"Status :: Got {result.miner_type}: IP:{result.src_ip}, MAC:{result.src_mac}",
+            5000,
+        )
         self.result: Dict[str, str] = {
-            "ip": ip,
-            "mac": mac.lower(),
-            "type": type,
-            "sn": sn,
+            "ip": result.src_ip,
+            "mac": result.src_mac.lower(),
+            "type": result.miner_type,
+            "sn": result.miner_sn,
             **self.api_client.target_info,
         }
         self.show_confirmation()
@@ -1419,7 +1424,9 @@ class IPR(QMainWindow, Ui_MainWindow):
     def quit(self):
         if self.sys_tray and not self.isVisible():
             self.toggle_visibility()
-        self.lm.stop_listeners()
+        self.lm.stop()
+        self.lm.listen_complete.disconnect(self.process_result)
+        self.lm.listen_error.disconnect(self.restart_listen)
         self.killall()
         logger.info(" write settings to disk.")
         self.write_settings()
