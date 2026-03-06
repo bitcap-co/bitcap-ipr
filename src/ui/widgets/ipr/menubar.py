@@ -1,15 +1,17 @@
+from typing import Optional
+
 from PySide6.QtWidgets import (
-    QWidget,
     QMenuBar,
+    QWidget,
 )
 
-from utils import APP_INFO
+from utils import IPR_METADATA
 
 
 class IPR_Menubar(QMenuBar):
     def __init__(
         self,
-        parent: QWidget = None,
+        parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
         self.__initObj()
@@ -38,7 +40,7 @@ class IPR_Menubar(QMenuBar):
         self.actionSourceCode = self.menuHelp.addAction("Source Code")
         self.actionSourceCode.setToolTip("Opens the GitHub repo in browser")
         self.actionVersion = self.menuHelp.addAction(
-            f"Version {APP_INFO['appversion']}"
+            f"Version {IPR_METADATA['appversion']}"
         )
         self.actionVersion.setEnabled(False)
 
