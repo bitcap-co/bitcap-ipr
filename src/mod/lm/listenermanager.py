@@ -1,83 +1,164 @@
 import logging
-from typing import List
-from PySide6.QtCore import (
-    QObject,
-    Signal,
-    Slot,
-)
+import time
+from collections import OrderedDict
+
+from PySide6.QtCore import QObject, Signal, Slot
 from PySide6.QtWidgets import QButtonGroup
+
+from .ipreport import IPReport
 from .listener import Listener
 
 logger = logging.getLogger(__name__)
 
+RECORD_MIN_AGE = 10.0
+
+
+class Record(OrderedDict[str, IPReport]):
+    """
+    Record is a OrderedDict with a set size of record entries. FIFO order.
+    """
+
+    def __init__(self, size: int) -> None:
+        super().__init__()
+        self.__record_size = size
+        self.__check_record_size()
+
+    def __setitem__(self, key: str, value: IPReport) -> None:
+        super().__setitem__(key, value)
+        self.__check_record_size()
+
+    def __check_record_size(self):
+        while len(self) > self.__record_size:
+            self.popitem(last=False)
+
+    @property
+    def size(self) -> int:
+        return self.__record_size
+
 
 class ListenerManager(QObject):
     """
-    Listener manager class
+    Listener Manager class
 
     Args:
-        parent: QObject - parent object
+        parent (QObject): parent object.
 
     Signals:
-        listen_complete: Signal(list) - emits List[str] result on Listener.result signal
-        listen_error: Signal() - emits error from Listener.error signal
+        listen_complete (IPReport): emits IPReport result from Listener.result signal.
+        listen_error (str): emits error from Listener.error signal.
     """
 
-    listen_complete = Signal(list)
+    listen_complete = Signal(IPReport)
     listen_error = Signal(str)
 
     def __init__(self, parent: QObject):
         super().__init__(parent)
-        self.listeners: List[Listener] = []
+        self.__listeners: list[Listener] = []
+        self.conf: QButtonGroup
+        self.record: Record = Record(size=10)
 
-    def append_listener(self, port: int):
-        listener = Listener(self, port)
+    @property
+    def enabled(self) -> list[str]:
+        """get all enabled listener names from config.
+
+        Returns:
+            list[str]: list of enabled listener names.
+        """
+        return [btn.text() for btn in self.conf.buttons() if btn.isChecked()]
+
+    @property
+    def status(self) -> str:
+        """get the current status message of active listeners.
+
+        Returns:
+            str: string of active listener names.
+        """
+        if len(self.__listeners):
+            return ", ".join(
+                btn.text() for btn in self.conf.buttons() if btn.isChecked()
+            )
+        return ""
+
+    @property
+    def count(self) -> int:
+        """get the number of active listeners.
+
+        Returns:
+            int: the number of active listeners.
+        """
+        return len(self.__listeners)
+
+    def __is_duplicate_record(self, result: IPReport) -> bool:
+        if not len(self.record):
+            return False
+        for ent in self.record.items():
+            key, data = ent
+            if key == result.src_ip:
+                if data.src_mac != result.src_mac:
+                    return False
+                else:
+                    # check record age
+                    if time.time() - data.updated_at <= RECORD_MIN_AGE:
+                        logger.warning(
+                            f"Listener[{result.port_type.value}] : duplicate packet."
+                        )
+                        return True
+                    else:
+                        return False
+        return False
+
+    def __append_listener(self, port: int):
+        listener = Listener(port=port, parent=self)
         if listener.bound:
-            logger.info(f" start listening on 0.0.0.0:{port}")
-            self.listeners.append(listener)
+            logger.info(
+                f" start listening on {listener.addr.toString()}:{listener.port}"
+            )
+            self.__listeners.append(listener)
 
-    def start_listeners(self, conf: QButtonGroup):
-        for listenFor in conf.buttons():
+    def __start_listeners(self, conf: QButtonGroup):
+        enabled = [x for x in conf.buttons() if x.isChecked()]
+        for listenFor in enabled:
             match conf.id(listenFor):
                 case 1 | 4:  # antminer | volcminer
-                    if listenFor.isChecked():
-                        self.append_listener(14235)
+                    self.__append_listener(14235)
                 case 2:  # iceriver
-                    if listenFor.isChecked():
-                        self.append_listener(11503)
+                    self.__append_listener(11503)
                 case 3:  # whatsminer
-                    if listenFor.isChecked():
-                        self.append_listener(8888)
+                    self.__append_listener(8888)
                 case 5:  # goldshell
-                    if listenFor.isChecked():
-                        self.append_listener(1314)
+                    self.__append_listener(1314)
                 case 6:  # sealminer
-                    if listenFor.isChecked():
-                        self.append_listener(18650)
+                    self.__append_listener(18650)
                 case 7:  # elphapex
-                    if listenFor.isChecked():
-                        self.append_listener(9999)
-        for listener in self.listeners:
+                    self.__append_listener(9999)
+        for listener in self.__listeners:
             listener.result.connect(self.emit_listen_complete)
             listener.error.connect(self.emit_listen_error)
 
-    def stop_listeners(self):
+    def __stop_listeners(self):
         logger.info(" close listeners.")
-        if len(self.listeners):
-            for listener in self.listeners:
+        if len(self.__listeners):
+            for listener in self.__listeners:
                 listener.close()
-        self.listeners = []
+        self.__listeners = []
 
     @Slot()
-    def start(self, config: QButtonGroup):
-        # default action (start listeners)
-        self.start_listeners(config)
+    def start(self, listen_config: QButtonGroup):
+        self.conf = listen_config
+        self.__start_listeners(listen_config)
 
-    def emit_listen_complete(self, result: List[str]):
-        logger.info(" listen_complete signal result.")
+    def stop(self):
+        self.__stop_listeners()
+        self.record.clear()
+
+    def emit_listen_complete(self, result: IPReport):
         logger.debug(f" result: {result}.")
-        self.listen_complete.emit(result)
+        if not self.__is_duplicate_record(result):
+            logger.info(" listen_complete signal result.")
+            result.updated_at = time.time()
+            self.record[result.src_ip] = result
+            self.listen_complete.emit(result)
 
-    def emit_listen_error(self, err: str):
+    def emit_listen_error(self, error: str):
         logger.error(" listen_error signal result!")
-        self.listen_error.emit(err)
+        self.listen_error.emit(error)
