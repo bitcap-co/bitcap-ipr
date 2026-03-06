@@ -1,0 +1,117 @@
+from __future__ import annotations
+
+import re
+from enum import IntEnum
+from typing import Annotated, Any, List, Optional
+
+from pydantic import BaseModel, Field, RootModel, TypeAdapter, ValidationError
+
+ZLIB_DEFAULT_MAGIC = b"\x78\x9c"
+IP_PATTERN = (
+    r"((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.)){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)"
+)
+MAC_PATTERN = r"([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})"
+
+
+class PortType(IntEnum):
+    COMMON = 14235
+    ICERIVER = 11503
+    WHATSMINER = 8888
+    SEALMINER = 18650
+    GOLDSHELL = 1314
+    ELPHAPEX = 9999
+    UNKNOWN = 0
+
+    @classmethod
+    def from_port(cls, port: int):
+        return cls(port)
+
+
+# IP Report Models
+msg_patterns = {
+    "common": re.compile(f"^{IP_PATTERN},{MAC_PATTERN}"),
+    "ir": re.compile(f"^addr:{IP_PATTERN}"),
+    "bt": re.compile(f"^IP:{IP_PATTERN}MAC:{MAC_PATTERN}"),
+    "elphapex": re.compile("^DG_IPREPORT_ONLY"),
+}
+
+
+class GoldshellIPReport(BaseModel):
+    version: str
+    ip: Annotated[str, Field(pattern=rf"^{IP_PATTERN}$")]
+    dhcp: str
+    model: str
+    ctrlsn: str
+    mac: Annotated[str, Field(pattern=rf"^{MAC_PATTERN}$")]
+    mask: str
+    gateway: str
+    cpbsn: List[Optional[str]]
+    dns: Any
+    boxsn: str
+    time: str
+    ledstatus: bool
+
+
+class BoardSN(BaseModel):
+    sn: Annotated[str, Field(validation_alias="SN")] = ""
+    bin_ver: Annotated[int, Field(validation_alias="BinVer")] = 0
+    bin_num: Annotated[int, Field(validation_alias="BinNum")] = 0
+
+
+class MinerInfo(BaseModel):
+    mac: Annotated[
+        str, Field(pattern=rf"^{MAC_PATTERN}$"), Field(validation_alias="MAC")
+    ]
+    type: Annotated[str, Field(validation_alias="Type")]
+    firmware: Annotated[str, Field(validation_alias="Firmware")]
+    ctrl_board: Annotated[str, Field(validation_alias="CtrlBoardVersion")]
+    iface_count: Annotated[int, Field(validation_alias="NetInterfaceCnt")]
+    upgrade: Annotated[int, Field(validation_alias="UpgradeStatus")]
+    serial: Annotated[str, Field(validation_alias="MainBoardSN")]
+    rated_power: Annotated[int, Field(validation_alias="RatedInputPower")]
+    power_limit: Annotated[int, Field(validation_alias="InputPowerLimit")]
+    board_serials: Annotated[List[BoardSN], Field(validation_alias="BoardSnArray")]
+
+
+class Interface(BaseModel):
+    iface: Annotated[str, Field(validation_alias="Interface")]
+    active: Annotated[bool, Field(validation_alias="Active")]
+    dhcp: Annotated[bool, Field(validation_alias="DHCP")]
+    ipv4: Annotated[
+        str, Field(pattern=rf"^{IP_PATTERN}$"), Field(validation_alias="IPV4")
+    ]
+    netmask: Annotated[str, Field(validation_alias="Netmask")]
+    gateway: Annotated[str, Field(validation_alias="Gateway")]
+    dns1: Annotated[str, Field(validation_alias="DNS1")]
+    dns2: Annotated[str, Field(validation_alias="DNS2")]
+    auto_reboot: Annotated[bool, Field(validation_alias="AutoReboot")]
+
+
+class InterfaceList(RootModel):
+    root: list[Interface]
+
+
+class SealMinerIPReport:
+    def __init__(self, payload: Any) -> None:
+        self.__data = payload
+        self.__validate_model()
+
+    @property
+    def info(self) -> MinerInfo:
+        return self.__info
+
+    @property
+    def interfaces(self) -> List[Interface]:
+        return self.__interfaces
+
+    def __validate_model(self) -> None:
+        if not isinstance(self.__data, list):
+            raise ValueError
+        if not len(self.__data) or len(self.__data) != 7:
+            raise ValueError
+        try:
+            self.__info = MinerInfo.model_validate(self.__data[1])
+            iface_list = TypeAdapter(List[Interface])
+            self.__interfaces = iface_list.validate_python(self.__data[2:4])
+        except ValidationError as exc:
+            raise exc
