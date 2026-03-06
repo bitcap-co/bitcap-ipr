@@ -53,11 +53,11 @@ from ui.widgets.ipr import (
     IPRTableContextMenu,
 )
 from utils import (
-    APP_INFO,
     CURR_PLATFORM,
+    IPR_DEFAULT_CONFIG,
+    IPR_METADATA,
     deep_update,
     get_config_file_path,
-    get_default_config,
     get_log_dir,
     read_config,
     write_config,
@@ -589,7 +589,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         if ok == QMessageBox.StandardButton.Ok:
             logger.info(" reset settings.")
-            config = read_config(get_default_config())
+            config = read_config(IPR_DEFAULT_CONFIG)
             write_config(self.config_path, config)
             self.toggle_pool_config()
             self.read_settings()
@@ -751,7 +751,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.aboutDialog = IPRAbout(
                 self,
                 "About",
-                f"{APP_INFO['name']} is a {APP_INFO['desc']}\nVersion {APP_INFO['appversion']}\nQt Version {APP_INFO['qt']}\nPython Version {APP_INFO['python']}\n{APP_INFO['author']}\nPowered by {APP_INFO['company']}\n",
+                f"{IPR_METADATA['name']} is a {IPR_METADATA['desc']}\nVersion {IPR_METADATA['appversion']}\nQt Version {IPR_METADATA['qt']}\nPython Version {IPR_METADATA['python']}\n{IPR_METADATA['author']}\nPowered by {IPR_METADATA['company']}\n",
             )
             self.aboutDialog._acceptButton.clicked.connect(
                 self.aboutDialog.window().close
@@ -764,10 +764,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
 
     def open_issues(self):
-        webbrowser.open(f"{APP_INFO['source']}/issues", new=2)
+        webbrowser.open(f"{IPR_METADATA['source']}/issues", new=2)
 
     def open_source(self):
-        webbrowser.open(f"{APP_INFO['source']}", new=2)
+        webbrowser.open(f"{IPR_METADATA['source']}", new=2)
 
     def open_dashboard(self, host: str):
         webbrowser.open(f"http://{host}", new=2)
