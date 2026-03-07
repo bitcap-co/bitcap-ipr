@@ -565,8 +565,6 @@ class Ui_MainWindow(object):
 
         self.gridLayout.addWidget(self.checkListenWhatsminer, 2, 2, 1, 1)
 
-        self.gridLayout.setRowMinimumHeight(0, 30)
-        self.gridLayout.setRowMinimumHeight(1, 30)
 
         self.gridLayout_2.addWidget(self.groupListeners, 1, 0, 1, 2)
 
@@ -589,7 +587,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 477, 691))
+        self.scrollAPI.setGeometry(QRect(0, 0, 477, 675))
         self.verticalLayout_13 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_13.setSpacing(15)
         self.verticalLayout_13.setObjectName(u"verticalLayout_13")
@@ -754,6 +752,14 @@ class Ui_MainWindow(object):
         self.groupFirmwares.setObjectName(u"groupFirmwares")
         self.verticalLayout_15 = QVBoxLayout(self.groupFirmwares)
         self.verticalLayout_15.setObjectName(u"verticalLayout_15")
+        self.checkVnishUseAntminerLogin = QCheckBox(self.groupFirmwares)
+        self.checkVnishUseAntminerLogin.setObjectName(u"checkVnishUseAntminerLogin")
+        sizePolicy7.setHeightForWidth(self.checkVnishUseAntminerLogin.sizePolicy().hasHeightForWidth())
+        self.checkVnishUseAntminerLogin.setSizePolicy(sizePolicy7)
+        self.checkVnishUseAntminerLogin.setMinimumSize(QSize(100, 25))
+
+        self.verticalLayout_15.addWidget(self.checkVnishUseAntminerLogin)
+
         self.groupVnish = QGroupBox(self.groupFirmwares)
         self.groupVnish.setObjectName(u"groupVnish")
         self.verticalLayout_16 = QVBoxLayout(self.groupVnish)
@@ -781,22 +787,6 @@ class Ui_MainWindow(object):
 
 
         self.verticalLayout_16.addWidget(self.hwrapper_10)
-
-        self.hwrapper_12 = QWidget(self.groupVnish)
-        self.hwrapper_12.setObjectName(u"hwrapper_12")
-        self.horizontalLayout_26 = QHBoxLayout(self.hwrapper_12)
-        self.horizontalLayout_26.setObjectName(u"horizontalLayout_26")
-        self.horizontalLayout_26.setContentsMargins(0, 6, 0, 0)
-        self.checkVnishUseAntminerLogin = QCheckBox(self.hwrapper_12)
-        self.checkVnishUseAntminerLogin.setObjectName(u"checkVnishUseAntminerLogin")
-        sizePolicy7.setHeightForWidth(self.checkVnishUseAntminerLogin.sizePolicy().hasHeightForWidth())
-        self.checkVnishUseAntminerLogin.setSizePolicy(sizePolicy7)
-        self.checkVnishUseAntminerLogin.setMinimumSize(QSize(100, 25))
-
-        self.horizontalLayout_26.addWidget(self.checkVnishUseAntminerLogin, 0, Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
-
-
-        self.verticalLayout_16.addWidget(self.hwrapper_12)
 
 
         self.verticalLayout_15.addWidget(self.groupVnish)
@@ -1210,16 +1200,16 @@ class Ui_MainWindow(object):
         self.lineSealminerPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative login password for Sealminer. Default: \"seal\"", None))
 #endif // QT_CONFIG(tooltip)
         self.groupFirmwares.setTitle(QCoreApplication.translate("MainWindow", u"Firmwares", None))
+#if QT_CONFIG(tooltip)
+        self.checkVnishUseAntminerLogin.setToolTip(QCoreApplication.translate("MainWindow", u"Check to use configured Antminer Login as alternative instead.", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkVnishUseAntminerLogin.setText(QCoreApplication.translate("MainWindow", u"Use Antminer Login", None))
         self.groupVnish.setTitle(QCoreApplication.translate("MainWindow", u"Vnish", None))
         self.label_16.setText(QCoreApplication.translate("MainWindow", u"Set Login Password:", None))
         self.label_16.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
 #if QT_CONFIG(tooltip)
         self.lineVnishPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative login password for Vnish. Default: \"admin\"", None))
 #endif // QT_CONFIG(tooltip)
-#if QT_CONFIG(tooltip)
-        self.checkVnishUseAntminerLogin.setToolTip(QCoreApplication.translate("MainWindow", u"Check to use configured Antminer Login as alternative instead.", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkVnishUseAntminerLogin.setText(QCoreApplication.translate("MainWindow", u"Use Antminer Login", None))
         self.configTabs.setTabText(self.configTabs.indexOf(self.tabAPI), QCoreApplication.translate("MainWindow", u"API", None))
 #if QT_CONFIG(tooltip)
         self.configTabs.setTabToolTip(self.configTabs.indexOf(self.tabAPI), QCoreApplication.translate("MainWindow", u"API Settings", None))
