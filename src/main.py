@@ -28,7 +28,9 @@ import logging.handlers
 import os
 import sys
 import traceback
+from json.decoder import JSONDecodeError
 
+from pydantic import ValidationError
 from PySide6.QtCore import QSharedMemory, QSystemSemaphore, QUrl
 from PySide6.QtGui import QDesktopServices, QIcon
 from PySide6.QtWidgets import (
@@ -36,19 +38,16 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 
+from config import IPRConfig
 from ipr import IPR
 from utils import (
-    IPR_DEFAULT_CONFIG,
+    IPR_METADATA,
     IPR_THEME,
     MAX_ROTATE_LOG_FILES,
-    deep_update,
     flush_log,
-    get_config_dir,
     get_config_file_path,
     get_log_dir,
     get_log_file_path,
-    read_config,
-    write_config,
 )
 
 # logger
@@ -67,34 +66,51 @@ except ImportError:
 class Main:
     def __init__(self, argv: list[str] = []):
         self.args = argv
+        self.app = QApplication(self.args)
+
         self.is_running = False
 
         self.config_path = get_config_file_path()
-        self.log_path = get_log_file_path()
-        self.config = read_config(IPR_DEFAULT_CONFIG)
+        self.config = IPRConfig()
 
-        self.__init_conf()
-        self.__init_log()
+        self.log_dir = get_log_dir()
+        self.log_path = get_log_file_path()
+
         self.__ipr_entry()
 
-    def __init_conf(self) -> None:
-        os.makedirs(get_config_dir(), exist_ok=True)
-        os.makedirs(get_log_dir(), exist_ok=True)
+    def __init_conf(self) -> bool:
+        try:
+            self.config.read()
+            self.config.write()
+        except (JSONDecodeError, ValidationError) as exc:
+            logger.critical("init_conf : failed to read/validate configuration file.")
+            logger.critical(f"init_conf : {exc}")
+            error_action = QMessageBox.critical(
+                None,
+                "BitCapIPR - Critical error",
+                f"Failed to read existing configuration file!\n{exc.__repr__()}\nPlease fix configuration file or restore to defaults and relaunch the application.",
+                buttons=QMessageBox.StandardButton.Open
+                | QMessageBox.StandardButton.RestoreDefaults
+                | QMessageBox.StandardButton.Ok,
+            )
+            match error_action:
+                case QMessageBox.StandardButton.Open:
+                    QDesktopServices.openUrl(
+                        QUrl.fromLocalFile(self.config.config_path.resolve())
+                    )
+                case QMessageBox.StandardButton.RestoreDefaults:
+                    self.config.write_default()
+            return False
+        return True
 
-        if os.path.exists(self.config_path):
-            curr_config = read_config(self.config_path)
-            self.config = deep_update(self.config, curr_config)
-        write_config(self.config_path, self.config)
+    def __init_logger(self) -> None:
+        os.makedirs(self.log_dir, exist_ok=True)
 
-    def __init_log(self) -> None:
-        log_level: str = self.config["logs"]["logLevel"]
-        max_log_size_kb: int = int(self.config["logs"]["maxLogSize"]) * 1000
-        on_max_log_size: int = int(self.config["logs"]["onMaxLogSize"])
-
+        max_log_size_kb = self.config.logs.max_log_size * 1000
         rfh = logging.handlers.RotatingFileHandler(
-            self.log_path, maxBytes=max_log_size_kb, backupCount=1
+            self.log_path.as_posix(), maxBytes=max_log_size_kb, backupCount=1
         )
-        match on_max_log_size:
+        match self.config.logs.on_max_log_size:
             case 0:
 
                 def namer(name):
@@ -117,12 +133,16 @@ class Main:
         )
         logger.info("init_logger : init finished.")
 
-        logger.manager.root.setLevel(log_level)
-        logger.info(f"init_logger : set logger to level {log_level}.")
+        logger.manager.root.setLevel(self.config.logs.log_level)
+        logger.info(f"init_logger : set logger to level {self.config.logs.log_level}.")
 
     def __ipr_entry(self) -> None:
+        if not self.__init_conf():
+            return
+        self.__init_logger()
+        logger.debug(f"launch_app : bitcap-ipr v{IPR_METADATA['appversion']}")
         logger.info("launch_app: start app.")
-        self.app = QApplication(self.args)
+
         with open(IPR_THEME) as theme:
             self.app.setStyleSheet(theme.read())
 
@@ -159,7 +179,7 @@ class Main:
         self.app.setWindowIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"))
         self.app.setStyle("Fusion")
 
-        self.main_window = IPR()
+        self.main_window = IPR(stored=self.config)
         self.main_window.show()
 
         sys.excepthook = self.__exc_hook
