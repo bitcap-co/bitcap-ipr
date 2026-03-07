@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.0
+## Created by: Qt User Interface Compiler version 6.10.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -407,7 +407,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 477, 462))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 477, 466))
         self.verticalLayout_19 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_19.setSpacing(15)
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
@@ -497,80 +497,81 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_19.addWidget(self.groupInactiveTimer)
 
-        self.groupListeners = QGroupBox(self.scrollGeneral)
+        self.groupListenerConfig = QGroupBox(self.scrollGeneral)
+        self.groupListenerConfig.setObjectName(u"groupListenerConfig")
+        self.groupListenerConfig.setCheckable(False)
+        self.groupListenerConfig.setChecked(False)
+        self.gridLayout_2 = QGridLayout(self.groupListenerConfig)
+        self.gridLayout_2.setObjectName(u"gridLayout_2")
+        self.gridLayout_2.setVerticalSpacing(15)
+        self.checkEnableListenFilter = QCheckBox(self.groupListenerConfig)
+        self.checkEnableListenFilter.setObjectName(u"checkEnableListenFilter")
+
+        self.gridLayout_2.addWidget(self.checkEnableListenFilter, 0, 0, 1, 1)
+
+        self.groupListeners = QGroupBox(self.groupListenerConfig)
         self.groupListeners.setObjectName(u"groupListeners")
         self.groupListeners.setCheckable(True)
         self.groupListeners.setChecked(False)
-        self.verticalLayout_11 = QVBoxLayout(self.groupListeners)
-        self.verticalLayout_11.setObjectName(u"verticalLayout_11")
-        self.hwrapper_9 = QWidget(self.groupListeners)
-        self.hwrapper_9.setObjectName(u"hwrapper_9")
-        self.horizontalLayout_20 = QHBoxLayout(self.hwrapper_9)
-        self.horizontalLayout_20.setSpacing(70)
-        self.horizontalLayout_20.setObjectName(u"horizontalLayout_20")
-        self.checkListenAntminer = QCheckBox(self.hwrapper_9)
-        self.checkListenAntminer.setObjectName(u"checkListenAntminer")
-        self.checkListenAntminer.setMaximumSize(QSize(100, 30))
-        self.checkListenAntminer.setChecked(True)
-
-        self.horizontalLayout_20.addWidget(self.checkListenAntminer)
-
-        self.checkListenWhatsminer = QCheckBox(self.hwrapper_9)
-        self.checkListenWhatsminer.setObjectName(u"checkListenWhatsminer")
-        self.checkListenWhatsminer.setMaximumSize(QSize(100, 30))
-        self.checkListenWhatsminer.setChecked(True)
-
-        self.horizontalLayout_20.addWidget(self.checkListenWhatsminer)
-
-        self.checkListenIceRiver = QCheckBox(self.hwrapper_9)
-        self.checkListenIceRiver.setObjectName(u"checkListenIceRiver")
-        self.checkListenIceRiver.setMaximumSize(QSize(100, 30))
-        self.checkListenIceRiver.setChecked(True)
-
-        self.horizontalLayout_20.addWidget(self.checkListenIceRiver)
-
-
-        self.verticalLayout_11.addWidget(self.hwrapper_9)
-
-        self.groupAdditional = QGroupBox(self.groupListeners)
-        self.groupAdditional.setObjectName(u"groupAdditional")
-        self.gridLayout = QGridLayout(self.groupAdditional)
+        self.gridLayout = QGridLayout(self.groupListeners)
         self.gridLayout.setObjectName(u"gridLayout")
         self.gridLayout.setHorizontalSpacing(70)
-        self.gridLayout.setVerticalSpacing(20)
-        self.checkListenElphapex = QCheckBox(self.groupAdditional)
+        self.gridLayout.setVerticalSpacing(15)
+        self.gridLayout.setContentsMargins(9, 15, 9, 9)
+        self.checkListenSealminer = QCheckBox(self.groupListeners)
+        self.checkListenSealminer.setObjectName(u"checkListenSealminer")
+        self.checkListenSealminer.setMaximumSize(QSize(100, 30))
+
+        self.gridLayout.addWidget(self.checkListenSealminer, 3, 2, 1, 1)
+
+        self.checkListenElphapex = QCheckBox(self.groupListeners)
         self.checkListenElphapex.setObjectName(u"checkListenElphapex")
         sizePolicy7.setHeightForWidth(self.checkListenElphapex.sizePolicy().hasHeightForWidth())
         self.checkListenElphapex.setSizePolicy(sizePolicy7)
         self.checkListenElphapex.setMaximumSize(QSize(100, 30))
 
-        self.gridLayout.addWidget(self.checkListenElphapex, 1, 0, 1, 1)
+        self.gridLayout.addWidget(self.checkListenElphapex, 3, 0, 1, 1)
 
-        self.checkListenVolcminer = QCheckBox(self.groupAdditional)
-        self.checkListenVolcminer.setObjectName(u"checkListenVolcminer")
-        self.checkListenVolcminer.setMaximumSize(QSize(100, 30))
-
-        self.gridLayout.addWidget(self.checkListenVolcminer, 0, 1, 1, 1)
-
-        self.checkListenGoldshell = QCheckBox(self.groupAdditional)
+        self.checkListenGoldshell = QCheckBox(self.groupListeners)
         self.checkListenGoldshell.setObjectName(u"checkListenGoldshell")
         self.checkListenGoldshell.setMaximumSize(QSize(100, 30))
 
-        self.gridLayout.addWidget(self.checkListenGoldshell, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.checkListenGoldshell, 3, 1, 1, 1)
 
-        self.checkListenSealminer = QCheckBox(self.groupAdditional)
-        self.checkListenSealminer.setObjectName(u"checkListenSealminer")
-        self.checkListenSealminer.setMaximumSize(QSize(100, 30))
+        self.checkListenVolcminer = QCheckBox(self.groupListeners)
+        self.checkListenVolcminer.setObjectName(u"checkListenVolcminer")
+        self.checkListenVolcminer.setMaximumSize(QSize(100, 30))
 
-        self.gridLayout.addWidget(self.checkListenSealminer, 0, 2, 1, 1)
+        self.gridLayout.addWidget(self.checkListenVolcminer, 4, 0, 1, 1)
+
+        self.checkListenAntminer = QCheckBox(self.groupListeners)
+        self.checkListenAntminer.setObjectName(u"checkListenAntminer")
+        self.checkListenAntminer.setMaximumSize(QSize(100, 30))
+        self.checkListenAntminer.setChecked(True)
+
+        self.gridLayout.addWidget(self.checkListenAntminer, 2, 0, 1, 1)
+
+        self.checkListenIceRiver = QCheckBox(self.groupListeners)
+        self.checkListenIceRiver.setObjectName(u"checkListenIceRiver")
+        self.checkListenIceRiver.setMaximumSize(QSize(100, 30))
+        self.checkListenIceRiver.setChecked(True)
+
+        self.gridLayout.addWidget(self.checkListenIceRiver, 2, 1, 1, 1)
+
+        self.checkListenWhatsminer = QCheckBox(self.groupListeners)
+        self.checkListenWhatsminer.setObjectName(u"checkListenWhatsminer")
+        self.checkListenWhatsminer.setMaximumSize(QSize(100, 30))
+        self.checkListenWhatsminer.setChecked(True)
+
+        self.gridLayout.addWidget(self.checkListenWhatsminer, 2, 2, 1, 1)
 
         self.gridLayout.setRowMinimumHeight(0, 30)
         self.gridLayout.setRowMinimumHeight(1, 30)
 
-        self.verticalLayout_11.addWidget(self.groupAdditional)
+        self.gridLayout_2.addWidget(self.groupListeners, 1, 0, 1, 2)
 
 
-        self.verticalLayout_19.addWidget(self.groupListeners)
+        self.verticalLayout_19.addWidget(self.groupListenerConfig)
 
         self.scrollArea_3.setWidget(self.scrollGeneral)
 
@@ -1128,38 +1129,45 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.spinInactiveTimeout.setSuffix(QCoreApplication.translate("MainWindow", u" Minutes", None))
 #if QT_CONFIG(tooltip)
-        self.groupListeners.setToolTip(QCoreApplication.translate("MainWindow", u"Check to toggle all listeners.", None))
+        self.groupListenerConfig.setToolTip(QCoreApplication.translate("MainWindow", u"Check to toggle all listeners.", None))
 #endif // QT_CONFIG(tooltip)
-        self.groupListeners.setTitle(QCoreApplication.translate("MainWindow", u"Listener Configuraion", None))
+        self.groupListenerConfig.setTitle(QCoreApplication.translate("MainWindow", u"Listener Configuraion", None))
 #if QT_CONFIG(tooltip)
-        self.checkListenAntminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Antminers", None))
+        self.checkEnableListenFilter.setToolTip(QCoreApplication.translate("MainWindow", u"When enabled, only receive miner types matching the enabled listeners.", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkListenAntminer.setText(QCoreApplication.translate("MainWindow", u"Antminer", None))
+        self.checkEnableListenFilter.setText(QCoreApplication.translate("MainWindow", u"Enable Filtering", None))
 #if QT_CONFIG(tooltip)
-        self.checkListenWhatsminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Whatsminers", None))
+        self.groupListeners.setToolTip(QCoreApplication.translate("MainWindow", u"Check to toggle all listeners", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkListenWhatsminer.setText(QCoreApplication.translate("MainWindow", u"Whatsminer", None))
+        self.groupListeners.setTitle(QCoreApplication.translate("MainWindow", u"Listeners", None))
 #if QT_CONFIG(tooltip)
-        self.checkListenIceRiver.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Icerivers", None))
+        self.checkListenSealminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Sealminers", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkListenIceRiver.setText(QCoreApplication.translate("MainWindow", u"IceRiver", None))
-        self.groupAdditional.setTitle(QCoreApplication.translate("MainWindow", u"Additional Miners", None))
+        self.checkListenSealminer.setText(QCoreApplication.translate("MainWindow", u"Sealminer", None))
 #if QT_CONFIG(tooltip)
         self.checkListenElphapex.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Elphapex miners", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenElphapex.setText(QCoreApplication.translate("MainWindow", u"Elphapex", None))
 #if QT_CONFIG(tooltip)
-        self.checkListenVolcminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Volcminers", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkListenVolcminer.setText(QCoreApplication.translate("MainWindow", u"Volcminer", None))
-#if QT_CONFIG(tooltip)
         self.checkListenGoldshell.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Goldshells", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenGoldshell.setText(QCoreApplication.translate("MainWindow", u"Goldshell", None))
 #if QT_CONFIG(tooltip)
-        self.checkListenSealminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Sealminers", None))
+        self.checkListenVolcminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Volcminers", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkListenSealminer.setText(QCoreApplication.translate("MainWindow", u"Sealminer", None))
+        self.checkListenVolcminer.setText(QCoreApplication.translate("MainWindow", u"Volcminer", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenAntminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Antminers", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenAntminer.setText(QCoreApplication.translate("MainWindow", u"Antminer", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenIceRiver.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Icerivers", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenIceRiver.setText(QCoreApplication.translate("MainWindow", u"IceRiver", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenWhatsminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Whatsminers", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenWhatsminer.setText(QCoreApplication.translate("MainWindow", u"Whatsminer", None))
         self.configTabs.setTabText(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
 #if QT_CONFIG(tooltip)
         self.configTabs.setTabToolTip(self.configTabs.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))
