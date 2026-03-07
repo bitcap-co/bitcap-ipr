@@ -803,27 +803,36 @@ class Ui_MainWindow(object):
         self.tabLogs.setObjectName(u"tabLogs")
         self.verticalLayout_7 = QVBoxLayout(self.tabLogs)
         self.verticalLayout_7.setObjectName(u"verticalLayout_7")
-        self.groupLog = QGroupBox(self.tabLogs)
-        self.groupLog.setObjectName(u"groupLog")
-        self.verticalLayout_8 = QVBoxLayout(self.groupLog)
-        self.verticalLayout_8.setObjectName(u"verticalLayout_8")
-        self.hwrapper_3 = QWidget(self.groupLog)
-        self.hwrapper_3.setObjectName(u"hwrapper_3")
-        self.horizontalLayout_9 = QHBoxLayout(self.hwrapper_3)
-        self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
-        self.horizontalLayout_9.setContentsMargins(6, 6, 6, 6)
-        self.label_5 = QLabel(self.hwrapper_3)
+        self.scrollArea_2 = QScrollArea(self.tabLogs)
+        self.scrollArea_2.setObjectName(u"scrollArea_2")
+        self.scrollArea_2.setFrameShape(QFrame.Shape.NoFrame)
+        self.scrollArea_2.setFrameShadow(QFrame.Shadow.Plain)
+        self.scrollArea_2.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.scrollArea_2.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scrollArea_2.setWidgetResizable(True)
+        self.scrollLogs = QWidget()
+        self.scrollLogs.setObjectName(u"scrollLogs")
+        self.scrollLogs.setGeometry(QRect(0, 0, 477, 227))
+        self.verticalLayout_11 = QVBoxLayout(self.scrollLogs)
+        self.verticalLayout_11.setSpacing(15)
+        self.verticalLayout_11.setObjectName(u"verticalLayout_11")
+        self.groupLogSettings = QGroupBox(self.scrollLogs)
+        self.groupLogSettings.setObjectName(u"groupLogSettings")
+        self.groupLogSettings.setMaximumSize(QSize(16777215, 150))
+        self.gridLayout_3 = QGridLayout(self.groupLogSettings)
+        self.gridLayout_3.setObjectName(u"gridLayout_3")
+        self.checkFlushOnClose = QCheckBox(self.groupLogSettings)
+        self.checkFlushOnClose.setObjectName(u"checkFlushOnClose")
+
+        self.gridLayout_3.addWidget(self.checkFlushOnClose, 0, 0, 1, 1)
+
+        self.label_5 = QLabel(self.groupLogSettings)
         self.label_5.setObjectName(u"label_5")
         self.label_5.setFont(font1)
 
-        self.horizontalLayout_9.addWidget(self.label_5)
+        self.gridLayout_3.addWidget(self.label_5, 1, 0, 1, 1)
 
-        self.splitter = QWidget(self.hwrapper_3)
-        self.splitter.setObjectName(u"splitter")
-        self.horizontalLayout_18 = QHBoxLayout(self.splitter)
-        self.horizontalLayout_18.setObjectName(u"horizontalLayout_18")
-        self.horizontalLayout_18.setContentsMargins(-1, 0, -1, 0)
-        self.comboLogLevel = QComboBox(self.splitter)
+        self.comboLogLevel = QComboBox(self.groupLogSettings)
         self.comboLogLevel.addItem("")
         self.comboLogLevel.addItem("")
         self.comboLogLevel.addItem("")
@@ -833,35 +842,17 @@ class Ui_MainWindow(object):
         self.comboLogLevel.setMinimumSize(QSize(180, 0))
         self.comboLogLevel.setMaximumSize(QSize(250, 16777215))
 
-        self.horizontalLayout_18.addWidget(self.comboLogLevel)
-
-        self.horizontalSpacer_7 = QSpacerItem(80, 20, QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_18.addItem(self.horizontalSpacer_7)
+        self.gridLayout_3.addWidget(self.comboLogLevel, 1, 1, 1, 1)
 
 
-        self.horizontalLayout_9.addWidget(self.splitter)
+        self.verticalLayout_11.addWidget(self.groupLogSettings)
 
-
-        self.verticalLayout_8.addWidget(self.hwrapper_3)
-
-        self.hwrapper_5 = QWidget(self.groupLog)
-        self.hwrapper_5.setObjectName(u"hwrapper_5")
-        self.horizontalLayout_10 = QHBoxLayout(self.hwrapper_5)
-        self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
-        self.horizontalLayout_10.setContentsMargins(6, 6, 6, 6)
-        self.label_7 = QLabel(self.hwrapper_5)
-        self.label_7.setObjectName(u"label_7")
-        self.label_7.setFont(font1)
-
-        self.horizontalLayout_10.addWidget(self.label_7)
-
-        self.splitter_3 = QWidget(self.hwrapper_5)
-        self.splitter_3.setObjectName(u"splitter_3")
-        self.horizontalLayout_17 = QHBoxLayout(self.splitter_3)
-        self.horizontalLayout_17.setObjectName(u"horizontalLayout_17")
-        self.horizontalLayout_17.setContentsMargins(9, 0, 9, 0)
-        self.spinMaxLogSize = QSpinBox(self.splitter_3)
+        self.groupLogFile = QGroupBox(self.scrollLogs)
+        self.groupLogFile.setObjectName(u"groupLogFile")
+        self.groupLogFile.setMaximumSize(QSize(16777215, 150))
+        self.gridLayout_4 = QGridLayout(self.groupLogFile)
+        self.gridLayout_4.setObjectName(u"gridLayout_4")
+        self.spinMaxLogSize = QSpinBox(self.groupLogFile)
         self.spinMaxLogSize.setObjectName(u"spinMaxLogSize")
         self.spinMaxLogSize.setMinimumSize(QSize(180, 0))
         self.spinMaxLogSize.setMaximumSize(QSize(250, 16777215))
@@ -872,93 +863,35 @@ class Ui_MainWindow(object):
         self.spinMaxLogSize.setMaximum(4096)
         self.spinMaxLogSize.setValue(1024)
 
-        self.horizontalLayout_17.addWidget(self.spinMaxLogSize)
+        self.gridLayout_4.addWidget(self.spinMaxLogSize, 0, 1, 1, 1)
 
-        self.horizontalSpacer_6 = QSpacerItem(80, 20, QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
+        self.label_7 = QLabel(self.groupLogFile)
+        self.label_7.setObjectName(u"label_7")
+        self.label_7.setFont(font1)
 
-        self.horizontalLayout_17.addItem(self.horizontalSpacer_6)
+        self.gridLayout_4.addWidget(self.label_7, 0, 0, 1, 1)
 
-
-        self.horizontalLayout_10.addWidget(self.splitter_3)
-
-
-        self.verticalLayout_8.addWidget(self.hwrapper_5)
-
-        self.hwrapper_6 = QWidget(self.groupLog)
-        self.hwrapper_6.setObjectName(u"hwrapper_6")
-        self.horizontalLayout_11 = QHBoxLayout(self.hwrapper_6)
-        self.horizontalLayout_11.setObjectName(u"horizontalLayout_11")
-        self.horizontalLayout_11.setContentsMargins(6, 6, 6, 6)
-        self.label_8 = QLabel(self.hwrapper_6)
+        self.label_8 = QLabel(self.groupLogFile)
         self.label_8.setObjectName(u"label_8")
         self.label_8.setFont(font1)
 
-        self.horizontalLayout_11.addWidget(self.label_8)
+        self.gridLayout_4.addWidget(self.label_8, 1, 0, 1, 1)
 
-        self.splitter_4 = QWidget(self.hwrapper_6)
-        self.splitter_4.setObjectName(u"splitter_4")
-        self.horizontalLayout_16 = QHBoxLayout(self.splitter_4)
-        self.horizontalLayout_16.setSpacing(6)
-        self.horizontalLayout_16.setObjectName(u"horizontalLayout_16")
-        self.horizontalLayout_16.setContentsMargins(9, 0, 9, 0)
-        self.comboOnMaxLogSize = QComboBox(self.splitter_4)
+        self.comboOnMaxLogSize = QComboBox(self.groupLogFile)
         self.comboOnMaxLogSize.addItem("")
         self.comboOnMaxLogSize.addItem("")
         self.comboOnMaxLogSize.setObjectName(u"comboOnMaxLogSize")
         self.comboOnMaxLogSize.setMinimumSize(QSize(180, 0))
         self.comboOnMaxLogSize.setMaximumSize(QSize(250, 16777215))
 
-        self.horizontalLayout_16.addWidget(self.comboOnMaxLogSize)
-
-        self.horizontalSpacer_5 = QSpacerItem(80, 20, QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_16.addItem(self.horizontalSpacer_5)
+        self.gridLayout_4.addWidget(self.comboOnMaxLogSize, 1, 1, 1, 1)
 
 
-        self.horizontalLayout_11.addWidget(self.splitter_4)
+        self.verticalLayout_11.addWidget(self.groupLogFile)
 
+        self.scrollArea_2.setWidget(self.scrollLogs)
 
-        self.verticalLayout_8.addWidget(self.hwrapper_6)
-
-        self.hwrapper_4 = QWidget(self.groupLog)
-        self.hwrapper_4.setObjectName(u"hwrapper_4")
-        self.horizontalLayout_14 = QHBoxLayout(self.hwrapper_4)
-        self.horizontalLayout_14.setObjectName(u"horizontalLayout_14")
-        self.horizontalLayout_14.setContentsMargins(6, 6, 6, 6)
-        self.label_6 = QLabel(self.hwrapper_4)
-        self.label_6.setObjectName(u"label_6")
-        self.label_6.setFont(font1)
-
-        self.horizontalLayout_14.addWidget(self.label_6)
-
-        self.splitter_2 = QWidget(self.hwrapper_4)
-        self.splitter_2.setObjectName(u"splitter_2")
-        self.horizontalLayout_4 = QHBoxLayout(self.splitter_2)
-        self.horizontalLayout_4.setSpacing(6)
-        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.horizontalLayout_4.setContentsMargins(9, 0, 9, 0)
-        self.comboFlushInterval = QComboBox(self.splitter_2)
-        self.comboFlushInterval.addItem("")
-        self.comboFlushInterval.addItem("")
-        self.comboFlushInterval.setObjectName(u"comboFlushInterval")
-        self.comboFlushInterval.setEnabled(True)
-        self.comboFlushInterval.setMinimumSize(QSize(180, 0))
-        self.comboFlushInterval.setMaximumSize(QSize(250, 16777215))
-
-        self.horizontalLayout_4.addWidget(self.comboFlushInterval)
-
-        self.horizontalSpacer_4 = QSpacerItem(80, 20, QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_4.addItem(self.horizontalSpacer_4)
-
-
-        self.horizontalLayout_14.addWidget(self.splitter_2)
-
-
-        self.verticalLayout_8.addWidget(self.hwrapper_4)
-
-
-        self.verticalLayout_7.addWidget(self.groupLog)
+        self.verticalLayout_7.addWidget(self.scrollArea_2)
 
         self.configTabs.addTab(self.tabLogs, "")
 
@@ -1214,7 +1147,8 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.configTabs.setTabToolTip(self.configTabs.indexOf(self.tabAPI), QCoreApplication.translate("MainWindow", u"API Settings", None))
 #endif // QT_CONFIG(tooltip)
-        self.groupLog.setTitle(QCoreApplication.translate("MainWindow", u"Log Settings", None))
+        self.groupLogSettings.setTitle(QCoreApplication.translate("MainWindow", u"Log Settings", None))
+        self.checkFlushOnClose.setText(QCoreApplication.translate("MainWindow", u"Flush on Close", None))
         self.label_5.setText(QCoreApplication.translate("MainWindow", u"Log Level: ", None))
         self.label_5.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.comboLogLevel.setItemText(0, QCoreApplication.translate("MainWindow", u"DEBUG", None))
@@ -1226,25 +1160,18 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.comboLogLevel.setToolTip(QCoreApplication.translate("MainWindow", u"Change minimum output level", None))
 #endif // QT_CONFIG(tooltip)
-        self.label_7.setText(QCoreApplication.translate("MainWindow", u"Max Log Size:", None))
+        self.groupLogFile.setTitle(QCoreApplication.translate("MainWindow", u"Log File", None))
 #if QT_CONFIG(tooltip)
         self.spinMaxLogSize.setToolTip(QCoreApplication.translate("MainWindow", u"Set maximum log file size (Max limit 4096kb)", None))
 #endif // QT_CONFIG(tooltip)
         self.spinMaxLogSize.setSuffix(QCoreApplication.translate("MainWindow", u" KB", None))
-        self.label_8.setText(QCoreApplication.translate("MainWindow", u"On Max Log Size:", None))
+        self.label_7.setText(QCoreApplication.translate("MainWindow", u"Maximum Log Size:", None))
+        self.label_8.setText(QCoreApplication.translate("MainWindow", u"On Maximum Log Size:", None))
         self.comboOnMaxLogSize.setItemText(0, QCoreApplication.translate("MainWindow", u"Flush", None))
         self.comboOnMaxLogSize.setItemText(1, QCoreApplication.translate("MainWindow", u"Rotate", None))
 
 #if QT_CONFIG(tooltip)
         self.comboOnMaxLogSize.setToolTip(QCoreApplication.translate("MainWindow", u"Choose behavior for when log file reaches set max size", None))
-#endif // QT_CONFIG(tooltip)
-        self.label_6.setText(QCoreApplication.translate("MainWindow", u"Flush Interval: ", None))
-        self.label_6.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
-        self.comboFlushInterval.setItemText(0, QCoreApplication.translate("MainWindow", u"On Log Size", None))
-        self.comboFlushInterval.setItemText(1, QCoreApplication.translate("MainWindow", u"Close", None))
-
-#if QT_CONFIG(tooltip)
-        self.comboFlushInterval.setToolTip(QCoreApplication.translate("MainWindow", u"Choose when to flush log file", None))
 #endif // QT_CONFIG(tooltip)
         self.configTabs.setTabText(self.configTabs.indexOf(self.tabLogs), QCoreApplication.translate("MainWindow", u"Logs", None))
 #if QT_CONFIG(tooltip)

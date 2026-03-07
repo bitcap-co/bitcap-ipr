@@ -1756,422 +1756,229 @@ Uses last 5 of SN or MAC address.</string>
                  </attribute>
                  <layout class="QVBoxLayout" name="verticalLayout_7">
                   <item>
-                   <widget class="QGroupBox" name="groupLog">
-                    <property name="title">
-                     <string>Log Settings</string>
+                   <widget class="QScrollArea" name="scrollArea_2">
+                    <property name="frameShape">
+                     <enum>QFrame::Shape::NoFrame</enum>
                     </property>
-                    <layout class="QVBoxLayout" name="verticalLayout_8">
-                     <item>
-                      <widget class="QWidget" name="hwrapper_3" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_9">
-                        <property name="leftMargin">
-                         <number>6</number>
+                    <property name="frameShadow">
+                     <enum>QFrame::Shadow::Plain</enum>
+                    </property>
+                    <property name="verticalScrollBarPolicy">
+                     <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
+                    </property>
+                    <property name="horizontalScrollBarPolicy">
+                     <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+                    </property>
+                    <property name="widgetResizable">
+                     <bool>true</bool>
+                    </property>
+                    <widget class="QWidget" name="scrollLogs">
+                     <property name="geometry">
+                      <rect>
+                       <x>0</x>
+                       <y>0</y>
+                       <width>477</width>
+                       <height>227</height>
+                      </rect>
+                     </property>
+                     <layout class="QVBoxLayout" name="verticalLayout_11">
+                      <property name="spacing">
+                       <number>15</number>
+                      </property>
+                      <item>
+                       <widget class="QGroupBox" name="groupLogSettings">
+                        <property name="maximumSize">
+                         <size>
+                          <width>16777215</width>
+                          <height>150</height>
+                         </size>
                         </property>
-                        <property name="topMargin">
-                         <number>6</number>
+                        <property name="title">
+                         <string>Log Settings</string>
                         </property>
-                        <property name="rightMargin">
-                         <number>6</number>
-                        </property>
-                        <property name="bottomMargin">
-                         <number>6</number>
-                        </property>
-                        <item>
-                         <widget class="QLabel" name="label_5">
-                          <property name="font">
-                           <font>
-                            <pointsize>10</pointsize>
-                           </font>
-                          </property>
-                          <property name="text">
-                           <string>Log Level: </string>
-                          </property>
-                          <property name="StyleClass" stdset="0">
-                           <string>setText</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QWidget" name="splitter" native="true">
-                          <layout class="QHBoxLayout" name="horizontalLayout_18">
-                           <property name="topMargin">
-                            <number>0</number>
+                        <layout class="QGridLayout" name="gridLayout_3">
+                         <item row="0" column="0">
+                          <widget class="QCheckBox" name="checkFlushOnClose">
+                           <property name="text">
+                            <string>Flush on Close</string>
                            </property>
-                           <property name="bottomMargin">
-                            <number>0</number>
+                          </widget>
+                         </item>
+                         <item row="1" column="0">
+                          <widget class="QLabel" name="label_5">
+                           <property name="font">
+                            <font>
+                             <pointsize>10</pointsize>
+                            </font>
                            </property>
-                           <item>
-                            <widget class="QComboBox" name="comboLogLevel">
-                             <property name="minimumSize">
-                              <size>
-                               <width>180</width>
-                               <height>0</height>
-                              </size>
-                             </property>
-                             <property name="maximumSize">
-                              <size>
-                               <width>250</width>
-                               <height>16777215</height>
-                              </size>
-                             </property>
-                             <property name="toolTip">
-                              <string>Change minimum output level</string>
-                             </property>
-                             <property name="currentIndex">
-                              <number>1</number>
-                             </property>
-                             <item>
-                              <property name="text">
-                               <string>DEBUG</string>
-                              </property>
-                             </item>
-                             <item>
-                              <property name="text">
-                               <string>INFO</string>
-                              </property>
-                             </item>
-                             <item>
-                              <property name="text">
-                               <string>WARNING</string>
-                              </property>
-                             </item>
-                             <item>
-                              <property name="text">
-                               <string>ERROR</string>
-                              </property>
-                             </item>
-                             <item>
-                              <property name="text">
-                               <string>CRITICAL</string>
-                              </property>
-                             </item>
-                            </widget>
-                           </item>
-                           <item>
-                            <spacer name="horizontalSpacer_7">
-                             <property name="orientation">
-                              <enum>Qt::Orientation::Horizontal</enum>
-                             </property>
-                             <property name="sizeType">
-                              <enum>QSizePolicy::Policy::Preferred</enum>
-                             </property>
-                             <property name="sizeHint" stdset="0">
-                              <size>
-                               <width>80</width>
-                               <height>20</height>
-                              </size>
-                             </property>
-                            </spacer>
-                           </item>
-                          </layout>
-                         </widget>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QWidget" name="hwrapper_5" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_10">
-                        <property name="leftMargin">
-                         <number>6</number>
-                        </property>
-                        <property name="topMargin">
-                         <number>6</number>
-                        </property>
-                        <property name="rightMargin">
-                         <number>6</number>
-                        </property>
-                        <property name="bottomMargin">
-                         <number>6</number>
-                        </property>
-                        <item>
-                         <widget class="QLabel" name="label_7">
-                          <property name="font">
-                           <font>
-                            <pointsize>10</pointsize>
-                           </font>
-                          </property>
-                          <property name="text">
-                           <string>Max Log Size:</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QWidget" name="splitter_3" native="true">
-                          <layout class="QHBoxLayout" name="horizontalLayout_17">
-                           <property name="leftMargin">
-                            <number>9</number>
+                           <property name="text">
+                            <string>Log Level: </string>
                            </property>
-                           <property name="topMargin">
-                            <number>0</number>
+                           <property name="StyleClass" stdset="0">
+                            <string>setText</string>
                            </property>
-                           <property name="rightMargin">
-                            <number>9</number>
+                          </widget>
+                         </item>
+                         <item row="1" column="1">
+                          <widget class="QComboBox" name="comboLogLevel">
+                           <property name="minimumSize">
+                            <size>
+                             <width>180</width>
+                             <height>0</height>
+                            </size>
                            </property>
-                           <property name="bottomMargin">
-                            <number>0</number>
+                           <property name="maximumSize">
+                            <size>
+                             <width>250</width>
+                             <height>16777215</height>
+                            </size>
+                           </property>
+                           <property name="toolTip">
+                            <string>Change minimum output level</string>
+                           </property>
+                           <property name="currentIndex">
+                            <number>1</number>
                            </property>
                            <item>
-                            <widget class="QSpinBox" name="spinMaxLogSize">
-                             <property name="minimumSize">
-                              <size>
-                               <width>180</width>
-                               <height>0</height>
-                              </size>
-                             </property>
-                             <property name="maximumSize">
-                              <size>
-                               <width>250</width>
-                               <height>16777215</height>
-                              </size>
-                             </property>
-                             <property name="toolTip">
-                              <string>Set maximum log file size (Max limit 4096kb)</string>
-                             </property>
-                             <property name="alignment">
-                              <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-                             </property>
-                             <property name="buttonSymbols">
-                              <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
-                             </property>
-                             <property name="showGroupSeparator" stdset="0">
-                              <bool>true</bool>
-                             </property>
-                             <property name="suffix">
-                              <string> KB</string>
-                             </property>
-                             <property name="minimum">
-                              <number>1</number>
-                             </property>
-                             <property name="maximum">
-                              <number>4096</number>
-                             </property>
-                             <property name="value">
-                              <number>1024</number>
-                             </property>
-                            </widget>
+                            <property name="text">
+                             <string>DEBUG</string>
+                            </property>
                            </item>
                            <item>
-                            <spacer name="horizontalSpacer_6">
-                             <property name="orientation">
-                              <enum>Qt::Orientation::Horizontal</enum>
-                             </property>
-                             <property name="sizeType">
-                              <enum>QSizePolicy::Policy::Preferred</enum>
-                             </property>
-                             <property name="sizeHint" stdset="0">
-                              <size>
-                               <width>80</width>
-                               <height>20</height>
-                              </size>
-                             </property>
-                            </spacer>
-                           </item>
-                          </layout>
-                         </widget>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QWidget" name="hwrapper_6" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_11">
-                        <property name="leftMargin">
-                         <number>6</number>
-                        </property>
-                        <property name="topMargin">
-                         <number>6</number>
-                        </property>
-                        <property name="rightMargin">
-                         <number>6</number>
-                        </property>
-                        <property name="bottomMargin">
-                         <number>6</number>
-                        </property>
-                        <item>
-                         <widget class="QLabel" name="label_8">
-                          <property name="font">
-                           <font>
-                            <pointsize>10</pointsize>
-                           </font>
-                          </property>
-                          <property name="text">
-                           <string>On Max Log Size:</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QWidget" name="splitter_4" native="true">
-                          <layout class="QHBoxLayout" name="horizontalLayout_16">
-                           <property name="spacing">
-                            <number>6</number>
-                           </property>
-                           <property name="leftMargin">
-                            <number>9</number>
-                           </property>
-                           <property name="topMargin">
-                            <number>0</number>
-                           </property>
-                           <property name="rightMargin">
-                            <number>9</number>
-                           </property>
-                           <property name="bottomMargin">
-                            <number>0</number>
-                           </property>
-                           <item>
-                            <widget class="QComboBox" name="comboOnMaxLogSize">
-                             <property name="minimumSize">
-                              <size>
-                               <width>180</width>
-                               <height>0</height>
-                              </size>
-                             </property>
-                             <property name="maximumSize">
-                              <size>
-                               <width>250</width>
-                               <height>16777215</height>
-                              </size>
-                             </property>
-                             <property name="toolTip">
-                              <string>Choose behavior for when log file reaches set max size</string>
-                             </property>
-                             <item>
-                              <property name="text">
-                               <string>Flush</string>
-                              </property>
-                             </item>
-                             <item>
-                              <property name="text">
-                               <string>Rotate</string>
-                              </property>
-                             </item>
-                            </widget>
+                            <property name="text">
+                             <string>INFO</string>
+                            </property>
                            </item>
                            <item>
-                            <spacer name="horizontalSpacer_5">
-                             <property name="orientation">
-                              <enum>Qt::Orientation::Horizontal</enum>
-                             </property>
-                             <property name="sizeType">
-                              <enum>QSizePolicy::Policy::Preferred</enum>
-                             </property>
-                             <property name="sizeHint" stdset="0">
-                              <size>
-                               <width>80</width>
-                               <height>20</height>
-                              </size>
-                             </property>
-                            </spacer>
-                           </item>
-                          </layout>
-                         </widget>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QWidget" name="hwrapper_4" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_14">
-                        <property name="leftMargin">
-                         <number>6</number>
-                        </property>
-                        <property name="topMargin">
-                         <number>6</number>
-                        </property>
-                        <property name="rightMargin">
-                         <number>6</number>
-                        </property>
-                        <property name="bottomMargin">
-                         <number>6</number>
-                        </property>
-                        <item>
-                         <widget class="QLabel" name="label_6">
-                          <property name="font">
-                           <font>
-                            <pointsize>10</pointsize>
-                           </font>
-                          </property>
-                          <property name="text">
-                           <string>Flush Interval: </string>
-                          </property>
-                          <property name="StyleClass" stdset="0">
-                           <string>setText</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QWidget" name="splitter_2" native="true">
-                          <layout class="QHBoxLayout" name="horizontalLayout_4">
-                           <property name="spacing">
-                            <number>6</number>
-                           </property>
-                           <property name="leftMargin">
-                            <number>9</number>
-                           </property>
-                           <property name="topMargin">
-                            <number>0</number>
-                           </property>
-                           <property name="rightMargin">
-                            <number>9</number>
-                           </property>
-                           <property name="bottomMargin">
-                            <number>0</number>
-                           </property>
-                           <item>
-                            <widget class="QComboBox" name="comboFlushInterval">
-                             <property name="enabled">
-                              <bool>true</bool>
-                             </property>
-                             <property name="minimumSize">
-                              <size>
-                               <width>180</width>
-                               <height>0</height>
-                              </size>
-                             </property>
-                             <property name="maximumSize">
-                              <size>
-                               <width>250</width>
-                               <height>16777215</height>
-                              </size>
-                             </property>
-                             <property name="toolTip">
-                              <string>Choose when to flush log file</string>
-                             </property>
-                             <item>
-                              <property name="text">
-                               <string>On Log Size</string>
-                              </property>
-                             </item>
-                             <item>
-                              <property name="text">
-                               <string>Close</string>
-                              </property>
-                             </item>
-                            </widget>
+                            <property name="text">
+                             <string>WARNING</string>
+                            </property>
                            </item>
                            <item>
-                            <spacer name="horizontalSpacer_4">
-                             <property name="orientation">
-                              <enum>Qt::Orientation::Horizontal</enum>
-                             </property>
-                             <property name="sizeType">
-                              <enum>QSizePolicy::Policy::Preferred</enum>
-                             </property>
-                             <property name="sizeHint" stdset="0">
-                              <size>
-                               <width>80</width>
-                               <height>20</height>
-                              </size>
-                             </property>
-                            </spacer>
+                            <property name="text">
+                             <string>ERROR</string>
+                            </property>
                            </item>
-                          </layout>
-                         </widget>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                    </layout>
+                           <item>
+                            <property name="text">
+                             <string>CRITICAL</string>
+                            </property>
+                           </item>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QGroupBox" name="groupLogFile">
+                        <property name="maximumSize">
+                         <size>
+                          <width>16777215</width>
+                          <height>150</height>
+                         </size>
+                        </property>
+                        <property name="title">
+                         <string>Log File</string>
+                        </property>
+                        <layout class="QGridLayout" name="gridLayout_4">
+                         <item row="0" column="1">
+                          <widget class="QSpinBox" name="spinMaxLogSize">
+                           <property name="minimumSize">
+                            <size>
+                             <width>180</width>
+                             <height>0</height>
+                            </size>
+                           </property>
+                           <property name="maximumSize">
+                            <size>
+                             <width>250</width>
+                             <height>16777215</height>
+                            </size>
+                           </property>
+                           <property name="toolTip">
+                            <string>Set maximum log file size (Max limit 4096kb)</string>
+                           </property>
+                           <property name="alignment">
+                            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                           </property>
+                           <property name="buttonSymbols">
+                            <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
+                           </property>
+                           <property name="showGroupSeparator" stdset="0">
+                            <bool>true</bool>
+                           </property>
+                           <property name="suffix">
+                            <string> KB</string>
+                           </property>
+                           <property name="minimum">
+                            <number>1</number>
+                           </property>
+                           <property name="maximum">
+                            <number>4096</number>
+                           </property>
+                           <property name="value">
+                            <number>1024</number>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="0" column="0">
+                          <widget class="QLabel" name="label_7">
+                           <property name="font">
+                            <font>
+                             <pointsize>10</pointsize>
+                            </font>
+                           </property>
+                           <property name="text">
+                            <string>Maximum Log Size:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="1" column="0">
+                          <widget class="QLabel" name="label_8">
+                           <property name="font">
+                            <font>
+                             <pointsize>10</pointsize>
+                            </font>
+                           </property>
+                           <property name="text">
+                            <string>On Maximum Log Size:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="1" column="1">
+                          <widget class="QComboBox" name="comboOnMaxLogSize">
+                           <property name="minimumSize">
+                            <size>
+                             <width>180</width>
+                             <height>0</height>
+                            </size>
+                           </property>
+                           <property name="maximumSize">
+                            <size>
+                             <width>250</width>
+                             <height>16777215</height>
+                            </size>
+                           </property>
+                           <property name="toolTip">
+                            <string>Choose behavior for when log file reaches set max size</string>
+                           </property>
+                           <item>
+                            <property name="text">
+                             <string>Flush</string>
+                            </property>
+                           </item>
+                           <item>
+                            <property name="text">
+                             <string>Rotate</string>
+                            </property>
+                           </item>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                     </layout>
+                    </widget>
                    </widget>
                   </item>
                  </layout>
