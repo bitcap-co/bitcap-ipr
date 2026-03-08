@@ -4,8 +4,9 @@ import time
 import webbrowser
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
+from pydantic import TypeAdapter, ValidationError
 from PySide6.QtCore import (
     QEventLoop,
     QFile,
@@ -39,6 +40,7 @@ from PySide6.QtWidgets import (
 )
 
 import ui.resources  # noqa F401
+from config import IPRConfig, PoolPreset
 from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
 from mod.api import settings as api_settings
@@ -54,25 +56,22 @@ from ui.widgets.ipr import (
 )
 from utils import (
     CURR_PLATFORM,
-    IPR_DEFAULT_CONFIG,
     IPR_METADATA,
     deep_update,
-    get_config_file_path,
     get_log_dir,
-    read_config,
-    write_config,
 )
 
 logger = logging.getLogger(__name__)
 
 
 class IPR(QMainWindow, Ui_MainWindow):
-    def __init__(self):
+    def __init__(self, stored: IPRConfig):
         logger.info(" start IPR() init.")
         super().__init__(flags=Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
+        self.config = stored
         self._app_instance = QApplication.instance()
-        self.confirms: List[IPRConfirmation] = []
+        self.confirms: list[IPRConfirmation] = []
         self.aboutDialog: Optional[IPRAbout] = None
         self.sys_tray: Optional[QSystemTrayIcon] = None
 
@@ -281,7 +280,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.comboLogLevel.currentIndexChanged.connect(self.set_logger_level)
 
         # set configuration
-        self.read_settings()
+        self.init_settings()
 
         self.update_stacked_widget()
         self.update_status_msg()
@@ -335,9 +334,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.iprStatus.showMessage("Status :: Ready.")
 
     def update_pool_preset_names(self):
-        for idx in range(1, len(self.config["savedPools"])):
+        for idx in range(1, len(self.config.pool_config.pool_presets)):
             self.comboPoolPreset.setItemText(
-                idx, self.config["savedPools"][idx]["preset_name"]
+                idx, self.config.pool_config.pool_presets[idx].preset_name
             )
 
     # system tray
@@ -382,203 +381,190 @@ class IPR(QMainWindow, Ui_MainWindow):
                         self.sys_tray.show()
 
     # configuration
-    def read_settings(self):
-        logger.info(" read config.")
-        self.config_path = get_config_file_path()
-        if os.path.exists(self.config_path):
-            self.config = read_config(self.config_path)
-            # general
-            self.checkEnableSysTray.setChecked(self.config["general"]["enableSysTray"])
-            self.comboOnWindowClose.setCurrentIndex(
-                self.config["general"]["onWindowClose"]
-            )
-            self.checkUseCustomTimeout.setChecked(
-                self.config["general"]["useCustomTimeout"]
-            )
-            self.spinInactiveTimeout.setValue(
-                self.config["general"]["inactiveTimeoutMins"]
-            )
+    def init_settings(self):
+        logger.info(" init settings.")
+        # general
+        self.checkEnableSysTray.setChecked(self.config.general.enable_sys_tray)
+        self.comboOnWindowClose.setCurrentIndex(self.config.general.on_close)
+        self.checkUseCustomTimeout.setChecked(self.config.general.use_custom_timeout)
+        self.spinInactiveTimeout.setValue(self.config.general.inactive_timeout)
 
-            # listeners
-            self.groupListeners.setChecked(self.config["general"]["enableAllListeners"])
-            self.checkListenAntminer.setChecked(
-                self.config["general"]["listenFor"]["antminer"]
-            )
-            self.checkListenWhatsminer.setChecked(
-                self.config["general"]["listenFor"]["whatsminer"]
-            )
-            self.checkListenIceRiver.setChecked(
-                self.config["general"]["listenFor"]["iceriver"]
-            )
-            # additional listeners
-            self.checkListenVolcminer.setChecked(
-                self.config["general"]["listenFor"]["additional"]["volcminer"]
-            )
-            self.checkListenGoldshell.setChecked(
-                self.config["general"]["listenFor"]["additional"]["goldshell"]
-            )
-            self.checkListenSealminer.setChecked(
-                self.config["general"]["listenFor"]["additional"]["sealminer"]
-            )
-            self.checkListenElphapex.setChecked(
-                self.config["general"]["listenFor"]["additional"]["elphapex"]
-            )
+        # listener
+        self.groupListeners.setChecked(self.config.listener.enable_all)
+        self.checkListenAntminer.setChecked(self.config.listen_for.antminer)
+        self.checkListenWhatsminer.setChecked(self.config.listen_for.whatsminer)
+        self.checkListenIceRiver.setChecked(self.config.listen_for.iceriver)
+        self.checkListenVolcminer.setChecked(self.config.listen_for.volcminer)
+        self.checkListenGoldshell.setChecked(self.config.listen_for.goldshell)
+        self.checkListenSealminer.setChecked(self.config.listen_for.sealminer)
+        self.checkListenElphapex.setChecked(self.config.listen_for.elphapex)
 
-            # api
-            self.lineBitmainPasswd.setText(
-                self.config["api"]["auth"]["bitmainAltPasswd"]
-            )
-            self.lineWhatsminerPasswd.setText(
-                self.config["api"]["auth"]["whatsminerAltPasswd"]
-            )
-            self.lineVolcminerPasswd.setText(
-                self.config["api"]["auth"]["volcminerAltPasswd"]
-            )
-            self.lineGoldshellPasswd.setText(
-                self.config["api"]["auth"]["goldshellAltPasswd"]
-            )
-            self.lineVnishPasswd.setText(
-                self.config["api"]["auth"]["firmware"]["vnishAltPasswd"]
-            )
+        # api
+        self.lineBitmainPasswd.setText(self.config.api.auth.antminer_alt_passwd)
+        self.lineWhatsminerPasswd.setText(self.config.api.auth.whatsminer_alt_passwd)
+        self.lineVolcminerPasswd.setText(self.config.api.auth.volcminer_alt_passwd)
+        self.lineGoldshellPasswd.setText(self.config.api.auth.goldshell_alt_passwd)
+        self.lineVnishPasswd.setText(self.config.api.firmware.vnish_alt_passwd)
 
-            # api settings
-            self.spinLocateDuration.setValue(
-                self.config["api"]["settings"]["locateDurationSecs"]
-            )
-            self.checkVnishUseAntminerLogin.setChecked(
-                self.config["api"]["settings"]["vnishUseAntminerLogin"]
-            )
+        # api settings
+        self.spinLocateDuration.setValue(self.config.api.locate_duration)
+        self.checkVnishUseAntminerLogin.setChecked(
+            self.config.api.firmware.use_antminer_login
+        )
 
-            # logs
-            self.comboLogLevel.setCurrentText(self.config["logs"]["logLevel"])
-            self.spinMaxLogSize.setValue(self.config["logs"]["maxLogSize"])
-            self.comboOnMaxLogSize.setCurrentIndex(self.config["logs"]["onMaxLogSize"])
-            self.comboFlushInterval.setCurrentIndex(
-                self.config["logs"]["flushInterval"]
-            )
+        # logs
+        self.comboLogLevel.setCurrentText(self.config.logs.log_level)
+        self.spinMaxLogSize.setValue(self.config.logs.max_log_size)
+        self.comboOnMaxLogSize.setCurrentIndex(self.config.logs.on_max_log_size)
+        # self.comboFlushInterval.setCurrentIndex(
+        #     self.config["logs"]["flushInterval"]
+        # )
 
-            # pools
-            self.comboPoolPreset.setCurrentIndex(self.config["selectedPoolPreset"])
-            preset_idx = self.comboPoolPreset.currentIndex()
-            self.linePoolURL.setText(self.config["savedPools"][preset_idx]["pool"])
-            self.linePoolURL_2.setText(self.config["savedPools"][preset_idx]["pool2"])
-            self.linePoolURL_3.setText(self.config["savedPools"][preset_idx]["pool3"])
-            self.linePoolUser.setText(self.config["savedPools"][preset_idx]["user"])
-            self.linePoolUser_2.setText(self.config["savedPools"][preset_idx]["user2"])
-            self.linePoolUser_3.setText(self.config["savedPools"][preset_idx]["user3"])
-            self.linePoolPasswd.setText(self.config["savedPools"][preset_idx]["passwd"])
-            self.linePoolPasswd_2.setText(
-                self.config["savedPools"][preset_idx]["passwd2"]
-            )
-            self.linePoolPasswd_3.setText(
-                self.config["savedPools"][preset_idx]["passwd3"]
-            )
+        # pools
+        self.comboPoolPreset.setCurrentIndex(self.config.pool_config.selected_preset)
+        self.checkAutomaticWorkerNames.setChecked(
+            self.config.pool_config.auto_set_workers
+        )
+        preset_idx = self.comboPoolPreset.currentIndex()
+        self.linePoolURL.setText(self.config.pool_config.pool_presets[preset_idx].pool1)
+        self.linePoolURL_2.setText(
+            self.config.pool_config.pool_presets[preset_idx].pool2
+        )
+        self.linePoolURL_3.setText(
+            self.config.pool_config.pool_presets[preset_idx].pool3
+        )
+        self.linePoolUser.setText(
+            self.config.pool_config.pool_presets[preset_idx].user1
+        )
+        self.linePoolUser_2.setText(
+            self.config.pool_config.pool_presets[preset_idx].user2
+        )
+        self.linePoolUser_3.setText(
+            self.config.pool_config.pool_presets[preset_idx].user3
+        )
+        self.linePoolPasswd.setText(
+            self.config.pool_config.pool_presets[preset_idx].passwd1
+        )
+        self.linePoolPasswd_2.setText(
+            self.config.pool_config.pool_presets[preset_idx].passwd2
+        )
+        self.linePoolPasswd_3.setText(
+            self.config.pool_config.pool_presets[preset_idx].passwd3
+        )
 
-            # instance
-            window = self.config["instance"]["geometry"]["mainWindow"]
-            if window:
-                self.setGeometry(*window)
+        # instance
+        window_geometry = self.config.instance.geometry
+        if window_geometry:
+            self.setGeometry(*window_geometry)
 
-            self.menu_bar.actionAlwaysOpenIPInBrowser.setChecked(
-                self.config["instance"]["options"]["alwaysOpenIPInBrowser"]
-            )
-            self.menu_bar.actionDisableInactiveTimer.setChecked(
-                self.config["instance"]["options"]["disableInactiveTimer"]
-            )
-            self.menu_bar.actionAutoStartOnLaunch.setChecked(
-                self.config["instance"]["options"]["autoStartOnLaunch"]
-            )
-            self.menu_bar.actionClearTableAfterStopListen.setChecked(
-                self.config["instance"]["options"]["clearTableAfterStopListen"]
-            )
-            self.menu_bar.actionEnableIDTable.setChecked(
-                self.config["instance"]["table"]["enableIDTable"]
-            )
-            self.menu_bar.actionShowPoolConfigurator.setChecked(
-                self.config["instance"]["pools"]["enablePoolConfigurator"]
-            )
-            self.checkAutomaticWorkerNames.setChecked(
-                self.config["instance"]["pools"]["automaticWorkerNames"]
-            )
+        self.menu_bar.actionAlwaysOpenIPInBrowser.setChecked(
+            self.config.instance.options.always_open_ip
+        )
+        self.menu_bar.actionDisableInactiveTimer.setChecked(
+            self.config.instance.options.disable_inactive
+        )
+        self.menu_bar.actionAutoStartOnLaunch.setChecked(
+            self.config.instance.options.auto_start
+        )
+        self.menu_bar.actionClearTableAfterStopListen.setChecked(
+            self.config.instance.options.clear_table_on_stop
+        )
+        self.menu_bar.actionEnableIDTable.setChecked(
+            self.config.instance.views.show_table
+        )
+        self.menu_bar.actionShowPoolConfigurator.setChecked(
+            self.config.instance.views.show_pool_conf
+        )
 
     def update_settings(self):
-        logger.info(" update settings to config.")
-        instance = {
-            "geometry": {
-                "mainWindow": [
-                    self.geometry().x(),
-                    self.geometry().y(),
-                    self.geometry().width(),
-                    self.geometry().height(),
-                ]
-            },
+        logger.info(" update settings.")
+        settings = self.config.dict
+        settings["instance"] = {
+            "geometry": [
+                self.geometry().x(),
+                self.geometry().y(),
+                self.geometry().width(),
+                self.geometry().height(),
+            ],
             "options": {
-                "alwaysOpenIPInBrowser": self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked(),
+                "alwaysOpenIP": self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked(),
                 "disableInactiveTimer": self.menu_bar.actionDisableInactiveTimer.isChecked(),
                 "autoStartOnLaunch": self.menu_bar.actionAutoStartOnLaunch.isChecked(),
-                "clearTableAfterStopListen": self.menu_bar.actionClearTableAfterStopListen.isChecked(),
+                "clearTableOnStop": self.menu_bar.actionClearTableAfterStopListen.isChecked(),
+                "confirmsStayOnTop": False,
             },
-            "table": {"enableIDTable": self.menu_bar.actionEnableIDTable.isChecked()},
-            "pools": {
-                "enablePoolConfigurator": self.menu_bar.actionShowPoolConfigurator.isChecked(),
-                "automaticWorkerNames": self.checkAutomaticWorkerNames.isChecked(),
+            "views": {
+                "showIDTable": self.menu_bar.actionEnableIDTable.isChecked(),
+                "showPoolConfigurator": self.menu_bar.actionShowPoolConfigurator.isChecked(),
             },
         }
-        savedPools = self.update_current_preset_to_config()
-        config = {
-            "general": {
-                "enableSysTray": self.checkEnableSysTray.isChecked(),
-                "onWindowClose": self.comboOnWindowClose.currentIndex(),
-                "useCustomTimeout": self.checkUseCustomTimeout.isChecked(),
-                "inactiveTimeoutMins": self.spinInactiveTimeout.value(),
-                "enableAllListeners": self.groupListeners.isChecked(),
-                "listenFor": {
-                    "antminer": self.checkListenAntminer.isChecked(),
-                    "whatsminer": self.checkListenWhatsminer.isChecked(),
-                    "iceriver": self.checkListenIceRiver.isChecked(),
-                    "additional": {
-                        "volcminer": self.checkListenVolcminer.isChecked(),
-                        "goldshell": self.checkListenGoldshell.isChecked(),
-                        "sealminer": self.checkListenSealminer.isChecked(),
-                        "elphapex": self.checkListenElphapex.isChecked(),
-                    },
-                },
+        settings["general"] = {
+            "enableSystemTray": self.checkEnableSysTray.isChecked(),
+            "onWindowClose": self.comboOnWindowClose.currentIndex(),
+            "useCustomTimeout": self.checkUseCustomTimeout.isChecked(),
+            "inactiveTimeoutMins": self.spinInactiveTimeout.value(),
+        }
+        settings["listener"] = {
+            "enableFiltering": self.checkEnableListenFilter.isChecked(),
+            "enableAll": self.groupListeners.isChecked(),
+            "listenFor": {
+                "antminer": self.checkListenAntminer.isChecked(),
+                "whatsminer": self.checkListenWhatsminer.isChecked(),
+                "iceriver": self.checkListenIceRiver.isChecked(),
+                "volcminer": self.checkListenVolcminer.isChecked(),
+                "goldshell": self.checkListenGoldshell.isChecked(),
+                "sealminer": self.checkListenSealminer.isChecked(),
+                "elphapex": self.checkListenElphapex.isChecked(),
             },
-            "api": {
-                "auth": {
-                    "bitmainAltPasswd": self.lineBitmainPasswd.text(),
-                    "whatsminerAltPasswd": self.lineWhatsminerPasswd.text(),
-                    "volcminerAltPasswd": self.lineVolcminerPasswd.text(),
-                    "goldshellAltPasswd": self.lineGoldshellPasswd.text(),
-                    "bitdeerAltPasswd": self.lineSealminerPasswd.text(),
-                    "firmware": {
-                        "vnishAltPasswd": self.lineVnishPasswd.text(),
-                    },
-                },
-                "settings": {
-                    "locateDurationSecs": self.spinLocateDuration.value(),
-                    "vnishUseAntminerLogin": self.checkVnishUseAntminerLogin.isChecked(),
-                },
+        }
+        settings["api"] = {
+            "locateDuration": self.spinLocateDuration.value(),
+            "auth": {
+                "antminerAltPasswd": self.lineBitmainPasswd.text(),
+                "iceriverAltPasswd": "",
+                "whatsminerAltPasswd": self.lineWhatsminerPasswd.text(),
+                "goldshellAltPasswd": self.lineGoldshellPasswd.text(),
+                "hammerAltPasswd": "",
+                "volcminerAltPasswd": self.lineVolcminerPasswd.text(),
+                "elphapexAltPasswd": "",
+                "sealminerAltPasswd": self.lineSealminerPasswd.text(),
             },
-            "logs": {
-                "logLevel": self.comboLogLevel.currentText(),
-                "maxLogSize": self.spinMaxLogSize.value(),
-                "onMaxLogSize": self.comboOnMaxLogSize.currentIndex(),
-                "flushInterval": self.comboFlushInterval.currentIndex(),
+            "firmware": {
+                "useAntminerLogin": self.checkVnishUseAntminerLogin.isChecked(),
+                "vnishAltPasswd": self.lineVnishPasswd.text(),
             },
+        }
+        pool_presets = self.update_current_preset_to_config()
+        settings["poolConfigurator"] = {
+            "autoSetWorkers": self.checkAutomaticWorkerNames.isChecked(),
             "selectedPoolPreset": self.comboPoolPreset.currentIndex(),
-            "savedPools": savedPools,
-            "instance": instance,
+            "poolPresets": pool_presets,
         }
-        self.config = config
+        settings["logs"] = {
+            "logLevel": self.comboLogLevel.currentText(),
+            "flushOnClose": self.checkFlushOnClose.isChecked(),
+            "maxLogSize": self.spinMaxLogSize.value(),
+            "onMaxLogSize": self.comboOnMaxLogSize.currentIndex(),
+        }
         # update view from configuration
         if self.stackedWidget.currentIndex() == 2:
             self.update_stacked_widget()
+        try:
+            self.config.validate(settings)
+        except ValidationError as exc:
+            logger.error(
+                f"update_settings: failed to validate config model.\n{exc.__repr__()}"
+            )
+            self.iprStatus.showMessage(
+                "Status :: Failed to update configuration!", 5000
+            )
+            return
+
         self.iprStatus.showMessage("Status :: Updated settings to config.", 1000)
 
     def write_settings(self):
         self.update_settings()
-        write_config(self.config_path, self.config)
+        self.config.write()
 
     def reset_settings(self):
         ok = QMessageBox.warning(
@@ -589,10 +575,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         if ok == QMessageBox.StandardButton.Ok:
             logger.info(" reset settings.")
-            config = read_config(IPR_DEFAULT_CONFIG)
-            write_config(self.config_path, config)
+            self.config.write_default()
             self.toggle_pool_config()
-            self.read_settings()
+            self.init_settings()
             self.update_inactive_timer()
             self.update_miner_locate_duration()
             self.create_or_destroy_systray()
@@ -601,17 +586,20 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "Status :: Successfully restored to default settings.", 5000
             )
 
-    def update_current_preset_to_config(self) -> List[Dict[str, str]]:
-        savedPools = self.config["savedPools"]
+    def update_current_preset_to_config(self) -> list[Dict[str, str]]:
+        presets = TypeAdapter(list[PoolPreset])
+        savedPools: list[Dict[str, str]] = presets.dump_python(
+            self.config.pool_config.pool_presets, by_alias=True
+        )
         current_index = self.comboPoolPreset.currentIndex()
         savedPools[current_index]["preset_name"] = self.comboPoolPreset.currentText()
-        savedPools[current_index]["pool"] = self.linePoolURL.text()
+        savedPools[current_index]["pool1"] = self.linePoolURL.text()
         savedPools[current_index]["pool2"] = self.linePoolURL_2.text()
         savedPools[current_index]["pool3"] = self.linePoolURL_3.text()
-        savedPools[current_index]["user"] = self.linePoolUser.text()
+        savedPools[current_index]["user1"] = self.linePoolUser.text()
         savedPools[current_index]["user2"] = self.linePoolUser_2.text()
         savedPools[current_index]["user3"] = self.linePoolUser_3.text()
-        savedPools[current_index]["passwd"] = self.linePoolPasswd.text()
+        savedPools[current_index]["passwd1"] = self.linePoolPasswd.text()
         savedPools[current_index]["passwd2"] = self.linePoolPasswd_2.text()
         savedPools[current_index]["passwd3"] = self.linePoolPasswd_3.text()
         return savedPools
@@ -623,41 +611,55 @@ class IPR(QMainWindow, Ui_MainWindow):
             if self.comboPoolPreset.currentText() == "":
                 self.comboPoolPreset.setItemText(
                     current_index,
-                    self.config["savedPools"][current_index]["preset_name"],
+                    self.config.pool_config.pool_presets[current_index].preset_name,
                 )
 
     def read_pool_preset(self, index: int) -> None:
-        self.config = read_config(self.config_path)
-        pool_preset = self.config["savedPools"][index]
-        self.linePoolURL.setText(pool_preset["pool"])
-        self.linePoolURL_2.setText(pool_preset["pool2"])
-        self.linePoolURL_3.setText(pool_preset["pool3"])
-        self.linePoolUser.setText(pool_preset["user"])
-        self.linePoolUser_2.setText(pool_preset["user2"])
-        self.linePoolUser_3.setText(pool_preset["user3"])
-        self.linePoolPasswd.setText(pool_preset["passwd"])
-        self.linePoolPasswd_2.setText(pool_preset["passwd2"])
-        self.linePoolPasswd_3.setText(pool_preset["passwd3"])
+        self.config.read()
+        pool_preset = self.config.pool_config.pool_presets[index]
+        self.linePoolURL.setText(pool_preset.pool1)
+        self.linePoolURL_2.setText(pool_preset.pool2)
+        self.linePoolURL_3.setText(pool_preset.pool3)
+        self.linePoolUser.setText(pool_preset.user1)
+        self.linePoolUser_2.setText(pool_preset.user2)
+        self.linePoolUser_3.setText(pool_preset.user3)
+        self.linePoolPasswd.setText(pool_preset.passwd1)
+        self.linePoolPasswd_2.setText(pool_preset.passwd2)
+        self.linePoolPasswd_3.setText(pool_preset.passwd3)
 
     def write_pool_preset(self):
         current_index = self.comboPoolPreset.currentIndex()
-        self.config["savedPools"][current_index]["preset_name"] = (
-            self.comboPoolPreset.currentText()
-        )
-        self.config["savedPools"][current_index]["pool"] = self.linePoolURL.text()
-        self.config["savedPools"][current_index]["pool2"] = self.linePoolURL_2.text()
-        self.config["savedPools"][current_index]["pool3"] = self.linePoolURL_3.text()
-        self.config["savedPools"][current_index]["user"] = self.linePoolUser.text()
-        self.config["savedPools"][current_index]["user2"] = self.linePoolUser_2.text()
-        self.config["savedPools"][current_index]["user3"] = self.linePoolUser_3.text()
-        self.config["savedPools"][current_index]["passwd"] = self.linePoolPasswd.text()
-        self.config["savedPools"][current_index]["passwd2"] = (
-            self.linePoolPasswd_2.text()
-        )
-        self.config["savedPools"][current_index]["passwd3"] = (
-            self.linePoolPasswd_3.text()
-        )
-        write_config(self.config_path, self.config)
+        self.config.pool_config.pool_presets[
+            current_index
+        ].preset_name = self.comboPoolPreset.currentText()
+        self.config.pool_config.pool_presets[
+            current_index
+        ].pool1 = self.linePoolURL.text()
+        self.config.pool_config.pool_presets[
+            current_index
+        ].pool2 = self.linePoolURL_2.text()
+        self.config.pool_config.pool_presets[
+            current_index
+        ].pool3 = self.linePoolURL_3.text()
+        self.config.pool_config.pool_presets[
+            current_index
+        ].user1 = self.linePoolUser.text()
+        self.config.pool_config.pool_presets[
+            current_index
+        ].user2 = self.linePoolUser_2.text()
+        self.config.pool_config.pool_presets[
+            current_index
+        ].user3 = self.linePoolUser_3.text()
+        self.config.pool_config.pool_presets[
+            current_index
+        ].passwd1 = self.linePoolPasswd.text()
+        self.config.pool_config.pool_presets[
+            current_index
+        ].passwd2 = self.linePoolPasswd_2.text()
+        self.config.pool_config.pool_presets[
+            current_index
+        ].passwd3 = self.linePoolPasswd_3.text()
+        self.config.write()
         self.iprStatus.showMessage("Status :: successfully wrote pool preset.", 3000)
 
     def clear_pool_preset(self):
@@ -787,7 +789,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def get_selected_indexes_for_action(
         self, action: str, section: Optional[int] = None
-    ) -> Optional[List[QModelIndex]]:
+    ) -> Optional[list[QModelIndex]]:
         rows = self.idTable.rowCount()
         if not rows:
             return
@@ -936,7 +938,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.x(),
                 self.y(),
                 self.width(),
-                self.config["instance"]["geometry"]["mainWindow"][3],
+                self.config.instance.geometry[3],
             )
 
     # listener
@@ -1318,8 +1320,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
 
     def update_miner_pools(self):
-        passed: List[str] = []
-        failed: List[str] = []
+        passed: list[str] = []
+        failed: list[str] = []
         selected_ips = self.get_selected_indexes_for_action(
             "update_miner_pools", section=1
         )
@@ -1432,11 +1434,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.write_settings()
         logger.info(" exit app.")
         # flush log on close if set
-        if (
-            self.comboOnMaxLogSize.currentIndex() == 0
-            and self.comboFlushInterval.currentIndex() == 1
-        ):
-            logger.root.handlers[0].doRollover()
+        # if (
+        #     self.comboOnMaxLogSize.currentIndex() == 0
+        #     and self.comboFlushInterval.currentIndex() == 1
+        # ):
+        #     logger.root.handlers[0].doRollover()
         self.close_root_logger(logger)
         self.close()
         del self
