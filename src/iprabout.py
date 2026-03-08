@@ -32,7 +32,7 @@ class IPRAbout(QDialog, Ui_IPRAbout):
         central_widget = self.centralWidget.layout()
         if central_widget:
             self.logo = SvgLabel()
-            self.logo.setSvgFile(":rc/img/scalable/BitCapIPR_Center.svg")
+            self.logo.setSvgFile(":rc/img/scalable/BitCapIPRCenterLogo.svg")
             self.logo.setFixedSize(QSize(150, 150))
             self.logo.setAlignment(
                 Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
