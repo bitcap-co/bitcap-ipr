@@ -3,6 +3,7 @@ import os
 import time
 import webbrowser
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
@@ -416,9 +417,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.comboLogLevel.setCurrentText(self.config.logs.log_level)
         self.spinMaxLogSize.setValue(self.config.logs.max_log_size)
         self.comboOnMaxLogSize.setCurrentIndex(self.config.logs.on_max_log_size)
-        # self.comboFlushInterval.setCurrentIndex(
-        #     self.config["logs"]["flushInterval"]
-        # )
+        self.checkFlushOnClose.setChecked(self.config.logs.flush_on_close)
 
         # pools
         self.comboPoolPreset.setCurrentIndex(self.config.pool_config.selected_preset)
@@ -1434,11 +1433,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.write_settings()
         logger.info(" exit app.")
         # flush log on close if set
-        # if (
-        #     self.comboOnMaxLogSize.currentIndex() == 0
-        #     and self.comboFlushInterval.currentIndex() == 1
-        # ):
-        #     logger.root.handlers[0].doRollover()
+        if self.checkFlushOnClose.isChecked():
+            for handler in logger.root.handlers:
+                if isinstance(handler, RotatingFileHandler):
+                    handler.doRollover()
         self.close_root_logger(logger)
         self.close()
         del self
