@@ -1,64 +1,55 @@
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon, QPixmap
-from PySide6.QtWidgets import QApplication, QDialog, QLineEdit, QWidget
+from PySide6.QtWidgets import QApplication, QDialog, QLineEdit
 
 from ui.Confirmation import Ui_IPRConfirmation
-from ui.widgets.ipr import IPR_Titlebar
-from utils import CURR_PLATFORM
+from ui.widgets import IPR_Titlebar
 
 
 class IPRConfirmation(QDialog, Ui_IPRConfirmation):
-    def __init__(self, parent: QWidget):
-        self._parent = parent
+    def __init__(self):
         super().__init__(f=Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
 
-        # title bar
-        if CURR_PLATFORM == "darwin":
-            self.title_bar = IPR_Titlebar(
-                self, "IP Confirmation", ["close", "min"], style="mac"
-            )
-        else:
-            self.title_bar = IPR_Titlebar(self, "IP Confirmation", ["min", "close"])
-        self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
-        self.title_bar._closeButton.clicked.connect(self.window().hide)
-        titlebarwidget = self.titlebarwidget.layout()
-        if titlebarwidget:
-            titlebarwidget.addWidget(self.title_bar)
-        self.ipLogo.setPixmap(QPixmap(":theme/icons/rc/wifi.png"))
-        self.macLogo.setPixmap(QPixmap(":theme/icons/rc/stack.png"))
-        self.typeLogo.setPixmap(QPixmap(":theme/icons/rc/miner.png"))
+        self.title_bar = IPR_Titlebar(self, "IP Confirmation", ["min", "close"])
+        self.title_bar.minimize_button.clicked.connect(self.window().showMinimized)
+        self.title_bar.close_button.clicked.connect(self.window().hide)
+        title_bar_widget = self.titleBarWidget.layout()
+        if title_bar_widget:
+            title_bar_widget.addWidget(self.title_bar)
 
-        self.lineIPField.actionCopy = self.create_copy_text_action(self.lineIPField)
-        self.lineMACField.actionCopy = self.create_copy_text_action(self.lineMACField)
-        self.lineASICField.actionCopy = self.create_copy_text_action(self.lineASICField)
+        self.labelIPLogo.setPixmap(QPixmap(":theme/icons/rc/wifi.png"))
+        self.labelMACLogo.setPixmap(QPixmap(":theme/icons/rc/stack.png"))
+        self.labelASICLogo.setPixmap(QPixmap(":theme/icons/rc/miner.png"))
 
-        self.lineIPField.actionDashboard = self.create_dashboard_action(
-            self.lineIPField
-        )
+        self.__create_copy_action(self.lineIPField)
+        self.__create_copy_action(self.lineMACField)
+        self.__create_copy_action(self.lineASICField)
 
-    def create_copy_text_action(self, line: QLineEdit) -> QAction:
-        copy_action = line.addAction(
+        self.actionOpenDashboard = self.__create_open_action(self.lineIPField)
+
+    def __create_copy_action(self, lineEdit: QLineEdit) -> QAction:
+        copy_action = lineEdit.addAction(
             QIcon(":theme/icons/rc/copy.png"),
             QLineEdit.ActionPosition.TrailingPosition,
         )
         copy_action.setToolTip("Copy content")
-        copy_action.triggered.connect(lambda: self.copy_text(line))
+        copy_action.triggered.connect(lambda: self.__copy_text(lineEdit))
         return copy_action
 
-    def create_dashboard_action(self, line: QLineEdit) -> QAction:
-        dashboard_action = line.addAction(
-            QIcon(":theme/icons/rc/dashboard.png"),
-            QLineEdit.ActionPosition.TrailingPosition,
-        )
-        dashboard_action.setToolTip("Open Dashboard")
-        return dashboard_action
-
-    def copy_text(self, line: QLineEdit):
-        line.selectAll()
-        text = line.text()
-        if line.objectName() == "lineIPField":
-            text = f"http://{line.text()}"
+    def __copy_text(self, lineEdit: QLineEdit):
+        lineEdit.selectAll()
+        text = lineEdit.text()
+        if lineEdit.objectName() == "lineIPField":
+            text = f"http://{lineEdit.text()}"
         cb = QApplication.clipboard()
         cb.clear(mode=cb.Mode.Clipboard)
         cb.setText(text.strip(), mode=cb.Mode.Clipboard)
+
+    def __create_open_action(self, lineEdit: QLineEdit) -> QAction:
+        open_action = lineEdit.addAction(
+            QIcon(":theme/icons/rc/dashboard.png"),
+            QLineEdit.ActionPosition.TrailingPosition,
+        )
+        open_action.setToolTip("Open Dashboard")
+        return open_action
