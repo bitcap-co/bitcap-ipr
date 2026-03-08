@@ -1369,6 +1369,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info(" kill all confirmations.")
         for c in self.confirms:
             c.close()
+        self.confirms = []
         self.iprStatus.showMessage("Status :: Killed all confirmations.", 3000)
 
     def close_root_logger(self, log: logging.Logger):
