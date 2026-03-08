@@ -28,6 +28,8 @@ class Ui_IPRAbout(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(IPRAbout.sizePolicy().hasHeightForWidth())
         IPRAbout.setSizePolicy(sizePolicy)
+        IPRAbout.setMinimumSize(QSize(450, 250))
+        IPRAbout.setMaximumSize(QSize(450, 250))
         self.titleBarWidget = QWidget(IPRAbout)
         self.titleBarWidget.setObjectName(u"titleBarWidget")
         self.titleBarWidget.setGeometry(QRect(0, 0, 450, 30))
