@@ -1369,6 +1369,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info(" kill all confirmations.")
         for c in self.confirms:
             c.close()
+            c.deleteLater()
         self.confirms = []
         self.iprStatus.showMessage("Status :: Killed all confirmations.", 3000)
 
@@ -1381,9 +1382,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         if self.is_minimized_to_tray():
             self.toggle_visibility()
         self.sys_tray.hide()
+        self.sys_tray.deleteLater()
         self.lm.stop()
         self.lm.listen_complete.disconnect(self.process_result)
         self.lm.listen_error.disconnect(self.restart_listen)
+        self.lm.deleteLater()
         self.killall()
         logger.info(" write settings to disk.")
         self.write_settings()
@@ -1395,4 +1398,4 @@ class IPR(QMainWindow, Ui_MainWindow):
                     handler.doRollover()
         self.close_root_logger(logger)
         self.close()
-        del self
+        self.deleteLater()
