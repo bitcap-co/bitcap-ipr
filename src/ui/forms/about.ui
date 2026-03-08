@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="QWidget" name="titlebarwidget" native="true">
+  <widget class="QWidget" name="titleBarWidget" native="true">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -28,22 +28,13 @@
      <height>30</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <property name="leftMargin">
-     <number>0</number>
-    </property>
-    <property name="topMargin">
-     <number>0</number>
-    </property>
-    <property name="rightMargin">
-     <number>0</number>
-    </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_3">
     <property name="bottomMargin">
      <number>0</number>
     </property>
    </layout>
   </widget>
-  <widget class="QWidget" name="centralwidget" native="true">
+  <widget class="QWidget" name="centralWidget" native="true">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -89,18 +80,15 @@
     <property name="bottomMargin">
      <number>9</number>
     </property>
-    <item>
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Orientation::Horizontal</enum>
+    <item alignment="Qt::AlignmentFlag::AlignRight">
+     <widget class="QPushButton" name="acceptButton">
+      <property name="text">
+       <string>OK</string>
       </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
+      <property name="default">
+       <bool>true</bool>
       </property>
-     </spacer>
+     </widget>
     </item>
    </layout>
   </widget>

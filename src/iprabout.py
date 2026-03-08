@@ -1,65 +1,49 @@
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import QSize, Qt
 from PySide6.QtWidgets import (
     QDialog,
-    QWidget,
-    QPushButton,
     QLabel,
+    QWidget,
 )
+
 from ui.About import Ui_IPRAbout
-from ui.widgets.ipr import IPR_Titlebar
-from ui.widgets.svglabel import SvgLabel
-from utils import CURR_PLATFORM
+from ui.widgets import IPR_Titlebar, SvgLabel
 
 
 class IPRAbout(QDialog, Ui_IPRAbout):
     def __init__(self, parent: QWidget, title: str, text: str):
         super().__init__(f=Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
-        self.__initObj(parent, title, text)
-        self.__initUI()
 
-    def __initObj(self, parent, title, text):
-        self._logo = SvgLabel()
-        self._logo.setSvgFile(":rc/img/scalable/BitCapIPRCenterLogo.svg")
-        self._textLabel = QLabel()
-        self._acceptButton = QPushButton()
-        self._acceptButton.setText("OK")
-        self._acceptButton.setDefault(True)
+        self.__parent = parent
+        self.__window = self.__parent.window()
+        self.__title_str = title
+        self.__about_text = text
 
-        self._title_str = title
-        self._about_text = text
-        self._parent = parent
-        self._window = self._parent.window()
+        self.setWindowTitle(self.__title_str)
 
-    def __initUI(self):
-        self.setWindowTitle(self._title_str)
-        # title bar
-        if CURR_PLATFORM == "darwin":
-            self.title_bar = IPR_Titlebar(self, self._title_str, ["close"], style="mac")
-        else:
-            self.title_bar = IPR_Titlebar(self, self._title_str, ["close"])
-        self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
-        self.title_bar._closeButton.clicked.connect(self.window().close)
-        titlebarwidget = self.titlebarwidget.layout()
-        if titlebarwidget:
-            titlebarwidget.addWidget(self.title_bar)
+        self.title_bar = IPR_Titlebar(self, self.__title_str, ["close"])
+        self.title_bar.close_button.clicked.connect(self.window().close)
+        title_bar_widget = self.titleBarWidget.layout()
+        if title_bar_widget:
+            title_bar_widget.addWidget(self.title_bar)
 
-        # central widget
-        central_widget = self.centralwidget.layout()
+        self.acceptButton.clicked.connect(self.window().close)
+
+        central_widget = self.centralWidget.layout()
         if central_widget:
-            self._logo.setFixedSize(QSize(150, 150))
-            self._logo.setAlignment(
+            self.logo = SvgLabel()
+            self.logo.setSvgFile(":rc/img/scalable/BitCapIPR_Center.svg")
+            self.logo.setFixedSize(QSize(150, 150))
+            self.logo.setAlignment(
                 Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
             )
-            central_widget.addWidget(self._logo)
-            self._textLabel.setWordWrap(True)
-            self._textLabel.setMargin(10)
-            self._textLabel.setAlignment(
+            central_widget.addWidget(self.logo)
+
+            self.text_label = QLabel()
+            self.text_label.setWordWrap(True)
+            self.text_label.setMargin(10)
+            self.text_label.setAlignment(
                 Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
             )
-            self._textLabel.setText(self._about_text)
-            central_widget.addWidget(self._textLabel)
-
-        buttons_widget = self.buttons.layout()
-        if buttons_widget:
-            buttons_widget.addWidget(self._acceptButton)
+            self.text_label.setText(self.__about_text)
+            central_widget.addWidget(self.text_label)
