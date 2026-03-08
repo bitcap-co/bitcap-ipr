@@ -78,7 +78,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             toolTip="BitCap IPReporter",
             visible=False,
         )
-        self.system_tray_context = QMenu()
+        self.system_tray_context = QMenu(self)
         self.system_tray_context.addAction("Show/Hide", self.toggle_visibility)
         self.system_tray_context.addAction("Open Log", self.open_log)
         self.actionSysStartListen = self.system_tray_context.addAction(
@@ -96,7 +96,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.sys_tray.setContextMenu(self.system_tray_context)
 
         logger.info(" init inactive timer for 900000ms.")
-        self.inactive = QTimer()
+        self.inactive = QTimer(self)
         self.inactive.setInterval(900000)
         self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
 
@@ -120,7 +120,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             titlebarwidget.addWidget(self.title_bar)
 
         # initialize IPR_Menubar widget
-        self.menu_bar = IPR_Menubar()
+        self.menu_bar = IPR_Menubar(self)
         menubarwidget = self.menubar.layout()
         if menubarwidget:
             menubarwidget.addWidget(self.menu_bar)
@@ -162,7 +162,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 child.setEnabled(True)
         self.groupListeners.toggled.connect(self.toggle_all_listeners)
 
-        self.listenerConfig = QButtonGroup(exclusive=False)
+        self.listenerConfig = QButtonGroup(self, exclusive=False)
         self.listenerConfig.addButton(self.checkListenAntminer, 1)
         self.listenerConfig.addButton(self.checkListenIceRiver, 2)
         self.listenerConfig.addButton(self.checkListenWhatsminer, 3)
@@ -220,7 +220,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.id_header.sectionDoubleClicked.connect(self.select_column)
 
         # id table context menu
-        self.id_context_menu = IPRTableContextMenu()
+        self.id_context_menu = IPRTableContextMenu(self)
         self.id_context_menu.contextActionOpenSelectedIPs.triggered.connect(
             self.open_selected_ips
         )
@@ -1382,11 +1382,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         if self.is_minimized_to_tray():
             self.toggle_visibility()
         self.sys_tray.hide()
-        self.sys_tray.deleteLater()
         self.lm.stop()
         self.lm.listen_complete.disconnect(self.process_result)
         self.lm.listen_error.disconnect(self.restart_listen)
-        self.lm.deleteLater()
         self.killall()
         logger.info(" write settings to disk.")
         self.write_settings()
