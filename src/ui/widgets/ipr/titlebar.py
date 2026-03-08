@@ -1,12 +1,14 @@
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QIcon, QPixmap, QColor, QMouseEvent
+from PySide6.QtGui import QColor, QIcon, QMouseEvent, QPixmap
 from PySide6.QtWidgets import (
     QHBoxLayout,
-    QWidget,
     QLabel,
     QToolButton,
+    QWidget,
 )
+
 import ui.resources  # noqa: F401
+from utils import CURR_PLATFORM
 
 
 class IPR_Titlebar(QWidget):
@@ -14,136 +16,125 @@ class IPR_Titlebar(QWidget):
         self,
         parent: QWidget,
         title: str,
-        hint: list = ["min", "max", "close"],
-        style: str = "win",
+        button_hints: list[str] = ["min", "max", "close"],
     ):
         super().__init__(parent)
-        self.__initObj(parent, title, hint, style)
-        self.__initUI()
+        self.__parent = parent
+        self.__window = self.__parent.window()
+        self.__title_str = title
+        self.__button_hints = button_hints
+        self.__bar_style = CURR_PLATFORM
 
-    def __initObj(self, parent, title, hint, style):
-        self.set_pos = False
-        self.pos = None
+        self.__init_titlebar()
+        self.__init_ui()
 
-        self._title = QLabel()
-        self._iconButton = QToolButton()
-        self._closeButton = QToolButton()
-        self._minimizeButton = QToolButton()
-        self._maximizeButton = QToolButton()
+    def __init_titlebar(self) -> None:
+        self.__set_pos = False
+        self.__pos = None
 
-        self._button_dict = {
-            "close": self._closeButton,
-            "min": self._minimizeButton,
-            "max": self._maximizeButton,
+        self.title_label = QLabel()
+        self.icon_button = QToolButton()
+        self.close_button = QToolButton()
+        self.minimize_button = QToolButton()
+        self.maximize_button = QToolButton()
+
+        self.__buttons = {
+            "close": self.close_button,
+            "min": self.minimize_button,
+            "max": self.maximize_button,
         }
 
-        self._title_str = title
-        self._hint = hint
-        self._style = style
-        self._parent = parent
-        self._window = self._parent.window()
-
-    def __initUI(self):
+    def __init_ui(self) -> None:
         title_bar_layout = QHBoxLayout(self)
         title_bar_layout.setContentsMargins(5, 0, 0, 0)
         title_bar_layout.setSpacing(10)
 
-        # mac buttons
-        if self._style == "mac":
-            self._button_size = 14
-            self._border_width = self._button_size // 20
-            self._border_radius = self._button_size // 2
-            self._colors = {
-                "close": "#DD0000",
-                "min": "#AA8800",
-                "max": "#008800",
-            }
-            for x in self._hint:
-                if x in self._button_dict:
-                    self._button_dict[x].setFixedSize(
-                        self._button_size, self._button_size
-                    )
-                    self.setMacButtonStyle(self._button_dict[x], self._colors[x])
-                    title_bar_layout.addWidget(self._button_dict[x])
+        match self.__bar_style:
+            case "darwin":
+                btn_size = 14
+                btn_colors = {
+                    "close": "#DD0000",
+                    "min": "#AA8800",
+                    "max": "#008800",
+                }
+                for x in self.__button_hints:
+                    if x in self.__buttons:
+                        self.__buttons[x].setFixedSize(btn_size, btn_size)
+                        border_color = QColor(btn_colors[x])
+                        border_color_name = border_color.name()
+                        bkg_color_name = border_color.lighter().name()
+                        self.__buttons[x].setStyleSheet(f"""QToolButton {{
+                                                            background-color: {bkg_color_name};
+                                                            border: {btn_size // 20} solid {border_color_name};
+                                                            border-radius: {btn_size // 2};
+                                                        }}""")
+                        title_bar_layout.addWidget(self.__buttons[x])
+            case _:
+                icon = QIcon()
+                icon.addPixmap(
+                    QPixmap(":rc/img/BitCapIPR_BLK_02_Square.png"),
+                    QIcon.Mode.Disabled,
+                    QIcon.State.On,
+                )
+                self.icon_button.setIcon(icon)
+                self.icon_button.setEnabled(False)
+                title_bar_layout.addWidget(self.icon_button)
 
-        if self._style == "win":
-            icon = QIcon()
-            icon.addPixmap(
-                QPixmap(":rc/img/BitCapIPR_BLK-02_Square.png"),
-                QIcon.Mode.Disabled,
-                QIcon.State.On,
-            )
-            self._iconButton.setIcon(icon)
-            self._iconButton.setEnabled(False)
-            title_bar_layout.addWidget(self._iconButton)
-
-        # title
-        self._title.setAlignment(
+        self.title_label.setAlignment(
             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
         )
-        self._title.setText(self._title_str)
-        self._title.setStyleSheet("""QLabel {
-                                    color: #FFFFFF;
-                                    font-weight: bold;
-                                    font-size: 14px;
-                                  }""")
-        title_bar_layout.addWidget(self._title)
+        self.title_label.setText(self.__title_str)
+        self.title_label.setStyleSheet("""QLabel {
+                                            color: #FFFFFF;
+                                            font-weight: bold;
+                                            font-size: 14px;
+                                        }""")
+        title_bar_layout.addWidget(self.title_label)
 
-        # win buttons
-        if self._style == "win":
-            self._closeButton.setText("🗙")
-            self._minimizeButton.setText("🗕")
-            self._maximizeButton.setText("🗖")
-            for x in self._hint:
-                if x in self._button_dict:
-                    self._button_dict[x].setFocusPolicy(Qt.FocusPolicy.NoFocus)
-                    title_bar_layout.addWidget(self._button_dict[x])
+        if self.__bar_style != "darwin":
+            self.close_button.setText("🗙")
+            self.minimize_button.setText("🗕")
+            self.maximize_button.setText("🗖")
 
-    def setMacButtonStyle(self, btn, color):
-        border_color = QColor(color)
-        border_color_name = border_color.name()
-        background_color_name = border_color.lighter().name()
-
-        btn.setStyleSheet(f"""QToolButton {{
-                            background-color: {background_color_name};
-                            border: {self._border_width} solid {border_color_name};
-                            border-radius: {self._border_radius};
-                          }}""")
+            for x in self.__button_hints:
+                if x in self.__buttons:
+                    self.__buttons[x].setFocusPolicy(Qt.FocusPolicy.NoFocus)
+                    title_bar_layout.addWidget(self.__buttons[x])
 
     def changeEvent(self, event):
         super().changeEvent(event)
         event.accept()
 
     def enterEvent(self, event):
-        if self._style == "mac":
-            for x in self._button_dict:
-                self._button_dict[x].setIcon(QIcon(f":rc/titlebar/macos/{x}.png"))
+        if self.__bar_style == "darwin":
+            for x in self.__buttons:
+                self.__buttons[x].setIcon(QIcon(f":rc/titlebar/macos/{x}.png"))
         event.accept()
 
     def leaveEvent(self, event):
-        if self._style == "mac":
-            for x in self._button_dict:
-                self._button_dict[x].setIcon(QIcon())
+        if self.__bar_style == "darwin":
+            for x in self.__buttons:
+                self.__buttons[x].setIcon(QIcon())
         event.accept()
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
-            if not self._window.windowHandle().startSystemMove():
-                self.set_pos = True
-                self.pos = event.position().toPoint()
+            if not self.__window.windowHandle().startSystemMove():
+                self.__set_pos = True
+                self.__pos = event.position().toPoint()
         return event.accept()
 
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
-        if self.set_pos:
-            if self.pos is not None:
-                offset = event.position().toPoint() - self.pos
-                self._window.move(
-                    self._window.x() + offset.x(), self._window.y() + offset.y()
+        if self.__set_pos:
+            if self.__pos is not None:
+                offset = event.position().toPoint() - self.__pos
+                self.__window.move(
+                    self.__window.x() + offset.x(), self.__window.y() + offset.y()
                 )
         return event.accept()
 
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
-            self.set_pos = False
-            self.pos = None
+            self.__set_pos = False
+            self.__pos = None
         return event.accept()
