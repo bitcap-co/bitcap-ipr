@@ -1201,7 +1201,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.api_client.close_client()
         return t_data
 
-    def populate_table_row(self, data: Dict[str, str] = None) -> None:
+    def populate_table_row(self, data: Dict[str, str] | None = None) -> None:
         """
         arguments:
             **data: dict[str. str] -- row data with the following key structure:
