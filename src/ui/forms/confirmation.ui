@@ -350,7 +350,7 @@
       </widget>
      </item>
      <item row="7" column="0" alignment="Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignVCenter">
-      <widget class="QPushButton" name="accept">
+      <widget class="QPushButton" name="acceptButton">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
          <horstretch>0</horstretch>

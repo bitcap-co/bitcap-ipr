@@ -159,18 +159,18 @@ class Ui_IPRConfirmation(object):
 
         self.gridLayout.addWidget(self.minerType, 6, 0, 1, 1, Qt.AlignmentFlag.AlignHCenter|Qt.AlignmentFlag.AlignVCenter)
 
-        self.accept = QPushButton(IPRConfirmation)
-        self.accept.setObjectName(u"accept")
+        self.acceptButton = QPushButton(IPRConfirmation)
+        self.acceptButton.setObjectName(u"acceptButton")
         sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
         sizePolicy2.setHorizontalStretch(0)
         sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.accept.sizePolicy().hasHeightForWidth())
-        self.accept.setSizePolicy(sizePolicy2)
+        sizePolicy2.setHeightForWidth(self.acceptButton.sizePolicy().hasHeightForWidth())
+        self.acceptButton.setSizePolicy(sizePolicy2)
         font2 = QFont()
         font2.setBold(True)
-        self.accept.setFont(font2)
+        self.acceptButton.setFont(font2)
 
-        self.gridLayout.addWidget(self.accept, 7, 0, 1, 1, Qt.AlignmentFlag.AlignHCenter|Qt.AlignmentFlag.AlignVCenter)
+        self.gridLayout.addWidget(self.acceptButton, 7, 0, 1, 1, Qt.AlignmentFlag.AlignHCenter|Qt.AlignmentFlag.AlignVCenter)
 
         self.macAddr = QWidget(IPRConfirmation)
         self.macAddr.setObjectName(u"macAddr")
@@ -212,7 +212,7 @@ class Ui_IPRConfirmation(object):
 
         self.retranslateUi(IPRConfirmation)
 
-        self.accept.setDefault(True)
+        self.acceptButton.setDefault(True)
 
 
         QMetaObject.connectSlotsByName(IPRConfirmation)
@@ -228,7 +228,7 @@ class Ui_IPRConfirmation(object):
         self.label.setProperty(u"StyleClass", QCoreApplication.translate("IPRConfirmation", u"setText", None))
         self.labelIPLogo.setText("")
         self.labelASICLogo.setText("")
-        self.accept.setText(QCoreApplication.translate("IPRConfirmation", u"OK", None))
+        self.acceptButton.setText(QCoreApplication.translate("IPRConfirmation", u"OK", None))
         self.labelMACLogo.setText("")
     # retranslateUi
 

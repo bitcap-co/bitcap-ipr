@@ -18,6 +18,8 @@ class IPRConfirmation(QDialog, Ui_IPRConfirmation):
         if title_bar_widget:
             title_bar_widget.addWidget(self.title_bar)
 
+        self.acceptButton.clicked.connect(self.window().hide)
+
         self.labelIPLogo.setPixmap(QPixmap(":theme/icons/rc/wifi.png"))
         self.labelMACLogo.setPixmap(QPixmap(":theme/icons/rc/stack.png"))
         self.labelASICLogo.setPixmap(QPixmap(":theme/icons/rc/miner.png"))
