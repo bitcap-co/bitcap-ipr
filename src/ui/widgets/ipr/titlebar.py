@@ -72,7 +72,7 @@ class IPR_Titlebar(QWidget):
             case _:
                 icon = QIcon()
                 icon.addPixmap(
-                    QPixmap(":rc/img/BitCapIPR_BLK_02_Square.png"),
+                    QPixmap(":rc/img/BitCapIPR_BLK-02_Square.png"),
                     QIcon.Mode.Disabled,
                     QIcon.State.On,
                 )
