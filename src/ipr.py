@@ -48,7 +48,7 @@ from mod.api import settings as api_settings
 from mod.api.client import APIClient
 from mod.lm import IPReport, ListenerManager
 from ui.MainWindow import Ui_MainWindow
-from ui.widgets.ipr import (
+from ui.widgets import (
     IPR_Menubar,
     IPR_Titlebar,
     IPRIndexWidgetItem,
@@ -93,14 +93,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.miner_locate_duration: int = api_settings.get("locate_duration_ms")
 
         # initialize IPR_Titlebar widget
-        if CURR_PLATFORM == "darwin":
-            self.title_bar = IPR_Titlebar(
-                self, "BitCap IPReporter", ["close", "min"], style="mac"
-            )
-        else:
-            self.title_bar = IPR_Titlebar(self, "BitCap IPReporter", ["min", "close"])
-        self.title_bar._minimizeButton.clicked.connect(self.window().showMinimized)
-        self.title_bar._closeButton.clicked.connect(self.close_to_tray_or_exit)
+        self.title_bar = IPR_Titlebar(self, "BitCap IPReporter", ["min", "close"])
+        self.title_bar.minimize_button.clicked.connect(self.window().showMinimized)
+        self.title_bar.close_button.clicked.connect(self.close_to_tray_or_exit)
         titlebarwidget = self.titlebar.layout()
         if titlebarwidget:
             titlebarwidget.addWidget(self.title_bar)
@@ -754,9 +749,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "About",
                 f"{IPR_METADATA['name']} is a {IPR_METADATA['desc']}\nVersion {IPR_METADATA['appversion']}\nQt Version {IPR_METADATA['qt']}\nPython Version {IPR_METADATA['python']}\n{IPR_METADATA['author']}\nPowered by {IPR_METADATA['company']}\n",
             )
-            self.aboutDialog._acceptButton.clicked.connect(
-                self.aboutDialog.window().close
-            )
             self.aboutDialog.show()
 
     def open_log(self):
@@ -1117,10 +1109,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.info("show_confirmation : populate ID table.")
             self.populate_id_table()
         else:
-            confirm = IPRConfirmation(self)
-            # IPRConfirmation Signals
-            confirm.accept.clicked.connect(confirm.hide)
-            confirm.lineIPField.actionDashboard.triggered.connect(
+            confirm = IPRConfirmation()
+            confirm.actionOpenDashboard.triggered.connect(
                 lambda: self.open_dashboard(ip)
             )
 
