@@ -31,8 +31,9 @@ import traceback
 from json.decoder import JSONDecodeError
 
 from pydantic import ValidationError
-from PySide6.QtCore import QSharedMemory, QSystemSemaphore, QUrl
+from PySide6.QtCore import QUrl
 from PySide6.QtGui import QDesktopServices, QIcon
+from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtWidgets import (
     QApplication,
     QMessageBox,
@@ -67,8 +68,7 @@ class Main:
     def __init__(self, argv: list[str] = []):
         self.args = argv
         self.app = QApplication(self.args)
-
-        self.is_running = False
+        self.ipc_server: QLocalServer | None = None
 
         self.config_path = get_config_file_path()
         self.config = IPRConfig()
@@ -141,40 +141,32 @@ class Main:
             return
         self.__init_logger()
         logger.debug(f"launch_app : bitcap-ipr v{IPR_METADATA['appversion']}")
-        logger.info("launch_app: start app.")
+        logger.info("launch_app : start app.")
+        self.app.aboutToQuit.connect(self.__close_app)
+
+        app_key = IPR_METADATA["appname"]
+        # check for existing instance
+        conn = QLocalSocket()
+        conn.connectToServer(app_key)
+        if conn.waitForConnected(500):
+            # an instance is already running, exit this instance
+            conn.disconnectFromServer()
+            conn.deleteLater()
+            sys.exit(0)
+        conn.deleteLater()
+
+        # clean up any stale socket file left by a previous crash
+        QLocalServer.removeServer(app_key)
+
+        self.ipc_server = QLocalServer(self.app)
+        if not self.ipc_server.listen(app_key):
+            logger.critical("launch_app : failed to listen on local IPC server")
+            logger.error(f"launch_app : {self.ipc_server.errorString()}")
+            self.app.exit(1)
+        self.ipc_server.newConnection.connect(self.__handle_ipc_connection)
 
         with open(IPR_THEME) as theme:
             self.app.setStyleSheet(theme.read())
-
-        window_key = "BitCapIPR"
-        shared_mem_key = "IPRSharedMemory"
-        semaphore = QSystemSemaphore(window_key, 1)
-        semaphore.acquire()
-
-        if os.name == "posix":
-            # manually destroy shared memory if on unix
-            unix_fix_shared_mem = QSharedMemory(shared_mem_key)
-            if unix_fix_shared_mem.attach():
-                unix_fix_shared_mem.detach()
-
-        shared_mem = QSharedMemory(shared_mem_key)
-
-        if shared_mem.attach():
-            self.is_running = True
-        else:
-            shared_mem.create(1)
-            self.is_running = False
-
-        semaphore.release()
-
-        if self.is_running:
-            # if already running, send warning dialog and close app
-            QMessageBox.warning(
-                None,
-                "BitCapIPR - Application already running",
-                "One instance of the application is already running.",
-            )
-            return
 
         self.app.setWindowIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"))
         self.app.setStyle("Fusion")
@@ -184,6 +176,23 @@ class Main:
 
         sys.excepthook = self.__exc_hook
         sys.exit(self.app.exec())
+
+    def __handle_ipc_connection(self):
+        conn = self.ipc_server.nextPendingConnection()
+        self.main_window.show_window()
+        conn.disconnectFromServer()
+        conn.deleteLater()
+
+    def __close_app(self):
+        logger.info(" close_app : clean up")
+        if self.ipc_server is not None and self.ipc_server.isListening():
+            self.ipc_server.close()
+            if QLocalServer.removeServer(IPR_METADATA["appname"]):
+                logger.info(" close local ipc server.")
+        logger.info(" done.")
+        for handler in logger.root.handlers:
+            handler.close()
+            logger.root.removeHandler(handler)
 
     def __exc_hook(self, exc_type, exc_value, exc_tb):
         tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))

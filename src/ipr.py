@@ -319,6 +319,21 @@ class IPR(QMainWindow, Ui_MainWindow):
     def toggle_visibility(self):
         self.setVisible(not self.isVisible())
 
+    def show_window(self):
+        if self.isHidden() or self.isMinimized():
+            self.showNormal()
+            self.activate_window()
+        else:
+            self.activate_window()
+
+    def activate_window(self):
+        self.setWindowState(
+            self.windowState() & ~Qt.WindowState.WindowMinimized
+            | Qt.WindowState.WindowActive
+        )
+        self.raise_()
+        self.activateWindow()
+
     def is_minimized_to_tray(self) -> bool:
         if self.sys_tray.isVisible() and not self.isVisible():
             return True
@@ -1373,11 +1388,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.confirms = []
         self.iprStatus.showMessage("Status :: Killed all confirmations.", 3000)
 
-    def close_root_logger(self, log: logging.Logger):
-        for handler in log.root.handlers:
-            handler.close()
-            log.root.removeHandler(handler)
-
     def quit(self):
         if self.is_minimized_to_tray():
             self.toggle_visibility()
@@ -1394,6 +1404,5 @@ class IPR(QMainWindow, Ui_MainWindow):
             for handler in logger.root.handlers:
                 if isinstance(handler, RotatingFileHandler):
                     handler.doRollover()
-        self.close_root_logger(logger)
         self.close()
         self.deleteLater()
