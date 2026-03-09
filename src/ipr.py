@@ -94,6 +94,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         self.system_tray_context.addAction("Quit", self.quit)
         self.sys_tray.setContextMenu(self.system_tray_context)
+        self.sys_tray.activated.connect(self.activate_system_tray)
 
         logger.info(" init inactive timer for 900000ms.")
         self.inactive = QTimer(self)
@@ -371,6 +372,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
 
     # system tray
+    def activate_system_tray(self, reason):
+        if reason == QSystemTrayIcon.ActivationReason.MiddleClick:
+            self.show_window()
+
     def update_system_tray_visibility(self):
         if self.checkEnableSysTray.isChecked():
             self.sys_tray.show()
