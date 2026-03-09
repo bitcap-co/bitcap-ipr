@@ -463,6 +463,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionDisableInactiveTimer.setChecked(
             self.config.instance.options.disable_inactive
         )
+        self.menu_bar.actionConfirmsStayOnTop.setChecked(
+            self.config.instance.options.confirms_on_top
+        )
         self.menu_bar.actionAutoStartOnLaunch.setChecked(
             self.config.instance.options.auto_start
         )
@@ -491,7 +494,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "disableInactiveTimer": self.menu_bar.actionDisableInactiveTimer.isChecked(),
                 "autoStartOnLaunch": self.menu_bar.actionAutoStartOnLaunch.isChecked(),
                 "clearTableOnStop": self.menu_bar.actionClearTableAfterStopListen.isChecked(),
-                "confirmsStayOnTop": False,
+                "confirmsStayOnTop": self.menu_bar.actionConfirmsStayOnTop.isChecked(),
             },
             "views": {
                 "showIDTable": self.menu_bar.actionEnableIDTable.isChecked(),
@@ -1115,7 +1118,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.info("show_confirmation : populate ID table.")
             self.populate_id_table()
         else:
-            confirm = IPRConfirmation()
+            confirm = IPRConfirmation(self.menu_bar.actionConfirmsStayOnTop.isChecked())
             confirm.actionOpenDashboard.triggered.connect(
                 lambda: self.open_dashboard(ip)
             )

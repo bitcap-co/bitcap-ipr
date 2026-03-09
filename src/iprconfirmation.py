@@ -7,8 +7,9 @@ from ui.widgets import IPR_Titlebar
 
 
 class IPRConfirmation(QDialog, Ui_IPRConfirmation):
-    def __init__(self):
+    def __init__(self, stay_on_top: bool = False):
         super().__init__(f=Qt.WindowType.FramelessWindowHint)
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, stay_on_top)
         self.setupUi(self)
 
         self.title_bar = IPR_Titlebar(self, "IP Confirmation", ["min", "close"])

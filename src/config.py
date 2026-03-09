@@ -114,7 +114,7 @@ class InstanceOptions(BaseModel):
     disable_inactive: Annotated[bool, Field(alias="disableInactiveTimer")] = False
     auto_start: Annotated[bool, Field(alias="autoStartOnLaunch")] = False
     clear_table_on_stop: Annotated[bool, Field(alias="clearTableOnStop")] = False
-    confirms_on_top: Annotated[bool, Field(alias="confirmsOnTop")] = False
+    confirms_on_top: Annotated[bool, Field(alias="confirmsStayOnTop")] = False
 
 
 class InstanceSettings(BaseModel):

@@ -59,6 +59,11 @@ class IPR_Menubar(QMenuBar):
         self.actionDisableInactiveTimer.setToolTip(
             "Disables inactive timer of 15 minutes (Listens until stopped)"
         )
+        self.actionConfirmsStayOnTop = self.menuOptions.addAction(
+            "Confirms Stay on Top"
+        )
+        self.actionConfirmsStayOnTop.setCheckable(True)
+        self.actionConfirmsStayOnTop.setToolTip("Show IP Confirmation windows on top")
         self.actionAutoStartOnLaunch = self.menuOptions.addAction(
             "Auto Start on Launch"
         )
