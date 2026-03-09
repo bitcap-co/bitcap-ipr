@@ -1067,7 +1067,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             # workaround: check all listeners to accept unknown types
             if (
                 result.miner_type not in enabled_common_filter
-                and not self.groupListeners.isChecked()
+                and self.checkEnableListenFilter.isChecked()
             ):
                 logger.warning(
                     f"process_result : recieved miner type {result.miner_type} outside of filter: {enabled_common_filter}. Ignoring..."
