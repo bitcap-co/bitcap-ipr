@@ -608,13 +608,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def update_pool_preset(self, preset_name: str):
         current_index = self.comboPoolPreset.currentIndex()
-        if current_index != 0:
-            self.comboPoolPreset.setItemText(current_index, preset_name)
-            if self.comboPoolPreset.currentText() == "":
-                self.comboPoolPreset.setItemText(
-                    current_index,
-                    self.config.pool_config.pool_presets[current_index].preset_name,
-                )
+        self.comboPoolPreset.setItemText(current_index, preset_name)
 
     def read_pool_preset(self, index: int) -> None:
         self.config.read()
@@ -666,8 +660,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def clear_pool_preset(self):
         current_index = self.comboPoolPreset.currentIndex()
-        if current_index != 0:
-            self.update_pool_preset(preset_name=f"Saved Pool {current_index + 1}")
+        self.update_pool_preset(preset_name=f"Saved Pool {current_index + 1}")
         for child in self.pcwrapper.children():
             if isinstance(child, QWidget):
                 for line in child.children():
@@ -1275,8 +1268,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             return self.iprStatus.showMessage(
                 f"Status :: Failed to get pool config: {client._error}", 5000
             )
-        # set to "current" preset
-        self.comboPoolPreset.setCurrentIndex(0)
+
         self.linePoolURL.setText(urls[0])
         self.linePoolUser.setText(users[0])
         self.linePoolPasswd.setText(passwds[0])

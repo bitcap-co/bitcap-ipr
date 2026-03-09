@@ -241,11 +241,6 @@
                   </property>
                   <item>
                    <property name="text">
-                    <string>Current Buffer</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
                     <string>Saved Pool 1</string>
                    </property>
                   </item>
@@ -1301,7 +1296,7 @@ Uses last 5 of SN or MAC address.</string>
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>477</width>
+                       <width>375</width>
                        <height>675</height>
                       </rect>
                      </property>
@@ -1777,7 +1772,7 @@ Uses last 5 of SN or MAC address.</string>
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>477</width>
+                       <width>368</width>
                        <height>227</height>
                       </rect>
                      </property>

@@ -1,4 +1,5 @@
 from typing import Optional
+
 from PySide6.QtWidgets import QMenu, QWidget
 
 
@@ -49,7 +50,7 @@ class IPRTableContextMenu(QMenu):
         )
         self.contextActionConfiguratorGetPool.setEnabled(False)
         self.contextActionConfiguratorGetPool.setToolTip(
-            'Retreive current pool config from the selected miner\n and store in "Current Buffer".'
+            "Retreive current pool config from the selected miner\n and store in selected preset."
         )
         self.contextActionConfiguratorSetPools = self.menuConf.addAction(
             "Update Pool Config From Current Preset"
