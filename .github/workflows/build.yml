@@ -152,7 +152,7 @@ jobs:
       - name: Windows - Run package script
         shell: pwsh
         run: |
-          Rename-Item -Path .\dist\BitCapIPR\main.dist -NewName ipr
+          Rename-Item -Path .\dist\BitCapIPR\main.dist -NewName bitcap-ipr
 
           # package portable zip archive
           Copy-Item .\README.md .\dist\BitCapIPR
