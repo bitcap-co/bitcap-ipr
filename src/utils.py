@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from platformdirs import user_data_dir, user_log_dir
-from PySide6.QtCore import __version__ as QT_VERSION
+from PySide6.QtCore import qVersion
 
 CURR_PLATFORM = sys.platform
 BASEDIR = os.path.dirname(__file__)
@@ -16,7 +16,7 @@ IPR_METADATA = {
     "name": "BitCap IPReporter",
     "appname": "BitCapIPR",
     "appversion": "1.2.9",
-    "qt": QT_VERSION,
+    "qt": qVersion(),
     "python": ".".join(map(str, sys.version_info[:3])),
     "appauthor": "BitCap",
     "author": "MatthewWertman",
