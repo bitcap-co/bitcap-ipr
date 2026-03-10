@@ -1,6 +1,6 @@
-import zlib
-import binascii
 import argparse
+import binascii
+import zlib
 from pathlib import Path
 
 
@@ -16,6 +16,7 @@ def parse_arguments():
 if __name__ == "__main__":
     args = parse_arguments()
 
+    data = bytes()
     if args.file:
         with open(Path(args.file).resolve(), "rb") as f:
             data = f.read()
@@ -24,5 +25,4 @@ if __name__ == "__main__":
         data = bytes(args.msg, "utf-8")
 
     compressed = zlib.compress(data, level=args.level)
-
     print(binascii.hexlify(compressed).decode("utf-8"))
