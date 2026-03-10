@@ -1,7 +1,7 @@
-import os
-import sys
 import argparse
+import os
 import shutil
+import sys
 from subprocess import Popen
 
 
@@ -25,18 +25,22 @@ p = Popen(
         "--windows-icon-from-ico=resources/app/icons//BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.ico",
         "--standalone",
         "--output-file=BitCapIPR",
-        "--output-dir=dist/BitCapIPR",
+        "--output-dir=dist",
     ]
 )
 p.wait()
-os.rename("dist\\BitCapIPR\\main.dist", "dist\\BitCapIPR\\ipr")
-shutil.copy("README.md", "dist\\BitCapIPR")
-shutil.copy("CONFIGURATION.md", "dist\\BitCapIPR")
+os.rename("dist\\main.dist", "dist\\ipr")
+shutil.copy("README.md", "dist")
+shutil.copy("CONFIGURATION.md", "dist")
+try:
+    os.symlink("dist\\ipr\\BitCapIPR.exe", "dist\\BitCapIPR.exe")
+except OSError:
+    pass
 shutil.make_archive(
     f"BitCapIPR-v{args.v}-win-x64-portable", "zip", os.path.join("dist")
 )
-os.remove("dist\\BitCapIPR\\README.md")
-os.remove("dist\\BitCapIPR\\CONFIGURATION.md")
+os.remove("dist\\README.md")
+os.remove("dist\\CONFIGURATION.md")
 
 if not args.no_setup:
     p = Popen(
