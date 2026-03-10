@@ -52,35 +52,35 @@ jobs:
       - name: Linux - Run package script
         shell: bash
         run: |
-          mv dist/BitCapIPR/main.dist dist/BitCapIPR/ipr
+          mv dist/BitCapIPR/main.dist dist/BitCapIPR/bitcap-ipr
           # package portable zip archive
-          cp README.md dist/BitCapIPR
-          cp CONFIGURATION.md dist/BitCapIPR
-          zip -r dist/BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}-portable.zip dist/BitCapIPR
-          rm dist/BitCapIPR/README.md dist/BitCapIPR/CONFIGURATION.md
+          cp README.md CONFIGURATION.md dist/BitCapIPR/
+          ln -s bitcap-ipr/BitCapIPR dist/BitCapIPR/BitCapIPR
+          (cd dist && zip -r --symlinks BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}-portable.zip .)
+          rm dist/BitCapIPR/README.md dist/BitCapIPR/CONFIGURATION.md dist/BitCapIPR/BitCapIPR
 
           # package .deb archive with dpkg-deb
           [ -e package ] && rm -rf package
           mkdir -p package/DEBIAN
-          mkdir -p package/opt
+          mkdir -p package/opt/bitcap-ipr
           mkdir -p package/usr/share/applications
           mkdir -p package/usr/share/icons/hicolor/128x128/apps
 
-          echo "Package: bitcapipr" > package/DEBIAN/control
+          echo "Package: bitcap-ipr" > package/DEBIAN/control
           echo "Version: ${GITHUB_REF_NAME##v}" >> package/DEBIAN/control
           echo "Maintainer: MatthewWertman" >> package/DEBIAN/control
           echo "Architecture: amd64" >> package/DEBIAN/control
           echo "Homepage: https://github.com/bitcap-co/bitcap-ipr" >> package/DEBIAN/control
           echo "Description: cross-platform IP Reporter that listens for AntMiners, IceRivers, and Whatsminers." >> package/DEBIAN/control
 
-          cp -r dist/BitCapIPR package/opt/
+          (cd dist/BitCapIPR/bitcap-ipr && cp -r . ../../../package/opt/bitcap-ipr)
           cp resources/app/icons/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png package/usr/share/icons/hicolor/128x128/apps/
-          cp resources/linux/ipr.desktop package/usr/share/applications/
+          cp resources/linux/bitcap-ipr.desktop package/usr/share/applications/
 
-          find package/opt/BitCapIPR -type f -exec chmod 644 -- {} +
-          find package/opt/BitCapIPR -type d -exec chmod 755 -- {} +
+          find package/opt/bitcap-ipr -type f -exec chmod 644 -- {} +
+          find package/opt/bitcap-ipr -type d -exec chmod 755 -- {} +
           find package/usr/share -type f -exec chmod 644 -- {} +
-          chmod +x package/opt/BitCapIPR/ipr/BitCapIPR
+          chmod +x package/opt/bitcap-ipr/BitCapIPR
 
           dpkg-deb --build --root-owner-group package "dist/BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}.deb"
         if: runner.os == 'Linux'
