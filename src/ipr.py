@@ -930,7 +930,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.x(),
                 self.y(),
                 self.width(),
-                self.config.instance.geometry[3],
+                self.height(),
             )
 
     # listener
