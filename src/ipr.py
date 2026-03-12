@@ -116,15 +116,15 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.title_bar = IPR_Titlebar(self, "BitCap IPReporter", ["min", "close"])
         self.title_bar.minimize_button.clicked.connect(self.window().showMinimized)
         self.title_bar.close_button.clicked.connect(self.close_to_tray_or_exit)
-        titlebarwidget = self.titlebar.layout()
-        if titlebarwidget:
-            titlebarwidget.addWidget(self.title_bar)
+        title_bar_widget = self.titleBarWidget.layout()
+        if title_bar_widget:
+            title_bar_widget.addWidget(self.title_bar)
 
         # initialize IPR_Menubar widget
         self.menu_bar = IPR_Menubar(self)
-        menubarwidget = self.menubar.layout()
-        if menubarwidget:
-            menubarwidget.addWidget(self.menu_bar)
+        menu_bar_widget = self.menuBarWidget.layout()
+        if menu_bar_widget:
+            menu_bar_widget.addWidget(self.menu_bar)
 
         # IPR_Menubar signals
         self.menu_bar.actionAbout.triggered.connect(self.about)
@@ -155,7 +155,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
 
         # set logo
-        self.labelLogo.setPixmap(QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg"))
+        self.labelIPRLogo.setPixmap(QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg"))
 
         # listener config
         for child in self.groupListeners.children():
@@ -173,8 +173,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.listenerConfig.addButton(self.checkListenElphapex, 7)
         self.listenerConfig.buttonClicked.connect(self.restart_listen)
         # listener signals
-        self.actionIPRStart.clicked.connect(self.start_listen)
-        self.actionIPRStop.clicked.connect(self.stop_listen)
+        self.pushIPRListenStart.clicked.connect(self.start_listen)
+        self.pushIPRListenStop.clicked.connect(self.stop_listen)
 
         self.poolConfigurator.hide()
         self.actionTogglePoolPasswd = self.create_passwd_toggle_action(
@@ -192,7 +192,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionIPRClearPreset.clicked.connect(self.clear_pool_preset)
 
         # initialize ID Table
-        self.idTable.setHorizontalHeaderLabels(
+        self.tableIPRID.setHorizontalHeaderLabels(
             [
                 "",
                 "IP",
@@ -207,17 +207,17 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "PLATFORM",
             ]
         )
-        self.idTable.setColumnWidth(0, 15)
-        self.idTable.setColumnWidth(2, 120)
-        self.idTable.setColumnWidth(3, 145)
-        self.idTable.setColumnWidth(5, 130)
-        self.idTable.setColumnWidth(7, 385)
-        self.idTable.setColumnWidth(8, 300)
-        self.idTable.setColumnWidth(9, 180)
-        self.idTable.doubleClicked.connect(self.double_click_item)
-        self.idTable.cellClicked.connect(self.locate_miner)
-        self.idTable.setSortingEnabled(True)
-        self.id_header = self.idTable.horizontalHeader()
+        self.tableIPRID.setColumnWidth(0, 15)
+        self.tableIPRID.setColumnWidth(2, 120)
+        self.tableIPRID.setColumnWidth(3, 145)
+        self.tableIPRID.setColumnWidth(5, 130)
+        self.tableIPRID.setColumnWidth(7, 385)
+        self.tableIPRID.setColumnWidth(8, 300)
+        self.tableIPRID.setColumnWidth(9, 180)
+        self.tableIPRID.doubleClicked.connect(self.double_click_item)
+        self.tableIPRID.cellClicked.connect(self.locate_miner)
+        self.tableIPRID.setSortingEnabled(True)
+        self.id_header = self.tableIPRID.horizontalHeader()
         self.id_header.sectionDoubleClicked.connect(self.select_column)
 
         # id table context menu
@@ -247,16 +247,16 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.id_context_menu.contextActionConfiguratorSetPools.triggered.connect(
             self.update_miner_pools
         )
-        self.idTable.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.idTable.customContextMenuRequested.connect(self.show_table_context)
+        self.tableIPRID.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tableIPRID.customContextMenuRequested.connect(self.show_table_context)
 
         # read-only spinboxes
         self.spinLocateDuration.lineEdit().setReadOnly(True)
         self.spinInactiveTimeout.lineEdit().setReadOnly(True)
 
         # show/hide toggles for API passwords
-        self.actionToggleBitmainPasswd = self.create_passwd_toggle_action(
-            self.lineBitmainPasswd
+        self.actionToggleAntminerPasswd = self.create_passwd_toggle_action(
+            self.lineAntminerPasswd
         )
         self.actionToggleWhatsminerPasswd = self.create_passwd_toggle_action(
             self.lineWhatsminerPasswd
@@ -275,12 +275,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
 
         # configuration control signals
-        self.actionIPRCancelConfig.clicked.connect(self.update_stacked_widget)
-        self.actionIPRSaveConfig.clicked.connect(self.update_settings)
-        self.actionIPRResetConfig.clicked.connect(self.reset_settings)
+        self.pushIPRCancelConfig.clicked.connect(self.update_stacked_widget)
+        self.pushIPRSaveConfig.clicked.connect(self.update_settings)
+        self.pushIPRResetConfig.clicked.connect(self.reset_settings)
 
         # status bar
-        self.iprStatus.messageChanged.connect(self.update_status_msg)
+        self.iprStatusBar.messageChanged.connect(self.update_status_msg)
 
         # system tray signals
         self.checkEnableSysTray.toggled.connect(self.toggle_system_tray_settings)
@@ -293,7 +293,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.comboLogLevel.currentIndexChanged.connect(self.set_logger_level)
 
         # set configuration
-        self.init_settings()
+        self.read_settings()
 
         self.update_stacked_widget()
         self.update_status_msg()
@@ -346,9 +346,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             if self.menu_bar.actionShowPoolConfigurator.isChecked():
                 self.poolConfigurator.setVisible(True)
             if self.menu_bar.actionEnableIDTable.isChecked():
-                self.stackedWidget.setCurrentIndex(0)
-            else:
                 self.stackedWidget.setCurrentIndex(1)
+            else:
+                self.stackedWidget.setCurrentIndex(0)
         elif view_index < self.stackedWidget.count():
             if self.is_minimized_to_tray():
                 self.toggle_visibility()
@@ -358,12 +358,12 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.stackedWidget.setCurrentIndex(view_index)
 
     def update_status_msg(self):
-        if self.lm.count and not self.iprStatus.currentMessage():
-            self.iprStatus.showMessage(
+        if self.lm.count and not self.iprStatusBar.currentMessage():
+            self.iprStatusBar.showMessage(
                 f"Status :: UDP listening on 0.0.0.0[{self.lm.status}]..."
             )
-        if not self.iprStatus.currentMessage():
-            self.iprStatus.showMessage("Status :: Ready.")
+        if not self.iprStatusBar.currentMessage():
+            self.iprStatusBar.showMessage("Status :: Ready.")
 
     def update_pool_preset_names(self):
         for idx in range(1, len(self.config.pool_config.pool_presets)):
@@ -383,8 +383,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.sys_tray.hide()
 
     # configuration
-    def init_settings(self):
-        logger.info(" init settings.")
+    def read_settings(self):
+        logger.info(" read settings.")
         # general
         self.checkEnableSysTray.setChecked(self.config.general.enable_sys_tray)
         self.comboOnWindowClose.setCurrentIndex(self.config.general.on_close)
@@ -402,7 +402,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.checkListenElphapex.setChecked(self.config.listen_for.elphapex)
 
         # api
-        self.lineBitmainPasswd.setText(self.config.api.auth.antminer_alt_passwd)
+        self.lineAntminerPasswd.setText(self.config.api.auth.antminer_alt_passwd)
         self.lineWhatsminerPasswd.setText(self.config.api.auth.whatsminer_alt_passwd)
         self.lineVolcminerPasswd.setText(self.config.api.auth.volcminer_alt_passwd)
         self.lineGoldshellPasswd.setText(self.config.api.auth.goldshell_alt_passwd)
@@ -410,7 +410,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         # api settings
         self.spinLocateDuration.setValue(self.config.api.locate_duration)
-        self.checkVnishUseAntminerLogin.setChecked(
+        self.checkUseAntminerLogin.setChecked(
             self.config.api.firmware.use_antminer_login
         )
 
@@ -523,7 +523,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         settings["api"] = {
             "locateDuration": self.spinLocateDuration.value(),
             "auth": {
-                "antminerAltPasswd": self.lineBitmainPasswd.text(),
+                "antminerAltPasswd": self.lineAntminerPasswd.text(),
                 "iceriverAltPasswd": "",
                 "whatsminerAltPasswd": self.lineWhatsminerPasswd.text(),
                 "goldshellAltPasswd": self.lineGoldshellPasswd.text(),
@@ -533,7 +533,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "sealminerAltPasswd": self.lineSealminerPasswd.text(),
             },
             "firmware": {
-                "useAntminerLogin": self.checkVnishUseAntminerLogin.isChecked(),
+                "useAntminerLogin": self.checkUseAntminerLogin.isChecked(),
                 "vnishAltPasswd": self.lineVnishPasswd.text(),
             },
         }
@@ -558,12 +558,12 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.error(
                 f"update_settings: failed to validate config model.\n{exc.__repr__()}"
             )
-            self.iprStatus.showMessage(
+            self.iprStatusBar.showMessage(
                 "Status :: Failed to update configuration!", 5000
             )
             return
 
-        self.iprStatus.showMessage("Status :: Updated settings to config.", 1000)
+        self.iprStatusBar.showMessage("Status :: Updated settings to config.", 1000)
 
     def write_settings(self):
         self.update_settings()
@@ -580,11 +580,11 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.info(" reset settings.")
             self.config.write_default()
             self.toggle_pool_config()
-            self.init_settings()
+            self.read_settings()
             self.update_inactive_timer()
             self.update_miner_locate_duration()
             self.update_stacked_widget()
-            self.iprStatus.showMessage(
+            self.iprStatusBar.showMessage(
                 "Status :: Successfully restored to default settings.", 5000
             )
 
@@ -656,7 +656,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             current_index
         ].passwd3 = self.linePoolPasswd_3.text()
         self.config.write()
-        self.iprStatus.showMessage("Status :: successfully wrote pool preset.", 3000)
+        self.iprStatusBar.showMessage("Status :: successfully wrote pool preset.", 3000)
 
     def clear_pool_preset(self):
         current_index = self.comboPoolPreset.currentIndex()
@@ -770,51 +770,51 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.id_context_menu.exec(QCursor.pos())
 
     def double_click_item(self, model_index: QModelIndex):
-        item = self.idTable.itemFromIndex(model_index)
+        item = self.tableIPRID.itemFromIndex(model_index)
         match item.column():
             case 1:  # ip column
                 self.open_dashboard(item.text())
             case 3:  # serial column
-                self.idTable.editItem(item)
+                self.tableIPRID.editItem(item)
             case _:
                 return
 
     def get_selected_indexes_for_action(
         self, action: str, section: Optional[int] = None
     ) -> Optional[list[QModelIndex]]:
-        rows = self.idTable.rowCount()
+        rows = self.tableIPRID.rowCount()
         if not rows:
             return
         if section is not None and section != 0:
             selected = [
-                x for x in self.idTable.selectedIndexes() if x.column() == section
+                x for x in self.tableIPRID.selectedIndexes() if x.column() == section
             ]
         else:
-            selected = self.idTable.selectedIndexes()
+            selected = self.tableIPRID.selectedIndexes()
         if not len(selected):
             return
-        selected_text = [self.idTable.itemFromIndex(x).text() for x in selected]
+        selected_text = [self.tableIPRID.itemFromIndex(x).text() for x in selected]
         logger.info(f"{action} : running action for {selected_text}...")
         status_msg = f"Status :: Running action: {action} for [{','.join(selected_text[0:3])}...]..."
-        self.iprStatus.showMessage(status_msg, 3000)
+        self.iprStatusBar.showMessage(status_msg, 3000)
         return selected
 
     def open_selected_ips(self):
-        rows = self.idTable.rowCount()
+        rows = self.tableIPRID.rowCount()
         if not rows:
             return
-        selected_ips = [x for x in self.idTable.selectedIndexes() if x.column() == 1]
+        selected_ips = [x for x in self.tableIPRID.selectedIndexes() if x.column() == 1]
         for index in selected_ips:
-            item = self.idTable.itemFromIndex(index)
+            item = self.tableIPRID.itemFromIndex(index)
             self.open_dashboard(item.text())
 
     def copy_selected(self):
         logger.info(" copy selected elements.")
-        rows = self.idTable.rowCount()
+        rows = self.tableIPRID.rowCount()
         if not rows:
             return
         out = ""
-        selected_indexes = self.idTable.selectedIndexes()
+        selected_indexes = self.tableIPRID.selectedIndexes()
         for r in range(rows):
             selected_indexes_in_row = [x for x in selected_indexes if x.row() == r]
             if len(selected_indexes_in_row) == 0:
@@ -823,9 +823,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                 sep = ""
                 if len(selected_indexes_in_row) > 1:
                     sep = ","
-                if not self.idTable.itemFromIndex(selected_indexes_in_row[index]):
+                if not self.tableIPRID.itemFromIndex(selected_indexes_in_row[index]):
                     continue
-                item = self.idTable.itemFromIndex(selected_indexes_in_row[index])
+                item = self.tableIPRID.itemFromIndex(selected_indexes_in_row[index])
                 match item.column():
                     case 0:  # ignore locate
                         continue
@@ -839,23 +839,23 @@ class IPR(QMainWindow, Ui_MainWindow):
         cb = QApplication.clipboard()
         cb.clear(mode=cb.Mode.Clipboard)
         cb.setText(out.strip(), mode=cb.Mode.Clipboard)
-        self.iprStatus.showMessage("Status :: Copied elements to clipboard.", 3000)
+        self.iprStatusBar.showMessage("Status :: Copied elements to clipboard.", 3000)
 
     def select_column(self, section: int):
-        rows = self.idTable.rowCount()
+        rows = self.tableIPRID.rowCount()
         if not rows:
             return
         if section != 0:
             for row in range(rows):
-                item = self.idTable.item(row, section)
+                item = self.tableIPRID.item(row, section)
                 item.setSelected(True)
 
     def reset_sort(self):
-        self.idTable.sortByColumn(0, Qt.SortOrder.AscendingOrder)
+        self.tableIPRID.sortByColumn(0, Qt.SortOrder.AscendingOrder)
         self.id_header.setSortIndicator(-1, Qt.SortOrder.AscendingOrder)
 
     def clear_table(self):
-        return self.idTable.setRowCount(0)
+        return self.tableIPRID.setRowCount(0)
 
     def import_table(self):
         logger.info(" import table.")
@@ -883,19 +883,19 @@ class IPR(QMainWindow, Ui_MainWindow):
                     self.populate_table_row(row)
         else:
             logger.error(f"import_table : failed to read file {file_name}.")
-            self.iprStatus.showMessage("Status :: Failed to import table.", 5000)
+            self.iprStatusBar.showMessage("Status :: Failed to import table.", 5000)
             return
 
     def export_table(self):
         logger.info("export table.")
-        rows = self.idTable.rowCount()
-        cols = self.idTable.columnCount()
+        rows = self.tableIPRID.rowCount()
+        cols = self.tableIPRID.columnCount()
         if not rows:
             return
         out = "IP,MAC,SERIAL,TYPE,SUBTYPE,ALGORITHM,POOL,WORKER,FIRMWARE,PLATFORM\n"
         for i in range(rows):
             for j in range(1, cols):
-                out += self.idTable.item(i, j).text()
+                out += self.tableIPRID.item(i, j).text()
                 out += ","
             out += "\n"
 
@@ -915,7 +915,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             return
         outfile = QTextStream(file)
         outfile << out << "\n"
-        self.iprStatus.showMessage(f"Status :: Wrote table as .CSV to {p}.", 3000)
+        self.iprStatusBar.showMessage(f"Status :: Wrote table as .CSV to {p}.", 3000)
 
     def toggle_pool_config(self, enabled: bool = False):
         self.menu_bar.actionShowPoolConfigurator.setChecked(enabled)
@@ -942,7 +942,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.error(
                 "start_listen : no listeners configured. at least one listener needs to be checked."
             )
-            self.iprStatus.showMessage(
+            self.iprStatusBar.showMessage(
                 "Status :: Failed to start listeners. No listeners configured", 5000
             )
             return
@@ -951,8 +951,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         if self.checkEnableSysTray.isChecked():
             self.actionSysStartListen.setEnabled(False)
             self.actionSysStopListen.setEnabled(True)
-        self.actionIPRStart.setEnabled(False)
-        self.actionIPRStop.setEnabled(True)
+        self.pushIPRListenStart.setEnabled(False)
+        self.pushIPRListenStop.setEnabled(True)
         self.lm.start(self.listenerConfig)
         logger.info(f"start_listen : listening for [{self.lm.status}].")
         if self.is_minimized_to_tray():
@@ -962,7 +962,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 QSystemTrayIcon.MessageIcon.Information,
                 3000,
             )
-        self.iprStatus.showMessage(
+        self.iprStatusBar.showMessage(
             f"Status :: UDP listening on 0.0.0.0[{self.lm.status}]..."
         )
 
@@ -977,12 +977,12 @@ class IPR(QMainWindow, Ui_MainWindow):
             and self.menu_bar.actionClearTableAfterStopListen.isChecked()
         ):
             self.clear_table()
-        self.actionIPRStart.setEnabled(True)
-        self.actionIPRStop.setEnabled(False)
+        self.pushIPRListenStart.setEnabled(True)
+        self.pushIPRListenStop.setEnabled(False)
         self.lm.stop()
         if timeout:
             logger.warning("stop_listen : timeout.")
-            self.iprStatus.showMessage(
+            self.iprStatusBar.showMessage(
                 "Status :: Inactive timeout. Stopped listeners", 5000
             )
             if self.is_minimized_to_tray():
@@ -1005,7 +1005,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 QSystemTrayIcon.MessageIcon.Information,
                 3000,
             )
-        self.iprStatus.clearMessage()
+        self.iprStatusBar.clearMessage()
 
     def restart_listen(self):
         if self.lm.count:
@@ -1034,7 +1034,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                     case "antminer":
                         self.api_client.create_bitmain_client(
                             result.src_ip,
-                            self.lineBitmainPasswd.text(),
+                            self.lineAntminerPasswd.text(),
                             self.lineVnishPasswd.text(),
                         )
                         if (
@@ -1065,7 +1065,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 logger.warning(
                     f"process_result : recieved miner type {result.miner_type} outside of filter: {enabled_common_filter}. Ignoring..."
                 )
-                self.iprStatus.showMessage(
+                self.iprStatusBar.showMessage(
                     f"Status :: Got miner type: {result.miner_type.capitalize()} outside of listener configuration.",
                     8000,
                 )
@@ -1086,7 +1086,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info(
             f"process_result : got updated result {result.src_ip},{result.src_mac},{result.miner_sn},{result.miner_type}."
         )
-        self.iprStatus.showMessage(
+        self.iprStatusBar.showMessage(
             f"Status :: Got {result.miner_type}: IP:{result.src_ip}, MAC:{result.src_mac}",
             5000,
         )
@@ -1149,11 +1149,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         custom_auth: Optional[str] = None
         match miner_type:
             case "antminer":
-                client_auth = self.lineBitmainPasswd.text()
-                if not self.checkVnishUseAntminerLogin.isChecked():
+                client_auth = self.lineAntminerPasswd.text()
+                if not self.checkUseAntminerLogin.isChecked():
                     custom_auth = self.lineVnishPasswd.text()
                 else:
-                    custom_auth = self.lineBitmainPasswd.text()
+                    custom_auth = self.lineAntminerPasswd.text()
             case "whatsminer":
                 client_auth = self.lineWhatsminerPasswd.text()
             case "goldshell":
@@ -1170,7 +1170,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         client_auth, custom_auth = self.get_client_auth_from_type(type)
         self.api_client.create_client_from_type(type, ip, client_auth, custom_auth)
         if not self.api_client.client:
-            self.iprStatus.showMessage(
+            self.iprStatusBar.showMessage(
                 "Status :: Failed to connect or authenticate client.", 5000
             )
         logger.info(f"populate_table : get target data from ip {ip}.")
@@ -1187,36 +1187,44 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info("populate_table : write table data.")
         if data:
             self.result = data
-        rowPosition = self.idTable.rowCount()
-        self.idTable.insertRow(rowPosition)
+        rowPosition = self.tableIPRID.rowCount()
+        self.tableIPRID.insertRow(rowPosition)
         actionLocateMiner = QLabel()
         actionLocateMiner.setPixmap(QPixmap(":theme/icons/rc/flash.png"))
         actionLocateMiner.setToolTip("Locate Miner")
-        self.idTable.setCellWidget(rowPosition, 0, actionLocateMiner)
-        self.idTable.setItem(rowPosition, 0, IPRIndexWidgetItem(rowPosition))
-        self.idTable.setItem(rowPosition, 1, IPRIPWidgetItem(self.result["ip"]))
-        self.idTable.setItem(rowPosition, 2, QTableWidgetItem(self.result["mac"]))
-        self.idTable.setItem(rowPosition, 3, QTableWidgetItem(self.result["serial"]))
+        self.tableIPRID.setCellWidget(rowPosition, 0, actionLocateMiner)
+        self.tableIPRID.setItem(rowPosition, 0, IPRIndexWidgetItem(rowPosition))
+        self.tableIPRID.setItem(rowPosition, 1, IPRIPWidgetItem(self.result["ip"]))
+        self.tableIPRID.setItem(rowPosition, 2, QTableWidgetItem(self.result["mac"]))
+        self.tableIPRID.setItem(rowPosition, 3, QTableWidgetItem(self.result["serial"]))
         # ASIC TYPE
-        self.idTable.setItem(rowPosition, 4, QTableWidgetItem(self.result["type"]))
+        self.tableIPRID.setItem(rowPosition, 4, QTableWidgetItem(self.result["type"]))
         # SUBTYPE
-        self.idTable.setItem(rowPosition, 5, QTableWidgetItem(self.result["subtype"]))
+        self.tableIPRID.setItem(
+            rowPosition, 5, QTableWidgetItem(self.result["subtype"])
+        )
         # ALGO
-        self.idTable.setItem(rowPosition, 6, QTableWidgetItem(self.result["algorithm"]))
+        self.tableIPRID.setItem(
+            rowPosition, 6, QTableWidgetItem(self.result["algorithm"])
+        )
         # ACTIVE POOL
-        self.idTable.setItem(rowPosition, 7, QTableWidgetItem(self.result["pool"]))
+        self.tableIPRID.setItem(rowPosition, 7, QTableWidgetItem(self.result["pool"]))
         # ACTIVE WORKER
-        self.idTable.setItem(rowPosition, 8, QTableWidgetItem(self.result["worker"]))
+        self.tableIPRID.setItem(rowPosition, 8, QTableWidgetItem(self.result["worker"]))
         # FIRMWARE
-        self.idTable.setItem(rowPosition, 9, QTableWidgetItem(self.result["firmware"]))
+        self.tableIPRID.setItem(
+            rowPosition, 9, QTableWidgetItem(self.result["firmware"])
+        )
         # PLATFORM
-        self.idTable.setItem(rowPosition, 10, QTableWidgetItem(self.result["platform"]))
-        self.idTable.scrollToBottom()
+        self.tableIPRID.setItem(
+            rowPosition, 10, QTableWidgetItem(self.result["platform"])
+        )
+        self.tableIPRID.scrollToBottom()
 
     def locate_miner(self, row: int, col: int):
         if col == 0:
-            miner_type = self.idTable.item(row, 4).text()
-            ip_addr = self.idTable.item(row, 1).text()
+            miner_type = self.tableIPRID.item(row, 4).text()
+            ip_addr = self.tableIPRID.item(row, 1).text()
             if self.api_client.locate and self.api_client.locate.isActive():
                 return logger.warning(
                     "locate_miner : already locating a miner. Ignoring..."
@@ -1225,7 +1233,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             match miner_type:
                 case "volcminer":
                     # client_auth = self.lineVolcminerPasswd.text()
-                    return self.iprStatus.showMessage(
+                    return self.iprStatusBar.showMessage(
                         "Status :: Failed to locate miner: VolcMiner is currently not supported.",
                         5000,
                     )
@@ -1235,27 +1243,27 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
             client = self.api_client.get_client()
             if not client:
-                return self.iprStatus.showMessage(
+                return self.iprStatusBar.showMessage(
                     "Status :: Failed to connect or authenticate client.", 5000
                 )
             self.api_client.locate_miner(miner_type)
             if client._error:
-                return self.iprStatus.showMessage(
+                return self.iprStatusBar.showMessage(
                     f"Status :: Failed to locate miner: {client._error}", 5000
                 )
-            self.iprStatus.showMessage(
+            self.iprStatusBar.showMessage(
                 f"Status :: Locating miner: {ip_addr}...",
                 self.miner_locate_duration,
             )
 
     def get_miner_pool(self):
-        rows = self.idTable.rowCount()
+        rows = self.tableIPRID.rowCount()
         if not rows:
             return
-        selected_ips = [x for x in self.idTable.selectedIndexes() if x.column() == 1]
+        selected_ips = [x for x in self.tableIPRID.selectedIndexes() if x.column() == 1]
         index = selected_ips[0]
-        item = self.idTable.itemFromIndex(index)
-        miner_type = self.idTable.item(item.row(), 4).text()
+        item = self.tableIPRID.itemFromIndex(index)
+        miner_type = self.tableIPRID.item(item.row(), 4).text()
         client_auth, custom_auth = self.get_client_auth_from_type(miner_type)
         self.api_client.create_client_from_type(
             miner_type, item.text(), client_auth, custom_auth
@@ -1265,7 +1273,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             return
         urls, users, passwds = self.api_client.get_miner_pool_conf(miner_type)
         if client._error:
-            return self.iprStatus.showMessage(
+            return self.iprStatusBar.showMessage(
                 f"Status :: Failed to get pool config: {client._error}", 5000
             )
 
@@ -1279,7 +1287,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.linePoolUser_3.setText(users[2])
         self.linePoolPasswd_3.setText(passwds[2])
         self.write_pool_preset()
-        self.iprStatus.showMessage(
+        self.iprStatusBar.showMessage(
             f"Status :: Updated {self.comboPoolPreset.currentText()} preset from {item.text()}.",
             3000,
         )
@@ -1297,11 +1305,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         if selected_ips is None:
             return
         for index in selected_ips:
-            item = self.idTable.itemFromIndex(index)
+            item = self.tableIPRID.itemFromIndex(index)
             ip_addr = item.text()
-            miner_type = self.idTable.item(item.row(), 4).text()
-            macaddr = self.idTable.item(item.row(), 2).text()
-            serial = self.idTable.item(item.row(), 3).text()
+            miner_type = self.tableIPRID.item(item.row(), 4).text()
+            macaddr = self.tableIPRID.item(item.row(), 2).text()
+            serial = self.tableIPRID.item(item.row(), 3).text()
             worker = ""
             if serial and (
                 serial != "N/A" and serial != "Unknown" and serial != "Failed"
@@ -1355,10 +1363,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             f"status for action 'update_miner_pools': passed - {passed}, failed - {failed}"
         )
         if len(failed) > 0:
-            return self.iprStatus.showMessage(
+            return self.iprStatusBar.showMessage(
                 f"Status :: Failed to update pools for {failed}.", 5000
             )
-        self.iprStatus.showMessage("Status :: Successfully updated pools.", 3000)
+        self.iprStatusBar.showMessage("Status :: Successfully updated pools.", 3000)
 
     # exit
     def close_to_tray_or_exit(self):
@@ -1386,7 +1394,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             c.close()
             c.deleteLater()
         self.confirms = []
-        self.iprStatus.showMessage("Status :: Killed all confirmations.", 3000)
+        self.iprStatusBar.showMessage("Status :: Killed all confirmations.", 3000)
 
     def quit(self):
         if self.is_minimized_to_tray():

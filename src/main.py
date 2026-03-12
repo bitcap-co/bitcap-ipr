@@ -201,7 +201,7 @@ class Main:
         logger.info("exception_hook : store any unsaved data.")
         if (
             self.main_window.menu_bar.actionEnableIDTable.isChecked()
-            and self.main_window.idTable.rowCount() > 0
+            and self.main_window.tableIPRID.rowCount() > 0
         ):
             logger.info("exception_hook: export current table.")
             self.main_window.export_table()
