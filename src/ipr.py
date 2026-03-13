@@ -259,6 +259,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionToggleAntminerPasswd = self.create_passwd_toggle_action(
             self.lineAntminerPasswd
         )
+        self.actionToggleIceriverPasswd = self.create_passwd_toggle_action(
+            self.lineIceriverPasswd
+        )
         self.actionToggleWhatsminerPasswd = self.create_passwd_toggle_action(
             self.lineWhatsminerPasswd
         )
@@ -268,8 +271,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionToggleGoldshellPasswd = self.create_passwd_toggle_action(
             self.lineGoldshellPasswd
         )
+        self.actionToggleHammerPasswd = self.create_passwd_toggle_action(
+            self.lineHammerPasswd
+        )
         self.actionToggleSealminerPasswd = self.create_passwd_toggle_action(
             self.lineSealminerPasswd
+        )
+        self.actionToggleElphapexPasswd = self.create_passwd_toggle_action(
+            self.lineElphapexPasswd
         )
         self.actionToggleVnishPasswd = self.create_passwd_toggle_action(
             self.lineVnishPasswd
@@ -405,9 +414,12 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         # api
         self.lineAntminerPasswd.setText(self.config.api.auth.antminer_alt_passwd)
+        self.lineIceriverPasswd.setText(self.config.api.auth.iceriver_alt_passwd)
         self.lineWhatsminerPasswd.setText(self.config.api.auth.whatsminer_alt_passwd)
+        self.lineHammerPasswd.setText(self.config.api.auth.hammer_alt_passwd)
         self.lineVolcminerPasswd.setText(self.config.api.auth.volcminer_alt_passwd)
         self.lineGoldshellPasswd.setText(self.config.api.auth.goldshell_alt_passwd)
+        self.lineElphapexPasswd.setText(self.config.api.auth.elphapex_alt_passwd)
         self.lineVnishPasswd.setText(self.config.api.firmware.vnish_alt_passwd)
 
         # api settings
@@ -527,12 +539,12 @@ class IPR(QMainWindow, Ui_MainWindow):
             "locateDuration": self.spinLocateDuration.value(),
             "auth": {
                 "antminerAltPasswd": self.lineAntminerPasswd.text(),
-                "iceriverAltPasswd": "",
+                "iceriverAltPasswd": self.lineIceriverPasswd.text(),
                 "whatsminerAltPasswd": self.lineWhatsminerPasswd.text(),
                 "goldshellAltPasswd": self.lineGoldshellPasswd.text(),
-                "hammerAltPasswd": "",
+                "hammerAltPasswd": self.lineHammerPasswd.text(),
                 "volcminerAltPasswd": self.lineVolcminerPasswd.text(),
-                "elphapexAltPasswd": "",
+                "elphapexAltPasswd": self.lineElphapexPasswd.text(),
                 "sealminerAltPasswd": self.lineSealminerPasswd.text(),
             },
             "firmware": {
