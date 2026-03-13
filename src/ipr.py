@@ -397,6 +397,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.checkListenAntminer.setChecked(self.config.listen_for.antminer)
         self.checkListenWhatsminer.setChecked(self.config.listen_for.whatsminer)
         self.checkListenIceRiver.setChecked(self.config.listen_for.iceriver)
+        self.checkListenHammer.setChecked(self.config.listen_for.hammer)
         self.checkListenVolcminer.setChecked(self.config.listen_for.volcminer)
         self.checkListenGoldshell.setChecked(self.config.listen_for.goldshell)
         self.checkListenSealminer.setChecked(self.config.listen_for.sealminer)
@@ -515,6 +516,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "antminer": self.checkListenAntminer.isChecked(),
                 "whatsminer": self.checkListenWhatsminer.isChecked(),
                 "iceriver": self.checkListenIceRiver.isChecked(),
+                "hammer": self.checkListenHammer.isChecked(),
                 "volcminer": self.checkListenVolcminer.isChecked(),
                 "goldshell": self.checkListenGoldshell.isChecked(),
                 "sealminer": self.checkListenSealminer.isChecked(),
