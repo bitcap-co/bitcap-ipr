@@ -27,7 +27,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(550, 768)
+        MainWindow.resize(550, 550)
         MainWindow.setMinimumSize(QSize(550, 550))
         MainWindow.setMaximumSize(QSize(1280, 800))
         MainWindow.setStyleSheet(u"QWidget#centralwidget {\n"
@@ -795,7 +795,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollLogs = QWidget()
         self.scrollLogs.setObjectName(u"scrollLogs")
-        self.scrollLogs.setGeometry(QRect(0, 0, 368, 227))
+        self.scrollLogs.setGeometry(QRect(0, 0, 478, 227))
         self.verticalLayout_11 = QVBoxLayout(self.scrollLogs)
         self.verticalLayout_11.setSpacing(15)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
@@ -994,6 +994,7 @@ class Ui_MainWindow(object):
         self.label_23.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.labelIPRLogo.setText("")
         self.label.setText(QCoreApplication.translate("MainWindow", u"Configuration", None))
+        self.label.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.groupSystemTray.setTitle(QCoreApplication.translate("MainWindow", u"System Tray", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"On Window Close:", None))
         self.label_2.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))

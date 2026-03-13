@@ -794,6 +794,9 @@ Uses last 5 of SN or MAC address.</string>
             <property name="alignment">
              <set>Qt::AlignmentFlag::AlignCenter</set>
             </property>
+            <property name="StyleClass" stdset="0">
+             <string>setText</string>
+            </property>
            </widget>
           </item>
           <item>
@@ -1631,7 +1634,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>368</width>
+                   <width>478</width>
                    <height>227</height>
                   </rect>
                  </property>
