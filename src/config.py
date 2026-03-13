@@ -26,6 +26,7 @@ class Listeners(BaseModel):
     antminer: Annotated[bool, Field(strict=True)] = True
     whatsminer: Annotated[bool, Field(strict=True)] = True
     iceriver: Annotated[bool, Field(strict=True)] = True
+    hammer: Annotated[bool, Field(strict=True)] = True
     volcminer: Annotated[bool, Field(strict=True)] = True
     goldshell: Annotated[bool, Field(strict=True)] = True
     sealminer: Annotated[bool, Field(strict=True)] = True
