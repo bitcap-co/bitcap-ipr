@@ -119,7 +119,7 @@ class ListenerManager(QObject):
         enabled = [x for x in conf.buttons() if x.isChecked()]
         for listenFor in enabled:
             match conf.id(listenFor):
-                case 1 | 4:  # antminer | volcminer
+                case 1 | 4 | 5:  # antminer | volcminer | hammer
                     self.__append_listener(14235)
                 case 2:  # iceriver
                     self.__append_listener(11503)
