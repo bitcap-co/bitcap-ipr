@@ -32,7 +32,7 @@ from json.decoder import JSONDecodeError
 
 from pydantic import ValidationError
 from PySide6.QtCore import QUrl
-from PySide6.QtGui import QDesktopServices, QIcon
+from PySide6.QtGui import QDesktopServices, QFont, QIcon
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtWidgets import (
     QApplication,
@@ -68,6 +68,9 @@ class Main:
     def __init__(self, argv: list[str] = []):
         self.args = argv
         self.app = QApplication(self.args)
+        font = QFont()
+        font.setPointSize(10)
+        self.app.setFont(font)
         with open(IPR_THEME) as theme:
             self.app.setStyleSheet(theme.read())
 
