@@ -139,6 +139,8 @@ class ListenerManager(QObject):
         logger.info(" close listeners.")
         if len(self._listeners):
             for listener in self._listeners:
+                listener.result.disconnect(self.emit_listen_complete)
+                listener.error.disconnect(self.emit_listen_error)
                 listener.close()
         self._listeners = []
 
