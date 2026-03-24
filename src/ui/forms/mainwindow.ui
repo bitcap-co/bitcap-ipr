@@ -802,7 +802,7 @@ Uses last 5 of SN or MAC address.</string>
           <item>
            <widget class="QTabWidget" name="tabWidget">
             <property name="currentIndex">
-             <number>1</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="tabGeneral">
              <attribute name="title">
@@ -1403,6 +1403,9 @@ Uses last 5 of SN or MAC address.</string>
                      </item>
                      <item>
                       <widget class="QGroupBox" name="groupHammer">
+                       <property name="enabled">
+                        <bool>false</bool>
+                       </property>
                        <property name="title">
                         <string>Hammer</string>
                        </property>

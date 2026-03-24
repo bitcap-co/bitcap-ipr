@@ -664,6 +664,7 @@ class Ui_MainWindow(object):
 
         self.groupHammer = QGroupBox(self.groupAPIAuth)
         self.groupHammer.setObjectName(u"groupHammer")
+        self.groupHammer.setEnabled(False)
         self.gridLayout_13 = QGridLayout(self.groupHammer)
         self.gridLayout_13.setObjectName(u"gridLayout_13")
         self.label_14 = QLabel(self.groupHammer)
@@ -949,7 +950,7 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
 
         self.stackedWidget.setCurrentIndex(0)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         self.comboLogLevel.setCurrentIndex(1)
         self.pushIPRListenStart.setDefault(True)
 
