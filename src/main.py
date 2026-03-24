@@ -68,6 +68,12 @@ class Main:
     def __init__(self, argv: list[str] = []):
         self.args = argv
         self.app = QApplication(self.args)
+        with open(IPR_THEME) as theme:
+            self.app.setStyleSheet(theme.read())
+
+        self.app.setWindowIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"))
+        self.app.setStyle("Fusion")
+        self.app.aboutToQuit.connect(self._close_app)
         self.ipc_server: QLocalServer | None = None
 
         self.config_path = get_config_file_path()
@@ -142,7 +148,6 @@ class Main:
         self._init_logger()
         logger.debug(f"launch_app : bitcap-ipr v{IPR_METADATA['appversion']}")
         logger.info("launch_app : start app.")
-        self.app.aboutToQuit.connect(self._close_app)
 
         app_key = IPR_METADATA["appname"]
         # check for existing instance
@@ -164,12 +169,6 @@ class Main:
             logger.error(f"launch_app : {self.ipc_server.errorString()}")
             self.app.exit(1)
         self.ipc_server.newConnection.connect(self._handle_ipc_connection)
-
-        with open(IPR_THEME) as theme:
-            self.app.setStyleSheet(theme.read())
-
-        self.app.setWindowIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"))
-        self.app.setStyle("Fusion")
 
         self.main_window = IPR(stored=self.config)
         self.main_window.show()
