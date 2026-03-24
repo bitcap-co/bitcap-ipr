@@ -55,8 +55,8 @@ class IPReportDatagram:
         self.miner_type: str = ""
         self.miner_sn: str = ""
 
-        self.__get_miner_type()
-        self.__validate_payload()
+        self._get_miner_type()
+        self._validate_payload()
 
     @property
     def ip_report(self) -> IPReport:
@@ -79,18 +79,18 @@ class IPReportDatagram:
         )
         return result
 
-    def __get_miner_type(self) -> None:
+    def _get_miner_type(self) -> None:
         try:
             self.port_type = PortType.from_port(self.dst_port)
         except ValueError:
             pass
         self.miner_type = self.port_type.name.lower()
 
-    def __try_decompress_from_type(self) -> bool:
+    def _try_decompress_from_type(self) -> bool:
         decomp = None
         match self.port_type:
             case PortType.SEALMINER:
-                decomp = self.__decompress_sealminer()
+                decomp = self._decompress_sealminer()
 
         if not decomp:
             logger.warning(
@@ -100,7 +100,7 @@ class IPReportDatagram:
         self.payload = decomp.decode().rstrip("\x00")
         return True
 
-    def __decompress_sealminer(self) -> bytes:
+    def _decompress_sealminer(self) -> bytes:
         if self.data.contains(ZLIB_DEFAULT_MAGIC):
             data_start = self.data.indexOf(ZLIB_DEFAULT_MAGIC)
             data = self.data.slice(data_start)
@@ -116,10 +116,10 @@ class IPReportDatagram:
                 return out
         return bytes()
 
-    def __validate_payload(self) -> bool:
+    def _validate_payload(self) -> bool:
         if not self.data.isEmpty():
             if not self.data.isValidUtf8():
-                self.compressed = self.__try_decompress_from_type()
+                self.compressed = self._try_decompress_from_type()
                 if not self.compressed:
                     logger.error(
                         f"{self.miner_type}[{self.src_addr.toString()}] : invalid datagram. Ignore!"

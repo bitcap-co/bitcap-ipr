@@ -6,16 +6,16 @@ from PySide6.QtWidgets import QLabel
 class SvgLabel(QLabel):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.__renderer: QSvgRenderer
+        self._renderer: QSvgRenderer
 
     def paintEvent(self, event):
         painter = QPainter(self)
-        if self.__renderer:
-            self.__renderer.render(painter)
+        if self._renderer:
+            self._renderer.render(painter)
         return super().paintEvent(event)
 
     def setSvgFile(self, filename: str):
-        self.__renderer = QSvgRenderer(filename)
-        self.resize(self.__renderer.defaultSize())
+        self._renderer = QSvgRenderer(filename)
+        self.resize(self._renderer.defaultSize())
         length = max(self.sizeHint().width(), self.sizeHint().height())
         self.setFixedSize(length, length)

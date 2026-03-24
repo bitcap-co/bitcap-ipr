@@ -76,9 +76,9 @@ class Main:
         self.log_dir = get_log_dir()
         self.log_path = get_log_file_path()
 
-        self.__ipr_entry()
+        self._ipr_entry()
 
-    def __init_conf(self) -> bool:
+    def _init_conf(self) -> bool:
         try:
             self.config.read()
             self.config.write()
@@ -103,7 +103,7 @@ class Main:
             return False
         return True
 
-    def __init_logger(self) -> None:
+    def _init_logger(self) -> None:
         os.makedirs(self.log_dir, exist_ok=True)
 
         max_log_size_kb = self.config.logs.max_log_size * 1000
@@ -136,13 +136,13 @@ class Main:
         logger.manager.root.setLevel(self.config.logs.log_level)
         logger.info(f"init_logger : set logger to level {self.config.logs.log_level}.")
 
-    def __ipr_entry(self) -> None:
-        if not self.__init_conf():
+    def _ipr_entry(self) -> None:
+        if not self._init_conf():
             return
-        self.__init_logger()
+        self._init_logger()
         logger.debug(f"launch_app : bitcap-ipr v{IPR_METADATA['appversion']}")
         logger.info("launch_app : start app.")
-        self.app.aboutToQuit.connect(self.__close_app)
+        self.app.aboutToQuit.connect(self._close_app)
 
         app_key = IPR_METADATA["appname"]
         # check for existing instance
@@ -163,7 +163,7 @@ class Main:
             logger.critical("launch_app : failed to listen on local IPC server")
             logger.error(f"launch_app : {self.ipc_server.errorString()}")
             self.app.exit(1)
-        self.ipc_server.newConnection.connect(self.__handle_ipc_connection)
+        self.ipc_server.newConnection.connect(self._handle_ipc_connection)
 
         with open(IPR_THEME) as theme:
             self.app.setStyleSheet(theme.read())
@@ -174,16 +174,16 @@ class Main:
         self.main_window = IPR(stored=self.config)
         self.main_window.show()
 
-        sys.excepthook = self.__exc_hook
+        sys.excepthook = self._exc_hook
         sys.exit(self.app.exec())
 
-    def __handle_ipc_connection(self):
+    def _handle_ipc_connection(self):
         conn = self.ipc_server.nextPendingConnection()
         self.main_window.show_window()
         conn.disconnectFromServer()
         conn.deleteLater()
 
-    def __close_app(self):
+    def _close_app(self):
         logger.info(" close_app : clean up")
         if self.ipc_server is not None and self.ipc_server.isListening():
             self.ipc_server.close()
@@ -194,7 +194,7 @@ class Main:
             handler.close()
             logger.root.removeHandler(handler)
 
-    def __exc_hook(self, exc_type, exc_value, exc_tb):
+    def _exc_hook(self, exc_type, exc_value, exc_tb):
         tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
         logger.critical("exception_hook : exception caught!")
         logger.critical(f"exception_hook : {tb}")

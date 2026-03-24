@@ -19,18 +19,18 @@ class IPR_Titlebar(QWidget):
         button_hints: list[str] = ["min", "max", "close"],
     ):
         super().__init__(parent)
-        self.__parent = parent
-        self.__window = self.__parent.window()
-        self.__title_str = title
-        self.__button_hints = button_hints
-        self.__bar_style = CURR_PLATFORM
+        self._parent = parent
+        self._window = self._parent.window()
+        self._title_str = title
+        self._button_hints = button_hints
+        self._bar_style = CURR_PLATFORM
 
-        self.__init_titlebar()
-        self.__init_ui()
+        self._init_titlebar()
+        self._init_ui()
 
-    def __init_titlebar(self) -> None:
-        self.__set_pos = False
-        self.__pos = None
+    def _init_titlebar(self) -> None:
+        self._set_pos = False
+        self._pos = None
 
         self.title_label = QLabel()
         self.icon_button = QToolButton()
@@ -38,18 +38,18 @@ class IPR_Titlebar(QWidget):
         self.minimize_button = QToolButton()
         self.maximize_button = QToolButton()
 
-        self.__buttons = {
+        self._buttons = {
             "close": self.close_button,
             "min": self.minimize_button,
             "max": self.maximize_button,
         }
 
-    def __init_ui(self) -> None:
+    def _init_ui(self) -> None:
         title_bar_layout = QHBoxLayout(self)
         title_bar_layout.setContentsMargins(5, 0, 0, 0)
         title_bar_layout.setSpacing(10)
 
-        match self.__bar_style:
+        match self._bar_style:
             case "darwin":
                 btn_size = 14
                 btn_colors = {
@@ -57,18 +57,18 @@ class IPR_Titlebar(QWidget):
                     "min": "#AA8800",
                     "max": "#008800",
                 }
-                for x in self.__button_hints:
-                    if x in self.__buttons:
-                        self.__buttons[x].setFixedSize(btn_size, btn_size)
+                for x in self._button_hints:
+                    if x in self._buttons:
+                        self._buttons[x].setFixedSize(btn_size, btn_size)
                         border_color = QColor(btn_colors[x])
                         border_color_name = border_color.name()
                         bkg_color_name = border_color.lighter().name()
-                        self.__buttons[x].setStyleSheet(f"""QToolButton {{
+                        self._buttons[x].setStyleSheet(f"""QToolButton {{
                                                             background-color: {bkg_color_name};
                                                             border: {btn_size // 20} solid {border_color_name};
                                                             border-radius: {btn_size // 2};
                                                         }}""")
-                        title_bar_layout.addWidget(self.__buttons[x])
+                        title_bar_layout.addWidget(self._buttons[x])
             case _:
                 icon = QIcon()
                 icon.addPixmap(
@@ -83,7 +83,7 @@ class IPR_Titlebar(QWidget):
         self.title_label.setAlignment(
             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
         )
-        self.title_label.setText(self.__title_str)
+        self.title_label.setText(self._title_str)
         self.title_label.setStyleSheet("""QLabel {
                                             color: #FFFFFF;
                                             font-weight: bold;
@@ -91,50 +91,50 @@ class IPR_Titlebar(QWidget):
                                         }""")
         title_bar_layout.addWidget(self.title_label)
 
-        if self.__bar_style != "darwin":
+        if self._bar_style != "darwin":
             self.close_button.setText("🗙")
             self.minimize_button.setText("🗕")
             self.maximize_button.setText("🗖")
 
-            for x in self.__button_hints:
-                if x in self.__buttons:
-                    self.__buttons[x].setFocusPolicy(Qt.FocusPolicy.NoFocus)
-                    title_bar_layout.addWidget(self.__buttons[x])
+            for x in self._button_hints:
+                if x in self._buttons:
+                    self._buttons[x].setFocusPolicy(Qt.FocusPolicy.NoFocus)
+                    title_bar_layout.addWidget(self._buttons[x])
 
     def changeEvent(self, event):
         super().changeEvent(event)
         event.accept()
 
     def enterEvent(self, event):
-        if self.__bar_style == "darwin":
-            for x in self.__buttons:
-                self.__buttons[x].setIcon(QIcon(f":rc/titlebar/macos/{x}.png"))
+        if self._bar_style == "darwin":
+            for x in self._buttons:
+                self._buttons[x].setIcon(QIcon(f":rc/titlebar/macos/{x}.png"))
         event.accept()
 
     def leaveEvent(self, event):
-        if self.__bar_style == "darwin":
-            for x in self.__buttons:
-                self.__buttons[x].setIcon(QIcon())
+        if self._bar_style == "darwin":
+            for x in self._buttons:
+                self._buttons[x].setIcon(QIcon())
         event.accept()
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
-            if not self.__window.windowHandle().startSystemMove():
-                self.__set_pos = True
-                self.__pos = event.position().toPoint()
+            if not self._window.windowHandle().startSystemMove():
+                self._set_pos = True
+                self._pos = event.position().toPoint()
         return event.accept()
 
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
-        if self.__set_pos:
-            if self.__pos is not None:
-                offset = event.position().toPoint() - self.__pos
-                self.__window.move(
-                    self.__window.x() + offset.x(), self.__window.y() + offset.y()
+        if self._set_pos:
+            if self._pos is not None:
+                offset = event.position().toPoint() - self._pos
+                self._window.move(
+                    self._window.x() + offset.x(), self._window.y() + offset.y()
                 )
         return event.accept()
 
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
-            self.__set_pos = False
-            self.__pos = None
+            self._set_pos = False
+            self._pos = None
         return event.accept()

@@ -25,22 +25,22 @@ class IPRConfirmation(QDialog, Ui_IPRConfirmation):
         self.labelMACLogo.setPixmap(QPixmap(":theme/icons/rc/stack.png"))
         self.labelASICLogo.setPixmap(QPixmap(":theme/icons/rc/miner.png"))
 
-        self.__create_copy_action(self.lineIPField)
-        self.__create_copy_action(self.lineMACField)
-        self.__create_copy_action(self.lineASICField)
+        self._create_copy_action(self.lineIPField)
+        self._create_copy_action(self.lineMACField)
+        self._create_copy_action(self.lineASICField)
 
-        self.actionOpenDashboard = self.__create_open_action(self.lineIPField)
+        self.actionOpenDashboard = self._create_open_action(self.lineIPField)
 
-    def __create_copy_action(self, lineEdit: QLineEdit) -> QAction:
+    def _create_copy_action(self, lineEdit: QLineEdit) -> QAction:
         copy_action = lineEdit.addAction(
             QIcon(":theme/icons/rc/copy.png"),
             QLineEdit.ActionPosition.TrailingPosition,
         )
         copy_action.setToolTip("Copy content")
-        copy_action.triggered.connect(lambda: self.__copy_text(lineEdit))
+        copy_action.triggered.connect(lambda: self._copy_text(lineEdit))
         return copy_action
 
-    def __copy_text(self, lineEdit: QLineEdit):
+    def _copy_text(self, lineEdit: QLineEdit):
         lineEdit.selectAll()
         text = lineEdit.text()
         if lineEdit.objectName() == "lineIPField":
@@ -49,7 +49,7 @@ class IPRConfirmation(QDialog, Ui_IPRConfirmation):
         cb.clear(mode=cb.Mode.Clipboard)
         cb.setText(text.strip(), mode=cb.Mode.Clipboard)
 
-    def __create_open_action(self, lineEdit: QLineEdit) -> QAction:
+    def _create_open_action(self, lineEdit: QLineEdit) -> QAction:
         open_action = lineEdit.addAction(
             QIcon(":theme/icons/rc/dashboard.png"),
             QLineEdit.ActionPosition.TrailingPosition,

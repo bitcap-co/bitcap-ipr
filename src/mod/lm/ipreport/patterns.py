@@ -93,25 +93,25 @@ class InterfaceList(RootModel):
 
 class SealMinerIPReport:
     def __init__(self, payload: Any) -> None:
-        self.__data = payload
-        self.__validate_model()
+        self._data = payload
+        self._validate_model()
 
     @property
     def info(self) -> MinerInfo:
-        return self.__info
+        return self._info
 
     @property
     def interfaces(self) -> List[Interface]:
-        return self.__interfaces
+        return self._interfaces
 
-    def __validate_model(self) -> None:
-        if not isinstance(self.__data, list):
+    def _validate_model(self) -> None:
+        if not isinstance(self._data, list):
             raise ValueError
-        if not len(self.__data) or len(self.__data) != 7:
+        if not len(self._data) or len(self._data) != 7:
             raise ValueError
         try:
-            self.__info = MinerInfo.model_validate(self.__data[1])
+            self._info = MinerInfo.model_validate(self._data[1])
             iface_list = TypeAdapter(List[Interface])
-            self.__interfaces = iface_list.validate_python(self.__data[2:4])
+            self._interfaces = iface_list.validate_python(self._data[2:4])
         except ValidationError as exc:
             raise exc

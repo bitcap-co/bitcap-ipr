@@ -14,14 +14,14 @@ class IPRAbout(QDialog, Ui_IPRAbout):
         super().__init__(f=Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
 
-        self.__parent = parent
-        self.__window = self.__parent.window()
-        self.__title_str = title
-        self.__about_text = text
+        self._parent = parent
+        self._window = self._parent.window()
+        self._title_str = title
+        self._about_text = text
 
-        self.setWindowTitle(self.__title_str)
+        self.setWindowTitle(self._title_str)
 
-        self.title_bar = IPR_Titlebar(self, self.__title_str, ["close"])
+        self.title_bar = IPR_Titlebar(self, self._title_str, ["close"])
         self.title_bar.close_button.clicked.connect(self.window().close)
         title_bar_widget = self.titleBarWidget.layout()
         if title_bar_widget:
@@ -45,5 +45,5 @@ class IPRAbout(QDialog, Ui_IPRAbout):
             self.text_label.setAlignment(
                 Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
             )
-            self.text_label.setText(self.__about_text)
+            self.text_label.setText(self._about_text)
             central_widget.addWidget(self.text_label)

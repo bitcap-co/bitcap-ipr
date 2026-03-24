@@ -6,9 +6,9 @@ from PySide6.QtWidgets import QMenu, QWidget
 class IPRTableContextMenu(QMenu):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
-        self.__initObj()
+        self._init_context()
 
-    def __initObj(self):
+    def _init_context(self):
         self.setToolTipsVisible(True)
 
         self.contextActionOpenSelectedIPs = self.addAction("Open Selected IPs")

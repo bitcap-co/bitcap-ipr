@@ -14,9 +14,9 @@ class IPR_Menubar(QMenuBar):
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
-        self.__initObj()
+        self._init_menubar()
 
-    def __initObj(self):
+    def _init_menubar(self):
         self.menuHelp = self.addMenu("Help")
         self.menuHelp.setToolTipsVisible(True)
         self.menuOptions = self.addMenu("Options")

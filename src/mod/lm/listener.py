@@ -37,10 +37,10 @@ class Listener(QObject):
         self.bound = self.sock.bind(self.addr, self.port)
 
         self.sock.errorOccurred.connect(self.emit_error)
-        self.sock.readyRead.connect(self.__process_datagram)
+        self.sock.readyRead.connect(self._process_datagram)
 
     @Slot()
-    def __process_datagram(self) -> None:
+    def _process_datagram(self) -> None:
         while self.sock.hasPendingDatagrams():
             datagram = self.sock.receiveDatagram(self.buf_size)
             if not datagram.isValid():
@@ -65,6 +65,6 @@ class Listener(QObject):
 
     def close(self) -> None:
         logger.info(f"Listener[{self.port}] : close socket.")
-        self.sock.readyRead.disconnect(self.__process_datagram)
+        self.sock.readyRead.disconnect(self._process_datagram)
         self.sock.errorOccurred.disconnect(self.emit_error)
         self.sock.close()
