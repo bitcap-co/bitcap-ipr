@@ -13,7 +13,7 @@ IP_PATTERN = (
 MAC_PATTERN = r"([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})"
 
 
-class PortType(IntEnum):
+class MinerTypeHint(IntEnum):
     COMMON = 14235
     ICERIVER = 11503
     WHATSMINER = 8888

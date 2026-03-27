@@ -10,7 +10,7 @@ from PySide6.QtNetwork import QNetworkDatagram
 from .patterns import (
     ZLIB_DEFAULT_MAGIC,
     GoldshellIPReport,
-    PortType,
+    MinerTypeHint,
     SealMinerIPReport,
     msg_patterns,
 )
@@ -23,7 +23,7 @@ class IPReport(BaseModel):
 
     created_at: float
     updated_at: float
-    port_type: PortType
+    port_type: MinerTypeHint
     src_addr: int
     src_ip: str
     src_mac: str
@@ -49,7 +49,7 @@ class IPReportDatagram:
         self.compressed = False
         self.valid = False
         self.created_at = time.time()
-        self.port_type = PortType(0)
+        self.port_type = MinerTypeHint(0)
         self.ip_addr: str = ""
         self.mac_addr: str = ""
         self.miner_type: str = ""
@@ -81,7 +81,7 @@ class IPReportDatagram:
 
     def _get_miner_type(self) -> None:
         try:
-            self.port_type = PortType.from_port(self.dst_port)
+            self.port_type = MinerTypeHint.from_port(self.dst_port)
         except ValueError:
             pass
         self.miner_type = self.port_type.name.lower()
@@ -89,7 +89,7 @@ class IPReportDatagram:
     def _try_decompress_from_type(self) -> bool:
         decomp = None
         match self.port_type:
-            case PortType.SEALMINER:
+            case MinerTypeHint.SEALMINER:
                 decomp = self._decompress_sealminer()
 
         if not decomp:
@@ -130,25 +130,25 @@ class IPReportDatagram:
                 self.payload = self.data.toStdString().rstrip("\x00")
 
             match self.port_type:
-                case PortType.COMMON:
+                case MinerTypeHint.COMMON:
                     if re.match(msg_patterns["common"], self.payload):
                         self.ip_addr, self.mac_addr = self.payload.split(",")
                         self.valid = True
-                case PortType.ICERIVER:
+                case MinerTypeHint.ICERIVER:
                     if re.match(msg_patterns["ir"], self.payload):
                         self.ip_addr = self.payload.split(":")[1]
                         self.valid = True
-                case PortType.WHATSMINER:
+                case MinerTypeHint.WHATSMINER:
                     if re.match(msg_patterns["bt"], self.payload):
                         self.ip_addr, self.mac_addr = self.payload.split("M")
                         self.ip_addr = self.ip_addr[3:]
                         self.mac_addr = self.mac_addr[3:]
                         self.valid = True
-                case PortType.ELPHAPEX:
+                case MinerTypeHint.ELPHAPEX:
                     if re.match(msg_patterns["elphapex"], self.payload):
                         self.ip_addr = self.src_addr.toString()
                         self.valid = True
-                case PortType.SEALMINER:
+                case MinerTypeHint.SEALMINER:
                     try:
                         obj = json.loads(self.payload)
                     except json.JSONDecodeError:
@@ -164,7 +164,7 @@ class IPReportDatagram:
                             self.ip_addr = ip
                             self.mac_addr = mac
                             self.valid = True
-                case PortType.GOLDSHELL:
+                case MinerTypeHint.GOLDSHELL:
                     try:
                         obj = json.loads(self.payload)
                     except json.JSONDecodeError:
