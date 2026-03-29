@@ -55,6 +55,7 @@ class Settings(BaseModel):
     http_request_timeout: float = Field(default=5.0)
     rpc_blocking_timeout: float = Field(default=10.0)
     tcp_blocking_timeout: float = Field(default=10.0)
+    locate_duration_ms: int = Field(default=10000)
 
 
 _settings = Settings()
