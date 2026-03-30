@@ -1075,6 +1075,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         ip_report = result.model_dump()
         miner_data["ip_report"] = ip_report
 
+        self.asic.close_client()
         logger.debug(f"process_result: got miner data: {miner_data}.")
 
         self.iprStatusBar.showMessage(
