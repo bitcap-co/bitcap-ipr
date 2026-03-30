@@ -8,7 +8,7 @@ class WhatsminerParser(BaseParser):
         super().__init__()
         self.data.type = MinerType.WHATSMINER
         self.data.firmware = MinerFirmware.STOCK
-        self.data.algo = MinerAlgorithm.SHA256
+        self.data.algorithm = MinerAlgorithm.SHA256
 
     def parse_api_version(self, obj: dict[str, Any]) -> None:
         self.data.api_version = obj["api_ver"]
@@ -49,13 +49,13 @@ class WhatsminerParser(BaseParser):
     def parse_pools(self, obj: list[dict[str, Any]]) -> None:
         for pool in obj:
             if pool["Status"] == "Alive":
-                self.data.active_pool = pool["URL"]
+                self.data.stratum_url = pool["URL"]
                 if "." in pool["User"]:
                     user, worker = pool["User"].split(".", 1)
-                    self.data.active_user = user
-                    self.data.active_worker = worker
+                    self.data.username = user
+                    self.data.worker_name = worker
                 else:
-                    self.data.active_user = pool["User"]
+                    self.data.username = pool["User"]
                 break
 
     def parse_version_info(self, obj: dict[str, Any]) -> None:
@@ -69,7 +69,7 @@ class WhatsminerV3Parser(BaseParser):
         super().__init__()
         self.data.type = MinerType.WHATSMINER
         self.data.firmware = MinerFirmware.STOCK
-        self.data.algo = MinerAlgorithm.SHA256
+        self.data.algorithm = MinerAlgorithm.SHA256
 
     def parse_api_version(self, obj: Any) -> None:
         self.data.api_version = obj["system"]["api"]
@@ -113,11 +113,11 @@ class WhatsminerV3Parser(BaseParser):
     def parse_pools(self, obj: list[dict[str, Any]]) -> None:
         for pool in obj:
             if pool["status"] == "alive":
-                self.data.active_pool = pool["url"]
+                self.data.stratum_url = pool["url"]
                 if "." in pool["account"]:
                     user, worker = pool["account"].split(".", 1)
-                    self.data.active_user = user
-                    self.data.active_worker = worker
+                    self.data.username = user
+                    self.data.worker_name = worker
                 else:
-                    self.data.active_user = pool["account"]
+                    self.data.username = pool["account"]
                 break

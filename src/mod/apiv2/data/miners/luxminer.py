@@ -49,13 +49,13 @@ class LuxminerParser(BaseParser):
     def parse_pools(self, obj: list[dict[str, Any]]) -> None:
         for pool in obj:
             if pool["Status"] == "Alive":
-                self.data.active_pool = pool["URL"]
+                self.data.stratum_url = pool["URL"]
                 if "." in pool["User"]:
                     user, worker = pool["User"].split(".", 1)
-                    self.data.active_user = user
-                    self.data.active_worker = worker
+                    self.data.username = user
+                    self.data.worker_name = worker
                 else:
-                    self.data.active_user = pool["User"]
+                    self.data.username = pool["User"]
                 break
 
     def parse_version_info(self, obj: dict[str, Any]) -> None:

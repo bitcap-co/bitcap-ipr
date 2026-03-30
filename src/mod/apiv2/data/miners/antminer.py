@@ -45,9 +45,9 @@ class AntminerParser(BaseParser):
 
     def parse_algorithm(self, obj: dict[str, Any]) -> None:
         if "Algorithm" in obj:
-            self.data.algo = MinerAlgorithm.from_value(obj["Algorithm"])
+            self.data.algorithm = MinerAlgorithm.from_value(obj["Algorithm"])
         else:
-            self.data.algo = MinerAlgorithm.SHA256
+            self.data.algorithm = MinerAlgorithm.SHA256
 
     def parse_firmware(self, obj: dict[str, Any]) -> None:
         self.data.fw_version = obj["system_filesystem_version"]
@@ -71,11 +71,11 @@ class AntminerParser(BaseParser):
     def parse_pools(self, obj: list[dict[str, Any]]) -> None:
         for pool in obj:
             if pool["status"] == "Alive":
-                self.data.active_pool = pool["url"]
+                self.data.stratum_url = pool["url"]
                 if "." in pool["user"]:
                     user, worker = pool["user"].split(".", 1)
-                    self.data.active_user = user
-                    self.data.active_worker = worker
+                    self.data.username = user
+                    self.data.worker_name = worker
                 else:
-                    self.data.active_user = pool["user"]
+                    self.data.username = pool["user"]
                 break

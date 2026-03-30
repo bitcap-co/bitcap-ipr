@@ -98,7 +98,7 @@ class MinerData(BaseModel):
     type: MinerType | None = None
     subtype: str | None = None
     firmware: MinerFirmware | None = None
-    algo: MinerAlgorithm | None = None
+    algorithm: MinerAlgorithm | None = None
     platform: MinerPlatform | str | None = None
     serial: str | None = None
     mac: str | None = None
@@ -106,9 +106,9 @@ class MinerData(BaseModel):
     fw_version: str | None = None
     hostname: str | None = None
     uptime: int | None = None
-    active_pool: str | None = None
-    active_user: str | None = None
-    active_worker: str | None = None
+    stratum_url: str | None = None
+    username: str | None = None
+    worker_name: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
         miner_data = self.model_dump()

@@ -1172,17 +1172,15 @@ class IPR(QMainWindow, Ui_MainWindow):
         # SERIAL
         self.tableIPRID.setItem(rowPosition, 5, QTableWidgetItem(data["serial"]))
         # ALGO
-        self.tableIPRID.setItem(rowPosition, 6, QTableWidgetItem(data["algo"]))
+        self.tableIPRID.setItem(rowPosition, 6, QTableWidgetItem(data["algorithm"]))
         # HOSTNAME
         self.tableIPRID.setItem(rowPosition, 7, QTableWidgetItem(data["hostname"]))
         # ACTIVE POOL
-        self.tableIPRID.setItem(rowPosition, 8, QTableWidgetItem(data["active_pool"]))
+        self.tableIPRID.setItem(rowPosition, 8, QTableWidgetItem(data["stratum_url"]))
         # ACTIVE USER
-        self.tableIPRID.setItem(rowPosition, 9, QTableWidgetItem(data["active_user"]))
+        self.tableIPRID.setItem(rowPosition, 9, QTableWidgetItem(data["username"]))
         # ACTIVE WORKER
-        self.tableIPRID.setItem(
-            rowPosition, 10, QTableWidgetItem(data["active_worker"])
-        )
+        self.tableIPRID.setItem(rowPosition, 10, QTableWidgetItem(data["worker_name"]))
         # FIRMWARE TYPE
         self.tableIPRID.setItem(rowPosition, 11, QTableWidgetItem(data["firmware"]))
         # FIRMWARE VERSION

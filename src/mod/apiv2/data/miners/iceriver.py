@@ -47,16 +47,16 @@ class IceriverParser(BaseParser):
 
     def parse_algorithm(self, obj: dict[str, Any]) -> None:
         if not obj["algo"] == "none":
-            self.data.algo = MinerAlgorithm.from_value(obj["algo"])
+            self.data.algorithm = MinerAlgorithm.from_value(obj["algo"])
         elif self.data.subtype is not None:
             if self.data.subtype == "AL3":
-                self.data.algo = MinerAlgorithm.BLAKE3
+                self.data.algorithm = MinerAlgorithm.BLAKE3
             elif self.data.subtype.__contains__("KS"):
-                self.data.algo = MinerAlgorithm.KHEAVYHASH
+                self.data.algorithm = MinerAlgorithm.KHEAVYHASH
             else:
-                self.data.algo = None
+                self.data.algorithm = None
         else:
-            self.data.algo = None
+            self.data.algorithm = None
 
     def parse_firmware(self, obj: dict[str, Any]) -> None:
         self.data.fw_version = obj["softver1"]
@@ -70,11 +70,11 @@ class IceriverParser(BaseParser):
     def parse_pools(self, obj: list[dict[str, Any]]) -> None:
         for pool in obj:
             if pool["connect"] == 1:
-                self.data.active_pool = pool["addr"]
+                self.data.stratum_url = pool["addr"]
                 if "." in pool["user"]:
                     user, worker = pool["user"].split(".", 1)
-                    self.data.active_user = user
-                    self.data.active_worker = worker
+                    self.data.username = user
+                    self.data.worker_name = worker
                 else:
-                    self.data.active_user = pool["user"]
+                    self.data.username = pool["user"]
                 break

@@ -31,7 +31,7 @@ class GoldshellParser(BaseParser):
         self.data.subtype = obj["model"]
 
     def parse_algorithm(self, obj: dict[str, Any]) -> None:
-        self.data.algo = MinerAlgorithm.from_value(
+        self.data.algorithm = MinerAlgorithm.from_value(
             obj["algos"][obj["algo_select"]]["name"]
         )
 
@@ -49,11 +49,11 @@ class GoldshellParser(BaseParser):
     def parse_pools(self, obj: list[dict[str, Any]]) -> None:
         for pool in obj:
             if pool["active"]:
-                self.data.active_pool = pool["url"]
+                self.data.stratum_url = pool["url"]
                 if "." in pool["user"]:
                     user, worker = pool["user"].split(".", 1)
-                    self.data.active_user = user
-                    self.data.active_worker = worker
+                    self.data.username = user
+                    self.data.worker_name = worker
                 else:
-                    self.data.active_user = pool["user"]
+                    self.data.username = pool["user"]
                 break

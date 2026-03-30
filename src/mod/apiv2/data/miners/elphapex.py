@@ -8,7 +8,7 @@ class ElphapexParser(BaseParser):
         super().__init__()
         self.data.type = MinerType.ELPHAPEX
         self.data.firmware = MinerFirmware.STOCK
-        self.data.algo = MinerAlgorithm.SCRYPT
+        self.data.algorithm = MinerAlgorithm.SCRYPT
 
     def parse_api_version(self, obj: dict[str, Any]) -> None:
         return super().parse_api_version(obj)
@@ -49,11 +49,11 @@ class ElphapexParser(BaseParser):
     def parse_pools(self, obj: list[dict[str, Any]]) -> None:
         for pool in obj:
             if pool["status"] == "Alive":
-                self.data.active_pool = pool["url"]
+                self.data.stratum_url = pool["url"]
                 if "." in pool["user"]:
                     user, worker = pool["user"].split(".", 1)
-                    self.data.active_user = user
-                    self.data.active_worker = worker
+                    self.data.username = user
+                    self.data.worker_name = worker
                 else:
-                    self.data.active_user = pool["user"]
+                    self.data.username = pool["user"]
                 break
