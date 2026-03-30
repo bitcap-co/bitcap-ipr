@@ -1032,45 +1032,51 @@ class IPR(QMainWindow, Ui_MainWindow):
         # reset inactive timer
         if self.inactive.isActive():
             self.inactive.start()
-
         logger.debug(
             f"process_result : got {result.src_ip}, {result.src_mac}, {result.miner_sn}, {result.miner_type} from listener."
         )
+        # identify miner type from src ip
         miner_type = self.asic.identify(ip=result.src_ip, miner_hint=result.port_type)
-        result.miner_type = miner_type.value
-        bitmain_common_miners = [
-            self.checkListenAntminer,
-            self.checkListenVolcminer,
-        ]
+
+        # get enabled "common" miners from listener config
         enabled_common_filter = [
-            btn.text().lower() for btn in bitmain_common_miners if btn.isChecked()
+            btn.text().lower()
+            for btn in [self.checkListenAntminer, self.checkListenVolcminer]
+            if btn.isChecked()
         ]
-        # workaround: check all listeners to accept unknown types
+        # check if miner type is outside of enabled filter
         if (
-            result.miner_type not in enabled_common_filter
+            miner_type.value not in enabled_common_filter
             and self.checkEnableListenFilter.isChecked()
         ):
             logger.warning(
-                f"process_result : recieved miner type {result.miner_type} outside of filter. Ignoring..."
+                f"process_result: received miner type {miner_type.value} outside of enabled filter. Ignoring..."
             )
             self.iprStatusBar.showMessage(
-                f"Status :: Got miner type: {result.miner_type.capitalize()} outside of listener configuration.",
+                f"Status :: Got miner type: {miner_type.value.capitalize()} outside of listener configuration.",
                 8000,
             )
             return
-        alt_pwd = self.get_client_auth_from_type(result.miner_type)
+
+        # get miner data from src ip
+        alt_pwd = self.get_client_auth(miner_type=miner_type.value)
         self.asic.create_client(
             miner_type=miner_type, ip=result.src_ip, alt_pwd=alt_pwd
         )
         miner_data = self.asic.get_miner_data()
-        # update IP addr
         miner_data["ip"] = result.src_ip
-        miner_data["ip_report"] = {**result.__dict__}
+        miner_data["mac"] = miner_data["mac"].lower()
+        # update serial if IPReport has
+        if result.miner_sn:
+            miner_data["serial"] = result.miner_sn
+        # append IPReport data
+        ip_report = result.model_dump()
+        miner_data["ip_report"] = ip_report
 
-        logger.debug(f"got miner data: {miner_data}")
+        logger.debug(f"process_result: got miner data: {miner_data}.")
 
         self.iprStatusBar.showMessage(
-            f"Status :: Got {result.miner_type}: IP:{result.src_ip}, MAC:{result.src_mac}",
+            f"Status :: Got {miner_data['type']}: IP:{miner_data['ip']}, MAC:{miner_data['mac']}",
             5000,
         )
         self.show_confirmation(miner_data)
@@ -1111,7 +1117,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             confirm.activateWindow()
             confirm.raise_()
 
-    def get_client_auth_from_type(self, miner_type: str) -> str | None:
+    def get_client_auth(self, miner_type: str) -> str | None:
         client_auth: str | None = None
         match miner_type:
             case "antminer":
@@ -1134,6 +1140,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                 else:
                     client_auth = self.lineAntminerPasswd.text()
                 client_auth = self.lineVnishPasswd.text()
+            case _:
+                return None
         return client_auth
 
     def populate_table_row(self, data: Dict[str, Any]) -> None:
@@ -1143,9 +1151,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                 'ip', 'mac', 'serial', 'type', 'subtype', 'algoritmn', 'firmware', 'platform'
         """
         logger.info("populate_table : write table data.")
-        # update serial
-        if data["ip_report"]["miner_sn"]:
-            data["serial"] = data["ip_report"]["miner_sn"]
         rowPosition = self.tableIPRID.rowCount()
         self.tableIPRID.insertRow(rowPosition)
         actionLocateMiner = QLabel()
