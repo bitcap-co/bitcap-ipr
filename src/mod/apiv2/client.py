@@ -111,7 +111,7 @@ class ASICClient(QObject):
             case MinerType.GOLDSHELL:
                 self.create_goldshell_client(ip, alt_pwd=alt_pwd)
             case MinerType.ICERIVER:
-                self.create_antminer_client(ip, alt_pwd=alt_pwd)
+                self.create_iceriver_client(ip, alt_pwd=alt_pwd)
             case MinerType.SEALMINER:
                 self.create_sealminer_client(ip, alt_pwd=alt_pwd)
             case MinerType.VOLCMINER:
