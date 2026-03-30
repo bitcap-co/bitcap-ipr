@@ -2,8 +2,8 @@ import logging
 
 from pydantic import BaseModel, Field, ValidationError
 
-from apiv2.errors import APIError, APIInvalidResponse
-from apiv2.rpc.cgminer import CGMinerRPCClient, Status
+from ..errors import APIError, APIInvalidResponse
+from .cgminer import CGMinerRPCClient, Status
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
 from typing import Any
 
-from apiv2.data import MinerAlgorithm, MinerFirmware, MinerPlatform, MinerType
-from apiv2.data.miners.base import BaseParser
+from .. import MinerAlgorithm, MinerFirmware, MinerPlatform, MinerType
+from .base import BaseParser
 
 
 class VnishParser(BaseParser):

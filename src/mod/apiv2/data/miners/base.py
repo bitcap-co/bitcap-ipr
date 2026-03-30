@@ -1,14 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Self
 
-from apiv2.data import MinerData
+from .. import MinerData
 
 
 class BaseParser(ABC):
     def __init__(self) -> None:
         self.data = MinerData()
 
-    def __new__(cls) -> BaseParser:
+    def __new__(cls) -> Self:
         if cls is BaseParser:
             raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
         return object.__new__(cls)

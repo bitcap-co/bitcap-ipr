@@ -4,9 +4,9 @@ import socket
 from abc import abstractmethod
 from typing import Self
 
-from apiv2 import settings
-from apiv2.base import BaseClient
-from apiv2.errors import APIError, FailedConnectionError
+from .. import settings
+from ..errors import APIError, FailedConnectionError
+from .base import BaseClient
 
 
 class BaseRPCClient(BaseClient):

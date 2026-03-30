@@ -3,8 +3,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
-from apiv2.base.rpc import BaseRPCClient
-from apiv2.errors import APIError, APIInvalidResponse
+from ..base import BaseRPCClient
+from ..errors import APIError, APIInvalidResponse
 
 logger = logging.getLogger(__name__)
 

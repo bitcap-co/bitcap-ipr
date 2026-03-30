@@ -6,9 +6,9 @@ from typing import Any, Self
 import requests
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 
-from apiv2 import settings
-from apiv2.base import BaseClient
-from apiv2.errors import APIError, AuthenticationError, FailedConnectionError
+from .. import settings
+from ..errors import APIError, AuthenticationError, FailedConnectionError
+from .base import BaseClient
 
 logger = logging.getLogger(__name__)
 

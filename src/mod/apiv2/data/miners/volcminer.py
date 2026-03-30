@@ -1,7 +1,7 @@
 from typing import Any
 
-from apiv2.data import MinerAlgorithm, MinerFirmware, MinerType
-from apiv2.data.miners.base import BaseParser
+from .. import MinerAlgorithm, MinerFirmware, MinerType
+from .base import BaseParser
 
 
 class VolcminerParser(BaseParser):

@@ -4,9 +4,11 @@ from typing import Any
 import requests
 from PySide6.QtCore import QObject, QTimer
 
-from apiv2.base import BaseHTTPClient, BaseRPCClient, BaseTCPClient
-from apiv2.data import MinerData, MinerType
-from apiv2.data.miners import (
+from mod.lm.ipreport import MinerTypeHint
+
+from .base import BaseHTTPClient, BaseRPCClient, BaseTCPClient
+from .data import MinerData, MinerType
+from .data.miners import (
     AntminerParser,
     BaseParser,
     ElphapexParser,
@@ -19,8 +21,8 @@ from apiv2.data.miners import (
     WhatsminerParser,
     WhatsminerV3Parser,
 )
-from apiv2.errors import APIError, AuthenticationError, FailedConnectionError
-from apiv2.http import (
+from .errors import APIError, AuthenticationError, FailedConnectionError
+from .http import (
     AntminerHTTPClient,
     ElphapexHTTPClient,
     GoldshellHTTPClient,
@@ -29,13 +31,12 @@ from apiv2.http import (
     VnishHTTPClient,
     VolcminerHTTPClient,
 )
-from apiv2.rpc import (
+from .rpc import (
     CGMinerRPCClient,
     LuxminerRPCClient,
     WhatsminerRPCClient,
     WhatsminerTCPClient,
 )
-from mod.lm.ipreport import MinerTypeHint
 
 logger = logging.getLogger(__name__)
 

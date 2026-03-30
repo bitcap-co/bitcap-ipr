@@ -1,7 +1,7 @@
 from typing import Any
 
-from apiv2.data import MinerFirmware, MinerPlatform, MinerType
-from apiv2.data.miners.base import BaseParser
+from .. import MinerFirmware, MinerPlatform, MinerType
+from .base import BaseParser
 
 
 class LuxminerParser(BaseParser):
