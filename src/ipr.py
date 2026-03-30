@@ -1103,13 +1103,13 @@ class IPR(QMainWindow, Ui_MainWindow):
 
             logger.info("show_confirmation : show IPRConfirmation.")
             confirm.lineIPField.setText(ip)
-            confirm.lineMACField.setText(mac.upper())
+            confirm.lineMACField.setText(mac)
             confirm.lineASICField.setText(type_str)
             self.confirms.append(confirm)
             if self.is_minimized_to_tray():
                 self.sys_tray.showMessage(
                     "Received IPR Confirmation",
-                    f"IP: {ip}",
+                    f"IP: {ip}, MAC: {mac}",
                     QSystemTrayIcon.MessageIcon.Information,
                     15000,
                 )
