@@ -4,7 +4,7 @@ from typing import Optional
 from PySide6.QtCore import QObject, Signal, Slot
 from PySide6.QtNetwork import QAbstractSocket, QHostAddress, QUdpSocket
 
-from .ipreport import IPReport, IPReportDatagram
+from mod.lm.ipreport import IPReport, IPReportDatagram
 
 logger = logging.getLogger(__name__)
 

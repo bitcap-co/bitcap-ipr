@@ -5,8 +5,8 @@ from collections import OrderedDict
 from PySide6.QtCore import QObject, Signal, Slot
 from PySide6.QtWidgets import QButtonGroup
 
-from .ipreport import IPReport
-from .listener import Listener
+from mod.lm.ipreport import IPReport
+from mod.lm.listener import Listener
 
 logger = logging.getLogger(__name__)
 
