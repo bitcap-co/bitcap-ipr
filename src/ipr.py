@@ -46,7 +46,7 @@ from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
 from mod.apiv2 import ASICClient
 from mod.apiv2 import settings as api_settings
-from mod.apiv2.data import MinerData
+from mod.apiv2.data import MinerData, MinerType
 from mod.lm import IPReport, ListenerManager
 from ui.MainWindow import Ui_MainWindow
 from ui.widgets import (
@@ -1200,33 +1200,25 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def locate_miner(self, row: int, col: int):
         if col == 0:
-            miner_type = self.tableIPRID.item(row, 4).text()
+            miner_type = MinerType.from_value(self.tableIPRID.item(row, 4).text())
             ip_addr = self.tableIPRID.item(row, 1).text()
-            if self.api_client.locate and self.api_client.locate.isActive():
+            if self.asic.locate_timer and self.asic.locate_timer.isActive():
                 return logger.warning(
                     "locate_miner : already locating a miner. Ignoring..."
                 )
             logger.info(f" locate miner {ip_addr}.")
-            match miner_type:
-                case "volcminer":
-                    # client_auth = self.lineVolcminerPasswd.text()
-                    return self.iprStatusBar.showMessage(
-                        "Status :: Failed to locate miner: VolcMiner is currently not supported.",
-                        5000,
-                    )
-            client_auth, custom_auth = self.get_client_auth_from_type(miner_type)
-            self.api_client.create_client_from_type(
-                miner_type, ip_addr, client_auth, custom_auth
-            )
-            client = self.api_client.get_client()
-            if not client:
+            # disable volcminer locating do to it soft rebooting miner.
+            if miner_type == MinerType.VOLCMINER:
                 return self.iprStatusBar.showMessage(
-                    "Status :: Failed to connect or authenticate client.", 5000
+                    "Status :: Failed to locate miner: VolcMiner is currently not supported.",
+                    5000,
                 )
-            self.api_client.locate_miner(miner_type)
-            if client._error:
+            alt_pwd = self.get_client_auth(miner_type.value)
+            self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
+            self.asic.locate_miner()
+            if self.asic.client_error():
                 return self.iprStatusBar.showMessage(
-                    f"Status :: Failed to locate miner: {client._error}", 5000
+                    f"Status :: Failed to locate miner: {str(self.asic.client_error())}"
                 )
             self.iprStatusBar.showMessage(
                 f"Status :: Locating miner: {ip_addr}...",
