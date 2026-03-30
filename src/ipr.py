@@ -25,6 +25,7 @@ from PySide6.QtGui import (
     QIcon,
     QPixmap,
 )
+from PySide6.QtNetwork import QHostAddress
 from PySide6.QtWidgets import (
     QApplication,
     QButtonGroup,
@@ -45,6 +46,7 @@ from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
 from mod.apiv2 import ASICClient
 from mod.apiv2 import settings as api_settings
+from mod.apiv2.data import MinerData
 from mod.lm import IPReport, ListenerManager
 from ui.MainWindow import Ui_MainWindow
 from ui.widgets import (
@@ -894,7 +896,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 line = data_stream.readLine()
                 if line:
                     row = deep_update(
-                        self.api_client.target_info.copy(),
+                        MinerData().as_dict(),
                         dict(zip(included_headers, line.split(","))),
                     )
                     self.populate_table_row(row)
@@ -909,7 +911,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         cols = self.tableIPRID.columnCount()
         if not rows:
             return
-        out = "IP,MAC,SERIAL,TYPE,SUBTYPE,ALGORITHM,POOL,WORKER,FIRMWARE,PLATFORM\n"
+        out = "IP,MAC,TYPE,SUBTYPE,SERIAL,ALGORITHM,HOSTNAME,STRATUM_URL,USERNAME,WORKER_NAME,FIRMWARE,FW_VERSION,PLATFORM\n"
         for i in range(rows):
             for j in range(1, cols):
                 out += self.tableIPRID.item(i, j).text()
@@ -1162,7 +1164,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.tableIPRID.setCellWidget(rowPosition, 0, actionLocateMiner)
         self.tableIPRID.setItem(rowPosition, 0, IPRIndexWidgetItem(rowPosition))
         ip_item = QTableWidgetItem()
-        ip_item.setData(Qt.ItemDataRole.UserRole, data["ip_report"]["src_addr"])
+        if "ip_report" not in data:
+            # manually create src_addr for sorting
+            src_addr = QHostAddress(data["ip"])
+            addr: int = src_addr.toIPv4Address()
+        else:
+            addr = data["ip_report"]["src_addr"]
+        ip_item.setData(Qt.ItemDataRole.UserRole, addr)
         ip_item.setText(data["ip"])
         self.tableIPRID.setItem(rowPosition, 1, ip_item)
         self.tableIPRID.setItem(rowPosition, 2, QTableWidgetItem(data["mac"]))
