@@ -11,11 +11,14 @@ from Crypto.Cipher import AES
 from passlib.hash import md5_crypt
 from pydantic import BaseModel, Field, RootModel, TypeAdapter, ValidationError
 
-from .. import settings
-from ..base.rpc import BaseRPCClient
-from ..base.tcp import BaseTCPClient
-from ..errors import APIError, APIInvalidResponse, AuthenticationError
-from .cgminer import Pool, Status
+from mod.apiv2 import settings
+from mod.apiv2.base import BaseRPCClient, BaseTCPClient
+from mod.apiv2.errors import (
+    APIError,
+    APIInvalidResponse,
+    AuthenticationError,
+)
+from mod.apiv2.rpc.cgminer import Pool, Status
 
 logger = logging.getLogger(__name__)
 

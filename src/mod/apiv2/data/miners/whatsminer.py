@@ -1,7 +1,6 @@
 from typing import Any
 
-from .. import MinerAlgorithm, MinerFirmware, MinerType
-from .base import BaseParser
+from mod.apiv2.data import BaseParser, MinerAlgorithm, MinerFirmware, MinerType
 
 
 class WhatsminerParser(BaseParser):

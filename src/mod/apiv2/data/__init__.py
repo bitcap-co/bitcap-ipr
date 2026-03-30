@@ -1,12 +1,12 @@
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any
+from typing import Any, Self
 
 from pydantic import BaseModel, Field
 
 
 class MinerType(str, Enum):
-    UNKNOWN = "Unknown"
+    UNKNOWN = "unknown"
     ANTMINER = "antminer"
     ICERIVER = "iceriver"
     WHATSMINER = "whatsminer"
@@ -22,7 +22,7 @@ class MinerType(str, Enum):
         return self.value
 
     @classmethod
-    def from_value(cls, type: str) -> MinerType:
+    def from_value(cls, type: str):
         try:
             return cls(type.lower())
         except ValueError:
@@ -56,7 +56,7 @@ class MinerAlgorithm(str, Enum):
         return self.value
 
     @classmethod
-    def from_value(cls, algo: str) -> MinerAlgorithm | None:
+    def from_value(cls, algo: str) -> Self | None:
         try:
             return cls(algo)
         except ValueError:
@@ -79,7 +79,7 @@ class MinerPlatform(str, Enum):
         return self.value
 
     @classmethod
-    def from_value(cls, platform: str) -> MinerPlatform | None:
+    def from_value(cls, platform: str) -> Self | None:
         try:
             return cls(platform)
         except ValueError:
@@ -120,3 +120,6 @@ class MinerData(BaseModel):
             if isinstance(miner_data[key], Enum):
                 miner_data[key] = miner_data[key].__str__()
         return miner_data
+
+
+from .base import BaseParser

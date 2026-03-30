@@ -1,7 +1,12 @@
 from typing import Any
 
-from .. import MinerAlgorithm, MinerFirmware, MinerPlatform, MinerType
-from .base import BaseParser
+from mod.apiv2.data import (
+    BaseParser,
+    MinerAlgorithm,
+    MinerFirmware,
+    MinerPlatform,
+    MinerType,
+)
 
 
 class VnishParser(BaseParser):

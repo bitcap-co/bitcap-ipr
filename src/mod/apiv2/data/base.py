@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Self
 
-from .. import MinerData
+from mod.apiv2.data import MinerData
 
 
 class BaseParser(ABC):

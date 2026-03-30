@@ -6,9 +6,9 @@ import requests
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError, field_validator
 from requests.auth import HTTPDigestAuth
 
-from .. import settings
-from ..base import BaseHTTPClient
-from ..errors import (
+from mod.apiv2 import settings
+from mod.apiv2.base import BaseHTTPClient
+from mod.apiv2.errors import (
     APIError,
     APIInvalidResponse,
     AuthenticationError,

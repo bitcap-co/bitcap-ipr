@@ -1,5 +1,4 @@
 from .antminer import AntminerParser
-from .base import BaseParser
 from .elphapex import ElphapexParser
 from .goldshell import GoldshellParser
 from .iceriver import IceriverParser

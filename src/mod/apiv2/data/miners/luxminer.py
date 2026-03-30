@@ -1,7 +1,6 @@
 from typing import Any
 
-from .. import MinerFirmware, MinerPlatform, MinerType
-from .base import BaseParser
+from mod.apiv2.data import BaseParser, MinerFirmware, MinerPlatform, MinerType
 
 
 class LuxminerParser(BaseParser):

@@ -5,9 +5,9 @@ import struct
 from abc import abstractmethod
 from typing import Any, Self
 
-from .. import settings
-from ..errors import APIError, APIInvalidResponse, FailedConnectionError
-from .base import BaseClient
+from mod.apiv2 import settings
+from mod.apiv2.base import BaseClient
+from mod.apiv2.errors import APIError, APIInvalidResponse, FailedConnectionError
 
 logger = logging.getLogger(__name__)
 

@@ -4,9 +4,9 @@ from string import Template
 import requests
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
-from .. import settings
-from ..base.http import BaseHTTPClient
-from ..errors import (
+from mod.apiv2 import settings
+from mod.apiv2.base import BaseHTTPClient
+from mod.apiv2.errors import (
     APIError,
     APIInvalidResponse,
     AuthenticationError,
