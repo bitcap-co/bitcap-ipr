@@ -4,6 +4,7 @@ from typing import Any
 import requests
 from PySide6.QtCore import QObject, QTimer
 
+from mod.apiv2 import settings
 from mod.apiv2.base import BaseHTTPClient, BaseRPCClient, BaseTCPClient
 from mod.apiv2.data import BaseParser, MinerData, MinerType
 from mod.apiv2.data.miners import (
@@ -50,7 +51,7 @@ class ASICClient(QObject):
     def __init__(self, parent: QObject) -> None:
         super().__init__(parent)
         self._parent = parent
-        self._locate_timer: QTimer | None = None
+        self.locate_timer: QTimer | None = None
 
         self.client: BaseHTTPClient | BaseRPCClient | BaseTCPClient | None = None
 
@@ -64,6 +65,10 @@ class ASICClient(QObject):
     ):
         self.close_client()
         self.client = client
+
+    def client_error(self) -> Exception | None:
+        if self.client and self.client.error():
+            return self.client.error()
 
     def create_antminer_client(self, ip: str, alt_pwd: str | None = None) -> None:
         self._set_active_client(AntminerHTTPClient(ip, alt_pwd=alt_pwd))
@@ -269,6 +274,25 @@ class ASICClient(QObject):
             except (APIError, FailedConnectionError, OSError):
                 #
                 pass
+
+    def locate_miner(self) -> None:
+        if not self.client:
+            return
+        self.locate_timer = QTimer(self._parent)
+        self.locate_timer.setSingleShot(True)
+        self.locate_timer.timeout.connect(self.stop_locate)
+        duration = settings.get("locate_duration_ms", 10000)
+        logger.info(f" locate miner for {duration}ms.")
+        try:
+            self.client.blink(enabled=True)
+            self.locate_timer.start(duration)
+        except AuthenticationError as e:
+            logger.error(f"{self.client.__repr__()} : client error raised: {str(e)}")
+            self.close_client(ex=e)
+
+    def stop_locate(self) -> None:
+        self.client.blink(enabled=False)
+        self.close_client()
 
     def close_client(self, ex: Exception | None = None) -> None:
         if self.client is not None:
