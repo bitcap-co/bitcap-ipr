@@ -1116,10 +1116,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         match miner_type:
             case "antminer":
                 client_auth = self.lineAntminerPasswd.text()
-                if not self.checkUseAntminerLogin.isChecked():
-                    custom_auth = self.lineVnishPasswd.text()
-                else:
-                    custom_auth = self.lineAntminerPasswd.text()
             case "whatsminer":
                 client_auth = self.lineWhatsminerPasswd.text()
             case "goldshell":
