@@ -198,23 +198,26 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "",
                 "IP",
                 "MAC",
-                "SERIAL",
                 "TYPE",
                 "SUBTYPE",
+                "SERIAL",
                 "ALGORITHM",
-                "POOL",
-                "WORKER",
+                "HOSTNAME",
+                "STRATUM URL",
+                "USERNAME",
+                "WORKER NAME",
                 "FIRMWARE",
+                "FW VERSION",
                 "PLATFORM",
             ]
         )
         self.tableIPRID.setColumnWidth(0, 15)
         self.tableIPRID.setColumnWidth(2, 120)
-        self.tableIPRID.setColumnWidth(3, 145)
-        self.tableIPRID.setColumnWidth(5, 130)
-        self.tableIPRID.setColumnWidth(7, 385)
-        self.tableIPRID.setColumnWidth(8, 300)
-        self.tableIPRID.setColumnWidth(9, 180)
+        self.tableIPRID.setColumnWidth(4, 130)
+        self.tableIPRID.setColumnWidth(5, 145)
+        self.tableIPRID.setColumnWidth(8, 385)
+        self.tableIPRID.setColumnWidth(9, 300)
+        self.tableIPRID.setColumnWidth(12, 180)
         self.tableIPRID.doubleClicked.connect(self.double_click_item)
         self.tableIPRID.cellClicked.connect(self.locate_miner)
         self.tableIPRID.setSortingEnabled(True)
@@ -1160,21 +1163,30 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.tableIPRID.setItem(rowPosition, 0, IPRIndexWidgetItem(rowPosition))
         self.tableIPRID.setItem(rowPosition, 1, IPRIPWidgetItem(data["ip"]))
         self.tableIPRID.setItem(rowPosition, 2, QTableWidgetItem(data["mac"]))
-        self.tableIPRID.setItem(rowPosition, 3, QTableWidgetItem(data["serial"]))
         # ASIC TYPE
-        self.tableIPRID.setItem(rowPosition, 4, QTableWidgetItem(data["type"]))
+        self.tableIPRID.setItem(rowPosition, 3, QTableWidgetItem(data["type"]))
         # SUBTYPE
-        self.tableIPRID.setItem(rowPosition, 5, QTableWidgetItem(data["subtype"]))
+        self.tableIPRID.setItem(rowPosition, 4, QTableWidgetItem(data["subtype"]))
+        # SERIAL
+        self.tableIPRID.setItem(rowPosition, 5, QTableWidgetItem(data["serial"]))
         # ALGO
         self.tableIPRID.setItem(rowPosition, 6, QTableWidgetItem(data["algo"]))
+        # HOSTNAME
+        self.tableIPRID.setItem(rowPosition, 7, QTableWidgetItem(data["hostname"]))
         # ACTIVE POOL
-        self.tableIPRID.setItem(rowPosition, 7, QTableWidgetItem(data["active_pool"]))
+        self.tableIPRID.setItem(rowPosition, 8, QTableWidgetItem(data["active_pool"]))
+        # ACTIVE USER
+        self.tableIPRID.setItem(rowPosition, 9, QTableWidgetItem(data["active_user"]))
         # ACTIVE WORKER
-        self.tableIPRID.setItem(rowPosition, 8, QTableWidgetItem(data["active_worker"]))
-        # FIRMWARE
-        self.tableIPRID.setItem(rowPosition, 9, QTableWidgetItem(data["firmware"]))
+        self.tableIPRID.setItem(
+            rowPosition, 10, QTableWidgetItem(data["active_worker"])
+        )
+        # FIRMWARE TYPE
+        self.tableIPRID.setItem(rowPosition, 11, QTableWidgetItem(data["firmware"]))
+        # FIRMWARE VERSION
+        self.tableIPRID.setItem(rowPosition, 12, QTableWidgetItem(data["fw_version"]))
         # PLATFORM
-        self.tableIPRID.setItem(rowPosition, 10, QTableWidgetItem(data["platform"]))
+        self.tableIPRID.setItem(rowPosition, 13, QTableWidgetItem(data["platform"]))
         self.tableIPRID.scrollToBottom()
 
     def locate_miner(self, row: int, col: int):
