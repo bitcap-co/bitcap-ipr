@@ -51,7 +51,6 @@ from ui.widgets import (
     IPR_Menubar,
     IPR_Titlebar,
     IPRIndexWidgetItem,
-    IPRIPWidgetItem,
     IPRTableContextMenu,
 )
 from utils import (
@@ -1161,7 +1160,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         actionLocateMiner.setToolTip("Locate Miner")
         self.tableIPRID.setCellWidget(rowPosition, 0, actionLocateMiner)
         self.tableIPRID.setItem(rowPosition, 0, IPRIndexWidgetItem(rowPosition))
-        self.tableIPRID.setItem(rowPosition, 1, IPRIPWidgetItem(data["ip"]))
+        ip_item = QTableWidgetItem()
+        ip_item.setData(Qt.ItemDataRole.UserRole, data["ip_report"]["src_addr"])
+        ip_item.setText(data["ip"])
+        self.tableIPRID.setItem(rowPosition, 1, ip_item)
         self.tableIPRID.setItem(rowPosition, 2, QTableWidgetItem(data["mac"]))
         # ASIC TYPE
         self.tableIPRID.setItem(rowPosition, 3, QTableWidgetItem(data["type"]))
