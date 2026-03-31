@@ -1041,16 +1041,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         # identify miner type from src ip
         miner_type = self.asic.identify(ip=result.src_ip, miner_hint=result.port_type)
-
-        # get enabled "common" miners from listener config
-        enabled_common_filter = [
-            btn.text().lower()
-            for btn in [self.checkListenAntminer, self.checkListenVolcminer]
-            if btn.isChecked()
-        ]
-        # check if miner type is outside of enabled filter
         if (
-            miner_type.value not in enabled_common_filter
+            miner_type.value not in self.lm.enabled
             and self.checkEnableListenFilter.isChecked()
         ):
             logger.warning(
@@ -1061,30 +1053,33 @@ class IPR(QMainWindow, Ui_MainWindow):
                 8000,
             )
             return
-
-        # get miner data from src ip
-        alt_pwd = self.get_client_auth(miner_type=miner_type.value)
-        self.asic.create_client(
-            miner_type=miner_type, ip=result.src_ip, alt_pwd=alt_pwd
-        )
-        if self.asic.client_error():
-            return self.iprStatusBar.showMessage(
-                f"Status :: Failed to create client to {result.src_ip}: {str(self.asic.client_error())}",
-                5000,
+        if miner_type == MinerType.UNKNOWN:
+            miner_data = MinerData(
+                ip=result.src_ip, mac=result.src_mac, type=miner_type
+            ).as_dict()
+        else:
+            # get miner data from src ip
+            alt_pwd = self.get_client_auth(miner_type=miner_type.value)
+            self.asic.create_client(
+                miner_type=miner_type, ip=result.src_ip, alt_pwd=alt_pwd
             )
-        miner_data = self.asic.get_miner_data()
+            if self.asic.client_error():
+                return self.iprStatusBar.showMessage(
+                    f"Status :: Failed to create client to {result.src_ip}: {str(self.asic.client_error())}",
+                    5000,
+                )
+            miner_data = self.asic.get_miner_data()
         miner_data["ip"] = result.src_ip
         miner_data["mac"] = miner_data["mac"].lower()
         # update serial if IPReport has
         if result.miner_sn:
             miner_data["serial"] = result.miner_sn
         # append IPReport data
-        ip_report = result.model_dump()
-        miner_data["ip_report"] = ip_report
+        miner_data["ip_report"] = result.model_dump()
 
         self.asic.close_client()
-        logger.debug(f"process_result: got miner data: {miner_data}.")
 
+        logger.debug(f"process_result: got miner data: {miner_data}.")
         self.iprStatusBar.showMessage(
             f"Status :: Got {miner_data['type']}: IP:{miner_data['ip']}, MAC:{miner_data['mac']}",
             5000,
@@ -1098,7 +1093,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         mac: str = result["mac"]
         type: str = result["type"]
         fw_type: str = result["firmware"]
-        type_str = f"{type.capitalize()} ({fw_type})"
+        type_str = type.capitalize()
+        if type != "unknown":
+            type_str = f"{type.capitalize()} ({fw_type})"
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
