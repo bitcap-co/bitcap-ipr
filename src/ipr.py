@@ -407,6 +407,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         # listener
         self.groupListeners.setChecked(self.config.listener.enable_all)
+        self.checkEnableListenFilter.setChecked(self.config.listener.enable_filter)
         self.checkListenAntminer.setChecked(self.config.listen_for.antminer)
         self.checkListenWhatsminer.setChecked(self.config.listen_for.whatsminer)
         self.checkListenIceRiver.setChecked(self.config.listen_for.iceriver)
