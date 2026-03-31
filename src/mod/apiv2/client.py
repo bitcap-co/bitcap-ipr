@@ -223,7 +223,13 @@ class ASICClient(QObject):
                 )
                 pools: list[dict] = []
             parser.parse_pools(pools)
-        except (FailedConnectionError, AuthenticationError, APIError, OSError) as e:
+        except (
+            FailedConnectionError,
+            AuthenticationError,
+            APIError,
+            OSError,
+            LookupError,
+        ) as e:
             logger.error(f"{self.client.__repr__()} : client error raised: {str(e)}")
             self.close_client(ex=e)
         return parser.get_data()
@@ -255,7 +261,6 @@ class ASICClient(QObject):
         try:
             system_info = client.get_system_info()
         except (FailedConnectionError, AuthenticationError, APIError):
-            #
             return None
         else:
             try:
@@ -271,8 +276,11 @@ class ASICClient(QObject):
                 version_info = self.client.version()
                 if int(version_info["fw_ver"][:6]) > 202412:
                     self.create_whatsminerV3_client(ip, alt_pwd=alt_pwd)
-            except (APIError, FailedConnectionError, OSError):
-                #
+            except (APIError, FailedConnectionError, OSError) as e:
+                logger.error(
+                    f"{self.client.__repr__()} : client error raised: {str(e)}"
+                )
+                self.close_client(ex=e)
                 pass
 
     def locate_miner(self) -> None:
