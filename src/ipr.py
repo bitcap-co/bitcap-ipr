@@ -1067,6 +1067,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.asic.create_client(
             miner_type=miner_type, ip=result.src_ip, alt_pwd=alt_pwd
         )
+        if self.asic.client_error():
+            return self.iprStatusBar.showMessage(
+                f"Status :: Failed to create client to {result.src_ip}: {str(self.asic.client_error())}",
+                5000,
+            )
         miner_data = self.asic.get_miner_data()
         miner_data["ip"] = result.src_ip
         miner_data["mac"] = miner_data["mac"].lower()
