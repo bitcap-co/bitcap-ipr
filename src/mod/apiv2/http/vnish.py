@@ -25,14 +25,6 @@ class VnishError(BaseModel):
 
 
 # info
-class SystemInfo(BaseModel):
-    os: str
-    miner_name: str
-    file_system_version: str
-    network_status: NetworkInfo
-    uptime: str
-
-
 class NetworkInfo(BaseModel):
     mac: str
     dhcp: bool
@@ -41,6 +33,14 @@ class NetworkInfo(BaseModel):
     gateway: str
     dns: list[str] = Field(default_factory=list)
     hostname: str
+
+
+class SystemInfo(BaseModel):
+    os: str
+    miner_name: str
+    file_system_version: str
+    network_status: NetworkInfo
+    uptime: str
 
 
 class Info(BaseModel):
