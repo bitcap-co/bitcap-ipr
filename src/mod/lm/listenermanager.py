@@ -64,7 +64,7 @@ class ListenerManager(QObject):
         Returns:
             list[str]: list of enabled listener names.
         """
-        return [btn.text() for btn in self.conf.buttons() if btn.isChecked()]
+        return [btn.text().lower() for btn in self.conf.buttons() if btn.isChecked()]
 
     @property
     def status(self) -> str:
