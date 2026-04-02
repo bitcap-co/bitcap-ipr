@@ -34,7 +34,7 @@ class LuxminerParser(BaseParser):
         return super().parse_algorithm(obj)
 
     def parse_firmware(self, obj: Any) -> None:
-        self.data.fw_version = obj["LUXMiner"]
+        self.data.fw_version = obj["LUXminer"]
 
     def parse_platform(self, obj: Any) -> None:
         self.data.platform = MinerPlatform.from_value(obj["ControlBoardType"])
