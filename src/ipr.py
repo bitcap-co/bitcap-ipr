@@ -1244,18 +1244,22 @@ class IPR(QMainWindow, Ui_MainWindow):
         selected_ips = [x for x in self.tableIPRID.selectedIndexes() if x.column() == 1]
         index = selected_ips[0]
         item = self.tableIPRID.itemFromIndex(index)
-        miner_type = self.tableIPRID.item(item.row(), 4).text()
-        client_auth, custom_auth = self.get_client_auth_from_type(miner_type)
-        self.api_client.create_client_from_type(
-            miner_type, item.text(), client_auth, custom_auth
-        )
-        client = self.api_client.get_client()
-        if not client:
-            return
-        urls, users, passwds = self.api_client.get_miner_pool_conf(miner_type)
-        if client._error:
+        miner_type = MinerType.from_value(self.tableIPRID.item(item.row(), 4).text())
+        fw_type = MinerFirmware.from_value(self.tableIPRID.item(item.row(), 11).text())
+        match fw_type:
+            case MinerFirmware.LUX_OS:
+                miner_type = MinerType.LUX_OS
+            case MinerFirmware.VNISH:
+                miner_type = MinerType.VNISH
+            case _:
+                pass
+        alt_pwd = self.get_client_auth(miner_type)
+        self.asic.create_client(miner_type=miner_type, ip=item.text(), alt_pwd=alt_pwd)
+        urls, users, passwds = self.asic.get_pool_conf()
+        if self.asic.client_error():
             return self.iprStatusBar.showMessage(
-                f"Status :: Failed to get pool config: {client._error}", 5000
+                f"Status :: Failed to get pool config: {str(self.asic.client_error())}",
+                5000,
             )
 
         self.linePoolURL.setText(urls[0])

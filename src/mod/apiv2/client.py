@@ -302,6 +302,58 @@ class ASICClient(QObject):
         self.client.blink(enabled=False)
         self.close_client()
 
+    def get_pool_conf(self) -> tuple[list[str], list[str], list[str]]:
+        if not self.client:
+            return [], [], []
+
+        urls: list[str] = []
+        users: list[str] = []
+        passwds: list[str] = []
+        pool_conf = []
+        try:
+            if isinstance(self.client, (BaseHTTPClient, BaseTCPClient)):
+                pool_conf = self.client.get_pool_conf()
+            elif isinstance(self.client, BaseRPCClient):
+                pool_conf = self.client.pools()
+        except (APIError, AuthenticationError, FailedConnectionError) as e:
+            logger.error(f"{self.client.__repr__()} : client error raised: {str(e)}")
+            self.close_client(ex=e)
+
+        if isinstance(
+            self.client,
+            (
+                AntminerHTTPClient,
+                SealminerHTTPClient,
+                VolcminerHTTPClient,
+                ElphapexHTTPClient,
+                IceriverHTTPClient,
+                VnishHTTPClient,
+                GoldshellHTTPClient,
+            ),
+        ):
+            for pool in pool_conf:
+                if "addr" in pool:
+                    urls.append(pool["addr"])
+                else:
+                    urls.append(pool["url"])
+                users.append(pool["user"])
+                passwds.append(pool["pass"])
+        if isinstance(self.client, WhatsminerTCPClient):
+            for pool in pool_conf:
+                urls.append(pool["url"])
+                users.append(pool["account"])
+                passwds.append("")
+        if isinstance(self.client, WhatsminerRPCClient):
+            for pool in pool_conf:
+                urls.append(pool["URL"])
+                users.append(pool["User"])
+                passwds.append("")
+        while len(urls) < 3:
+            urls.append("")
+            users.append("")
+            passwds.append("")
+        return urls, users, passwds
+
     def close_client(self, ex: Exception | None = None) -> None:
         if self.client is not None:
             logger.info(f"{self.__repr__()} : close client.")
