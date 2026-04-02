@@ -1253,7 +1253,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 miner_type = MinerType.VNISH
             case _:
                 pass
-        alt_pwd = self.get_client_auth(miner_type)
+        alt_pwd = self.get_client_auth(miner_type.value)
         self.asic.create_client(miner_type=miner_type, ip=item.text(), alt_pwd=alt_pwd)
         urls, users, passwds = self.asic.get_pool_conf()
         if self.asic.client_error():
