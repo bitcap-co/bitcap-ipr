@@ -8,7 +8,7 @@ class SealminerParser(BaseParser):
         super().__init__()
         self.data.type = MinerType.SEALMINER
         self.data.firmware = MinerFirmware.STOCK
-        self.data.algo = MinerAlgorithm.SHA256
+        self.data.algorithm = MinerAlgorithm.SHA256
 
     def parse_api_version(self, obj: dict[str, Any]) -> None:
         return super().parse_api_version(obj)
