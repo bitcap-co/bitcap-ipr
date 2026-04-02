@@ -120,6 +120,11 @@ class BaseRPCClient(BaseClient):
         raise NotImplementedError
 
     @abstractmethod
+    def get_pool_conf(self) -> list[dict]:
+        """Get current miner pool configuration."""
+        raise NotImplementedError
+
+    @abstractmethod
     def get_blink_status(self) -> dict:
         """Get miner LED blink status."""
         raise NotImplementedError
