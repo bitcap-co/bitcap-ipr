@@ -83,6 +83,12 @@ class BlinkStatus(BaseModel):
     blink: bool
 
 
+class MinerConfPool(BaseModel):
+    url: str = ""
+    user: str = ""
+    passwd: str = Field(default="", alias="pass")
+
+
 def _crypt(word: str, salt: str) -> str:
     stdsalt = re.compile(r"\s*\$(\d+)\$([\w\./]*)\$")
     match = stdsalt.match(salt)
@@ -288,6 +294,17 @@ class WhatsminerRPCClient(BaseRPCClient):
             pools = ta.validate_python(valid.pools, by_alias=True)
             return ta.dump_python(pools, by_alias=True)
 
+    def get_pool_conf(self) -> list[dict]:
+        pools = self.pools()
+        pool_conf = []
+        for pool in pools:
+            pool_conf.append(
+                MinerConfPool(url=pool["URL"], user=pool["User"]).model_dump(
+                    by_alias=True
+                )
+            )
+        return pool_conf
+
     def get_system_info(self) -> dict:
         resp = self.send_command("get_miner_info")
         _ = self._validate_msg(resp)
@@ -450,17 +467,17 @@ class BTMinerV3Pool(BaseModel):
     status: str
     account: str
     stratum_active: bool = Field(alias="stratum-active")
-    reject_rate: int = Field(alias="reject-rate")
+    reject_rate: float = Field(alias="reject-rate")
     last_share_time: float = Field(alias="last-share-time")
 
 
-class MinerConfPool(BaseModel):
+class BTMinerV3ConfPool(BaseModel):
     pool: str
     worker: str
     passwd: str
 
 
-class BTMinerV3PoolConf(RootModel[list[MinerConfPool]]):
+class BTMinerV3PoolConf(RootModel[list[BTMinerV3ConfPool]]):
     pass
 
 
@@ -598,7 +615,15 @@ class WhatsminerTCPClient(BaseTCPClient):
         return ta.dump_python(pools, by_alias=True)
 
     def get_pool_conf(self) -> list[dict]:
-        return self.pools()
+        pools = self.pools()
+        pool_conf = []
+        for pool in pools:
+            pool_conf.append(
+                MinerConfPool(url=pool["url"], user=pool["account"]).model_dump(
+                    by_alias=True
+                )
+            )
+        return pool_conf
 
     def get_miner_status(self) -> dict:
         return self.send_command("get.miner.status", "pools+summary+edevs")

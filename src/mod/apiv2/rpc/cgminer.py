@@ -4,6 +4,7 @@ from typing import Any
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
 from mod.apiv2.base import BaseRPCClient
+from mod.apiv2.data import MinerConfPool
 from mod.apiv2.errors import (
     APIError,
     APIInvalidResponse,
@@ -146,6 +147,17 @@ class CGMinerRPCClient(BaseRPCClient):
 
     def get_system_info(self) -> dict:
         return super().get_system_info()
+
+    def get_pool_conf(self) -> list[dict]:
+        pools = self.pools()
+        pool_conf = []
+        for pool in pools:
+            pool_conf.append(
+                MinerConfPool(url=pool["URL"], user=pool["User"]).model_dump(
+                    by_alias=True
+                )
+            )
+        return pool_conf
 
     def get_blink_status(self) -> dict:
         return super().get_blink_status()

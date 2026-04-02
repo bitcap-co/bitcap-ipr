@@ -2,6 +2,7 @@ import logging
 
 from pydantic import BaseModel, Field, ValidationError
 
+from mod.apiv2.data import ActionResponse, BlinkStatus
 from mod.apiv2.errors import APIError, APIInvalidResponse
 from mod.apiv2.rpc.cgminer import CGMinerRPCClient, Status
 
@@ -74,15 +75,6 @@ class ConfigResposnse(BaseModel):
                     return None
 
 
-class BlinkStatus(BaseModel):
-    blink: bool
-
-
-class ActionResponse(BaseModel):
-    success: bool
-    msg: str = ""
-
-
 class LuxminerRPCClient(CGMinerRPCClient):
     def __init__(self, ip: str, port: int = 4028, alt_pwd: str | None = None) -> None:
         super().__init__(ip, port, alt_pwd)
@@ -148,6 +140,9 @@ class LuxminerRPCClient(CGMinerRPCClient):
                 logger.error(f"{self.__repr__()} : {str(APIError(err))}")
                 raise APIError("Command failed!")
             return resp["CONFIG"][0]
+
+    def get_pool_conf(self) -> list[dict]:
+        return super().get_pool_conf()
 
     def get_blink_status(self) -> dict:
         resp = self.get_system_info()

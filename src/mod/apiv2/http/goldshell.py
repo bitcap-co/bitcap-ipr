@@ -3,10 +3,11 @@ from string import Template
 
 import requests
 from Crypto.Cipher import AES
-from pydantic import BaseModel, Field, RootModel, ValidationError
+from pydantic import BaseModel, Field, RootModel, TypeAdapter, ValidationError
 
 from mod.apiv2 import settings
 from mod.apiv2.base import BaseHTTPClient
+from mod.apiv2.data import ActionResponse, BlinkStatus, MinerConfPool
 from mod.apiv2.errors import (
     APIError,
     APIInvalidResponse,
@@ -88,21 +89,6 @@ class Chain(BaseModel):
 class Devs(BaseModel):
     status: int
     data: list[Chain]
-
-
-class MinerConfPool(BaseModel):
-    url: str = ""
-    user: str = ""
-    passwd: str = Field("", alias="pass")
-
-
-class ActionResponse(BaseModel):
-    success: bool
-    msg: str = ""
-
-
-class BlinkStatus(BaseModel):
-    blink: bool
 
 
 def zero_pad(data: bytes, block_size: int) -> bytes:
@@ -243,7 +229,10 @@ class GoldshellHTTPClient(BaseHTTPClient):
             return resobj.model_dump(by_alias=True)
 
     def get_pool_conf(self) -> list[dict]:
-        return self.get_pools()
+        pools = self.pools()
+        ta = TypeAdapter(list[MinerConfPool])
+        pool_conf = ta.validate_python(pools, by_name=True)
+        return ta.dump_python(pool_conf, by_alias=True)
 
     def get_miner_status(self) -> dict:
         return super().get_miner_status()
