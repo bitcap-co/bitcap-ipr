@@ -46,7 +46,7 @@ from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
 from mod.apiv2 import ASICClient
 from mod.apiv2 import settings as api_settings
-from mod.apiv2.data import MinerData, MinerType
+from mod.apiv2.data import MinerData, MinerFirmware, MinerType
 from mod.lm import IPReport, ListenerManager
 from ui.MainWindow import Ui_MainWindow
 from ui.widgets import (
@@ -1204,6 +1204,7 @@ class IPR(QMainWindow, Ui_MainWindow):
     def locate_miner(self, row: int, col: int):
         if col == 0:
             miner_type = MinerType.from_value(self.tableIPRID.item(row, 4).text())
+            fw_type = MinerFirmware.from_value(self.tableIPRID.item(row, 11).text())
             ip_addr = self.tableIPRID.item(row, 1).text()
             if self.asic.locate_timer and self.asic.locate_timer.isActive():
                 return logger.warning(
@@ -1216,6 +1217,13 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "Status :: Failed to locate miner: VolcMiner is currently not supported.",
                     5000,
                 )
+            match fw_type:
+                case MinerFirmware.LUX_OS:
+                    miner_type = MinerType.LUX_OS
+                case MinerFirmware.VNISH:
+                    miner_type = MinerType.VNISH
+                case _:
+                    pass
             alt_pwd = self.get_client_auth(miner_type.value)
             self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
             self.asic.locate_miner()
