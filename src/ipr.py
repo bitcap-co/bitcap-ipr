@@ -1203,7 +1203,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def locate_miner(self, row: int, col: int):
         if col == 0:
-            miner_type = MinerType.from_value(self.tableIPRID.item(row, 4).text())
+            miner_type = MinerType.from_value(self.tableIPRID.item(row, 3).text())
             fw_type = MinerFirmware.from_value(self.tableIPRID.item(row, 11).text())
             ip_addr = self.tableIPRID.item(row, 1).text()
             if self.asic.locate_timer and self.asic.locate_timer.isActive():
@@ -1244,7 +1244,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         selected_ips = [x for x in self.tableIPRID.selectedIndexes() if x.column() == 1]
         index = selected_ips[0]
         item = self.tableIPRID.itemFromIndex(index)
-        miner_type = MinerType.from_value(self.tableIPRID.item(item.row(), 4).text())
+        miner_type = MinerType.from_value(self.tableIPRID.item(item.row(), 3).text())
         fw_type = MinerFirmware.from_value(self.tableIPRID.item(item.row(), 11).text())
         match fw_type:
             case MinerFirmware.LUX_OS:
