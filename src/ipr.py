@@ -1229,7 +1229,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.asic.locate_miner()
             if self.asic.client_error():
                 return self.iprStatusBar.showMessage(
-                    f"Status :: Failed to locate miner: {str(self.asic.client_error())}"
+                    f"Status :: Failed to locate miner: {str(self.asic.client_error())}",
+                    5000,
                 )
             self.iprStatusBar.showMessage(
                 f"Status :: Locating miner: {ip_addr}...",
