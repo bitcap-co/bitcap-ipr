@@ -91,7 +91,7 @@ class LuxminerRPCClient(CGMinerRPCClient):
     def send_command(self, command: str, *args, **kwargs) -> dict:
         if kwargs.get("parameters") is not None and len(args) == 0:
             return super().send_command(command, **kwargs)
-        return super().send_command(command, parmeters=",".join(args), **kwargs)
+        return super().send_command(command, parameters=",".join(args), **kwargs)
 
     def send_privileged_command(self, command: str, *args, **kwargs) -> dict:
         if self.session_token is None:
