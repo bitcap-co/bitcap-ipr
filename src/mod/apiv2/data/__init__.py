@@ -30,12 +30,20 @@ class MinerType(str, Enum):
 
 
 class MinerFirmware(str, Enum):
+    UNKNOWN = "Unknown"
     STOCK = "Stock"
     VNISH = "Vnish"
     LUX_OS = "LuxOS"
 
     def __str__(self) -> str:
         return self.value
+
+    @classmethod
+    def from_value(cls, fw_type: str):
+        try:
+            return cls(fw_type)
+        except ValueError:
+            return MinerFirmware.UNKNOWN
 
 
 class MinerAlgorithm(str, Enum):
