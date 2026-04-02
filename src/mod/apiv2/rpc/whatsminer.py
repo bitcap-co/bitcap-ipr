@@ -598,7 +598,7 @@ class WhatsminerTCPClient(BaseTCPClient):
         return ta.dump_python(pools, by_alias=True)
 
     def get_pool_conf(self) -> list[dict]:
-        return super().get_pool_conf()
+        return self.pools()
 
     def get_miner_status(self) -> dict:
         return self.send_command("get.miner.status", "pools+summary+edevs")
