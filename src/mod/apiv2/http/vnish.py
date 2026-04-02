@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, RootModel, TypeAdapter, ValidationError
 
 from mod.apiv2 import settings
 from mod.apiv2.base import BaseHTTPClient
+from mod.apiv2.data import BlinkStatus, MinerConfPool
 from mod.apiv2.errors import (
     APIError,
     APIInvalidResponse,
@@ -326,17 +327,11 @@ class OverclockSettings(BaseModel):
     preset_switcher: PresetSwitcher | None = None
 
 
-class PoolSettings(BaseModel):
-    url: str = ""
-    user: str = ""
-    passwd: str = Field("", alias="pass")
-
-
 class MinerSettings(BaseModel):
     cooling: CoolingSettings | None = None
     misc: AdvancedSettings | None = None
     overclock: OverclockSettings | None = None
-    pools: list[PoolSettings] | None = None
+    pools: list[MinerConfPool] | None = None
 
 
 class NetworkSettings(BaseModel):
@@ -357,10 +352,6 @@ class Settings(BaseModel):
 class SettingsResponse(BaseModel):
     restart_required: bool
     reboot_required: bool
-
-
-class BlinkStatus(BaseModel):
-    blink: bool
 
 
 class VnishHTTPClient(BaseHTTPClient):
@@ -491,7 +482,7 @@ class VnishHTTPClient(BaseHTTPClient):
 
     def get_pool_conf(self) -> list[dict]:
         resp = self.get_miner_conf()
-        ta = TypeAdapter(list[PoolSettings])
+        ta = TypeAdapter(list[MinerConfPool])
         pools = ta.validate_python(resp["miner"]["pools"], by_name=True)
         return ta.dump_python(pools, by_alias=True)
 

@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
 from mod.apiv2 import settings
 from mod.apiv2.base import BaseHTTPClient
+from mod.apiv2.data import BlinkStatus
 from mod.apiv2.errors import (
     APIError,
     APIInvalidResponse,
@@ -119,13 +120,9 @@ class UserPanel(BaseModel):
 
 
 class MinerConfPool(BaseModel):
-    addr: str
-    user: str
-    passwd: str = Field(alias="pass")
-
-
-class BlinkStatus(BaseModel):
-    blink: bool
+    addr: str = ""
+    user: str = ""
+    passwd: str = Field(default="", alias="pass")
 
 
 class IceriverHTTPClient(BaseHTTPClient):

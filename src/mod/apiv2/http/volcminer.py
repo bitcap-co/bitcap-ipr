@@ -9,6 +9,7 @@ from requests.auth import HTTPDigestAuth
 
 from mod.apiv2 import settings
 from mod.apiv2.base import BaseHTTPClient
+from mod.apiv2.data import MinerConfPool
 from mod.apiv2.errors import (
     APIError,
     APIInvalidResponse,
@@ -76,12 +77,6 @@ class NetInfoV1(BaseModel):
     bb_conf_netmask: str
     bb_conf_gateway: str
     bb_conf_dnsservers: str
-
-
-class MinerConfPool(BaseModel):
-    url: str = ""
-    user: str = ""
-    passwd: str = Field("", alias="pass")
 
 
 class MinerConfig(BaseModel):

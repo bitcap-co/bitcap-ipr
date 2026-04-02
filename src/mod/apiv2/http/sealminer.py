@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
 from mod.apiv2 import settings
 from mod.apiv2.base import BaseHTTPClient
+from mod.apiv2.data import BlinkStatus, MinerConfPool
 from mod.apiv2.errors import (
     APIError,
     APIInvalidResponse,
@@ -81,12 +82,6 @@ class PoolFormConf(BaseModel):
     poolpwd3: str = ""
 
 
-class MinerConfPool(BaseModel):
-    url: str = ""
-    user: str = ""
-    passwd: str = Field(alias="pass")
-
-
 class MinerConf(BaseModel):
     miner_mode: str = Field(
         serialization_alias="minerMode", validation_alias="xk-h3x-miningmode"
@@ -133,10 +128,6 @@ class Pool(BaseModel):
 class MinerStatus(BaseModel):
     summary: Summary
     pools: list[Pool]
-
-
-class BlinkStatus(BaseModel):
-    blink: bool
 
 
 class SealminerHTTPClient(BaseHTTPClient):

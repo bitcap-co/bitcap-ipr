@@ -8,6 +8,7 @@ from requests.auth import HTTPDigestAuth
 
 from mod.apiv2 import settings
 from mod.apiv2.base import BaseHTTPClient
+from mod.apiv2.data import BlinkStatus, MinerConfPool
 from mod.apiv2.errors import (
     APIError,
     APIInvalidResponse,
@@ -27,10 +28,6 @@ class ActionResponse(BaseModel):
     def error(self) -> str | None:
         if self.status != "success" and self.stats != "success" or self.msg == "FAIL!":
             return f"received API Error ({self.code}): {self.stats} - {self.msg}"
-
-
-class BlinkStatus(BaseModel):
-    blink: bool
 
 
 class SystemInfo(BaseModel):
@@ -63,12 +60,6 @@ class NetInfo(BaseModel):
     conf_netmask: str
     conf_gateway: str
     conf_dnsservers: str
-
-
-class MinerConfPool(BaseModel):
-    url: str = ""
-    user: str = ""
-    passwd: str = Field("", alias="pass")
 
 
 class MinerConf(BaseModel):
