@@ -131,3 +131,4 @@ class MinerData(BaseModel):
 
 
 from .base import BaseParser
+from .models import ActionResponse, BlinkStatus, MinerConfPool
