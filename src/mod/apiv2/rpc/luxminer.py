@@ -147,7 +147,7 @@ class LuxminerRPCClient(CGMinerRPCClient):
             if err:
                 logger.error(f"{self.__repr__()} : {str(APIError(err))}")
                 raise APIError("Command failed!")
-            return resp["CONFIG"]
+            return resp["CONFIG"][0]
 
     def get_blink_status(self) -> dict:
         resp = self.get_system_info()
