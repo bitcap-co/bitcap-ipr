@@ -106,7 +106,7 @@ class Ui_MainWindow(object):
         self.presetSet.setObjectName(u"presetSet")
         self.presetSet.setMaximumSize(QSize(450, 16777215))
         self.horizontalLayout_5 = QHBoxLayout(self.presetSet)
-        self.horizontalLayout_5.setSpacing(6)
+        self.horizontalLayout_5.setSpacing(5)
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
         self.horizontalLayout_5.setContentsMargins(10, 9, 9, 9)
         self.label_25 = QLabel(self.presetSet)
@@ -136,15 +136,23 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_5.addWidget(self.comboPoolPreset)
 
-        self.actionIPRRemovePreset = QToolButton(self.presetSet)
-        self.actionIPRRemovePreset.setObjectName(u"actionIPRRemovePreset")
-
-        self.horizontalLayout_5.addWidget(self.actionIPRRemovePreset)
-
         self.actionIPRCreatePreset = QToolButton(self.presetSet)
         self.actionIPRCreatePreset.setObjectName(u"actionIPRCreatePreset")
+        self.actionIPRCreatePreset.setMinimumSize(QSize(25, 22))
+        self.actionIPRCreatePreset.setMaximumSize(QSize(25, 22))
+        font = QFont()
+        font.setBold(True)
+        self.actionIPRCreatePreset.setFont(font)
 
         self.horizontalLayout_5.addWidget(self.actionIPRCreatePreset)
+
+        self.actionIPRRemovePreset = QToolButton(self.presetSet)
+        self.actionIPRRemovePreset.setObjectName(u"actionIPRRemovePreset")
+        self.actionIPRRemovePreset.setMinimumSize(QSize(25, 22))
+        self.actionIPRRemovePreset.setMaximumSize(QSize(25, 22))
+        self.actionIPRRemovePreset.setFont(font)
+
+        self.horizontalLayout_5.addWidget(self.actionIPRRemovePreset)
 
 
         self.horizontalLayout_4.addWidget(self.presetSet)
@@ -403,10 +411,10 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
         self.label = QLabel(self.settingsView)
         self.label.setObjectName(u"label")
-        font = QFont()
-        font.setPointSize(14)
-        font.setBold(True)
-        self.label.setFont(font)
+        font1 = QFont()
+        font1.setPointSize(14)
+        font1.setBold(True)
+        self.label.setFont(font1)
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_3.addWidget(self.label)
@@ -426,7 +434,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 478, 460))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 463, 448))
         self.verticalLayout_5 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_5.setSpacing(15)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
@@ -502,6 +510,7 @@ class Ui_MainWindow(object):
         self.groupListeners = QGroupBox(self.groupListenerConfig)
         self.groupListeners.setObjectName(u"groupListeners")
         self.groupListeners.setCheckable(True)
+        self.groupListeners.setChecked(False)
         self.gridLayout_4 = QGridLayout(self.groupListeners)
         self.gridLayout_4.setObjectName(u"gridLayout_4")
         self.gridLayout_4.setHorizontalSpacing(70)
@@ -583,7 +592,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 476, 893))
+        self.scrollAPI.setGeometry(QRect(0, 0, 273, 832))
         self.verticalLayout_8 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_8.setSpacing(15)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
@@ -827,7 +836,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollLogs = QWidget()
         self.scrollLogs.setObjectName(u"scrollLogs")
-        self.scrollLogs.setGeometry(QRect(0, 0, 368, 227))
+        self.scrollLogs.setGeometry(QRect(0, 0, 360, 219))
         self.verticalLayout_11 = QVBoxLayout(self.scrollLogs)
         self.verticalLayout_11.setSpacing(15)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
@@ -843,9 +852,9 @@ class Ui_MainWindow(object):
 
         self.label_5 = QLabel(self.groupLogSettings)
         self.label_5.setObjectName(u"label_5")
-        font1 = QFont()
-        font1.setPointSize(10)
-        self.label_5.setFont(font1)
+        font2 = QFont()
+        font2.setPointSize(10)
+        self.label_5.setFont(font2)
 
         self.gridLayout_5.addWidget(self.label_5, 1, 0, 1, 1)
 
@@ -884,13 +893,13 @@ class Ui_MainWindow(object):
 
         self.label_7 = QLabel(self.groupLogFile)
         self.label_7.setObjectName(u"label_7")
-        self.label_7.setFont(font1)
+        self.label_7.setFont(font2)
 
         self.gridLayout_6.addWidget(self.label_7, 0, 0, 1, 1)
 
         self.label_8 = QLabel(self.groupLogFile)
         self.label_8.setObjectName(u"label_8")
-        self.label_8.setFont(font1)
+        self.label_8.setFont(font2)
 
         self.gridLayout_6.addWidget(self.label_8, 1, 0, 1, 1)
 
@@ -918,21 +927,19 @@ class Ui_MainWindow(object):
         self.gridLayout.setObjectName(u"gridLayout")
         self.pushIPRCancelConfig = QPushButton(self.settingsView)
         self.pushIPRCancelConfig.setObjectName(u"pushIPRCancelConfig")
-        font2 = QFont()
-        font2.setBold(True)
-        self.pushIPRCancelConfig.setFont(font2)
+        self.pushIPRCancelConfig.setFont(font)
 
         self.gridLayout.addWidget(self.pushIPRCancelConfig, 3, 0, 1, 1)
 
         self.pushIPRSaveConfig = QPushButton(self.settingsView)
         self.pushIPRSaveConfig.setObjectName(u"pushIPRSaveConfig")
-        self.pushIPRSaveConfig.setFont(font2)
+        self.pushIPRSaveConfig.setFont(font)
 
         self.gridLayout.addWidget(self.pushIPRSaveConfig, 3, 1, 1, 1)
 
         self.pushIPRResetConfig = QPushButton(self.settingsView)
         self.pushIPRResetConfig.setObjectName(u"pushIPRResetConfig")
-        self.pushIPRResetConfig.setFont(font2)
+        self.pushIPRResetConfig.setFont(font)
 
         self.gridLayout.addWidget(self.pushIPRResetConfig, 2, 0, 1, 2)
 
@@ -952,7 +959,7 @@ class Ui_MainWindow(object):
         self.listenerControls.setContentsMargins(9, 9, 9, 10)
         self.pushIPRListenStart = QPushButton(self.centralwidget)
         self.pushIPRListenStart.setObjectName(u"pushIPRListenStart")
-        self.pushIPRListenStart.setFont(font)
+        self.pushIPRListenStart.setFont(font1)
 
         self.listenerControls.addWidget(self.pushIPRListenStart)
 
@@ -963,7 +970,7 @@ class Ui_MainWindow(object):
         self.pushIPRListenStop = QPushButton(self.centralwidget)
         self.pushIPRListenStop.setObjectName(u"pushIPRListenStop")
         self.pushIPRListenStop.setEnabled(False)
-        self.pushIPRListenStop.setFont(font)
+        self.pushIPRListenStop.setFont(font1)
 
         self.listenerControls.addWidget(self.pushIPRListenStop)
 
@@ -999,13 +1006,19 @@ class Ui_MainWindow(object):
         self.comboPoolPreset.setItemText(3, QCoreApplication.translate("MainWindow", u"Saved Pool 4", None))
         self.comboPoolPreset.setItemText(4, QCoreApplication.translate("MainWindow", u"Saved Pool 5", None))
 
-        self.actionIPRRemovePreset.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.actionIPRCreatePreset.setText(QCoreApplication.translate("MainWindow", u"...", None))
+#if QT_CONFIG(tooltip)
+        self.actionIPRCreatePreset.setToolTip(QCoreApplication.translate("MainWindow", u"Add new preset", None))
+#endif // QT_CONFIG(tooltip)
+        self.actionIPRCreatePreset.setText(QCoreApplication.translate("MainWindow", u"\uff0b", None))
+#if QT_CONFIG(tooltip)
+        self.actionIPRRemovePreset.setToolTip(QCoreApplication.translate("MainWindow", u"Remove preset", None))
+#endif // QT_CONFIG(tooltip)
+        self.actionIPRRemovePreset.setText(QCoreApplication.translate("MainWindow", u"\u2212", None))
 #if QT_CONFIG(tooltip)
         self.checkAutomaticWorkerNames.setToolTip(QCoreApplication.translate("MainWindow", u"Automatically append unique worker names.\n"
 "Uses last 5 of SN or MAC address.", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkAutomaticWorkerNames.setText(QCoreApplication.translate("MainWindow", u"Set Workers", None))
+        self.checkAutomaticWorkerNames.setText(QCoreApplication.translate("MainWindow", u"Set Worker", None))
         self.actionIPRSavePreset.setText(QCoreApplication.translate("MainWindow", u"Save Preset", None))
         self.actionIPRClearPreset.setText(QCoreApplication.translate("MainWindow", u"Clear Preset", None))
         self.label_19.setText(QCoreApplication.translate("MainWindow", u"Pool 1:", None))

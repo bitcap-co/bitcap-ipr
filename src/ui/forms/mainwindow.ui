@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
@@ -216,7 +216,7 @@
                   </property>
                   <layout class="QHBoxLayout" name="horizontalLayout_5">
                    <property name="spacing">
-                    <number>6</number>
+                    <number>5</number>
                    </property>
                    <property name="leftMargin">
                     <number>10</number>
@@ -242,8 +242,7 @@
                       <string>Preset:</string>
                      </property>
                      <property name="alignment">
-                      <set
-                                                                                        >Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                      <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                      </property>
                      <property name="StyleClass" stdset="0">
                       <string>setText</string>
@@ -253,10 +252,7 @@
                    <item>
                     <widget class="QComboBox" name="comboPoolPreset">
                      <property name="sizePolicy">
-                      <sizepolicy
-                                                                                            hsizetype="MinimumExpanding"
-                                                                                            vsizetype="Fixed"
-                                                                                        >
+                      <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
                        <horstretch>0</horstretch>
                        <verstretch>0</verstretch>
                       </sizepolicy>
@@ -310,16 +306,56 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QToolButton" name="actionIPRRemovePreset">
+                    <widget class="QToolButton" name="actionIPRCreatePreset">
+                     <property name="minimumSize">
+                      <size>
+                       <width>25</width>
+                       <height>22</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>25</width>
+                       <height>22</height>
+                      </size>
+                     </property>
+                     <property name="font">
+                      <font>
+                       <bold>true</bold>
+                      </font>
+                     </property>
+                     <property name="toolTip">
+                      <string>Add new preset</string>
+                     </property>
                      <property name="text">
-                      <string>...</string>
+                      <string>＋</string>
                      </property>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QToolButton" name="actionIPRCreatePreset">
+                    <widget class="QToolButton" name="actionIPRRemovePreset">
+                     <property name="minimumSize">
+                      <size>
+                       <width>25</width>
+                       <height>22</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>25</width>
+                       <height>22</height>
+                      </size>
+                     </property>
+                     <property name="font">
+                      <font>
+                       <bold>true</bold>
+                      </font>
+                     </property>
+                     <property name="toolTip">
+                      <string>Remove preset</string>
+                     </property>
                      <property name="text">
-                      <string>...</string>
+                      <string>−</string>
                      </property>
                     </widget>
                    </item>
@@ -373,7 +409,7 @@
 Uses last 5 of SN or MAC address.</string>
                      </property>
                      <property name="text">
-                      <string>Set Workers</string>
+                      <string>Set Worker</string>
                      </property>
                     </widget>
                    </item>
@@ -424,8 +460,7 @@ Uses last 5 of SN or MAC address.</string>
                    <string>Pool 1:</string>
                   </property>
                   <property name="alignment">
-                   <set
-                                                                            >Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                   <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                   </property>
                   <property name="StyleClass" stdset="0">
                    <string>setText</string>
@@ -454,8 +489,7 @@ Uses last 5 of SN or MAC address.</string>
                    <string>User:</string>
                   </property>
                   <property name="alignment">
-                   <set
-                                                                            >Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                   <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                   </property>
                   <property name="StyleClass" stdset="0">
                    <string>setText</string>
@@ -484,8 +518,7 @@ Uses last 5 of SN or MAC address.</string>
                    <string>Password:</string>
                   </property>
                   <property name="alignment">
-                   <set
-                                                                            >Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                   <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                   </property>
                   <property name="StyleClass" stdset="0">
                    <string>setText</string>
@@ -529,8 +562,7 @@ Uses last 5 of SN or MAC address.</string>
                    <string>Pool 2:</string>
                   </property>
                   <property name="alignment">
-                   <set
-                                                                            >Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                   <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                   </property>
                   <property name="StyleClass" stdset="0">
                    <string>setText</string>
@@ -559,8 +591,7 @@ Uses last 5 of SN or MAC address.</string>
                    <string>User:</string>
                   </property>
                   <property name="alignment">
-                   <set
-                                                                            >Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                   <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                   </property>
                   <property name="StyleClass" stdset="0">
                    <string>setText</string>
@@ -589,8 +620,7 @@ Uses last 5 of SN or MAC address.</string>
                    <string>Password:</string>
                   </property>
                   <property name="alignment">
-                   <set
-                                                                            >Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                   <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                   </property>
                   <property name="StyleClass" stdset="0">
                    <string>setText</string>
@@ -634,8 +664,7 @@ Uses last 5 of SN or MAC address.</string>
                    <string>Pool 3:</string>
                   </property>
                   <property name="alignment">
-                   <set
-                                                                            >Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                   <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                   </property>
                   <property name="StyleClass" stdset="0">
                    <string>setText</string>
@@ -664,8 +693,7 @@ Uses last 5 of SN or MAC address.</string>
                    <string>User:</string>
                   </property>
                   <property name="alignment">
-                   <set
-                                                                            >Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                   <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                   </property>
                   <property name="StyleClass" stdset="0">
                    <string>setText</string>
@@ -694,8 +722,7 @@ Uses last 5 of SN or MAC address.</string>
                    <string>Password:</string>
                   </property>
                   <property name="alignment">
-                   <set
-                                                                            >Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                   <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                   </property>
                   <property name="StyleClass" stdset="0">
                    <string>setText</string>
@@ -769,9 +796,7 @@ Uses last 5 of SN or MAC address.</string>
         </property>
         <widget class="QWidget" name="defaultView">
          <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item
-                                            alignment="Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignVCenter"
-                                        >
+          <item alignment="Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignVCenter">
            <widget class="QLabel" name="labelIPRLogo">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -792,7 +817,7 @@ Uses last 5 of SN or MAC address.</string>
              </size>
             </property>
             <property name="text">
-             <string />
+             <string/>
             </property>
             <property name="alignment">
              <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -855,17 +880,17 @@ Uses last 5 of SN or MAC address.</string>
             <attribute name="horizontalHeaderDefaultSectionSize">
              <number>105</number>
             </attribute>
-            <column />
-            <column />
-            <column />
-            <column />
-            <column />
-            <column />
-            <column />
-            <column />
-            <column />
-            <column />
-            <column />
+            <column/>
+            <column/>
+            <column/>
+            <column/>
+            <column/>
+            <column/>
+            <column/>
+            <column/>
+            <column/>
+            <column/>
+            <column/>
            </widget>
           </item>
          </layout>
@@ -926,8 +951,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>478</width>
-                   <height>460</height>
+                   <width>463</width>
+                   <height>448</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1079,8 +1104,7 @@ Uses last 5 of SN or MAC address.</string>
                      <item>
                       <widget class="QCheckBox" name="checkEnableListenFilter">
                        <property name="toolTip">
-                        <string
-                                                                                                >When enabled, only receive miner types matching the enabled listeners</string>
+                        <string>When enabled, only receive miner types matching the enabled listeners</string>
                        </property>
                        <property name="text">
                         <string>Enable Filtering</string>
@@ -1293,8 +1317,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>476</width>
-                   <height>893</height>
+                   <width>273</width>
+                   <height>832</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -1323,8 +1347,7 @@ Uses last 5 of SN or MAC address.</string>
                         <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
                        </property>
                        <property name="toolTip">
-                        <string
-                                                                                                >Set the blinking duration when locating.</string>
+                        <string>Set the blinking duration when locating.</string>
                        </property>
                        <property name="suffix">
                         <string> Seconds</string>
@@ -1380,8 +1403,7 @@ Uses last 5 of SN or MAC address.</string>
                            </sizepolicy>
                           </property>
                           <property name="toolTip">
-                           <string
-                                                                                                            >Set alternative login password for Antminers. Default: &quot;root&quot;</string>
+                           <string>Set alternative login password for Antminers. Default: &quot;root&quot;</string>
                           </property>
                           <property name="echoMode">
                            <enum>QLineEdit::EchoMode::Password</enum>
@@ -1416,8 +1438,7 @@ Uses last 5 of SN or MAC address.</string>
                            </sizepolicy>
                           </property>
                           <property name="toolTip">
-                           <string
-                                                                                                            >Set alternative login password for IceRiver miners. Default: &quot;12345678&quot;</string>
+                           <string>Set alternative login password for IceRiver miners. Default: &quot;12345678&quot;</string>
                           </property>
                           <property name="echoMode">
                            <enum>QLineEdit::EchoMode::Password</enum>
@@ -1452,8 +1473,7 @@ Uses last 5 of SN or MAC address.</string>
                            </sizepolicy>
                           </property>
                           <property name="toolTip">
-                           <string
-                                                                                                            >Set alternative login password for Whatsminers. Default: &quot;admin&quot;</string>
+                           <string>Set alternative login password for Whatsminers. Default: &quot;admin&quot;</string>
                           </property>
                           <property name="echoMode">
                            <enum>QLineEdit::EchoMode::Password</enum>
@@ -1488,8 +1508,7 @@ Uses last 5 of SN or MAC address.</string>
                            </sizepolicy>
                           </property>
                           <property name="toolTip">
-                           <string
-                                                                                                            >Set alternative login password for Goldshell miners. Default: &quot;123456789&quot;</string>
+                           <string>Set alternative login password for Goldshell miners. Default: &quot;123456789&quot;</string>
                           </property>
                           <property name="echoMode">
                            <enum>QLineEdit::EchoMode::Password</enum>
@@ -1527,8 +1546,7 @@ Uses last 5 of SN or MAC address.</string>
                            </sizepolicy>
                           </property>
                           <property name="toolTip">
-                           <string
-                                                                                                            >Set alternative login password for Hammer miners. Default: &quot;root&quot;</string>
+                           <string>Set alternative login password for Hammer miners. Default: &quot;root&quot;</string>
                           </property>
                           <property name="echoMode">
                            <enum>QLineEdit::EchoMode::Password</enum>
@@ -1553,8 +1571,7 @@ Uses last 5 of SN or MAC address.</string>
                            </sizepolicy>
                           </property>
                           <property name="toolTip">
-                           <string
-                                                                                                            >Set alternative login password for Volcminers. Default: &quot;ltc@dog&quot;</string>
+                           <string>Set alternative login password for Volcminers. Default: &quot;ltc@dog&quot;</string>
                           </property>
                           <property name="echoMode">
                            <enum>QLineEdit::EchoMode::Password</enum>
@@ -1599,8 +1616,7 @@ Uses last 5 of SN or MAC address.</string>
                            </sizepolicy>
                           </property>
                           <property name="toolTip">
-                           <string
-                                                                                                            >Set alternative login password for Elphapex miners. Default: &quot;root&quot;</string>
+                           <string>Set alternative login password for Elphapex miners. Default: &quot;root&quot;</string>
                           </property>
                           <property name="echoMode">
                            <enum>QLineEdit::EchoMode::Password</enum>
@@ -1635,8 +1651,7 @@ Uses last 5 of SN or MAC address.</string>
                            </sizepolicy>
                           </property>
                           <property name="toolTip">
-                           <string
-                                                                                                            >Set alternative login password for Sealminers. Default: &quot;seal&quot;</string>
+                           <string>Set alternative login password for Sealminers. Default: &quot;seal&quot;</string>
                           </property>
                           <property name="echoMode">
                            <enum>QLineEdit::EchoMode::Password</enum>
@@ -1658,8 +1673,7 @@ Uses last 5 of SN or MAC address.</string>
                      <item>
                       <widget class="QCheckBox" name="checkUseAntminerLogin">
                        <property name="toolTip">
-                        <string
-                                                                                                >Check to use configured Antminer Login as alternative instead.</string>
+                        <string>Check to use configured Antminer Login as alternative instead.</string>
                        </property>
                        <property name="text">
                         <string>Use Antminer Login</string>
@@ -1681,8 +1695,7 @@ Uses last 5 of SN or MAC address.</string>
                            </sizepolicy>
                           </property>
                           <property name="toolTip">
-                           <string
-                                                                                                            >Set alternative login password for Vnish firmware. Default: &quot;admin&quot;</string>
+                           <string>Set alternative login password for Vnish firmware. Default: &quot;admin&quot;</string>
                           </property>
                           <property name="echoMode">
                            <enum>QLineEdit::EchoMode::Password</enum>
@@ -1741,8 +1754,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>368</width>
-                   <height>227</height>
+                   <width>360</width>
+                   <height>219</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -1860,12 +1873,10 @@ Uses last 5 of SN or MAC address.</string>
                         </size>
                        </property>
                        <property name="toolTip">
-                        <string
-                                                                                                >Set maximum log file size (Max limit 4096kb)</string>
+                        <string>Set maximum log file size (Max limit 4096kb)</string>
                        </property>
                        <property name="alignment">
-                        <set
-                                                                                                >Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                        <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                        </property>
                        <property name="buttonSymbols">
                         <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
@@ -1926,8 +1937,7 @@ Uses last 5 of SN or MAC address.</string>
                         </size>
                        </property>
                        <property name="toolTip">
-                        <string
-                                                                                                >Choose behavior for when log file reaches set max size</string>
+                        <string>Choose behavior for when log file reaches set max size</string>
                        </property>
                        <item>
                         <property name="text">
@@ -2077,8 +2087,8 @@ Uses last 5 of SN or MAC address.</string>
     </item>
    </layout>
   </widget>
-  <widget class="QStatusBar" name="iprStatusBar" />
+  <widget class="QStatusBar" name="iprStatusBar"/>
  </widget>
- <resources />
- <connections />
+ <resources/>
+ <connections/>
 </ui>
