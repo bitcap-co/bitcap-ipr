@@ -189,6 +189,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         self.comboPoolPreset.currentIndexChanged.connect(self.read_pool_preset)
         self.comboPoolPreset.editTextChanged.connect(self.update_pool_preset)
+        self.actionIPRCreatePreset.clicked.connect(self.add_new_preset)
+        self.actionIPRRemovePreset.clicked.connect(self.remove_preset)
         self.actionIPRSavePreset.clicked.connect(self.write_pool_preset)
         self.actionIPRClearPreset.clicked.connect(self.clear_pool_preset)
 
@@ -376,10 +378,11 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.iprStatusBar.showMessage("Status :: Ready.")
 
     def update_pool_preset_names(self):
-        for idx in range(1, len(self.config.pool_config.pool_presets)):
-            self.comboPoolPreset.setItemText(
+        for idx in range(0, len(self.config.pool_config.pool_presets)):
+            self.comboPoolPreset.insertItem(
                 idx, self.config.pool_config.pool_presets[idx].preset_name
             )
+        self.comboPoolPreset.setCurrentIndex(self.config.pool_config.selected_preset)
 
     # system tray
     def activate_system_tray(self, reason):
@@ -624,6 +627,26 @@ class IPR(QMainWindow, Ui_MainWindow):
     def update_pool_preset(self, preset_name: str):
         current_index = self.comboPoolPreset.currentIndex()
         self.comboPoolPreset.setItemText(current_index, preset_name)
+
+    def add_new_preset(self) -> None:
+        index = len(self.config.pool_config.pool_presets)
+        self.config.pool_config.pool_presets.append(
+            PoolPreset(preset_name="New Preset")
+        )
+        self.config.write()
+
+        self.comboPoolPreset.insertItem(index, "New Preset")
+        self.comboPoolPreset.setCurrentIndex(index)
+        self.comboPoolPreset.setCurrentText("New Preset")
+        self.comboPoolPreset.lineEdit().setFocus()
+        self.comboPoolPreset.lineEdit().selectAll()
+
+    def remove_preset(self) -> None:
+        index = self.comboPoolPreset.currentIndex()
+        self.config.pool_config.pool_presets.pop(index)
+        self.config.write()
+
+        self.comboPoolPreset.removeItem(index)
 
     def read_pool_preset(self, index: int) -> None:
         self.config.read()
