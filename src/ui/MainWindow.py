@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.2
+## Created by: Qt User Interface Compiler version 6.11.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -20,8 +20,8 @@ from PySide6.QtWidgets import (QAbstractItemView, QAbstractSpinBox, QApplication
     QHBoxLayout, QHeaderView, QLabel, QLineEdit,
     QMainWindow, QPushButton, QScrollArea, QSizePolicy,
     QSpacerItem, QSpinBox, QStackedWidget, QStatusBar,
-    QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout,
-    QWidget)
+    QTabWidget, QTableWidget, QTableWidgetItem, QToolButton,
+    QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -99,14 +99,24 @@ class Ui_MainWindow(object):
         self.presetControl.setObjectName(u"presetControl")
         self.presetControl.setMinimumSize(QSize(0, 50))
         self.horizontalLayout_4 = QHBoxLayout(self.presetControl)
+        self.horizontalLayout_4.setSpacing(0)
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.label_25 = QLabel(self.presetControl)
+        self.horizontalLayout_4.setContentsMargins(0, 0, 0, 0)
+        self.presetSet = QWidget(self.presetControl)
+        self.presetSet.setObjectName(u"presetSet")
+        self.presetSet.setMaximumSize(QSize(450, 16777215))
+        self.horizontalLayout_5 = QHBoxLayout(self.presetSet)
+        self.horizontalLayout_5.setSpacing(6)
+        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self.horizontalLayout_5.setContentsMargins(10, 9, 9, 9)
+        self.label_25 = QLabel(self.presetSet)
         self.label_25.setObjectName(u"label_25")
-        self.label_25.setMaximumSize(QSize(50, 32))
+        self.label_25.setMaximumSize(QSize(65, 32))
+        self.label_25.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
 
-        self.horizontalLayout_4.addWidget(self.label_25)
+        self.horizontalLayout_5.addWidget(self.label_25)
 
-        self.comboPoolPreset = QComboBox(self.presetControl)
+        self.comboPoolPreset = QComboBox(self.presetSet)
         self.comboPoolPreset.addItem("")
         self.comboPoolPreset.addItem("")
         self.comboPoolPreset.addItem("")
@@ -118,36 +128,58 @@ class Ui_MainWindow(object):
         sizePolicy2.setVerticalStretch(0)
         sizePolicy2.setHeightForWidth(self.comboPoolPreset.sizePolicy().hasHeightForWidth())
         self.comboPoolPreset.setSizePolicy(sizePolicy2)
-        self.comboPoolPreset.setMinimumSize(QSize(135, 25))
-        self.comboPoolPreset.setMaximumSize(QSize(250, 25))
+        self.comboPoolPreset.setMinimumSize(QSize(110, 25))
+        self.comboPoolPreset.setMaximumSize(QSize(280, 25))
         self.comboPoolPreset.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
         self.comboPoolPreset.setEditable(True)
         self.comboPoolPreset.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
 
-        self.horizontalLayout_4.addWidget(self.comboPoolPreset)
+        self.horizontalLayout_5.addWidget(self.comboPoolPreset)
 
-        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.actionIPRRemovePreset = QToolButton(self.presetSet)
+        self.actionIPRRemovePreset.setObjectName(u"actionIPRRemovePreset")
+
+        self.horizontalLayout_5.addWidget(self.actionIPRRemovePreset)
+
+        self.actionIPRCreatePreset = QToolButton(self.presetSet)
+        self.actionIPRCreatePreset.setObjectName(u"actionIPRCreatePreset")
+
+        self.horizontalLayout_5.addWidget(self.actionIPRCreatePreset)
+
+
+        self.horizontalLayout_4.addWidget(self.presetSet)
+
+        self.horizontalSpacer_2 = QSpacerItem(0, 20, QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_4.addItem(self.horizontalSpacer_2)
 
-        self.checkAutomaticWorkerNames = QCheckBox(self.presetControl)
+        self.presetButtons = QWidget(self.presetControl)
+        self.presetButtons.setObjectName(u"presetButtons")
+        self.presetButtons.setMaximumSize(QSize(300, 16777215))
+        self.horizontalLayout_6 = QHBoxLayout(self.presetButtons)
+        self.horizontalLayout_6.setSpacing(5)
+        self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
+        self.checkAutomaticWorkerNames = QCheckBox(self.presetButtons)
         self.checkAutomaticWorkerNames.setObjectName(u"checkAutomaticWorkerNames")
-        self.checkAutomaticWorkerNames.setMinimumSize(QSize(130, 25))
+        self.checkAutomaticWorkerNames.setMinimumSize(QSize(95, 25))
         self.checkAutomaticWorkerNames.setMaximumSize(QSize(130, 25))
 
-        self.horizontalLayout_4.addWidget(self.checkAutomaticWorkerNames)
+        self.horizontalLayout_6.addWidget(self.checkAutomaticWorkerNames)
 
-        self.actionIPRClearPreset = QPushButton(self.presetControl)
-        self.actionIPRClearPreset.setObjectName(u"actionIPRClearPreset")
-        self.actionIPRClearPreset.setMaximumSize(QSize(180, 25))
-
-        self.horizontalLayout_4.addWidget(self.actionIPRClearPreset)
-
-        self.actionIPRSavePreset = QPushButton(self.presetControl)
+        self.actionIPRSavePreset = QPushButton(self.presetButtons)
         self.actionIPRSavePreset.setObjectName(u"actionIPRSavePreset")
         self.actionIPRSavePreset.setMaximumSize(QSize(180, 25))
 
-        self.horizontalLayout_4.addWidget(self.actionIPRSavePreset)
+        self.horizontalLayout_6.addWidget(self.actionIPRSavePreset)
+
+        self.actionIPRClearPreset = QPushButton(self.presetButtons)
+        self.actionIPRClearPreset.setObjectName(u"actionIPRClearPreset")
+        self.actionIPRClearPreset.setMaximumSize(QSize(180, 25))
+
+        self.horizontalLayout_6.addWidget(self.actionIPRClearPreset)
+
+
+        self.horizontalLayout_4.addWidget(self.presetButtons)
 
 
         self.verticalLayout_13.addWidget(self.presetControl)
@@ -470,7 +502,6 @@ class Ui_MainWindow(object):
         self.groupListeners = QGroupBox(self.groupListenerConfig)
         self.groupListeners.setObjectName(u"groupListeners")
         self.groupListeners.setCheckable(True)
-        self.groupListeners.setChecked(False)
         self.gridLayout_4 = QGridLayout(self.groupListeners)
         self.gridLayout_4.setObjectName(u"gridLayout_4")
         self.gridLayout_4.setHorizontalSpacing(70)
@@ -796,7 +827,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollLogs = QWidget()
         self.scrollLogs.setObjectName(u"scrollLogs")
-        self.scrollLogs.setGeometry(QRect(0, 0, 478, 227))
+        self.scrollLogs.setGeometry(QRect(0, 0, 368, 227))
         self.verticalLayout_11 = QVBoxLayout(self.scrollLogs)
         self.verticalLayout_11.setSpacing(15)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
@@ -968,13 +999,15 @@ class Ui_MainWindow(object):
         self.comboPoolPreset.setItemText(3, QCoreApplication.translate("MainWindow", u"Saved Pool 4", None))
         self.comboPoolPreset.setItemText(4, QCoreApplication.translate("MainWindow", u"Saved Pool 5", None))
 
+        self.actionIPRRemovePreset.setText(QCoreApplication.translate("MainWindow", u"...", None))
+        self.actionIPRCreatePreset.setText(QCoreApplication.translate("MainWindow", u"...", None))
 #if QT_CONFIG(tooltip)
         self.checkAutomaticWorkerNames.setToolTip(QCoreApplication.translate("MainWindow", u"Automatically append unique worker names.\n"
 "Uses last 5 of SN or MAC address.", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkAutomaticWorkerNames.setText(QCoreApplication.translate("MainWindow", u"Auto Set Workers", None))
-        self.actionIPRClearPreset.setText(QCoreApplication.translate("MainWindow", u"Clear Preset", None))
+        self.checkAutomaticWorkerNames.setText(QCoreApplication.translate("MainWindow", u"Set Workers", None))
         self.actionIPRSavePreset.setText(QCoreApplication.translate("MainWindow", u"Save Preset", None))
+        self.actionIPRClearPreset.setText(QCoreApplication.translate("MainWindow", u"Clear Preset", None))
         self.label_19.setText(QCoreApplication.translate("MainWindow", u"Pool 1:", None))
         self.label_19.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.label_20.setText(QCoreApplication.translate("MainWindow", u"User:", None))
