@@ -278,31 +278,6 @@
                      <property name="insertPolicy">
                       <enum>QComboBox::InsertPolicy::NoInsert</enum>
                      </property>
-                     <item>
-                      <property name="text">
-                       <string>Saved Pool 1</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>Saved Pool 2</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>Saved Pool 3</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>Saved Pool 4</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>Saved Pool 5</string>
-                      </property>
-                     </item>
                     </widget>
                    </item>
                    <item>
