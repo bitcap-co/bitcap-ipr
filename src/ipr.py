@@ -1293,24 +1293,21 @@ class IPR(QMainWindow, Ui_MainWindow):
         for index in selected_ips:
             item = self.tableIPRID.itemFromIndex(index)
             ip_addr = item.text()
-            miner_type = self.tableIPRID.item(item.row(), 4).text()
-            macaddr = self.tableIPRID.item(item.row(), 2).text()
-            serial = self.tableIPRID.item(item.row(), 3).text()
-            worker = ""
-            if serial and (
-                serial != "N/A" and serial != "Unknown" and serial != "Failed"
-            ):
-                worker = f".{serial[-5:]}"
-            elif macaddr and (macaddr != "N/A" and macaddr != "Failed"):
-                worker = f".{macaddr.replace(':', '')[-5:]}"
-            client_auth, custom_auth = self.get_client_auth_from_type(miner_type)
-            self.api_client.create_client_from_type(
-                miner_type, ip_addr, client_auth, custom_auth
+            miner_type = MinerType.from_value(
+                self.tableIPRID.item(item.row(), 3).text()
             )
-            client = self.api_client.get_client()
-            if not client:
-                failed.append(ip_addr)
-                continue
+            fw_type = MinerFirmware.from_value(
+                self.tableIPRID.item(item.row(), 11).text()
+            )
+            match fw_type:
+                case MinerFirmware.LUX_OS:
+                    miner_type = MinerType.LUX_OS
+                case MinerFirmware.VNISH:
+                    miner_type = MinerType.VNISH
+                case _:
+                    pass
+            macaddr = self.tableIPRID.item(item.row(), 2)
+            serial = self.tableIPRID.item(item.row(), 5)
             urls = [
                 self.linePoolURL.text(),
                 self.linePoolURL_2.text(),
@@ -1323,25 +1320,34 @@ class IPR(QMainWindow, Ui_MainWindow):
             ]
             # append worker name
             if self.checkAutomaticWorkerNames.isChecked():
-                if worker:
-                    for idx in range(0, len(users)):
-                        if users[idx]:
-                            users[idx] = users[idx].split(".")[0] + worker
+                worker_name = ""
+                if serial and serial.text() != "N/A" and serial.text() != "Unknown":
+                    worker_name = f".{serial.text()[-5:]}"
+                elif macaddr and macaddr.text() != "N/A":
+                    worker_name = f".{macaddr.text().replace(':', '')[-5:]}"
+                if worker_name:
+                    for i in range(0, len(users)):
+                        if len(users[i]):
+                            users[i] = users[i] + worker_name
                 else:
                     logger.warning(
                         "update_miner_pools : failed to find applicable worker name. Continuing.."
                     )
-
             passwds = [
                 self.linePoolPasswd.text(),
                 self.linePoolPasswd_2.text(),
                 self.linePoolPasswd_3.text(),
             ]
-            self.api_client.update_miner_pools(urls, users, passwds)
-            if client._error:
+
+            alt_pwd = self.get_client_auth(miner_type.value)
+            self.asic.create_client(
+                miner_type=miner_type, ip=item.text(), alt_pwd=alt_pwd
+            )
+            self.asic.update_miner_pools(urls, users, passwds)
+            if self.asic.client_error():
                 failed.append(ip_addr)
                 continue
-            self.api_client.close_client()
+            self.asic.close_client()
             passed.append(ip_addr)
 
         # action status
