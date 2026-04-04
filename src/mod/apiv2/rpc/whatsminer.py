@@ -499,14 +499,6 @@ class WhatsminerTCPClient(BaseTCPClient):
         self.pwd: str = "super"
         self.salt: str | None = None
 
-    def _encrypt_param(self, param: str, command: str, ts: int) -> str:
-        token_str = command + self.pwd + self.salt + str(ts)
-        aes_key = hashlib.sha256(token_str.encode("utf-8")).digest()
-        pad_len = 16 - (len(param) % 16)
-        padded = param + (chr(pad_len) * pad_len)
-        cipher = AES.new(aes_key, AES.MODE_ECB)
-        return base64.b64encode(cipher.encrypt(padded.encode())).decode()
-
     def send_command(self, command: str, param: Any | None = None) -> dict:
         cmd: BTMinerV3Command | BTMinerV3PriviledgedCommand
 
@@ -562,8 +554,12 @@ class WhatsminerTCPClient(BaseTCPClient):
     def get_salt(self) -> str:
         if self.salt is not None:
             return self.salt
-        data = self.send_command("get.device.info", "salt")
-        self.salt = data["salt"]
+        resp = self.send_command("get.device.info", "salt")
+        try:
+            resobj = BTMinerV3DeviceInfoResponse.model_validate(obj=resp, by_alias=True)
+        except ValidationError:
+            raise APIInvalidResponse
+        self.salt = resobj.salt
         return self.salt
 
     def get_hostname(self) -> str:
