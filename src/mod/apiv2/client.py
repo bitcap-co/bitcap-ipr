@@ -302,7 +302,7 @@ class ASICClient(QObject):
         self.client.blink(enabled=False)
         self.close_client()
 
-    def get_pool_conf(self) -> tuple[list[str], list[str], list[str]]:
+    def get_miner_pool_conf(self) -> tuple[list[str], list[str], list[str]]:
         if not self.client:
             return [], [], []
 

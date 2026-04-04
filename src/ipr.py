@@ -1255,12 +1255,13 @@ class IPR(QMainWindow, Ui_MainWindow):
                 pass
         alt_pwd = self.get_client_auth(miner_type.value)
         self.asic.create_client(miner_type=miner_type, ip=item.text(), alt_pwd=alt_pwd)
-        urls, users, passwds = self.asic.get_pool_conf()
+        urls, users, passwds = self.asic.get_miner_pool_conf()
         if self.asic.client_error():
             return self.iprStatusBar.showMessage(
                 f"Status :: Failed to get pool config: {str(self.asic.client_error())}",
                 5000,
             )
+        self.asic.close_client()
 
         self.linePoolURL.setText(urls[0])
         self.linePoolUser.setText(users[0])
