@@ -330,6 +330,17 @@ class ASICClient(QObject):
             passwds.append("")
         return urls, users, passwds
 
+    def update_miner_pools(
+        self, urls: list[str], users: list[str], passwds: list[str]
+    ) -> None:
+        if not self.client:
+            return
+        try:
+            self.client.update_pool_conf(urls, users, passwds)
+        except (FailedConnectionError, AuthenticationError, APIError) as e:
+            logger.error(f"{self.client.__repr__()} : client error raised: {str(e)}")
+            self.close_client(ex=e)
+
     def close_client(self, ex: Exception | None = None) -> None:
         if self.client is not None:
             logger.info(f"{self.__repr__()} : close client.")
