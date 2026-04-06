@@ -9,6 +9,7 @@ from typing import Any, Dict, Optional
 
 from pydantic import TypeAdapter, ValidationError
 from PySide6.QtCore import (
+    QDateTime,
     QEventLoop,
     QFile,
     QIODevice,
@@ -216,12 +217,13 @@ class IPR(QMainWindow, Ui_MainWindow):
             ]
         )
         self.tableIPRID.setColumnWidth(0, 15)
-        self.tableIPRID.setColumnWidth(2, 120)
-        self.tableIPRID.setColumnWidth(4, 130)
-        self.tableIPRID.setColumnWidth(5, 145)
-        self.tableIPRID.setColumnWidth(8, 385)
-        self.tableIPRID.setColumnWidth(9, 300)
-        self.tableIPRID.setColumnWidth(12, 180)
+        self.tableIPRID.setColumnWidth(1, 130)
+        self.tableIPRID.setColumnWidth(3, 120)
+        self.tableIPRID.setColumnWidth(5, 130)
+        self.tableIPRID.setColumnWidth(6, 145)
+        self.tableIPRID.setColumnWidth(9, 385)
+        self.tableIPRID.setColumnWidth(10, 300)
+        self.tableIPRID.setColumnWidth(13, 180)
         self.tableIPRID.doubleClicked.connect(self.double_click_item)
         self.tableIPRID.cellClicked.connect(self.locate_miner)
         self.tableIPRID.setSortingEnabled(True)
@@ -1229,37 +1231,37 @@ class IPR(QMainWindow, Ui_MainWindow):
             addr = data["ip_report"]["src_addr"]
         ip_item.setData(Qt.ItemDataRole.UserRole, addr)
         ip_item.setText(data["ip"])
-        self.tableIPRID.setItem(rowPosition, 1, ip_item)
-        self.tableIPRID.setItem(rowPosition, 2, QTableWidgetItem(data["mac"]))
+        self.tableIPRID.setItem(rowPosition, 2, ip_item)
+        self.tableIPRID.setItem(rowPosition, 3, QTableWidgetItem(data["mac"]))
         # ASIC TYPE
-        self.tableIPRID.setItem(rowPosition, 3, QTableWidgetItem(data["type"]))
+        self.tableIPRID.setItem(rowPosition, 4, QTableWidgetItem(data["type"]))
         # SUBTYPE
-        self.tableIPRID.setItem(rowPosition, 4, QTableWidgetItem(data["subtype"]))
+        self.tableIPRID.setItem(rowPosition, 5, QTableWidgetItem(data["subtype"]))
         # SERIAL
-        self.tableIPRID.setItem(rowPosition, 5, QTableWidgetItem(data["serial"]))
+        self.tableIPRID.setItem(rowPosition, 6, QTableWidgetItem(data["serial"]))
         # ALGO
-        self.tableIPRID.setItem(rowPosition, 6, QTableWidgetItem(data["algorithm"]))
+        self.tableIPRID.setItem(rowPosition, 7, QTableWidgetItem(data["algorithm"]))
         # HOSTNAME
-        self.tableIPRID.setItem(rowPosition, 7, QTableWidgetItem(data["hostname"]))
+        self.tableIPRID.setItem(rowPosition, 8, QTableWidgetItem(data["hostname"]))
         # ACTIVE POOL
-        self.tableIPRID.setItem(rowPosition, 8, QTableWidgetItem(data["stratum_url"]))
+        self.tableIPRID.setItem(rowPosition, 9, QTableWidgetItem(data["stratum_url"]))
         # ACTIVE USER
-        self.tableIPRID.setItem(rowPosition, 9, QTableWidgetItem(data["username"]))
+        self.tableIPRID.setItem(rowPosition, 10, QTableWidgetItem(data["username"]))
         # ACTIVE WORKER
-        self.tableIPRID.setItem(rowPosition, 10, QTableWidgetItem(data["worker_name"]))
+        self.tableIPRID.setItem(rowPosition, 11, QTableWidgetItem(data["worker_name"]))
         # FIRMWARE TYPE
-        self.tableIPRID.setItem(rowPosition, 11, QTableWidgetItem(data["firmware"]))
+        self.tableIPRID.setItem(rowPosition, 12, QTableWidgetItem(data["firmware"]))
         # FIRMWARE VERSION
-        self.tableIPRID.setItem(rowPosition, 12, QTableWidgetItem(data["fw_version"]))
+        self.tableIPRID.setItem(rowPosition, 13, QTableWidgetItem(data["fw_version"]))
         # PLATFORM
-        self.tableIPRID.setItem(rowPosition, 13, QTableWidgetItem(data["platform"]))
+        self.tableIPRID.setItem(rowPosition, 14, QTableWidgetItem(data["platform"]))
         self.tableIPRID.scrollToBottom()
 
     def locate_miner(self, row: int, col: int):
         if col == 0:
-            miner_type = MinerType.from_value(self.tableIPRID.item(row, 3).text())
-            fw_type = MinerFirmware.from_value(self.tableIPRID.item(row, 11).text())
-            ip_addr = self.tableIPRID.item(row, 1).text()
+            miner_type = MinerType.from_value(self.tableIPRID.item(row, 4).text())
+            fw_type = MinerFirmware.from_value(self.tableIPRID.item(row, 12).text())
+            ip_addr = self.tableIPRID.item(row, 2).text()
             if self.asic.locate_timer and self.asic.locate_timer.isActive():
                 return logger.warning(
                     "locate_miner : already locating a miner. Ignoring..."
@@ -1295,11 +1297,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         rows = self.tableIPRID.rowCount()
         if not rows:
             return
-        selected_ips = [x for x in self.tableIPRID.selectedIndexes() if x.column() == 1]
+        selected_ips = [x for x in self.tableIPRID.selectedIndexes() if x.column() == 2]
         index = selected_ips[0]
         item = self.tableIPRID.itemFromIndex(index)
-        miner_type = MinerType.from_value(self.tableIPRID.item(item.row(), 3).text())
-        fw_type = MinerFirmware.from_value(self.tableIPRID.item(item.row(), 11).text())
+        miner_type = MinerType.from_value(self.tableIPRID.item(item.row(), 4).text())
+        fw_type = MinerFirmware.from_value(self.tableIPRID.item(item.row(), 12).text())
         match fw_type:
             case MinerFirmware.LUX_OS:
                 miner_type = MinerType.LUX_OS
@@ -1336,7 +1338,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         passed: list[str] = []
         failed: list[str] = []
         selected_ips = self.get_selected_indexes_for_action(
-            "update_miner_pools", section=1
+            "update_miner_pools", section=2
         )
         self._app_instance.processEvents(
             QEventLoop.ProcessEventsFlag.AllEvents
@@ -1348,10 +1350,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             item = self.tableIPRID.itemFromIndex(index)
             ip_addr = item.text()
             miner_type = MinerType.from_value(
-                self.tableIPRID.item(item.row(), 3).text()
+                self.tableIPRID.item(item.row(), 4).text()
             )
             fw_type = MinerFirmware.from_value(
-                self.tableIPRID.item(item.row(), 11).text()
+                self.tableIPRID.item(item.row(), 12).text()
             )
             match fw_type:
                 case MinerFirmware.LUX_OS:
@@ -1360,8 +1362,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                     miner_type = MinerType.VNISH
                 case _:
                     pass
-            macaddr = self.tableIPRID.item(item.row(), 2)
-            serial = self.tableIPRID.item(item.row(), 5)
+            macaddr = self.tableIPRID.item(item.row(), 3)
+            serial = self.tableIPRID.item(item.row(), 6)
             urls = [
                 self.linePoolURL.text(),
                 self.linePoolURL_2.text(),
