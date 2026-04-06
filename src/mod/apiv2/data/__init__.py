@@ -102,7 +102,7 @@ class MinerData(BaseModel):
     created_at: datetime = Field(
         exclude=True, default_factory=datetime.now(timezone.utc).astimezone, repr=False
     )
-
+    recv_at: float | None = None
     type: MinerType | None = None
     subtype: str | None = None
     firmware: MinerFirmware | None = None
