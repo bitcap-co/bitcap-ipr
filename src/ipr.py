@@ -448,31 +448,34 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.config.pool_config.auto_set_workers
         )
         preset_idx = self.comboPoolPreset.currentIndex()
-        self.linePoolURL.setText(self.config.pool_config.pool_presets[preset_idx].pool1)
-        self.linePoolURL_2.setText(
-            self.config.pool_config.pool_presets[preset_idx].pool2
-        )
-        self.linePoolURL_3.setText(
-            self.config.pool_config.pool_presets[preset_idx].pool3
-        )
-        self.linePoolUser.setText(
-            self.config.pool_config.pool_presets[preset_idx].user1
-        )
-        self.linePoolUser_2.setText(
-            self.config.pool_config.pool_presets[preset_idx].user2
-        )
-        self.linePoolUser_3.setText(
-            self.config.pool_config.pool_presets[preset_idx].user3
-        )
-        self.linePoolPasswd.setText(
-            self.config.pool_config.pool_presets[preset_idx].passwd1
-        )
-        self.linePoolPasswd_2.setText(
-            self.config.pool_config.pool_presets[preset_idx].passwd2
-        )
-        self.linePoolPasswd_3.setText(
-            self.config.pool_config.pool_presets[preset_idx].passwd3
-        )
+        if len(self.config.pool_config.pool_presets):
+            self.linePoolURL.setText(
+                self.config.pool_config.pool_presets[preset_idx].pool1
+            )
+            self.linePoolURL_2.setText(
+                self.config.pool_config.pool_presets[preset_idx].pool2
+            )
+            self.linePoolURL_3.setText(
+                self.config.pool_config.pool_presets[preset_idx].pool3
+            )
+            self.linePoolUser.setText(
+                self.config.pool_config.pool_presets[preset_idx].user1
+            )
+            self.linePoolUser_2.setText(
+                self.config.pool_config.pool_presets[preset_idx].user2
+            )
+            self.linePoolUser_3.setText(
+                self.config.pool_config.pool_presets[preset_idx].user3
+            )
+            self.linePoolPasswd.setText(
+                self.config.pool_config.pool_presets[preset_idx].passwd1
+            )
+            self.linePoolPasswd_2.setText(
+                self.config.pool_config.pool_presets[preset_idx].passwd2
+            )
+            self.linePoolPasswd_3.setText(
+                self.config.pool_config.pool_presets[preset_idx].passwd3
+            )
 
         # instance
         window_geometry = self.config.instance.geometry
@@ -613,48 +616,57 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def update_current_preset_to_config(self) -> list[Dict[str, str]]:
         presets = TypeAdapter(list[PoolPreset])
-        savedPools: list[Dict[str, str]] = presets.dump_python(
+        saved_pools: list[Dict[str, str]] = presets.dump_python(
             self.config.pool_config.pool_presets, by_alias=True
         )
+        if not len(saved_pools):
+            return []
         current_index = self.comboPoolPreset.currentIndex()
-        savedPools[current_index]["preset_name"] = self.comboPoolPreset.currentText()
-        savedPools[current_index]["pool1"] = self.linePoolURL.text()
-        savedPools[current_index]["pool2"] = self.linePoolURL_2.text()
-        savedPools[current_index]["pool3"] = self.linePoolURL_3.text()
-        savedPools[current_index]["user1"] = self.linePoolUser.text()
-        savedPools[current_index]["user2"] = self.linePoolUser_2.text()
-        savedPools[current_index]["user3"] = self.linePoolUser_3.text()
-        savedPools[current_index]["passwd1"] = self.linePoolPasswd.text()
-        savedPools[current_index]["passwd2"] = self.linePoolPasswd_2.text()
-        savedPools[current_index]["passwd3"] = self.linePoolPasswd_3.text()
-        return savedPools
+        saved_pools[current_index]["preset_name"] = self.comboPoolPreset.currentText()
+        saved_pools[current_index]["pool1"] = self.linePoolURL.text()
+        saved_pools[current_index]["pool2"] = self.linePoolURL_2.text()
+        saved_pools[current_index]["pool3"] = self.linePoolURL_3.text()
+        saved_pools[current_index]["user1"] = self.linePoolUser.text()
+        saved_pools[current_index]["user2"] = self.linePoolUser_2.text()
+        saved_pools[current_index]["user3"] = self.linePoolUser_3.text()
+        saved_pools[current_index]["passwd1"] = self.linePoolPasswd.text()
+        saved_pools[current_index]["passwd2"] = self.linePoolPasswd_2.text()
+        saved_pools[current_index]["passwd3"] = self.linePoolPasswd_3.text()
+        return saved_pools
 
     def update_pool_preset(self, preset_name: str):
         current_index = self.comboPoolPreset.currentIndex()
         self.comboPoolPreset.setItemText(current_index, preset_name)
 
-    def add_new_preset(self) -> None:
+    def add_new_preset(self, *_, preset: PoolPreset | None = None) -> None:
         index = len(self.config.pool_config.pool_presets)
-        self.config.pool_config.pool_presets.append(
-            PoolPreset(preset_name="New Preset")
-        )
+        if preset is None:
+            preset = PoolPreset(preset_name="New Preset")
+
+        self.config.pool_config.pool_presets.append(preset)
         self.config.write()
 
-        self.comboPoolPreset.insertItem(index, "New Preset")
+        self.comboPoolPreset.insertItem(index, preset.preset_name)
         self.comboPoolPreset.setCurrentIndex(index)
-        self.comboPoolPreset.setCurrentText("New Preset")
+        self.comboPoolPreset.setCurrentText(preset.preset_name)
         self.comboPoolPreset.lineEdit().setFocus()
         self.comboPoolPreset.lineEdit().selectAll()
 
     def remove_preset(self) -> None:
         index = self.comboPoolPreset.currentIndex()
+        if not len(self.config.pool_config.pool_presets):
+            return
         self.config.pool_config.pool_presets.pop(index)
         self.config.write()
 
         self.comboPoolPreset.removeItem(index)
+        if self.comboPoolPreset.currentIndex() == -1:
+            self.clear_pool_preset()
 
     def read_pool_preset(self, index: int) -> None:
         self.config.read()
+        if not len(self.config.pool_config.pool_presets):
+            return
         pool_preset = self.config.pool_config.pool_presets[index]
         self.linePoolURL.setText(pool_preset.pool1)
         self.linePoolURL_2.setText(pool_preset.pool2)
@@ -667,43 +679,46 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.linePoolPasswd_3.setText(pool_preset.passwd3)
 
     def write_pool_preset(self):
-        current_index = self.comboPoolPreset.currentIndex()
-        self.config.pool_config.pool_presets[
-            current_index
-        ].preset_name = self.comboPoolPreset.currentText()
-        self.config.pool_config.pool_presets[
-            current_index
-        ].pool1 = self.linePoolURL.text()
-        self.config.pool_config.pool_presets[
-            current_index
-        ].pool2 = self.linePoolURL_2.text()
-        self.config.pool_config.pool_presets[
-            current_index
-        ].pool3 = self.linePoolURL_3.text()
-        self.config.pool_config.pool_presets[
-            current_index
-        ].user1 = self.linePoolUser.text()
-        self.config.pool_config.pool_presets[
-            current_index
-        ].user2 = self.linePoolUser_2.text()
-        self.config.pool_config.pool_presets[
-            current_index
-        ].user3 = self.linePoolUser_3.text()
-        self.config.pool_config.pool_presets[
-            current_index
-        ].passwd1 = self.linePoolPasswd.text()
-        self.config.pool_config.pool_presets[
-            current_index
-        ].passwd2 = self.linePoolPasswd_2.text()
-        self.config.pool_config.pool_presets[
-            current_index
-        ].passwd3 = self.linePoolPasswd_3.text()
+        curr_index = self.comboPoolPreset.currentIndex()
+        if curr_index == -1:
+            # no existing presets, lets add one
+            preset_name = self.comboPoolPreset.currentText()
+            if preset_name == "":
+                preset_name = "New Preset"
+            new_preset = PoolPreset(
+                preset_name=preset_name,
+                pool1=self.linePoolURL.text(),
+                pool2=self.linePoolURL_2.text(),
+                pool3=self.linePoolURL_3.text(),
+                user1=self.linePoolUser.text(),
+                user2=self.linePoolUser_2.text(),
+                user3=self.linePoolUser_3.text(),
+                passwd1=self.linePoolPasswd.text(),
+                passwd2=self.linePoolPasswd_2.text(),
+                passwd3=self.linePoolPasswd_3.text(),
+            )
+            self.add_new_preset(preset=new_preset)
+            self.config.pool_config.selected_preset = (
+                self.comboPoolPreset.currentIndex()
+            )
+        else:
+            # fetch existing index
+            self.config.pool_config.selected_preset = curr_index
+            preset = self.config.pool_config.pool_presets[curr_index]
+            preset.preset_name = self.comboPoolPreset.currentText()
+            preset.pool1 = self.linePoolURL.text()
+            preset.pool2 = self.linePoolURL_2.text()
+            preset.pool3 = self.linePoolURL_3.text()
+            preset.user1 = self.linePoolUser.text()
+            preset.user2 = self.linePoolUser_2.text()
+            preset.user3 = self.linePoolUser_3.text()
+            preset.passwd1 = self.linePoolPasswd.text()
+            preset.passwd2 = self.linePoolPasswd_2.text()
+            preset.passwd3 = self.linePoolPasswd_3.text()
         self.config.write()
         self.iprStatusBar.showMessage("Status :: successfully wrote pool preset.", 3000)
 
     def clear_pool_preset(self):
-        current_index = self.comboPoolPreset.currentIndex()
-        self.update_pool_preset(preset_name=f"Saved Pool {current_index + 1}")
         for child in self.pcwrapper.children():
             if isinstance(child, QWidget):
                 for line in child.children():

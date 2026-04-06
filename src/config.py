@@ -95,7 +95,7 @@ class PoolPreset(BaseModel):
 
 class PoolConfiguratorSettings(BaseModel):
     auto_set_workers: Annotated[bool, Field(alias="autoSetWorkers")] = True
-    selected_preset: Annotated[int, Field(alias="selectedPoolPreset")] = 0
+    selected_preset: Annotated[int, Field(alias="selectedPoolPreset")] = -1
     pool_presets: Annotated[list[PoolPreset], Field(alias="poolPresets")] = []
 
 
