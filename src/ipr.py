@@ -5,7 +5,7 @@ import webbrowser
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 from pydantic import TypeAdapter, ValidationError
 from PySide6.QtCore import (
@@ -25,6 +25,7 @@ from PySide6.QtGui import (
     QIcon,
     QPixmap,
 )
+from PySide6.QtNetwork import QHostAddress
 from PySide6.QtWidgets import (
     QApplication,
     QButtonGroup,
@@ -43,15 +44,15 @@ import ui.resources  # noqa F401
 from config import IPRConfig, PoolPreset
 from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
-from mod.api import settings as api_settings
-from mod.api.client import APIClient
+from mod.apiv2 import ASICClient
+from mod.apiv2 import settings as api_settings
+from mod.apiv2.data import MinerData, MinerFirmware, MinerType
 from mod.lm import IPReport, ListenerManager
 from ui.MainWindow import Ui_MainWindow
 from ui.widgets import (
     IPR_Menubar,
     IPR_Titlebar,
     IPRIndexWidgetItem,
-    IPRIPWidgetItem,
     IPRTableContextMenu,
 )
 from utils import (
@@ -108,7 +109,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.lm.listen_error.connect(self.restart_listen)
 
         logger.info(" init mod api.")
-        self.api_client = APIClient(self)
+        self.asic = ASICClient(self)
         logger.info(" init miner locate duration for 10000ms.")
         self.miner_locate_duration: int = api_settings.get("locate_duration_ms")
 
@@ -200,23 +201,26 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "",
                 "IP",
                 "MAC",
-                "SERIAL",
                 "TYPE",
                 "SUBTYPE",
+                "SERIAL",
                 "ALGORITHM",
-                "POOL",
-                "WORKER",
+                "HOSTNAME",
+                "STRATUM URL",
+                "USERNAME",
+                "WORKER NAME",
                 "FIRMWARE",
+                "FW VERSION",
                 "PLATFORM",
             ]
         )
         self.tableIPRID.setColumnWidth(0, 15)
         self.tableIPRID.setColumnWidth(2, 120)
-        self.tableIPRID.setColumnWidth(3, 145)
-        self.tableIPRID.setColumnWidth(5, 130)
-        self.tableIPRID.setColumnWidth(7, 385)
-        self.tableIPRID.setColumnWidth(8, 300)
-        self.tableIPRID.setColumnWidth(9, 180)
+        self.tableIPRID.setColumnWidth(4, 130)
+        self.tableIPRID.setColumnWidth(5, 145)
+        self.tableIPRID.setColumnWidth(8, 385)
+        self.tableIPRID.setColumnWidth(9, 300)
+        self.tableIPRID.setColumnWidth(12, 180)
         self.tableIPRID.doubleClicked.connect(self.double_click_item)
         self.tableIPRID.cellClicked.connect(self.locate_miner)
         self.tableIPRID.setSortingEnabled(True)
@@ -406,6 +410,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         # listener
         self.groupListeners.setChecked(self.config.listener.enable_all)
+        self.checkEnableListenFilter.setChecked(self.config.listener.enable_filter)
         self.checkListenAntminer.setChecked(self.config.listen_for.antminer)
         self.checkListenWhatsminer.setChecked(self.config.listen_for.whatsminer)
         self.checkListenIceRiver.setChecked(self.config.listen_for.iceriver)
@@ -915,7 +920,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 line = data_stream.readLine()
                 if line:
                     row = deep_update(
-                        self.api_client.target_info.copy(),
+                        MinerData().as_dict(),
                         dict(zip(included_headers, line.split(","))),
                     )
                     self.populate_table_row(row)
@@ -930,7 +935,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         cols = self.tableIPRID.columnCount()
         if not rows:
             return
-        out = "IP,MAC,SERIAL,TYPE,SUBTYPE,ALGORITHM,POOL,WORKER,FIRMWARE,PLATFORM\n"
+        out = "IP,MAC,TYPE,SUBTYPE,SERIAL,ALGORITHM,HOSTNAME,STRATUM_URL,USERNAME,WORKER_NAME,FIRMWARE,FW_VERSION,PLATFORM\n"
         for i in range(rows):
             for j in range(1, cols):
                 out += self.tableIPRID.item(i, j).text()
@@ -1055,99 +1060,72 @@ class IPR(QMainWindow, Ui_MainWindow):
         # reset inactive timer
         if self.inactive.isActive():
             self.inactive.start()
-
         logger.debug(
             f"process_result : got {result.src_ip}, {result.src_mac}, {result.miner_sn}, {result.miner_type} from listener."
         )
-        if result.miner_type == "common":
-            bitmain_common_miners = [
-                self.checkListenAntminer,
-                self.checkListenVolcminer,
-            ]
-            enabled_common_filter = [
-                btn.text().lower() for btn in bitmain_common_miners if btn.isChecked()
-            ]
-            for miner in bitmain_common_miners:
-                match miner.text().lower():
-                    case "antminer":
-                        self.api_client.create_bitmain_client(
-                            result.src_ip,
-                            self.lineAntminerPasswd.text(),
-                            self.lineVnishPasswd.text(),
-                        )
-                        if (
-                            not self.api_client.client
-                            or not self.api_client.is_antminer()
-                        ):
-                            continue
-                        result.miner_type = "antminer"
-                        self.api_client.close_client()
-                        break
-                    case "volcminer":
-                        self.api_client.create_volcminer_client(
-                            result.src_ip, self.lineVolcminerPasswd.text()
-                        )
-                        if (
-                            not self.api_client.client
-                            or not self.api_client.is_volcminer()
-                        ):
-                            continue
-                        result.miner_type = "volcminer"
-                        self.api_client.close_client()
-                        break
-            # workaround: check all listeners to accept unknown types
-            if (
-                result.miner_type not in enabled_common_filter
-                and self.checkEnableListenFilter.isChecked()
-            ):
-                logger.warning(
-                    f"process_result : recieved miner type {result.miner_type} outside of filter: {enabled_common_filter}. Ignoring..."
+        # identify miner type from src ip
+        miner_type = self.asic.identify(ip=result.src_ip, miner_hint=result.port_type)
+        if (
+            miner_type.value not in self.lm.enabled
+            and self.checkEnableListenFilter.isChecked()
+        ):
+            logger.warning(
+                f"process_result: received miner type {miner_type.value} outside of enabled filter. Ignoring..."
+            )
+            self.iprStatusBar.showMessage(
+                f"Status :: Got miner type: {miner_type.value.capitalize()} outside of listener configuration.",
+                8000,
+            )
+            return
+        if miner_type == MinerType.UNKNOWN:
+            miner_data = MinerData(
+                ip=result.src_ip, mac=result.src_mac, type=miner_type
+            ).as_dict()
+        else:
+            # get miner data from src ip
+            alt_pwd = self.get_client_auth(miner_type=miner_type.value)
+            self.asic.create_client(
+                miner_type=miner_type, ip=result.src_ip, alt_pwd=alt_pwd
+            )
+            if self.asic.client_error():
+                return self.iprStatusBar.showMessage(
+                    f"Status :: Failed to create client to {result.src_ip}: {str(self.asic.client_error())}",
+                    5000,
                 )
-                self.iprStatusBar.showMessage(
-                    f"Status :: Got miner type: {result.miner_type.capitalize()} outside of listener configuration.",
-                    8000,
-                )
-                return
-            elif result.miner_type == "common":
-                result.miner_type = "Unknown"
+            miner_data = self.asic.get_miner_data()
+        miner_data["ip"] = result.src_ip
+        miner_data["mac"] = miner_data["mac"].lower()
+        # update serial if IPReport has
+        if result.miner_sn:
+            miner_data["serial"] = result.miner_sn
+        # append IPReport data
+        miner_data["ip_report"] = result.model_dump()
 
-        # get missing mac addr
-        match result.miner_type:
-            case "iceriver":
-                self.api_client.create_iceriver_client(result.src_ip, None)
-            case "elphapex":
-                self.api_client.create_elphapex_client(result.src_ip, None)
-        missing_mac = self.api_client.get_missing_mac_addr()
-        self.api_client.close_client()
-        if missing_mac:
-            result.src_mac = missing_mac
-        logger.info(
-            f"process_result : got updated result {result.src_ip},{result.src_mac},{result.miner_sn},{result.miner_type}."
-        )
+        self.asic.close_client()
+
+        logger.debug(f"process_result: got miner data: {miner_data}.")
         self.iprStatusBar.showMessage(
-            f"Status :: Got {result.miner_type}: IP:{result.src_ip}, MAC:{result.src_mac}",
+            f"Status :: Got {miner_data['type']}: IP:{miner_data['ip']}, MAC:{miner_data['mac']}",
             5000,
         )
-        self.result: Dict[str, str] = {
-            "ip": result.src_ip,
-            "mac": result.src_mac.lower(),
-            "type": result.miner_type,
-            "sn": result.miner_sn,
-            **self.api_client.target_info,
-        }
-        self.show_confirmation()
+        self.show_confirmation(miner_data)
 
     # ip confirmation
-    def show_confirmation(self):
+    def show_confirmation(self, result: dict[str, Any]):
         logger.info(" show IP confirmation.")
-        ip = self.result["ip"]
-        mac = self.result["mac"]
-        type = self.result["type"]
+        ip: str = result["ip"]
+        mac: str = result["mac"]
+        type: str = result["type"]
+        fw_type: str = result["firmware"]
+        type_str = type.capitalize()
+        if type != "unknown":
+            type_str = f"{type.capitalize()} ({fw_type})"
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
             logger.info("show_confirmation : populate ID table.")
-            self.populate_id_table()
+            self.populate_table_row(result)
+            self.activateWindow()
         else:
             confirm = IPRConfirmation(self.menu_bar.actionConfirmsStayOnTop.isChecked())
             confirm.actionOpenDashboard.triggered.connect(
@@ -1157,12 +1135,12 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.info("show_confirmation : show IPRConfirmation.")
             confirm.lineIPField.setText(ip)
             confirm.lineMACField.setText(mac)
-            confirm.lineASICField.setText(type)
+            confirm.lineASICField.setText(type_str)
             self.confirms.append(confirm)
             if self.is_minimized_to_tray():
                 self.sys_tray.showMessage(
                     "Received IPR Confirmation",
-                    f"IP: {ip}",
+                    f"IP: {ip}, MAC: {mac}",
                     QSystemTrayIcon.MessageIcon.Information,
                     15000,
                 )
@@ -1170,28 +1148,11 @@ class IPR(QMainWindow, Ui_MainWindow):
             confirm.activateWindow()
             confirm.raise_()
 
-    # ID table
-    def populate_id_table(self) -> None:
-        sn = self.result["sn"]
-        target_data = self.get_target_data_from_type()
-        self.result.update(target_data)
-        if sn:
-            self.result["serial"] = sn
-        self.populate_table_row()
-        self.activateWindow()
-
-    def get_client_auth_from_type(
-        self, miner_type: str
-    ) -> Tuple[Optional[str], Optional[str]]:
-        client_auth: Optional[str] = None
-        custom_auth: Optional[str] = None
+    def get_client_auth(self, miner_type: str) -> str | None:
+        client_auth: str | None = None
         match miner_type:
             case "antminer":
                 client_auth = self.lineAntminerPasswd.text()
-                if not self.checkUseAntminerLogin.isChecked():
-                    custom_auth = self.lineVnishPasswd.text()
-                else:
-                    custom_auth = self.lineAntminerPasswd.text()
             case "whatsminer":
                 client_auth = self.lineWhatsminerPasswd.text()
             case "goldshell":
@@ -1200,31 +1161,27 @@ class IPR(QMainWindow, Ui_MainWindow):
                 client_auth = self.lineVolcminerPasswd.text()
             case "sealminer":
                 client_auth = self.lineSealminerPasswd.text()
-        return client_auth, custom_auth
+            case "iceriver":
+                client_auth = self.lineIceriverPasswd.text()
+            case "elphapex":
+                client_auth = self.lineElphapexPasswd.text()
+            case "vnish":
+                if not self.checkUseAntminerLogin.isChecked():
+                    client_auth = self.lineVnishPasswd.text()
+                else:
+                    client_auth = self.lineAntminerPasswd.text()
+                client_auth = self.lineVnishPasswd.text()
+            case _:
+                return None
+        return client_auth
 
-    def get_target_data_from_type(self) -> Dict[str, str]:
-        ip = self.result["ip"]
-        type = self.result["type"]
-        client_auth, custom_auth = self.get_client_auth_from_type(type)
-        self.api_client.create_client_from_type(type, ip, client_auth, custom_auth)
-        if not self.api_client.client:
-            self.iprStatusBar.showMessage(
-                "Status :: Failed to connect or authenticate client.", 5000
-            )
-        logger.info(f"populate_table : get target data from ip {ip}.")
-        t_data = self.api_client.get_target_data_from_type(type)
-        self.api_client.close_client()
-        return t_data
-
-    def populate_table_row(self, data: Dict[str, str] | None = None) -> None:
+    def populate_table_row(self, data: Dict[str, Any]) -> None:
         """
         arguments:
             **data: dict[str. str] -- row data with the following key structure:
                 'ip', 'mac', 'serial', 'type', 'subtype', 'algoritmn', 'firmware', 'platform'
         """
         logger.info("populate_table : write table data.")
-        if data:
-            self.result = data
         rowPosition = self.tableIPRID.rowCount()
         self.tableIPRID.insertRow(rowPosition)
         actionLocateMiner = QLabel()
@@ -1232,62 +1189,71 @@ class IPR(QMainWindow, Ui_MainWindow):
         actionLocateMiner.setToolTip("Locate Miner")
         self.tableIPRID.setCellWidget(rowPosition, 0, actionLocateMiner)
         self.tableIPRID.setItem(rowPosition, 0, IPRIndexWidgetItem(rowPosition))
-        self.tableIPRID.setItem(rowPosition, 1, IPRIPWidgetItem(self.result["ip"]))
-        self.tableIPRID.setItem(rowPosition, 2, QTableWidgetItem(self.result["mac"]))
-        self.tableIPRID.setItem(rowPosition, 3, QTableWidgetItem(self.result["serial"]))
+        ip_item = QTableWidgetItem()
+        if "ip_report" not in data:
+            # manually create src_addr for sorting
+            src_addr = QHostAddress(data["ip"])
+            addr: int = src_addr.toIPv4Address()
+        else:
+            addr = data["ip_report"]["src_addr"]
+        ip_item.setData(Qt.ItemDataRole.UserRole, addr)
+        ip_item.setText(data["ip"])
+        self.tableIPRID.setItem(rowPosition, 1, ip_item)
+        self.tableIPRID.setItem(rowPosition, 2, QTableWidgetItem(data["mac"]))
         # ASIC TYPE
-        self.tableIPRID.setItem(rowPosition, 4, QTableWidgetItem(self.result["type"]))
+        self.tableIPRID.setItem(rowPosition, 3, QTableWidgetItem(data["type"]))
         # SUBTYPE
-        self.tableIPRID.setItem(
-            rowPosition, 5, QTableWidgetItem(self.result["subtype"])
-        )
+        self.tableIPRID.setItem(rowPosition, 4, QTableWidgetItem(data["subtype"]))
+        # SERIAL
+        self.tableIPRID.setItem(rowPosition, 5, QTableWidgetItem(data["serial"]))
         # ALGO
-        self.tableIPRID.setItem(
-            rowPosition, 6, QTableWidgetItem(self.result["algorithm"])
-        )
+        self.tableIPRID.setItem(rowPosition, 6, QTableWidgetItem(data["algorithm"]))
+        # HOSTNAME
+        self.tableIPRID.setItem(rowPosition, 7, QTableWidgetItem(data["hostname"]))
         # ACTIVE POOL
-        self.tableIPRID.setItem(rowPosition, 7, QTableWidgetItem(self.result["pool"]))
+        self.tableIPRID.setItem(rowPosition, 8, QTableWidgetItem(data["stratum_url"]))
+        # ACTIVE USER
+        self.tableIPRID.setItem(rowPosition, 9, QTableWidgetItem(data["username"]))
         # ACTIVE WORKER
-        self.tableIPRID.setItem(rowPosition, 8, QTableWidgetItem(self.result["worker"]))
-        # FIRMWARE
-        self.tableIPRID.setItem(
-            rowPosition, 9, QTableWidgetItem(self.result["firmware"])
-        )
+        self.tableIPRID.setItem(rowPosition, 10, QTableWidgetItem(data["worker_name"]))
+        # FIRMWARE TYPE
+        self.tableIPRID.setItem(rowPosition, 11, QTableWidgetItem(data["firmware"]))
+        # FIRMWARE VERSION
+        self.tableIPRID.setItem(rowPosition, 12, QTableWidgetItem(data["fw_version"]))
         # PLATFORM
-        self.tableIPRID.setItem(
-            rowPosition, 10, QTableWidgetItem(self.result["platform"])
-        )
+        self.tableIPRID.setItem(rowPosition, 13, QTableWidgetItem(data["platform"]))
         self.tableIPRID.scrollToBottom()
 
     def locate_miner(self, row: int, col: int):
         if col == 0:
-            miner_type = self.tableIPRID.item(row, 4).text()
+            miner_type = MinerType.from_value(self.tableIPRID.item(row, 3).text())
+            fw_type = MinerFirmware.from_value(self.tableIPRID.item(row, 11).text())
             ip_addr = self.tableIPRID.item(row, 1).text()
-            if self.api_client.locate and self.api_client.locate.isActive():
+            if self.asic.locate_timer and self.asic.locate_timer.isActive():
                 return logger.warning(
                     "locate_miner : already locating a miner. Ignoring..."
                 )
             logger.info(f" locate miner {ip_addr}.")
-            match miner_type:
-                case "volcminer":
-                    # client_auth = self.lineVolcminerPasswd.text()
-                    return self.iprStatusBar.showMessage(
-                        "Status :: Failed to locate miner: VolcMiner is currently not supported.",
-                        5000,
-                    )
-            client_auth, custom_auth = self.get_client_auth_from_type(miner_type)
-            self.api_client.create_client_from_type(
-                miner_type, ip_addr, client_auth, custom_auth
-            )
-            client = self.api_client.get_client()
-            if not client:
+            # disable volcminer locating do to it soft rebooting miner.
+            if miner_type == MinerType.VOLCMINER:
                 return self.iprStatusBar.showMessage(
-                    "Status :: Failed to connect or authenticate client.", 5000
+                    "Status :: Failed to locate miner: VolcMiner is currently not supported.",
+                    5000,
                 )
-            self.api_client.locate_miner(miner_type)
-            if client._error:
+            match fw_type:
+                case MinerFirmware.LUX_OS:
+                    miner_type = MinerType.LUX_OS
+                case MinerFirmware.VNISH:
+                    miner_type = MinerType.VNISH
+                case _:
+                    pass
+            alt_pwd = self.get_client_auth(miner_type.value)
+            self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
+            self.asic.locate_miner()
+            if self.asic.client_error():
                 return self.iprStatusBar.showMessage(
-                    f"Status :: Failed to locate miner: {client._error}", 5000
+                    f"Status :: Failed to locate miner: {str(self.asic.client_error())}",
+                    5000,
                 )
             self.iprStatusBar.showMessage(
                 f"Status :: Locating miner: {ip_addr}...",
@@ -1301,19 +1267,24 @@ class IPR(QMainWindow, Ui_MainWindow):
         selected_ips = [x for x in self.tableIPRID.selectedIndexes() if x.column() == 1]
         index = selected_ips[0]
         item = self.tableIPRID.itemFromIndex(index)
-        miner_type = self.tableIPRID.item(item.row(), 4).text()
-        client_auth, custom_auth = self.get_client_auth_from_type(miner_type)
-        self.api_client.create_client_from_type(
-            miner_type, item.text(), client_auth, custom_auth
-        )
-        client = self.api_client.get_client()
-        if not client:
-            return
-        urls, users, passwds = self.api_client.get_miner_pool_conf(miner_type)
-        if client._error:
+        miner_type = MinerType.from_value(self.tableIPRID.item(item.row(), 3).text())
+        fw_type = MinerFirmware.from_value(self.tableIPRID.item(item.row(), 11).text())
+        match fw_type:
+            case MinerFirmware.LUX_OS:
+                miner_type = MinerType.LUX_OS
+            case MinerFirmware.VNISH:
+                miner_type = MinerType.VNISH
+            case _:
+                pass
+        alt_pwd = self.get_client_auth(miner_type.value)
+        self.asic.create_client(miner_type=miner_type, ip=item.text(), alt_pwd=alt_pwd)
+        urls, users, passwds = self.asic.get_miner_pool_conf()
+        if self.asic.client_error():
             return self.iprStatusBar.showMessage(
-                f"Status :: Failed to get pool config: {client._error}", 5000
+                f"Status :: Failed to get pool config: {str(self.asic.client_error())}",
+                5000,
             )
+        self.asic.close_client()
 
         self.linePoolURL.setText(urls[0])
         self.linePoolUser.setText(users[0])
@@ -1345,24 +1316,21 @@ class IPR(QMainWindow, Ui_MainWindow):
         for index in selected_ips:
             item = self.tableIPRID.itemFromIndex(index)
             ip_addr = item.text()
-            miner_type = self.tableIPRID.item(item.row(), 4).text()
-            macaddr = self.tableIPRID.item(item.row(), 2).text()
-            serial = self.tableIPRID.item(item.row(), 3).text()
-            worker = ""
-            if serial and (
-                serial != "N/A" and serial != "Unknown" and serial != "Failed"
-            ):
-                worker = f".{serial[-5:]}"
-            elif macaddr and (macaddr != "N/A" and macaddr != "Failed"):
-                worker = f".{macaddr.replace(':', '')[-5:]}"
-            client_auth, custom_auth = self.get_client_auth_from_type(miner_type)
-            self.api_client.create_client_from_type(
-                miner_type, ip_addr, client_auth, custom_auth
+            miner_type = MinerType.from_value(
+                self.tableIPRID.item(item.row(), 3).text()
             )
-            client = self.api_client.get_client()
-            if not client:
-                failed.append(ip_addr)
-                continue
+            fw_type = MinerFirmware.from_value(
+                self.tableIPRID.item(item.row(), 11).text()
+            )
+            match fw_type:
+                case MinerFirmware.LUX_OS:
+                    miner_type = MinerType.LUX_OS
+                case MinerFirmware.VNISH:
+                    miner_type = MinerType.VNISH
+                case _:
+                    pass
+            macaddr = self.tableIPRID.item(item.row(), 2)
+            serial = self.tableIPRID.item(item.row(), 5)
             urls = [
                 self.linePoolURL.text(),
                 self.linePoolURL_2.text(),
@@ -1375,25 +1343,34 @@ class IPR(QMainWindow, Ui_MainWindow):
             ]
             # append worker name
             if self.checkAutomaticWorkerNames.isChecked():
-                if worker:
-                    for idx in range(0, len(users)):
-                        if users[idx]:
-                            users[idx] = users[idx].split(".")[0] + worker
+                worker_name = ""
+                if serial and serial.text() != "N/A" and serial.text() != "Unknown":
+                    worker_name = f".{serial.text()[-5:]}"
+                elif macaddr and macaddr.text() != "N/A":
+                    worker_name = f".{macaddr.text().replace(':', '')[-5:]}"
+                if worker_name:
+                    for i in range(0, len(users)):
+                        if len(users[i]):
+                            users[i] = users[i] + worker_name
                 else:
                     logger.warning(
                         "update_miner_pools : failed to find applicable worker name. Continuing.."
                     )
-
             passwds = [
                 self.linePoolPasswd.text(),
                 self.linePoolPasswd_2.text(),
                 self.linePoolPasswd_3.text(),
             ]
-            self.api_client.update_miner_pools(urls, users, passwds)
-            if client._error:
+
+            alt_pwd = self.get_client_auth(miner_type.value)
+            self.asic.create_client(
+                miner_type=miner_type, ip=item.text(), alt_pwd=alt_pwd
+            )
+            self.asic.update_miner_pools(urls, users, passwds)
+            if self.asic.client_error():
                 failed.append(ip_addr)
                 continue
-            self.api_client.close_client()
+            self.asic.close_client()
             passed.append(ip_addr)
 
         # action status

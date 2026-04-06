@@ -7,7 +7,7 @@ import zlib
 from pydantic import BaseModel, ConfigDict, ValidationError
 from PySide6.QtNetwork import QNetworkDatagram
 
-from .patterns import (
+from mod.lm.ipreport.patterns import (
     ZLIB_DEFAULT_MAGIC,
     GoldshellIPReport,
     MinerTypeHint,
