@@ -5,7 +5,7 @@ import webbrowser
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pydantic import TypeAdapter, ValidationError
 from PySide6.QtCore import (
@@ -73,7 +73,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.config = stored
         self._app_instance = QApplication.instance()
         self.confirms: list[IPRConfirmation] = []
-        self.aboutDialog: Optional[IPRAbout] = None
+        self.aboutDialog: IPRAbout | None = None
         self.sys_tray: QSystemTrayIcon = QSystemTrayIcon(
             QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"),
             parent=self,
@@ -359,7 +359,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             return True
         return False
 
-    def update_stacked_widget(self, view_index: Optional[int] = None, *_):
+    def update_stacked_widget(self, view_index: int | None = None, *_):
         logger.info(" update view.")
         if not view_index:
             if self.menu_bar.actionShowPoolConfigurator.isChecked():
@@ -617,9 +617,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "Status :: Successfully restored to default settings.", 5000
             )
 
-    def update_current_preset_to_config(self) -> list[Dict[str, str]]:
+    def update_current_preset_to_config(self) -> list[dict[str, str]]:
         presets = TypeAdapter(list[PoolPreset])
-        saved_pools: list[Dict[str, str]] = presets.dump_python(
+        saved_pools: list[dict[str, str]] = presets.dump_python(
             self.config.pool_config.pool_presets, by_alias=True
         )
         if not len(saved_pools):
@@ -841,8 +841,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                 return
 
     def get_selected_indexes_for_action(
-        self, action: str, section: Optional[int] = None
-    ) -> Optional[list[QModelIndex]]:
+        self, action: str, section: int | None = None
+    ) -> list[QModelIndex] | None:
         rows = self.tableIPRID.rowCount()
         if not rows:
             return
@@ -864,7 +864,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         rows = self.tableIPRID.rowCount()
         if not rows:
             return
-        selected_ips = [x for x in self.tableIPRID.selectedIndexes() if x.column() == 1]
+        selected_ips = [x for x in self.tableIPRID.selectedIndexes() if x.column() == 2]
         for index in selected_ips:
             item = self.tableIPRID.itemFromIndex(index)
             self.open_dashboard(item.text())
@@ -1197,11 +1197,10 @@ class IPR(QMainWindow, Ui_MainWindow):
                 return None
         return client_auth
 
-    def populate_table_row(self, data: Dict[str, Any]) -> None:
+    def populate_table_row(self, data: dict[str, Any]) -> None:
         """
-        arguments:
-            **data: dict[str. str] -- row data with the following key structure:
-                'ip', 'mac', 'serial', 'type', 'subtype', 'algoritmn', 'firmware', 'platform'
+        Arguments:
+            data (dict[str, Any]): stringified data from MinerData.
         """
         logger.info("populate_table : write table data.")
         rowPosition = self.tableIPRID.rowCount()
