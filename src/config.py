@@ -96,13 +96,7 @@ class PoolPreset(BaseModel):
 class PoolConfiguratorSettings(BaseModel):
     auto_set_workers: Annotated[bool, Field(alias="autoSetWorkers")] = True
     selected_preset: Annotated[int, Field(alias="selectedPoolPreset")] = 0
-    pool_presets: Annotated[list[PoolPreset], Field(alias="poolPresets")] = [
-        PoolPreset(preset_name="Saved Pool 1"),
-        PoolPreset(preset_name="Saved Pool 2"),
-        PoolPreset(preset_name="Saved Pool 3"),
-        PoolPreset(preset_name="Saved Pool 4"),
-        PoolPreset(preset_name="Saved Pool 5"),
-    ]
+    pool_presets: Annotated[list[PoolPreset], Field(alias="poolPresets")] = []
 
 
 class InstanceViews(BaseModel):
