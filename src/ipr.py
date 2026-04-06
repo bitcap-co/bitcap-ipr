@@ -217,7 +217,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             ]
         )
         self.tableIPRID.setColumnWidth(0, 15)
-        self.tableIPRID.setColumnWidth(1, 130)
+        self.tableIPRID.setColumnWidth(1, 180)
         self.tableIPRID.setColumnWidth(3, 120)
         self.tableIPRID.setColumnWidth(5, 130)
         self.tableIPRID.setColumnWidth(6, 145)
