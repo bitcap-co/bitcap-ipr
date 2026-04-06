@@ -847,7 +847,7 @@ Uses last 5 of SN or MAC address.</string>
              <bool>true</bool>
             </property>
             <property name="columnCount">
-             <number>14</number>
+             <number>15</number>
             </property>
             <attribute name="horizontalHeaderMinimumSectionSize">
              <number>15</number>
@@ -855,6 +855,7 @@ Uses last 5 of SN or MAC address.</string>
             <attribute name="horizontalHeaderDefaultSectionSize">
              <number>105</number>
             </attribute>
+            <column/>
             <column/>
             <column/>
             <column/>

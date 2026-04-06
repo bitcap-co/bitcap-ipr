@@ -380,8 +380,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.tableIPRID = QTableWidget(self.tableView)
-        if (self.tableIPRID.columnCount() < 14):
-            self.tableIPRID.setColumnCount(14)
+        if (self.tableIPRID.columnCount() < 15):
+            self.tableIPRID.setColumnCount(15)
         self.tableIPRID.setObjectName(u"tableIPRID")
         sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
         sizePolicy5.setHorizontalStretch(0)
@@ -393,7 +393,7 @@ class Ui_MainWindow(object):
         self.tableIPRID.setProperty(u"showDropIndicator", False)
         self.tableIPRID.setShowGrid(False)
         self.tableIPRID.setSortingEnabled(True)
-        self.tableIPRID.setColumnCount(14)
+        self.tableIPRID.setColumnCount(15)
         self.tableIPRID.horizontalHeader().setMinimumSectionSize(15)
         self.tableIPRID.horizontalHeader().setDefaultSectionSize(105)
 
