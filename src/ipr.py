@@ -199,6 +199,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.tableIPRID.setHorizontalHeaderLabels(
             [
                 "",
+                "RECV AT",
                 "IP",
                 "MAC",
                 "TYPE",
@@ -887,7 +888,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 match item.column():
                     case 0:  # ignore locate
                         continue
-                    case 1:  # ip
+                    case 2:  # ip
                         out += f"http://{item.text()}{sep}"
                     case _:
                         out += f"{item.text()}{sep}"
@@ -950,7 +951,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         cols = self.tableIPRID.columnCount()
         if not rows:
             return
-        out = "IP,MAC,TYPE,SUBTYPE,SERIAL,ALGORITHM,HOSTNAME,STRATUM_URL,USERNAME,WORKER_NAME,FIRMWARE,FW_VERSION,PLATFORM\n"
+        out = "RECV_AT,IP,MAC,TYPE,SUBTYPE,SERIAL,ALGORITHM,HOSTNAME,STRATUM_URL,USERNAME,WORKER_NAME,FIRMWARE,FW_VERSION,PLATFORM\n"
         for i in range(rows):
             for j in range(1, cols):
                 out += self.tableIPRID.item(i, j).text()
@@ -1094,7 +1095,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             return
         if miner_type == MinerType.UNKNOWN:
             miner_data = MinerData(
-                ip=result.src_ip, mac=result.src_mac, type=miner_type
+                recv_at=result.updated_at,
+                ip=result.src_ip,
+                mac=result.src_mac,
+                type=miner_type,
             ).as_dict()
         else:
             # get miner data from src ip
@@ -1108,6 +1112,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                     5000,
                 )
             miner_data = self.asic.get_miner_data()
+        miner_data["recv_at"] = result.updated_at
         miner_data["ip"] = result.src_ip
         miner_data["mac"] = miner_data["mac"].lower()
         # update serial if IPReport has
@@ -1204,6 +1209,17 @@ class IPR(QMainWindow, Ui_MainWindow):
         actionLocateMiner.setToolTip("Locate Miner")
         self.tableIPRID.setCellWidget(rowPosition, 0, actionLocateMiner)
         self.tableIPRID.setItem(rowPosition, 0, IPRIndexWidgetItem(rowPosition))
+        # recv at
+        date_item = QTableWidgetItem()
+        try:
+            recv_at_datetime = QDateTime.fromSecsSinceEpoch(int(data["recv_at"]))
+        except ValueError:
+            # from import
+            recv_at_datetime = QDateTime.fromString(data["recv_at"])
+        date_item.setData(Qt.ItemDataRole.UserRole, recv_at_datetime)
+        date_item.setText(recv_at_datetime.toString())
+        self.tableIPRID.setItem(rowPosition, 1, date_item)
+        # ip
         ip_item = QTableWidgetItem()
         if "ip_report" not in data:
             # manually create src_addr for sorting
