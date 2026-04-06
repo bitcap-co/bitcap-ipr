@@ -1097,7 +1097,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             return
         if miner_type == MinerType.UNKNOWN:
             miner_data = MinerData(
-                recv_at=result.updated_at,
+                recv_at=int(result.updated_at),
                 ip=result.src_ip,
                 mac=result.src_mac,
                 type=miner_type,
@@ -1214,7 +1214,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         # recv at
         date_item = QTableWidgetItem()
         try:
-            recv_at_datetime = QDateTime.fromSecsSinceEpoch(int(data["recv_at"]))
+            recv_at_datetime = QDateTime.fromSecsSinceEpoch(data["recv_at"])
         except ValueError:
             # from import
             recv_at_datetime = QDateTime.fromString(data["recv_at"])
