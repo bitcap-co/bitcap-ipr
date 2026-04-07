@@ -6,13 +6,12 @@ import zlib
 from pathlib import Path
 from typing import Any, Dict
 
-from PySide6.QtCore import QMetaMethod
+from PySide6.QtCore import QCoreApplication, QMetaMethod
 from PySide6.QtTest import QSignalSpy, QTest
-from PySide6.QtWidgets import QApplication
 
-from src.mod.lm import IPReport, Listener
+from mod.lm import IPReport, Listener
 
-app = QApplication(sys.argv)
+app = QCoreApplication(sys.argv)
 
 
 def read_payload(filename: str) -> str:
