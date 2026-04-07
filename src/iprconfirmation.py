@@ -24,6 +24,7 @@ class IPRConfirmation(QDialog, Ui_IPRConfirmation):
         self.labelIPLogo.setPixmap(QPixmap(":theme/icons/rc/wifi.png"))
         self.labelMACLogo.setPixmap(QPixmap(":theme/icons/rc/stack.png"))
         self.labelASICLogo.setPixmap(QPixmap(":theme/icons/rc/miner.png"))
+        self.labelRecvAtLogo.setPixmap(QPixmap(":theme/icons/rc/time.png"))
 
         self._create_copy_action(self.lineIPField)
         self._create_copy_action(self.lineMACField)
