@@ -355,7 +355,8 @@ QLineEdit {
 
 QLineEdit#lineIPField,
 QLineEdit#lineMACField,
-QLineEdit#lineASICField {
+QLineEdit#lineASICField,
+QLineEdit#lineRecvAtField {
   background-color: #6b7076;
   padding-top: 2px;
   /* This QLineEdit fix  103, 111 */

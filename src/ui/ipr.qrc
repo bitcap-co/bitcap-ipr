@@ -18,5 +18,6 @@
     <file>rc/stack.png</file>
     <file>rc/miner.png</file>
     <file>rc/dashboard.png</file>
+    <file>rc/time.png</file>
   </qresource>
 </RCC>
