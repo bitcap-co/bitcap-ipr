@@ -13,7 +13,7 @@ jobs:
             arch: x64
           - os: ubuntu-latest
             arch: x64
-          - os: macos-13
+          - os: macos-15-intel
             arch: x64
           - os: macos-latest
             arch: arm64
@@ -123,7 +123,6 @@ jobs:
           mkdir -p dist/dmg
           cp -r dist/BitCapIPR.app dist/dmg
           DMG_FS="HFS+"
-          if [[ "$ImageOS" == "macos13" ]]; then DMG_FS="APFS"; fi
           create-dmg \
             --volname "BitCapIPR" \
             --filesystem $DMG_FS \
@@ -202,8 +201,8 @@ jobs:
             ${{ github.workspace }}/artifacts/ubuntu-22.04-X64/*.deb
             ${{ github.workspace }}/artifacts/ubuntu-latest-X64/*.zip
             ${{ github.workspace }}/artifacts/ubuntu-latest-X64/*.deb
-            ${{ github.workspace }}/artifacts/macos-13-X64/*.zip
-            ${{ github.workspace }}/artifacts/macos-13-X64/*.dmg
+            ${{ github.workspace }}/artifacts/macos-15-intel-X64/*.zip
+            ${{ github.workspace }}/artifacts/macos-15-intel-X64/*.dmg
             ${{ github.workspace }}/artifacts/macos-latest-ARM64/*.zip
             ${{ github.workspace }}/artifacts/macos-latest-ARM64/*.dmg
             ${{ github.workspace }}/artifacts/windows-latest-X64/*.zip
