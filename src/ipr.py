@@ -1114,7 +1114,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                     5000,
                 )
             miner_data = self.asic.get_miner_data()
-        miner_data["recv_at"] = result.updated_at
+        miner_data["recv_at"] = int(result.updated_at)
         miner_data["ip"] = result.src_ip
         miner_data["mac"] = miner_data["mac"].lower()
         # update serial if IPReport has
@@ -1138,10 +1138,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         ip: str = result["ip"]
         mac: str = result["mac"]
         type: str = result["type"]
+        recv_at: int = result["recv_at"]
         fw_type: str = result["firmware"]
         type_str = type.capitalize()
         if type != "unknown":
             type_str = f"{type.capitalize()} ({fw_type})"
+        recv_timestamp = QDateTime.fromSecsSinceEpoch(recv_at).toString()
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
@@ -1155,6 +1157,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
 
             logger.info("show_confirmation : show IPRConfirmation.")
+            confirm.lineRecvAtField.setText(recv_timestamp)
             confirm.lineIPField.setText(ip)
             confirm.lineMACField.setText(mac)
             confirm.lineASICField.setText(type_str)
