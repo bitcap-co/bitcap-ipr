@@ -21,20 +21,17 @@ jobs:
             arch: x64
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.14"
 
-      - name: Install Python dependencies
+      - name: Setup dependencies
         run: |
           pip install -U pip
           pip install -r requirements.txt
 
-      - name: Linux - Build standalone binary
+      - name: Linux - Build standalone with Nuitka
         uses: Nuitka/Nuitka-Action@main
         with:
           script-name: src/main.py
@@ -43,23 +40,15 @@ jobs:
           mode: standalone
         if: runner.os == 'Linux'
 
-      # - name: Linux - Strip
-      #   run: |
-      #     find dist/BitCapIPR/main.dist -iname "*.so*" -type f -exec strip --strip-all {} \;
-      #     strip --strip-all dist/BitCapIPR/main.dist/BitCapIPR
-      #   if: runner.os == 'Linux'
-
       - name: Linux - Run package script
         shell: bash
         run: |
           mv dist/BitCapIPR/main.dist dist/BitCapIPR/bitcap-ipr
-          # package portable zip archive
           cp README.md CONFIGURATION.md dist/BitCapIPR/
           ln -s bitcap-ipr/BitCapIPR dist/BitCapIPR/BitCapIPR
           (cd dist && zip -r --symlinks BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}-portable.zip .)
           rm dist/BitCapIPR/README.md dist/BitCapIPR/CONFIGURATION.md dist/BitCapIPR/BitCapIPR
 
-          # package .deb archive with dpkg-deb
           [ -e package ] && rm -rf package
           mkdir -p package/DEBIAN
           mkdir -p package/opt/bitcap-ipr
@@ -91,7 +80,7 @@ jobs:
           brew cleanup openssl@3
         if: runner.os == 'macOS' && runner.arch == 'X64'
 
-      - name: MacOS - Build app bundle
+      - name: MacOS - Build standalone with Nuitka
         uses: Nuitka/Nuitka-Action@main
         with:
           script-name: src/main.py
@@ -101,24 +90,15 @@ jobs:
           macos-app-icon: resources/app/icons/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.icns
         if: runner.os == 'macOS'
 
-      # - name: MacOS - Strip
-      #   run: |
-      #     find dist/main.app -iname "*.so*" -type f -exec strip {} \;
-      #     find dist/main.app -iname "*.dylib" -type f -exec strip {} \;
-      #     find dist/main.app -iname "*.bin" -type f -exec strip {} \;
-      #   if: runner.os == 'macOS'
-
       - name: MacOS - Run package script
         shell: bash
         run: |
           mv dist/main.app dist/BitCapIPR.app
-          # package portable zip archive
           cp README.md dist/BitCapIPR.app/Contents
           cp CONFIGURATION.md dist/BitCapIPR.app/Contents
           zip -9 -y -r dist/BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}-portable.zip dist/BitCapIPR.app
           rm dist/BitCapIPR.app/Contents/README.md dist/BitCapIPR.app/Contents/CONFIGURATION.md
 
-          # package .dmg with create-dmg
           brew install create-dmg
           mkdir -p dist/dmg
           cp -r dist/BitCapIPR.app dist/dmg
@@ -137,7 +117,7 @@ jobs:
             "dist/dmg/"
         if: runner.os == 'macOS'
 
-      - name: Windows - build standalone binary
+      - name: Windows - Build standalone with Nuitka
         uses: Nuitka/Nuitka-Action@main
         with:
           script-name: src/main.py
@@ -153,13 +133,11 @@ jobs:
         run: |
           Rename-Item -Path .\dist\BitCapIPR\main.dist -NewName bitcap-ipr
 
-          # package portable zip archive
           Copy-Item .\README.md .\dist\BitCapIPR
           Copy-Item .\CONFIGURATION.md .\dist\BitCapIPR
           Compress-Archive -Path .\dist\BitCapIPR -DestinationPath .\dist\BitCapIPR-${{ github.ref_name }}-win-${{ matrix.arch }}-portable.zip -Force
           Remove-Item -Path .\dist\BitCapIPR\README.md,.\dist\BitCapIPR\CONFIGURATION.md
 
-          # package setup installer with innosetup
           choco install innosetup
           ISCC.exe .\setup\setup.iss /O".\dist\"
           Rename-Item -Path .\dist\BitCapIPR-setup.exe -NewName "BitCapIPR-${{ github.ref_name }}-win-${{ matrix.arch }}-setup.exe"
