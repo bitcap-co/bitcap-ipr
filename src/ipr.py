@@ -833,9 +833,9 @@ class IPR(QMainWindow, Ui_MainWindow):
     def double_click_item(self, model_index: QModelIndex):
         item = self.tableIPRID.itemFromIndex(model_index)
         match item.column():
-            case 1:  # ip column
+            case 2:  # ip column
                 self.open_dashboard(item.text())
-            case 3:  # serial column
+            case 6:  # serial column
                 self.tableIPRID.editItem(item)
             case _:
                 return
