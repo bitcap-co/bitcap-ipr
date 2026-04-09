@@ -63,11 +63,12 @@ class ASICClient(QObject):
     def _set_active_client(
         self, client: BaseHTTPClient | BaseRPCClient | BaseTCPClient
     ):
+        # close existing client, if any
         self.close_client()
         self.client = client
 
     def client_error(self) -> Exception | None:
-        if self.client and self.client.error():
+        if self.client and self.client.error() is not None:
             return self.client.error()
 
     def create_antminer_client(self, ip: str, alt_pwd: str | None = None) -> None:
@@ -352,4 +353,3 @@ class ASICClient(QObject):
         if self.client is not None:
             logger.info(f"{self.__repr__()} : close client.")
             self.client._close(ex)
-            self.client = None
