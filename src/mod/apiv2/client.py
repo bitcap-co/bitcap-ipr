@@ -299,7 +299,7 @@ class ASICClient(QObject):
         try:
             self.client.blink(enabled=True)
             self.locate_timer.start(duration)
-        except AuthenticationError as e:
+        except (FailedConnectionError, AuthenticationError, APIError) as e:
             logger.error(f"{self.client.__repr__()} : client error raised: {str(e)}")
             self.close_client(ex=e)
 
