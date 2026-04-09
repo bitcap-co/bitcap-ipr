@@ -3,7 +3,13 @@ from string import Template
 from typing import Any
 
 import requests
-from pydantic import BaseModel, Field, TypeAdapter, ValidationError, field_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    TypeAdapter,
+    ValidationError,
+    field_validator,
+)
 from requests.auth import HTTPDigestAuth
 
 from mod.apiv2 import settings
@@ -64,13 +70,13 @@ class NetInfo(BaseModel):
 
 class MinerConf(BaseModel):
     fan_ctrl: bool = Field(alias="bitmain-fan-ctrl")
-    fan_pwm: str = Field(alias="bitmain-fan-pwm")
-    freq_level: str | None = Field(
+    fan_pwm: int = Field(alias="bitmain-fan-pwm")
+    freq_level: int | None = Field(
         None, validation_alias="bitmain-freq-level", serialization_alias="freq-level"
     )
-    voltage: str | None = Field(None, alias="bitmain-voltage")
-    hashrate_per: str | None = Field(None, alias="bitmain-hashrate-percent")
-    user_ip_cat: str | None = Field(None, alias="bitmain-user-ip-cat")
+    voltage: float | None = Field(None, alias="bitmain-voltage")
+    hashrate_per: int | None = Field(None, alias="bitmain-hashrate-percent")
+    user_ip_cat: bool | None = Field(None, alias="bitmain-user-ip-cat")
     miner_mode: int = Field(
         validation_alias="bitmain-work-mode", serialization_alias="miner-mode"
     )
