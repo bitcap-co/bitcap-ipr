@@ -1217,7 +1217,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         date_item = QTableWidgetItem()
         try:
             recv_at_datetime = QDateTime.fromSecsSinceEpoch(data["recv_at"])
-        except ValueError:
+        except (TypeError, ValueError):
             # from import
             recv_at_datetime = QDateTime.fromString(data["recv_at"])
         date_item.setData(Qt.ItemDataRole.UserRole, recv_at_datetime)
