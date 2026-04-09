@@ -2,7 +2,7 @@ import logging
 from string import Template
 
 import requests
-from pydantic import BaseModel, Field, TypeAdapter, ValidationError
+from pydantic import BaseModel, Field, TypeAdapter, ValidationError, field_validator
 
 from mod.apiv2 import settings
 from mod.apiv2.base import BaseHTTPClient
@@ -107,22 +107,29 @@ class Summary(BaseModel):
 
 
 class Pool(BaseModel):
-    id: int
-    url: str
-    user: str
-    status: str
-    is_active: bool = Field(alias="isActive")
-    diff: float
-    getworks: int
-    priority: int
-    accept: int
-    rejected: int
-    rejected_p: float = Field(alias="rejected%")
-    stale: int
-    diffa: float = Field(alias="diffA")
-    diffr: float = Field(alias="diffR")
-    lsdiff: float
-    lstime: str
+    id: int | None
+    url: str | None
+    user: str | None
+    status: str | None
+    is_active: bool | None = Field(alias="isActive")
+    diff: float | None
+    getworks: int | None
+    priority: int | None
+    accept: int | None
+    rejected: int | None
+    rejected_p: float | None = Field(alias="rejected%")
+    stale: int | None
+    diffa: float | None = Field(alias="diffA")
+    diffr: float | None = Field(alias="diffR")
+    lsdiff: float | None
+    lstime: str | None
+
+    @field_validator("*", mode="before")
+    @classmethod
+    def _emtpy_to_none(cls, field_value):
+        if field_value == "":
+            return None
+        return field_value
 
 
 class MinerStatus(BaseModel):
