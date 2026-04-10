@@ -222,7 +222,13 @@ class ASICClient(QObject):
                 parser.parse_version_info(version_info)
             try:
                 pools = self.client.pools()
-            except (AuthenticationError, APIError, FailedConnectionError, OSError) as e:
+            except (
+                AuthenticationError,
+                APIError,
+                FailedConnectionError,
+                OSError,
+                requests.exceptions.Timeout,
+            ) as e:
                 logger.error(
                     f"{self.client.__repr__()} : client error raised: {str(e)}"
                 )
@@ -231,6 +237,7 @@ class ASICClient(QObject):
         except (
             FailedConnectionError,
             AuthenticationError,
+            requests.exceptions.Timeout,
             APIError,
             OSError,
             LookupError,
@@ -265,7 +272,12 @@ class ASICClient(QObject):
         client = VolcminerHTTPClient(ip)
         try:
             system_info = client.get_system_info()
-        except (FailedConnectionError, AuthenticationError, APIError):
+        except (
+            FailedConnectionError,
+            AuthenticationError,
+            APIError,
+            requests.exceptions.Timeout,
+        ):
             return None
         else:
             try:
@@ -300,7 +312,12 @@ class ASICClient(QObject):
         try:
             self.client.blink(enabled=True)
             self.locate_timer.start(duration)
-        except (FailedConnectionError, AuthenticationError, APIError) as e:
+        except (
+            FailedConnectionError,
+            AuthenticationError,
+            APIError,
+            requests.exceptions.Timeout,
+        ) as e:
             logger.error(f"{self.client.__repr__()} : client error raised: {str(e)}")
             self.close_client(ex=e)
 
@@ -319,7 +336,12 @@ class ASICClient(QObject):
         pool_conf = []
         try:
             pool_conf = self.client.get_pool_conf()
-        except (APIError, AuthenticationError, FailedConnectionError) as e:
+        except (
+            APIError,
+            AuthenticationError,
+            FailedConnectionError,
+            requests.exceptions.Timeout,
+        ) as e:
             logger.error(f"{self.client.__repr__()} : client error raised: {str(e)}")
             self.close_client(ex=e)
 
@@ -345,7 +367,12 @@ class ASICClient(QObject):
             return
         try:
             self.client.update_pool_conf(urls, users, passwds)
-        except (FailedConnectionError, AuthenticationError, APIError) as e:
+        except (
+            FailedConnectionError,
+            AuthenticationError,
+            APIError,
+            requests.exceptions.Timeout,
+        ) as e:
             logger.error(f"{self.client.__repr__()} : client error raised: {str(e)}")
             self.close_client(ex=e)
 

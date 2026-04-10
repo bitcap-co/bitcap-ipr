@@ -88,6 +88,7 @@ class BaseHTTPClient(BaseClient):
                 FailedConnectionError,
                 AuthenticationError,
                 requests.exceptions.RequestException,
+                requests.exceptions.Timeout,
             ) as ex:
                 self.session.close()
                 self._ex = ex
