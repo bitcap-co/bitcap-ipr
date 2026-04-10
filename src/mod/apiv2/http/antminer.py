@@ -253,7 +253,7 @@ class AntminerHTTPClient(BaseHTTPClient):
             )
             raise APIInvalidResponse
         else:
-            return resobj.model_dump(exclude_none=True)
+            return resobj.model_dump(exclude_none=True, by_alias=True)
 
     def set_miner_conf(self, conf: dict[str, Any]) -> dict:
         resp = self.send_command("POST", command="set_miner_conf", payload=conf)
@@ -334,7 +334,7 @@ class AntminerHTTPClient(BaseHTTPClient):
                 "pass": passwds[i],
             }
 
-        conf.pools = ta.validate_python(pool_conf, by_name=True)
+        conf.pools = ta.validate_python(pool_conf)
 
         new_conf = conf.model_dump(mode="json", by_alias=True, exclude_none=True)
         return self.set_miner_conf(conf=new_conf)
