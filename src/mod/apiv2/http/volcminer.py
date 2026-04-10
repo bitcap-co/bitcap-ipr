@@ -436,21 +436,14 @@ class VolcminerHTTPClient(BaseHTTPClient):
         resp = self.get_miner_confV1()
         conf = MinerConfigV1.model_construct(**resp)
         miner = MinerConfig(**resp["miner"])
-        ta = TypeAdapter(list[MinerConfPool])
-        pools = ta.validate_python(miner.pools, by_name=True)
-        pool_conf: list[dict[str, str]] = ta.dump_python(pools, by_alias=True)
 
         data = {}
         for i in range(0, len(urls)):
-            if (
-                not any(pool_conf[i].values())
-                and not len(urls[i])
-                and not len(users[i])
-            ):
-                continue
+            if len(urls[i]) and len(users[i]) and passwds[i] == "":
+                passwds[i] = "x"
             data[f"_bb_pool{i + 1}url"] = urls[i]
             data[f"_bb_pool{i + 1}user"] = users[i]
-            data[f"_bb_pool{i + 1}pw"] = passwds[i] if len(passwds[i]) else "x"
+            data[f"_bb_pool{i + 1}pw"] = passwds[i]
 
         data["_bb_nobeeper"] = ""
         data["_bb_notempoverctrl"] = "false"
