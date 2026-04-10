@@ -930,7 +930,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>463</width>
+                   <width>478</width>
                    <height>448</height>
                   </rect>
                  </property>
@@ -1055,7 +1055,7 @@ Uses last 5 of SN or MAC address.</string>
                         <bool>true</bool>
                        </property>
                        <property name="suffix">
-                        <string>Minutes</string>
+                        <string> Minutes</string>
                        </property>
                        <property name="minimum">
                         <number>15</number>
