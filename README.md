@@ -7,56 +7,63 @@
 *BitCap IPReporter running on Windows*
 
 
-## Included Features
- - Listen for Antminers, IceRivers, and Whatsminers concurrently!
-   - With additional support for Goldshell, VolcMiner, Sealminers and more!
- - Copy confirmation IP & MAC addresses to clipboard.
- - Open confirmation IP addresses in web browser.
- - Custom "ID Table" view for retrieving identifying information from miners (i.e. SN, type, subtype/model, algorithm, firmware, and platform).
-   - API support including some custom firmwares (Vnish, Pbfarmer).
-   - Locate miners by blinking.
-   - Export table to .CSV file
- - System Tray support.
+## What's Included
+ - Listen for IP Report messages from Antminers, Icerivers, Whatsminers all concurrently.
+   - With additional support for:
+      - Hammer
+      - Volcminer
+      - Sealminer
+      - Elphapex
+      - Goldshell
+      - and more on the way!
+ - Fully dynamic listening
+    - Select what miners to listen for at any time!
+    - Listen filtering to ONLY allow specified miners.
+ - System Tray support!
+ - Miner API support including some custom firmwares (Vnish, LuxOS).
+ - Use "alternative" (non-default) passwords for miner authentication.
+ - Custom "ID Table" view for retrieving identifying information from received miners.
+    - Table view for displaying more identifying data like miner type, model, serial number, firmware, pool info, etc.
+    - Import/Export table as .CSV.
+    - Locate miners by blinking.
+ - Retrieve and update pool configuration with the Pool Configurator!
+ - Load/Save pool information with presets.
 
 
 ## Requirements
-A workstation/PC directly connected to main network or VLAN.
+A workstation/PC connected to miner network (LAN/VLAN).
 
 > [!NOTE]
 > For WhatsMiners on DHCP, need to be plugged in to same VLAN/network as miner.
 
 
 ## Installation
-BitCapIPR is supported on Debian-flavored Linux (x64), Windows (x64), and MacOS (x64/ARM).
+The BitCap IPReporter (later referred to as IPR) is supported on Debian-flavored Linux (x64), Windows 10/11 (x64), and MacOS (x64/ARM).
 
 Download the latest installer for your OS and Arch from [Releases](https://github.com/bitcap-co/bitcap-ipr/releases).
 
 Portable artifacts are also available!
 
 ## Usage
-To start listening with BitCap IPR, simply press the "Start" button!
-The app will automatically start listening for Antminers, Whatsminers, and IceRivers by default.
+To start listening with IPR, simply press the "Start" button!
+The app will automatically start listening for all supported miners by default. This can be freely adjusted as needed in the "Listener Configuration" section in Settings.
 
 Press the "IP Report" button on the miner and a IP confirmation window should show detailing the IP & MAC addresses.
 
 
-## Further Configuration
-BitCap IPR supports various configuration settings to customize the behavior to your liking. See [Configuration](./CONFIGURATION.md) for more information on all the available settings.
-
-
 ### API Setup
-When using the ID Table, IPR will create an API session for the received miner IP and gather miner data.
+When using the ID Table, IPR will create an API session for the received miner IP and automatically gather miner data.
 
 By default, it will use the default authentication. If you have an alternative password set, you can supply it to the IP Reporter by going to the API tab in Settings -> "Settings..." from the menubar.
 > [!NOTE]
 > On MacOS, go to "Preferences..." (Command + ,)
 
 
-## Known Issues & Workarounds
- - ~~### Main window not movable by mouse (Ubuntu 24.04+ with wayland)~~
-> [!NOTE]
-> This has now been patched. See [Release](https://github.com/bitcap-co/bitcap-ipr/releases/tag/v1.2.7)
+## Further Configuration
+IPR supports various configuration settings to customize the behavior to your liking. See [Configuration](./CONFIGURATION.md) for more information on all the available settings.
 
+
+## Known Issues & Workarounds
  - ### MacOS binary is damaged/unknown source
 > macOS binaries are not signed. Due to this, the IP Reporter will probably fail to launch and get an error stating the the app is from an unknown source.
 > To Fix: Manully allow through System Settings -> `Security and Privacy`.
