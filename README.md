@@ -76,5 +76,9 @@ IPR supports various configuration settings to customize the behavior to your li
 
 ## Troubleshooting/Reporting Issues
 If encountering an issue with the IP reporter, take the following steps:
-1. Go to Help -> "Open Log" to get insight on the issue.
-2. If not able to resolve from log, can report an issue on the repo by going to Help -> "Report Issue". Please include log file or snippet in the issue.
+  1. Go to Help -> "Open Log" to get insight on the issue.
+  2. If not able to resolve from log, can report an issue on the repo by going to Help -> "Report Issue". Please include log file or snippet in the issue.
+
+
+## Trademarks
+The names "bitcap-ipr", "BitCap IPReporter", "Bit Capital Group", "BitCap", and associated logos are not covered by the project license; see [TRADEMARKS.md](./TRADEMARKS.md) or contact sales@bitcap.co for permission.
