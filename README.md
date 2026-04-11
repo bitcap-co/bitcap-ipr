@@ -80,5 +80,9 @@ If encountering an issue with the IP reporter, take the following steps:
   2. If not able to resolve from log, can report an issue on the repo by going to Help -> "Report Issue". Please include log file or snippet in the issue.
 
 
+## License
+This project is licensed under the GNU General Public License v3.0 -- see [LICENSE.txt](./LICENSE.txt)
+  
+
 ## Trademarks
 The names "bitcap-ipr", "BitCap IPReporter", "Bit Capital Group", "BitCap", and associated logos are not covered by the project license; see [TRADEMARKS.md](./TRADEMARKS.md) or contact sales@bitcap.co for permission.
