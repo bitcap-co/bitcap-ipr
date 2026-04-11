@@ -1,23 +1,29 @@
+<!--
+Copyright (C) 2024-2026 Matthew Wertman <matt@bitcap.co>
+
+This file is part of bitcap-ipr
+Licensed under the GNU General Public License v3.0; see LICENSE
+-->
 <RCC>
-  <qresource>
-    <file>rc/titlebar/macos/close.png</file>
-    <file>rc/titlebar/macos/min.png</file>
-  </qresource>
-  <qresource>
-    <file>rc/img/BitCapIPR_BLK-02_Square.png</file>
-    <file>rc/img/scalable/BitCapIPRCenterLogo.svg</file>
-  </qresource>
-  <qresource prefix="theme/icons">
-    <file>rc/arrow_up.png</file>
-    <file>rc/arrow_down.png</file>
-    <file>rc/hide.png</file>
-    <file>rc/view.png</file>
-    <file>rc/copy.png</file>
-    <file>rc/flash.png</file>
-    <file>rc/wifi.png</file>
-    <file>rc/stack.png</file>
-    <file>rc/miner.png</file>
-    <file>rc/dashboard.png</file>
-    <file>rc/time.png</file>
-  </qresource>
+    <qresource>
+        <file>rc/titlebar/macos/close.png</file>
+        <file>rc/titlebar/macos/min.png</file>
+    </qresource>
+    <qresource>
+        <file>rc/img/BitCapIPR_BLK-02_Square.png</file>
+        <file>rc/img/scalable/BitCapIPRCenterLogo.svg</file>
+    </qresource>
+    <qresource prefix="theme/icons">
+        <file>rc/arrow_up.png</file>
+        <file>rc/arrow_down.png</file>
+        <file>rc/hide.png</file>
+        <file>rc/view.png</file>
+        <file>rc/copy.png</file>
+        <file>rc/flash.png</file>
+        <file>rc/wifi.png</file>
+        <file>rc/stack.png</file>
+        <file>rc/miner.png</file>
+        <file>rc/dashboard.png</file>
+        <file>rc/time.png</file>
+    </qresource>
 </RCC>
