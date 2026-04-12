@@ -253,8 +253,16 @@ class ASICClient(QObject):
         url = f"http://{ip}/"
         with requests.Session() as s:
             try:
-                resp = s.get(url, allow_redirects=True)
-            except (requests.HTTPError, requests.Timeout, requests.ConnectionError):
+                resp = s.get(
+                    url,
+                    allow_redirects=True,
+                    timeout=settings.get("http_request_timeout", 5.0),
+                )
+            except (
+                requests.exceptions.HTTPError,
+                requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout,
+            ):
                 pass
             else:
                 if resp.status_code == 401 and 'realm="antMiner' in resp.headers.get(
