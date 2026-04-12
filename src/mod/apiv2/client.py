@@ -232,7 +232,6 @@ class ASICClient(QObject):
                 APIError,
                 FailedConnectionError,
                 OSError,
-                requests.exceptions.Timeout,
             ) as e:
                 logger.error(
                     f"{self.client.__repr__()} : client error raised: {str(e)}"
@@ -242,7 +241,6 @@ class ASICClient(QObject):
         except (
             FailedConnectionError,
             AuthenticationError,
-            requests.exceptions.Timeout,
             APIError,
             OSError,
             LookupError,
@@ -281,7 +279,6 @@ class ASICClient(QObject):
             FailedConnectionError,
             AuthenticationError,
             APIError,
-            requests.exceptions.Timeout,
         ):
             return None
         else:
@@ -317,12 +314,7 @@ class ASICClient(QObject):
         try:
             self.client.blink(enabled=True)
             self.locate_timer.start(duration)
-        except (
-            FailedConnectionError,
-            AuthenticationError,
-            APIError,
-            requests.exceptions.Timeout,
-        ) as e:
+        except (FailedConnectionError, AuthenticationError, APIError, OSError) as e:
             logger.error(f"{self.client.__repr__()} : client error raised: {str(e)}")
             self.close_client(ex=e)
 
@@ -341,12 +333,7 @@ class ASICClient(QObject):
         pool_conf = []
         try:
             pool_conf = self.client.get_pool_conf()
-        except (
-            APIError,
-            AuthenticationError,
-            FailedConnectionError,
-            requests.exceptions.Timeout,
-        ) as e:
+        except (APIError, AuthenticationError, FailedConnectionError, OSError) as e:
             logger.error(f"{self.client.__repr__()} : client error raised: {str(e)}")
             self.close_client(ex=e)
 
@@ -372,12 +359,7 @@ class ASICClient(QObject):
             return
         try:
             self.client.update_pool_conf(urls, users, passwds)
-        except (
-            FailedConnectionError,
-            AuthenticationError,
-            APIError,
-            requests.exceptions.Timeout,
-        ) as e:
+        except (FailedConnectionError, AuthenticationError, APIError, OSError) as e:
             logger.error(f"{self.client.__repr__()} : client error raised: {str(e)}")
             self.close_client(ex=e)
 
