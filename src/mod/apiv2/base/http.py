@@ -93,7 +93,6 @@ class BaseHTTPClient(BaseClient):
                 FailedConnectionError,
                 AuthenticationError,
                 requests.exceptions.RequestException,
-                requests.exceptions.Timeout,
             ) as ex:
                 self.session.close()
                 self._ex = ex
@@ -104,19 +103,31 @@ class BaseHTTPClient(BaseClient):
                 method, path=path, params=params, payload=payload, data=data
             )
             resp.raise_for_status()
-        except requests.HTTPError as ex:
-            logger.error(
-                f"{self.__repr__()} : request {ex.request.method} {ex.request.url} failed: {ex.response.status_code} {ex.response.reason}"
-            )
-            raise APIError("failed to send command")
+        except requests.exceptions.RequestException as ex:
+            if isinstance(ex, (requests.ConnectTimeout, requests.ReadTimeout)):
+                logger.error(
+                    f"{self.__repr__()} : request {method} {self.base_url + path} timed out! {str(ex)}"
+                )
+                return {}
+            elif isinstance(ex, requests.HTTPError):
+                logger.error(
+                    f"{self.__repr__()} : request {method} {self.base_url + path} failed: {ex.response.status_code} {ex.response.reason}"
+                )
+            else:
+                logger.error(
+                    f"{self.__repr__()} : request {method} {self.base_url + path} failed! {str(ex)}"
+                )
+            raise APIError("Failed to send command")
         else:
             if resp.status_code == 200:
                 try:
                     return resp.json()
                 except requests.exceptions.JSONDecodeError:
                     return {"text": resp.text}
-        logger.error(f"{self.__repr__()} : unknown error occurred.")
-        raise APIError("failed to send command")
+        logger.error(
+            f"{self.__repr__()} : request {method} {self.base_url + path} failed! Unknown error occurred!"
+        )
+        raise APIError("Unknown error")
 
     @abstractmethod
     def get_hostname(self) -> str:

@@ -183,9 +183,7 @@ class AntminerHTTPClient(BaseHTTPClient):
                 requests.ConnectionError,
                 requests.Timeout,
             ) as ex:
-                if isinstance(ex, requests.ConnectionError) or isinstance(
-                    ex, requests.Timeout
-                ):
+                if isinstance(ex, (requests.ConnectionError, requests.Timeout)):
                     raise FailedConnectionError("Failed to connect or timeout occurred")
                 elif isinstance(ex, requests.HTTPError):
                     continue
