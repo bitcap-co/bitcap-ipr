@@ -47,7 +47,6 @@ class GoldshellParser(BaseParser):
         return super().parse_platform(obj)
 
     def parse_system_info(self, obj: dict[str, Any]) -> None:
-        self.parse_mac(obj)
         self.parse_subtype(obj)
         self.parse_firmware(obj)
 

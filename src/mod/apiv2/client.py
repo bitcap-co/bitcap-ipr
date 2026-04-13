@@ -213,6 +213,8 @@ class ASICClient(QObject):
                 parser.parse_all(system_info)
             elif isinstance(parser, GoldshellParser):
                 parser.parse_system_info(system_info)
+                settings = self.client.get_miner_conf()
+                parser.parse_mac(settings)
                 algo_info = self.client.get_algo()
                 parser.parse_algorithm(algo_info)
             elif isinstance(parser, WhatsminerParser):
