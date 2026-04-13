@@ -275,6 +275,6 @@ class GoldshellHTTPClient(BaseHTTPClient):
                 logger.error(
                     f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
                 )
-            raise APIInvalidResponse
+                raise APIInvalidResponse
         resobj = ActionResponse(success=True, msg="OK")
         return resobj.model_dump(mode="json")
