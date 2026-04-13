@@ -1113,20 +1113,24 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.asic.create_client(
                 miner_type=miner_type, ip=result.src_ip, alt_pwd=alt_pwd
             )
-            if self.asic.client_error():
-                return self.iprStatusBar.showMessage(
-                    f"Status :: Failed to create client to {result.src_ip}: {str(self.asic.client_error())}",
-                    5000,
-                )
             miner_data = self.asic.get_miner_data()
         miner_data["recv_at"] = int(result.updated_at)
         miner_data["ip"] = result.src_ip
-        miner_data["mac"] = miner_data["mac"].lower()
+        miner_data["mac"] = (
+            miner_data["mac"].lower() if miner_data["mac"] != "N/A" else result.src_mac
+        )
         # update serial if IPReport has
         if result.miner_sn:
             miner_data["serial"] = result.miner_sn
         # append IPReport data
         miner_data["ip_report"] = result.model_dump()
+        # let user know that we got an error and may not have complete data
+        if self.asic.client_error():
+            self.iprStatusBar.showMessage(
+                f"Status :: Failed to get complete miner data {result.src_ip}: {str(self.asic.client_error())}",
+                5000,
+            )
+            return self.show_confirmation(miner_data)
 
         self.asic.close_client()
 
@@ -1148,6 +1152,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         type_str = type.capitalize()
         if type != "unknown":
             type_str = f"{type.capitalize()} ({fw_type})"
+
         recv_timestamp = QDateTime.fromSecsSinceEpoch(recv_at).toString()
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
             self.open_dashboard(ip)
