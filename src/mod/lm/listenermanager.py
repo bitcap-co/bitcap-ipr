@@ -130,11 +130,11 @@ class ListenerManager(QObject):
                     self._append_listener(11503)
                 case 3:  # whatsminer
                     self._append_listener(8888)
-                case 5:  # goldshell
+                case 6:  # goldshell
                     self._append_listener(1314)
-                case 6:  # sealminer
+                case 7:  # sealminer
                     self._append_listener(18650)
-                case 7:  # elphapex
+                case 8:  # elphapex
                     self._append_listener(9999)
         for listener in self._listeners:
             listener.result.connect(self.emit_listen_complete)
