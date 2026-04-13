@@ -314,7 +314,7 @@ class SealminerHTTPClient(BaseHTTPClient):
             ):
                 continue
             idx = i + 1
-            new_conf[f"poolulr{idx}"] = urls[i]
+            new_conf[f"poolurl{idx}"] = urls[i]
             new_conf[f"pooluser{idx}"] = users[i]
             new_conf[f"poolpwd{idx}"] = passwds[i]
         return self.set_miner_conf(conf=new_conf)
