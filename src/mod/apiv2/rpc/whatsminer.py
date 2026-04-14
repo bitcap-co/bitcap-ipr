@@ -528,14 +528,14 @@ class WhatsminerTCPClient(BaseTCPClient):
                     raise APIError("Invalid param")
                 else:
                     param_str = json.dumps(param)
-                    pad_len = 16 - (len(param) % 16)
-                    padded = param_str + (chr(pad_len) * pad_len)
+                    padding = 16 - (len(param_str) % 16)
+                    aligned = param_str + (chr(padding) * padding)
                     aes_key = hashlib.sha256(token_str.encode("utf-8")).digest()
                     cipher = AES.new(aes_key, AES.MODE_ECB)
-                    param_hashed = base64.b64encode(
-                        cipher.encrypt(padded.encode())
+                    enc_param = base64.b64encode(
+                        cipher.encrypt(aligned.encode())
                     ).decode()
-                    cmd.param = param_hashed
+                    cmd.param = enc_param
         else:
             cmd = BTMinerV3Command(cmd=command, param=param)
         cmd_dict = cmd.model_dump()
