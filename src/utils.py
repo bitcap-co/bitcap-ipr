@@ -21,7 +21,7 @@ IPR_DEFAULT_CONFIG = Path(BASEDIR, "resources", "app", "config.json.default")
 IPR_METADATA = {
     "name": "BitCap IPReporter",
     "appname": "BitCapIPR",
-    "appversion": "1.2.9",
+    "appversion": "1.2.10",
     "qt": qVersion(),
     "python": ".".join(map(str, sys.version_info[:3])),
     "appauthor": "BitCap",
