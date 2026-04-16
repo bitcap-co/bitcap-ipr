@@ -388,9 +388,17 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.stackedWidget.setCurrentIndex(view_index)
 
     def update_status_msg(self):
+        if (
+            self.checkEnableIPRDBackend.isChecked()
+            and self.iprd.active
+            and not self.iprStatusBar.currentMessage()
+        ):
+            self.iprStatusBar.showMessage(
+                f"Status :: Listening on [{self.iprd.__repr__()}]..."
+            )
         if self.lm.count and not self.iprStatusBar.currentMessage():
             self.iprStatusBar.showMessage(
-                f"Status :: UDP listening on 0.0.0.0[{self.lm.status}]..."
+                f"Status :: Listening on 0.0.0.0[{self.lm.status}]..."
             )
         if not self.iprStatusBar.currentMessage():
             self.iprStatusBar.showMessage("Status :: Ready.")
@@ -1014,8 +1022,11 @@ class IPR(QMainWindow, Ui_MainWindow):
     # listener
     def start_listen(self):
         logger.info(" start listeners.")
-        if not any(
-            listenFor.isChecked() for listenFor in self.listenerConfig.buttons()
+        if (
+            not any(
+                listenFor.isChecked() for listenFor in self.listenerConfig.buttons()
+            )
+            and not self.checkEnableIPRDBackend.isChecked()
         ):
             logger.error(
                 "start_listen : no listeners configured. at least one listener needs to be checked."
@@ -1031,18 +1042,37 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.actionSysStopListen.setEnabled(True)
         self.pushIPRListenStart.setEnabled(False)
         self.pushIPRListenStop.setEnabled(True)
-        self.lm.start(self.listenerConfig)
-        logger.info(f"start_listen : listening for [{self.lm.status}].")
+        if not self.checkEnableIPRDBackend.isChecked():
+            self.lm.start(self.listenerConfig)
+            listen_status = f"Listening on 0.0.0.0[{self.lm.status}]..."
+        else:
+            try:
+                addr, port = self.lineIPRDSocketAddress.text().split(":")
+                port = int(port)
+            except ValueError:
+                self.stop_listen()
+                logger.error(
+                    "start_listen : failed to start IPRD listener! Invalid socket address."
+                )
+                return self.iprStatusBar.showMessage(
+                    "Status :: Failed to start IPRD Listener: Invalid socket address.",
+                    5000,
+                )
+            else:
+                self.iprd.set_socket_addr(addr, port)
+                self.iprd.start()
+                self.iprd.subscribed.connect(self.update_status_msg)
+                listen_status = f"Connecting to {addr}:{port}..."
+
+        logger.info(f"start_listen : {listen_status}.")
         if self.is_minimized_to_tray():
             self.sys_tray.showMessage(
                 "IPR Listener: Start",
-                f"Started Listening on 0.0.0.0[{self.lm.status}]...",
+                f"{listen_status}",
                 QSystemTrayIcon.MessageIcon.Information,
                 3000,
             )
-        self.iprStatusBar.showMessage(
-            f"Status :: UDP listening on 0.0.0.0[{self.lm.status}]..."
-        )
+        self.iprStatusBar.showMessage(f"Status :: {listen_status}", 3000)
 
     def stop_listen(self, timeout: bool = False, restart: bool = False):
         logger.info(" stop listeners.")
@@ -1057,7 +1087,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.clear_table()
         self.pushIPRListenStart.setEnabled(True)
         self.pushIPRListenStop.setEnabled(False)
-        self.lm.stop()
+        if not self.checkEnableIPRDBackend.isChecked():
+            self.lm.stop()
+        else:
+            self.iprd.stop()
         if timeout:
             logger.warning("stop_listen : timeout.")
             self.iprStatusBar.showMessage(
@@ -1086,10 +1119,17 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprStatusBar.clearMessage()
 
     def restart_listen(self):
-        if self.lm.count:
+        if self.lm.count or self.iprd.active:
             logger.info(" restart listeners.")
             self.stop_listen(restart=True)
             self.start_listen()
+
+    def show_iprd_error(self, error_str: str):
+        self.stop_listen()
+        logger.error(f" received IPRD Listener error: {error_str}")
+        return self.iprStatusBar.showMessage(
+            f"Status :: Got IPRD Listener error: {error_str}", 5000
+        )
 
     def process_result(self, result: IPReport):
         # reset inactive timer
@@ -1472,6 +1512,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         if self.is_minimized_to_tray():
             self.toggle_visibility()
         self.sys_tray.hide()
+        self.iprd.close()
+        self.iprd.error.disconnect(self.show_iprd_error)
+        self.iprd.result.disconnect(self.process_result)
+        self.iprd.subscribed.disconnect(self.update_status_msg)
         self.lm.stop()
         self.lm.listen_complete.disconnect(self.process_result)
         self.lm.listen_error.disconnect(self.restart_listen)
