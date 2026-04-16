@@ -931,7 +931,7 @@ Uses last 5 of SN or MAC address.</string>
                    <x>0</x>
                    <y>0</y>
                    <width>478</width>
-                   <height>448</height>
+                   <height>563</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1269,6 +1269,66 @@ Uses last 5 of SN or MAC address.</string>
                        </layout>
                       </widget>
                      </item>
+                     <item>
+                      <widget class="QGroupBox" name="groupIPRD">
+                       <property name="title">
+                        <string>IPR Daemon</string>
+                       </property>
+                       <layout class="QGridLayout" name="gridLayout_17">
+                        <item row="0" column="0">
+                         <widget class="QCheckBox" name="checkEnableIPRDBackend">
+                          <property name="toolTip">
+                           <string>Use the IPR Daemon backend instead of the built-in listener</string>
+                          </property>
+                          <property name="text">
+                           <string>Enable IPR Daemon backend</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="1" column="0">
+                         <widget class="QLabel" name="label_6">
+                          <property name="text">
+                           <string>Socket Address:</string>
+                          </property>
+                          <property name="StyleClass" stdset="0">
+                           <string>setText</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="1" column="1">
+                         <widget class="QLineEdit" name="lineIPRDSocketAddress">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="minimumSize">
+                           <size>
+                            <width>180</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                          <property name="maximumSize">
+                           <size>
+                            <width>225</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Socket address pointing to IPRD instance in the format of &lt;HOST&gt;:&lt;PORT&gt;</string>
+                          </property>
+                          <property name="placeholderText">
+                           <string>HOST:PORT</string>
+                          </property>
+                          <property name="clearButtonEnabled">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
                     </layout>
                    </widget>
                   </item>
@@ -1296,8 +1356,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>273</width>
-                   <height>832</height>
+                   <width>476</width>
+                   <height>893</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -1733,8 +1793,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>360</width>
-                   <height>219</height>
+                   <width>478</width>
+                   <height>227</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_11">
