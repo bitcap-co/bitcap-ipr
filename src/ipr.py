@@ -53,7 +53,7 @@ from iprconfirmation import IPRConfirmation
 from mod.apiv2 import ASICClient
 from mod.apiv2 import settings as api_settings
 from mod.apiv2.data import MinerData, MinerFirmware, MinerType
-from mod.lm import IPReport, ListenerManager
+from mod.lm import IPRDListener, IPReport, ListenerManager
 from ui.MainWindow import Ui_MainWindow
 from ui.widgets import (
     IPR_Menubar,
@@ -113,6 +113,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.lm.listen_complete.connect(self.process_result)
         # restart listeners on fail
         self.lm.listen_error.connect(self.restart_listen)
+        # init iprd listener
+        self.iprd = IPRDListener(self)
+        self.iprd.result.connect(self.process_result)
+        self.iprd.error.connect(self.show_iprd_error)
 
         logger.info(" init mod api.")
         self.asic = ASICClient(self)
@@ -183,6 +187,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         # listener signals
         self.pushIPRListenStart.clicked.connect(self.start_listen)
         self.pushIPRListenStop.clicked.connect(self.stop_listen)
+
+        self.checkEnableIPRDBackend.toggled.connect(self.restart_listen)
 
         self.poolConfigurator.hide()
         self.actionTogglePoolPasswd = self.create_passwd_toggle_action(
@@ -427,6 +433,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.checkListenGoldshell.setChecked(self.config.listen_for.goldshell)
         self.checkListenSealminer.setChecked(self.config.listen_for.sealminer)
         self.checkListenElphapex.setChecked(self.config.listen_for.elphapex)
+        self.checkEnableIPRDBackend.setChecked(self.config.listener.iprd.enable_iprd)
+        self.lineIPRDSocketAddress.setText(self.config.listener.iprd.socket_addr)
 
         # api
         self.lineAntminerPasswd.setText(self.config.api.auth.antminer_alt_passwd)
@@ -552,6 +560,10 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "goldshell": self.checkListenGoldshell.isChecked(),
                 "sealminer": self.checkListenSealminer.isChecked(),
                 "elphapex": self.checkListenElphapex.isChecked(),
+            },
+            "IPRD": {
+                "enableIPRD": self.checkEnableIPRDBackend.isChecked(),
+                "socketAddress": self.lineIPRDSocketAddress.text(),
             },
         }
         settings["api"] = {
