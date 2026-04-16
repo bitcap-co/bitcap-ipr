@@ -11,8 +11,7 @@ from pydantic import BaseModel, Field, ValidationError
 from PySide6.QtCore import QObject, Signal, Slot
 from PySide6.QtNetwork import QAbstractSocket, QHostAddress, QTcpSocket
 
-from mod.lm import IPReport
-from mod.lm.ipreport import MinerTypeHint
+from mod.lm.ipreport import IPReport, MinerTypeHint
 
 logger = logging.getLogger(__name__)
 
