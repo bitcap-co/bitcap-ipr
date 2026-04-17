@@ -69,7 +69,9 @@ class ASICClient(QObject):
         self, client: BaseHTTPClient | BaseRPCClient | BaseTCPClient
     ):
         # close existing client, if any
-        self.close_client()
+        if self.client is not None:
+            self.client._close()
+            self.client = None
         self.client = client
 
     def client_error(self) -> Exception | None:
