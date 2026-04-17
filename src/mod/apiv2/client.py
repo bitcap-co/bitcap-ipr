@@ -75,7 +75,7 @@ class ASICClient(QObject):
         self.client = client
 
     def client_error(self) -> Exception | None:
-        if self.client and self.client.error() is not None:
+        if self.client:
             return self.client.error()
 
     def create_antminer_client(self, ip: str, alt_pwd: str | None = None) -> None:
