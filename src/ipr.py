@@ -1205,7 +1205,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                     client_auth = self.lineVnishPasswd.text()
                 else:
                     client_auth = self.lineAntminerPasswd.text()
-                client_auth = self.lineVnishPasswd.text()
             case _:
                 return None
         return client_auth
