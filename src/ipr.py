@@ -1090,6 +1090,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         if not self.checkEnableIPRDBackend.isChecked():
             self.lm.stop()
         else:
+            self.iprd.subscribed.disconnect(self.update_status_msg)
             self.iprd.stop()
         if timeout:
             logger.warning("stop_listen : timeout.")
@@ -1516,7 +1517,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd.close()
         self.iprd.error.disconnect(self.show_iprd_error)
         self.iprd.result.disconnect(self.process_result)
-        self.iprd.subscribed.disconnect(self.update_status_msg)
         self.lm.stop()
         self.lm.listen_complete.disconnect(self.process_result)
         self.lm.listen_error.disconnect(self.restart_listen)
