@@ -1140,10 +1140,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         # identify miner type from src ip
         miner_type = self.asic.identify(ip=result.src_ip, miner_hint=result.port_type)
-        if (
-            miner_type.value not in self.lm.enabled
-            and self.checkEnableListenFilter.isChecked()
-        ):
+        if self.checkEnableListenFilter.isChecked() and miner_type.value not in [
+            btn.text().lower()
+            for btn in self.listenerConfig.buttons()
+            if btn.isChecked()
+        ]:
             logger.warning(
                 f"process_result: received miner type {miner_type.value} outside of enabled filter. Ignoring..."
             )
