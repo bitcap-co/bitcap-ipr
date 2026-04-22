@@ -149,6 +149,7 @@ class IceriverHTTPClient(BaseHTTPClient):
                 resp = self.session.post(
                     self.base_url + "user/loginpost",
                     data={"post": 6, "user": self.username, "pwd": pwd},
+                    timeout=settings.get("http_request_timeout", 5.0),
                 )
                 resp.raise_for_status()
             except (
