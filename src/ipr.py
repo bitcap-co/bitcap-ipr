@@ -1148,19 +1148,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         # identify miner type from src ip
         miner_type = self.asic.identify(ip=result.src_ip, miner_hint=result.port_type)
-        if self.checkEnableListenFilter.isChecked() and miner_type.value not in [
-            btn.text().lower()
-            for btn in self.listenerConfig.buttons()
-            if btn.isChecked()
-        ]:
-            logger.warning(
-                f"process_result: received miner type {miner_type.value} outside of enabled filter. Ignoring..."
-            )
-            self.iprStatusBar.showMessage(
-                f"Status :: Got miner type: {miner_type.value.capitalize()} outside of listener configuration.",
-                8000,
-            )
-            return
         if miner_type == MinerType.UNKNOWN:
             miner_data = MinerData(
                 recv_at=int(result.updated_at),
@@ -1175,12 +1162,27 @@ class IPR(QMainWindow, Ui_MainWindow):
                 miner_type=miner_type, ip=result.src_ip, alt_pwd=alt_pwd
             )
             miner_data = self.asic.get_miner_data()
+
+        # check versus current listen configuration if listen filter is enabled
+        if self.checkEnableListenFilter.isChecked() and miner_data["type"] not in [
+            btn.text().lower()
+            for btn in self.listenerConfig.buttons()
+            if btn.isChecked()
+        ]:
+            logger.warning(
+                f"process_result: received miner type {miner_data['type']} outside of enabled filter. Ignoring..."
+            )
+            return self.iprStatusBar.showMessage(
+                f"Status :: Got miner type: {str(miner_data['type']).capitalize()} outside of listener configuration.",
+                8000,
+            )
+
         miner_data["recv_at"] = int(result.updated_at)
         miner_data["ip"] = result.src_ip
         miner_data["mac"] = (
             miner_data["mac"].lower() if miner_data["mac"] != "N/A" else result.src_mac
         )
-        # update serial if IPReport has
+        # update serial if IPReport has one
         if result.miner_sn:
             miner_data["serial"] = result.miner_sn
         # append IPReport data
@@ -1192,7 +1194,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                 5000,
             )
             return self.show_confirmation(miner_data)
-
         self.asic.close_client()
 
         logger.debug(f"process_result: got miner data: {miner_data}.")
