@@ -1072,7 +1072,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 QSystemTrayIcon.MessageIcon.Information,
                 3000,
             )
-        self.iprStatusBar.showMessage(f"Status :: {listen_status}", 3000)
+        self.iprStatusBar.showMessage(f"Status :: {listen_status}", 8000)
 
     def stop_listen(self, timeout: bool = False, restart: bool = False):
         logger.info(" stop listeners.")
@@ -1128,6 +1128,13 @@ class IPR(QMainWindow, Ui_MainWindow):
     def show_iprd_error(self, error_str: str):
         self.stop_listen()
         logger.error(f" received IPRD Listener error: {error_str}")
+        if self.is_minimized_to_tray():
+            self.sys_tray.showMessage(
+                "IPR Listener: Error",
+                f"Got Listener error: {error_str}",
+                QSystemTrayIcon.MessageIcon.Warning,
+                5000,
+            )
         return self.iprStatusBar.showMessage(
             f"Status :: Got IPRD Listener error: {error_str}", 5000
         )
