@@ -6,6 +6,7 @@
 
 import json
 import logging
+import time
 
 from pydantic import BaseModel, Field, ValidationError
 from PySide6.QtCore import QObject, Signal, Slot
@@ -136,7 +137,7 @@ class IPRDListener(QObject):
         addr: int = QHostAddress(result.src_ip).toIPv4Address()
         ip_report = IPReport(
             created_at=float(result.timestamp),
-            updated_at=0,
+            updated_at=time.time(),
             port_type=port_type,
             src_addr=addr,
             src_ip=result.src_ip,
