@@ -91,7 +91,7 @@ class IPRDListener(QObject):
         logger.info(f"{self.__repr__()} : received packet.")
         buf = self.sock.readAll()
         logger.debug(f"{self.__repr__()} : read {buf.toStdString()} ({buf.length()})")
-        data = buf.toStdString().rstrip("\n")
+        data = buf.toStdString().splitlines()[0]
         try:
             obj = json.loads(data)
             packet = IPRDPacketData.model_validate(obj=obj, by_alias=True)
