@@ -27,6 +27,11 @@ Below is the default configuration file. All of these options can be found in th
       "goldshell": true,
       "sealminer": true,
       "elphapex": true
+    },
+    // "IPR Daemon" settings
+    "IPRD": {
+      "enableIPRD": false, // Enable/Disable IPR Daemon backend listener, replaces built-in listener if enabled.
+      "socketAddress": "" // socket address for host of IPR Daemon, in the form of <HOST>:<PORT>
     }
   },
   // "API" Settings
