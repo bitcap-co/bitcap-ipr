@@ -1088,18 +1088,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         # identify miner type from src ip
         miner_type = self.asic.identify(ip=result.src_ip, miner_hint=result.port_type)
-        if (
-            miner_type.value not in self.lm.enabled
-            and self.checkEnableListenFilter.isChecked()
-        ):
-            logger.warning(
-                f"process_result: received miner type {miner_type.value} outside of enabled filter. Ignoring..."
-            )
-            self.iprStatusBar.showMessage(
-                f"Status :: Got miner type: {miner_type.value.capitalize()} outside of listener configuration.",
-                8000,
-            )
-            return
         if miner_type == MinerType.UNKNOWN:
             miner_data = MinerData(
                 recv_at=int(result.updated_at),
@@ -1114,6 +1102,20 @@ class IPR(QMainWindow, Ui_MainWindow):
                 miner_type=miner_type, ip=result.src_ip, alt_pwd=alt_pwd
             )
             miner_data = self.asic.get_miner_data()
+
+        # check versus current listen configuration if listen filter is enabled
+        if (
+            self.checkEnableListenFilter.isChecked()
+            and miner_data["type"] not in self.lm.enabled
+        ):
+            logger.warning(
+                f"process_result: received miner type {miner_data['type']} outside of enabled filter. Ignoring..."
+            )
+            return self.iprStatusBar.showMessage(
+                f"Status :: Got miner type: {str(miner_data['type']).capitalize()} outside of listener configuration.",
+                8000,
+            )
+
         miner_data["recv_at"] = int(result.updated_at)
         miner_data["ip"] = result.src_ip
         miner_data["mac"] = (
