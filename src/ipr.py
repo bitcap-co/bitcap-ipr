@@ -1088,9 +1088,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.clear_table()
         self.pushIPRListenStart.setEnabled(True)
         self.pushIPRListenStop.setEnabled(False)
-        if not self.checkEnableIPRDBackend.isChecked():
-            self.lm.stop()
-        else:
+        # ensure lm is stopped
+        self.lm.stop()
+        if self.iprd.active:
             self.iprd.subscribed.disconnect(self.update_status_msg)
             self.iprd.stop()
         if timeout:
@@ -1127,8 +1127,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.start_listen()
 
     def show_iprd_error(self, error_str: str):
-        self.stop_listen()
         logger.error(f" received IPRD Listener error: {error_str}")
+        self.stop_listen()
         if self.is_minimized_to_tray():
             self.sys_tray.showMessage(
                 "IPR Listener: Error",
