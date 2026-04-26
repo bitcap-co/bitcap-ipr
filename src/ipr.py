@@ -189,6 +189,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.pushIPRListenStop.clicked.connect(self.stop_listen)
 
         self.checkEnableIPRDBackend.toggled.connect(self.restart_listen)
+        self.lineIPRDSocketAddress.editingFinished.connect(self.restart_listen)
 
         self.poolConfigurator.hide()
         self.actionTogglePoolPasswd = self.create_passwd_toggle_action(
