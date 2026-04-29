@@ -53,7 +53,7 @@ from iprconfirmation import IPRConfirmation
 from mod.apiv2 import ASICClient
 from mod.apiv2 import settings as api_settings
 from mod.apiv2.data import MinerData, MinerFirmware, MinerType
-from mod.lm import IPReport, ListenerManager
+from mod.lm import IPRDListener, IPReport, ListenerManager
 from ui.MainWindow import Ui_MainWindow
 from ui.widgets import (
     IPR_Menubar,
@@ -113,6 +113,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.lm.listen_complete.connect(self.process_result)
         # restart listeners on fail
         self.lm.listen_error.connect(self.restart_listen)
+        # init iprd listener
+        self.iprd = IPRDListener(self)
+        self.iprd.result.connect(self.process_result)
+        self.iprd.error.connect(self.show_iprd_error)
 
         logger.info(" init mod api.")
         self.asic = ASICClient(self)
@@ -183,6 +187,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         # listener signals
         self.pushIPRListenStart.clicked.connect(self.start_listen)
         self.pushIPRListenStop.clicked.connect(self.stop_listen)
+
+        self.checkEnableIPRDBackend.toggled.connect(self.restart_listen)
+        self.lineIPRDSocketAddress.editingFinished.connect(self.restart_listen)
 
         self.poolConfigurator.hide()
         self.actionTogglePoolPasswd = self.create_passwd_toggle_action(
@@ -382,9 +389,17 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.stackedWidget.setCurrentIndex(view_index)
 
     def update_status_msg(self):
+        if (
+            self.checkEnableIPRDBackend.isChecked()
+            and self.iprd.active
+            and not self.iprStatusBar.currentMessage()
+        ):
+            self.iprStatusBar.showMessage(
+                f"Status :: Listening on [{self.iprd.__repr__()}]..."
+            )
         if self.lm.count and not self.iprStatusBar.currentMessage():
             self.iprStatusBar.showMessage(
-                f"Status :: UDP listening on 0.0.0.0[{self.lm.status}]..."
+                f"Status :: Listening on 0.0.0.0[{self.lm.status}]..."
             )
         if not self.iprStatusBar.currentMessage():
             self.iprStatusBar.showMessage("Status :: Ready.")
@@ -427,6 +442,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.checkListenGoldshell.setChecked(self.config.listen_for.goldshell)
         self.checkListenSealminer.setChecked(self.config.listen_for.sealminer)
         self.checkListenElphapex.setChecked(self.config.listen_for.elphapex)
+        self.checkEnableIPRDBackend.setChecked(self.config.listener.iprd.enable_iprd)
+        self.lineIPRDSocketAddress.setText(self.config.listener.iprd.socket_addr)
 
         # api
         self.lineAntminerPasswd.setText(self.config.api.auth.antminer_alt_passwd)
@@ -552,6 +569,10 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "goldshell": self.checkListenGoldshell.isChecked(),
                 "sealminer": self.checkListenSealminer.isChecked(),
                 "elphapex": self.checkListenElphapex.isChecked(),
+            },
+            "IPRD": {
+                "enableIPRD": self.checkEnableIPRDBackend.isChecked(),
+                "socketAddress": self.lineIPRDSocketAddress.text(),
             },
         }
         settings["api"] = {
@@ -1002,8 +1023,11 @@ class IPR(QMainWindow, Ui_MainWindow):
     # listener
     def start_listen(self):
         logger.info(" start listeners.")
-        if not any(
-            listenFor.isChecked() for listenFor in self.listenerConfig.buttons()
+        if (
+            not any(
+                listenFor.isChecked() for listenFor in self.listenerConfig.buttons()
+            )
+            and not self.checkEnableIPRDBackend.isChecked()
         ):
             logger.error(
                 "start_listen : no listeners configured. at least one listener needs to be checked."
@@ -1019,18 +1043,37 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.actionSysStopListen.setEnabled(True)
         self.pushIPRListenStart.setEnabled(False)
         self.pushIPRListenStop.setEnabled(True)
-        self.lm.start(self.listenerConfig)
-        logger.info(f"start_listen : listening for [{self.lm.status}].")
+        if not self.checkEnableIPRDBackend.isChecked():
+            self.lm.start(self.listenerConfig)
+            listen_status = f"Listening on 0.0.0.0[{self.lm.status}]..."
+        else:
+            self.iprd.subscribed.connect(self.update_status_msg)
+            try:
+                addr, port = self.lineIPRDSocketAddress.text().split(":")
+                port = int(port)
+            except ValueError:
+                self.stop_listen()
+                logger.error(
+                    "start_listen : failed to start IPRD listener! Invalid socket address."
+                )
+                return self.iprStatusBar.showMessage(
+                    "Status :: Failed to start IPRD Listener: Invalid socket address.",
+                    5000,
+                )
+            else:
+                self.iprd.set_socket_addr(addr, port)
+                self.iprd.start()
+                listen_status = f"Connecting to {addr}:{port}..."
+
+        logger.info(f"start_listen : {listen_status}.")
         if self.is_minimized_to_tray():
             self.sys_tray.showMessage(
                 "IPR Listener: Start",
-                f"Started Listening on 0.0.0.0[{self.lm.status}]...",
+                f"{listen_status}",
                 QSystemTrayIcon.MessageIcon.Information,
                 3000,
             )
-        self.iprStatusBar.showMessage(
-            f"Status :: UDP listening on 0.0.0.0[{self.lm.status}]..."
-        )
+        self.iprStatusBar.showMessage(f"Status :: {listen_status}", 8000)
 
     def stop_listen(self, timeout: bool = False, restart: bool = False):
         logger.info(" stop listeners.")
@@ -1045,7 +1088,11 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.clear_table()
         self.pushIPRListenStart.setEnabled(True)
         self.pushIPRListenStop.setEnabled(False)
+        # ensure lm is stopped
         self.lm.stop()
+        if self.iprd.active:
+            self.iprd.subscribed.disconnect(self.update_status_msg)
+            self.iprd.stop()
         if timeout:
             logger.warning("stop_listen : timeout.")
             self.iprStatusBar.showMessage(
@@ -1074,10 +1121,24 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprStatusBar.clearMessage()
 
     def restart_listen(self):
-        if self.lm.count:
+        if self.lm.count or self.iprd.active:
             logger.info(" restart listeners.")
             self.stop_listen(restart=True)
             self.start_listen()
+
+    def show_iprd_error(self, error_str: str):
+        logger.error(f" received IPRD Listener error: {error_str}")
+        self.stop_listen()
+        if self.is_minimized_to_tray():
+            self.sys_tray.showMessage(
+                "IPR Listener: Error",
+                f"Got Listener error: {error_str}",
+                QSystemTrayIcon.MessageIcon.Warning,
+                5000,
+            )
+        return self.iprStatusBar.showMessage(
+            f"Status :: Got IPRD Listener error: {error_str}", 5000
+        )
 
     def process_result(self, result: IPReport):
         # reset inactive timer
@@ -1104,10 +1165,11 @@ class IPR(QMainWindow, Ui_MainWindow):
             miner_data = self.asic.get_miner_data()
 
         # check versus current listen configuration if listen filter is enabled
-        if (
-            self.checkEnableListenFilter.isChecked()
-            and miner_data["type"] not in self.lm.enabled
-        ):
+        if self.checkEnableListenFilter.isChecked() and miner_data["type"] not in [
+            btn.text().lower()
+            for btn in self.listenerConfig.buttons()
+            if btn.isChecked()
+        ]:
             logger.warning(
                 f"process_result: received miner type {miner_data['type']} outside of enabled filter. Ignoring..."
             )
@@ -1121,7 +1183,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         miner_data["mac"] = (
             miner_data["mac"].lower() if miner_data["mac"] != "N/A" else result.src_mac
         )
-        # update serial if IPReport has
+        # update serial if IPReport has one
         if result.miner_sn:
             miner_data["serial"] = result.miner_sn
         # append IPReport data
@@ -1133,7 +1195,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                 5000,
             )
             return self.show_confirmation(miner_data)
-
         self.asic.close_client()
 
         logger.debug(f"process_result: got miner data: {miner_data}.")
@@ -1461,6 +1522,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         if self.is_minimized_to_tray():
             self.toggle_visibility()
         self.sys_tray.hide()
+        self.iprd.close()
+        self.iprd.error.disconnect(self.show_iprd_error)
+        self.iprd.result.disconnect(self.process_result)
         self.lm.stop()
         self.lm.listen_complete.disconnect(self.process_result)
         self.lm.listen_error.disconnect(self.restart_listen)

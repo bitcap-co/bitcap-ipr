@@ -429,7 +429,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 478, 448))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 478, 563))
         self.verticalLayout_5 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_5.setSpacing(15)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
@@ -570,6 +570,33 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_6.addWidget(self.groupListeners)
 
+        self.groupIPRD = QGroupBox(self.groupListenerConfig)
+        self.groupIPRD.setObjectName(u"groupIPRD")
+        self.gridLayout_17 = QGridLayout(self.groupIPRD)
+        self.gridLayout_17.setObjectName(u"gridLayout_17")
+        self.checkEnableIPRDBackend = QCheckBox(self.groupIPRD)
+        self.checkEnableIPRDBackend.setObjectName(u"checkEnableIPRDBackend")
+
+        self.gridLayout_17.addWidget(self.checkEnableIPRDBackend, 0, 0, 1, 1)
+
+        self.label_6 = QLabel(self.groupIPRD)
+        self.label_6.setObjectName(u"label_6")
+
+        self.gridLayout_17.addWidget(self.label_6, 1, 0, 1, 1)
+
+        self.lineIPRDSocketAddress = QLineEdit(self.groupIPRD)
+        self.lineIPRDSocketAddress.setObjectName(u"lineIPRDSocketAddress")
+        sizePolicy.setHeightForWidth(self.lineIPRDSocketAddress.sizePolicy().hasHeightForWidth())
+        self.lineIPRDSocketAddress.setSizePolicy(sizePolicy)
+        self.lineIPRDSocketAddress.setMinimumSize(QSize(180, 25))
+        self.lineIPRDSocketAddress.setMaximumSize(QSize(225, 25))
+        self.lineIPRDSocketAddress.setClearButtonEnabled(True)
+
+        self.gridLayout_17.addWidget(self.lineIPRDSocketAddress, 1, 1, 1, 1)
+
+
+        self.verticalLayout_6.addWidget(self.groupIPRD)
+
 
         self.verticalLayout_5.addWidget(self.groupListenerConfig)
 
@@ -587,7 +614,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 273, 832))
+        self.scrollAPI.setGeometry(QRect(0, 0, 476, 893))
         self.verticalLayout_8 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_8.setSpacing(15)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
@@ -831,7 +858,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollLogs = QWidget()
         self.scrollLogs.setObjectName(u"scrollLogs")
-        self.scrollLogs.setGeometry(QRect(0, 0, 360, 219))
+        self.scrollLogs.setGeometry(QRect(0, 0, 478, 227))
         self.verticalLayout_11 = QVBoxLayout(self.scrollLogs)
         self.verticalLayout_11.setSpacing(15)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
@@ -1093,6 +1120,17 @@ class Ui_MainWindow(object):
         self.checkListenHammer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Hammer miners", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenHammer.setText(QCoreApplication.translate("MainWindow", u"Hammer", None))
+        self.groupIPRD.setTitle(QCoreApplication.translate("MainWindow", u"IPR Daemon", None))
+#if QT_CONFIG(tooltip)
+        self.checkEnableIPRDBackend.setToolTip(QCoreApplication.translate("MainWindow", u"Use the IPR Daemon backend instead of the built-in listener", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkEnableIPRDBackend.setText(QCoreApplication.translate("MainWindow", u"Enable IPR Daemon backend", None))
+        self.label_6.setText(QCoreApplication.translate("MainWindow", u"Socket Address:", None))
+        self.label_6.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.lineIPRDSocketAddress.setToolTip(QCoreApplication.translate("MainWindow", u"Socket address pointing to IPRD instance in the format of <HOST>:<PORT>", None))
+#endif // QT_CONFIG(tooltip)
+        self.lineIPRDSocketAddress.setPlaceholderText(QCoreApplication.translate("MainWindow", u"HOST:PORT", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
 #if QT_CONFIG(tooltip)
         self.tabWidget.setTabToolTip(self.tabWidget.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))
