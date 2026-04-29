@@ -155,6 +155,8 @@ class ASICClient(QObject):
                 return MinerType.SEALMINER
             case MinerTypeHint.WHATSMINER:
                 return MinerType.WHATSMINER
+            case MinerTypeHint.AURADINE:
+                return MinerType.AURADINE
             case MinerTypeHint.COMMON:
                 miner_type = self._parse_http_type(ip)
                 if miner_type is None:
