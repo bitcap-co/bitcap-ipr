@@ -23,6 +23,7 @@ class MinerTypeHint(IntEnum):
     SEALMINER = 18650
     GOLDSHELL = 1314
     ELPHAPEX = 9999
+    AURADINE = 12345
     UNKNOWN = 0
 
     @classmethod

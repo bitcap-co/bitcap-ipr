@@ -186,6 +186,9 @@ class IPReportDatagram:
                             self.mac_addr = mac
                             self.miner_sn = model.boxsn
                             self.valid = True
+                case MinerTypeHint.AURADINE:
+                    # @TODO: parse/validate Auradine packet
+                    pass
                 case _:
                     self.valid = False
 
