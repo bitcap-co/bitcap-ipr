@@ -59,7 +59,7 @@ class Info(BaseModel):
     platform: str
     install_type: str
     build_time: str
-    algorithm: str
+    algorithm: str | None = None
     hr_measure: str
     system: SystemInfo
     serial: str

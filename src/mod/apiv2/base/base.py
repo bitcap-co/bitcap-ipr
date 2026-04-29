@@ -31,8 +31,7 @@ class BaseClient(ABC):
         return f"{self.__class__.__name__}[{str(self.ip)}]"
 
     def error(self) -> Exception | None:
-        if self._ex is not None:
-            return self._ex
+        return self._ex
 
     @abstractmethod
     def _close(self, ex: Exception | None = None) -> None:

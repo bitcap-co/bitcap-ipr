@@ -73,11 +73,12 @@ class MinerAlgorithm(str, Enum):
         try:
             return cls(algo)
         except ValueError:
-            for enum in list(cls):
-                if algo.lower() == enum.name.lower() or algo.lower().__contains__(
-                    enum.name.lower()
-                ):
-                    return enum
+            if algo is not None:
+                for enum in list(cls):
+                    if algo.lower() == enum.name.lower() or algo.lower().__contains__(
+                        enum.name.lower()
+                    ):
+                        return enum
             return None
 
 
