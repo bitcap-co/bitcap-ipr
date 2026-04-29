@@ -567,6 +567,12 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.checkListenHammer, 3, 1, 1, 1)
 
+        self.checkListenAuradine = QCheckBox(self.groupListeners)
+        self.checkListenAuradine.setObjectName(u"checkListenAuradine")
+        self.checkListenAuradine.setMaximumSize(QSize(100, 30))
+
+        self.gridLayout_4.addWidget(self.checkListenAuradine, 4, 2, 1, 1)
+
 
         self.verticalLayout_6.addWidget(self.groupListeners)
 
@@ -614,7 +620,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 476, 893))
+        self.scrollAPI.setGeometry(QRect(0, 0, 255, 893))
         self.verticalLayout_8 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_8.setSpacing(15)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
@@ -858,7 +864,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollLogs = QWidget()
         self.scrollLogs.setObjectName(u"scrollLogs")
-        self.scrollLogs.setGeometry(QRect(0, 0, 478, 227))
+        self.scrollLogs.setGeometry(QRect(0, 0, 368, 227))
         self.verticalLayout_11 = QVBoxLayout(self.scrollLogs)
         self.verticalLayout_11.setSpacing(15)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
@@ -1120,6 +1126,10 @@ class Ui_MainWindow(object):
         self.checkListenHammer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Hammer miners", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenHammer.setText(QCoreApplication.translate("MainWindow", u"Hammer", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenAuradine.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Auradine miners", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenAuradine.setText(QCoreApplication.translate("MainWindow", u"Auradine", None))
         self.groupIPRD.setTitle(QCoreApplication.translate("MainWindow", u"IPR Daemon", None))
 #if QT_CONFIG(tooltip)
         self.checkEnableIPRDBackend.setToolTip(QCoreApplication.translate("MainWindow", u"Use the IPR Daemon backend instead of the built-in listener", None))

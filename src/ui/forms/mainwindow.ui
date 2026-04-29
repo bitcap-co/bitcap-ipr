@@ -1266,6 +1266,22 @@ Uses last 5 of SN or MAC address.</string>
                           </property>
                          </widget>
                         </item>
+                        <item row="4" column="2">
+                         <widget class="QCheckBox" name="checkListenAuradine">
+                          <property name="maximumSize">
+                           <size>
+                            <width>100</width>
+                            <height>30</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Enable listening for Auradine miners</string>
+                          </property>
+                          <property name="text">
+                           <string>Auradine</string>
+                          </property>
+                         </widget>
+                        </item>
                        </layout>
                       </widget>
                      </item>
@@ -1356,7 +1372,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>476</width>
+                   <width>255</width>
                    <height>893</height>
                   </rect>
                  </property>
@@ -1793,7 +1809,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>478</width>
+                   <width>368</width>
                    <height>227</height>
                   </rect>
                  </property>
