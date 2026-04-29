@@ -41,6 +41,7 @@ class Listeners(BaseModel):
     goldshell: Annotated[bool, Field(strict=True)] = True
     sealminer: Annotated[bool, Field(strict=True)] = True
     elphapex: Annotated[bool, Field(strict=True)] = True
+    auradine: Annotated[bool, Field(strict=True)] = True
 
 
 class ListenerSettings(BaseModel):

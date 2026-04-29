@@ -442,6 +442,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.checkListenGoldshell.setChecked(self.config.listen_for.goldshell)
         self.checkListenSealminer.setChecked(self.config.listen_for.sealminer)
         self.checkListenElphapex.setChecked(self.config.listen_for.elphapex)
+        self.checkListenAuradine.setChecked(self.config.listen_for.auradine)
         self.checkEnableIPRDBackend.setChecked(self.config.listener.iprd.enable_iprd)
         self.lineIPRDSocketAddress.setText(self.config.listener.iprd.socket_addr)
 
@@ -569,6 +570,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "goldshell": self.checkListenGoldshell.isChecked(),
                 "sealminer": self.checkListenSealminer.isChecked(),
                 "elphapex": self.checkListenElphapex.isChecked(),
+                "auradine": self.checkListenAuradine.isChecked(),
             },
             "IPRD": {
                 "enableIPRD": self.checkEnableIPRDBackend.isChecked(),
