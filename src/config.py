@@ -27,6 +27,11 @@ class GeneralSettings(BaseModel):
     ] = 15
 
 
+class IPRD(BaseModel):
+    enable_iprd: Annotated[bool, Field(alias="enableIPRD")] = False
+    socket_addr: Annotated[str, Field(alias="socketAddress")] = ""
+
+
 class Listeners(BaseModel):
     antminer: Annotated[bool, Field(strict=True)] = True
     whatsminer: Annotated[bool, Field(strict=True)] = True
@@ -42,6 +47,7 @@ class ListenerSettings(BaseModel):
     enable_filter: Annotated[bool, Field(alias="enableFiltering")] = False
     enable_all: Annotated[bool, Field(alias="enableAll")] = True
     listen_for: Annotated[Listeners, Field(alias="listenFor")] = Listeners()
+    iprd: Annotated[IPRD, Field(alias="IPRD")] = IPRD()
 
 
 class APIAuthFirmware(BaseModel):
