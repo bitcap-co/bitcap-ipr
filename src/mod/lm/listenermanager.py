@@ -112,13 +112,16 @@ class ListenerManager(QObject):
                         return False
         return False
 
-    def _append_listener(self, port: int):
+    def _append_listener(self, port: int) -> None:
         listener = Listener(port=port, parent=self)
         if listener.bound:
             logger.info(
                 f" start listening on {listener.addr.toString()}:{listener.port}"
             )
-            self._listeners.append(listener)
+            return self._listeners.append(listener)
+        return logger.error(
+            f" failed to bind on {listener.addr.toString()}[{listener.port}]. Maybe someone else is already listening on this port?"
+        )
 
     def _start_listeners(self, conf: QButtonGroup):
         enabled = [x for x in conf.buttons() if x.isChecked()]
