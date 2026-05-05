@@ -1,18 +1,20 @@
-## ListenerManager (lm) API
+## ListenerManager (lm) module
 the `lm` module contains the IP Report listening API for bitcap-ipr. Through the main `ListenerManager` class, its able to manage a multitude of listeners for the various miner types that bitcap-ipr supports.
 
 ## Structure
 `ipreport` - submodule that validates/parses various IP Report messages from miners.
 
-`iprd` - additional TCP listener for support for receiving IP Report packet data from IPR Daemon. See the [IPR Daemon repo](https://github.com/bitcap-co/ipr-daemon) for more information.
-
 `listener.py` - A custom QObject centered around QUDPSocket that sends validated IPReport data back to `ListenerManager` via signals.
 
 `listenermanager.py` - A custom QObject class that manages one or more listeners and broadcasts the received IPReport data via signals.
 
-### ListenerManager class
+`iprd` - additional TCP listener for support for receiving IP Report packet data from IPR Daemon. See the [IPR Daemon repo](https://github.com/bitcap-co/ipr-daemon) for more information.
 
-The LM class handles a list of individual listeners specific for each miner type and captures IPReport data. Below defines the basic IPReport dataclass structure:
+## Overview
+
+### The ListenerManager class
+
+The `ListenerManager` class handles a list of individual listeners specific for each miner type and captures IPReport data. Below defines the basic IPReport dataclass structure:
 ```python
 class IPReport(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -26,7 +28,7 @@ class IPReport(BaseModel):
     miner_type: str
     miner_sn: str
 ```
-A few key items in this structure are the `src_ip` (source IP address of miner), `src_mac`(source MAC address of miner) and `port_type` (type of miner determined by the destination UDP port).
+A few key items in this structure are the `src_ip` (source IP address of miner), `src_mac` (source MAC address of miner) and `port_type` (type of miner determined by the destination UDP port).
 
 For the most part, each miner type has an unique port that they send their IP Report message to.
 ```python
@@ -42,7 +44,7 @@ class MinerTypeHint(IntEnum):
 As we can see, for example, IceRiver sends to `11503`, Whatsminer send to `8888`, etc. Port `14235` is marked as common because we could get a couple different miner types (Antminer, Hammer, Volcminer). But for the most part, we can see what type of miner is it just based off of the port number!
 
 ### Listener configuration
-We can give a configuration to the LM class to create the necessary UDP listeners needed to listen for multiple miner types. We use a QButtonGroup made directly from the Listener Configuration options in the app.
+We can give a configuration to the ListenerManager to create the necessary UDP listeners needed to listen for multiple miner types. We use a QButtonGroup made directly from the Listener Configuration options in the app.
 
 ```python
 self.listenerConfig = QButtonGroup(self, exclusive=False)
@@ -61,12 +63,12 @@ Based off the the button ID and whether or not it is enabled, we can determine w
 ### Processing Datagrams
 When we receive a new message/datagram on the network, we verify the message to ensure it is what we are expecting. We do these by pattern matching the message to make sure we have what we expect given the miner type. Then we try and parse the message into our IPReport structure.
 
-Once it is deemed as valid and have parsed our message, we send our result back to the LM class. If is not a valid message (i.e we failed to match or parse), we ignore the message and listen for the next.
+Once it is deemed as valid and have parsed our message, we send our result back to the ListenerManager. If is not a valid message (i.e we failed to match or parse), we ignore the message and listen for the next.
 
 ## Duplicate packets
 Some miners may send the same packet multiple times within a short window.
 
-To solve this, the LM class holds a Record which is an fixed-size ordered dictionary to see what we have sent previously and uses it to check if we should send again. Each record entry is indexed by the source IP address of the packet with the associated IPReport data.
+To solve this, the ListenerManager holds a Record which is an fixed-size ordered dictionary to see what we have sent previously and uses it to check if we should send again. Each record entry is indexed by the source IP address of the packet with the associated IPReport data.
 
 ```python
 def _is_duplicate_record(self, result: IPReport) -> bool:
@@ -93,7 +95,7 @@ Once we received an result from a listener, we will run the above method to chec
 
 
 ## Signals
-The LM class communicates with the IPR window class using Qt Signals & Slots. Once we have a IP Report that we can send we emit the listen_complete signal with our IPReport data. If we encounter some sort of listener error, it will emit the listen_error signal with the error as a string.
+The ListenerManager communicates with the IPR window class using Qt Signals & Slots. Once we have a IP Report that we can send we emit the listen_complete signal with our IPReport data. If we encounter some sort of listener error, it will emit the listen_error signal with the error as a string.
 
 ```python
 class ListenerManager(QObject):
