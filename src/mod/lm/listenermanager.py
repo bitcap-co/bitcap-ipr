@@ -119,7 +119,7 @@ class ListenerManager(QObject):
                 f" start listening on {listener.addr.toString()}:{listener.port}"
             )
             return self._listeners.append(listener)
-        return logger.error(
+        return logger.warning(
             f" failed to bind on {listener.addr.toString()}[{listener.port}]. Maybe someone else is already listening on this port?"
         )
 
