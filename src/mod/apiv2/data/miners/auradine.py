@@ -17,31 +17,44 @@ class AuradineParser(BaseParser):
         return super().parse_uptime(obj)
 
     def parse_hostname(self, obj: Any) -> None:
-        return super().parse_hostname(obj)
+        self.data.hostname = obj["hostname"]
 
     def parse_mac(self, obj: Any) -> None:
-        return super().parse_mac(obj)
+        self.data.mac = obj["mac"]
 
     def parse_serial(self, obj: Any) -> None:
-        return super().parse_serial(obj)
+        self.data.serial = obj["ChassisSerialNo"]
 
     def parse_type(self, obj: Any) -> None:
         return super().parse_type(obj)
 
     def parse_subtype(self, obj: Any) -> None:
-        return super().parse_subtype(obj)
+        self.data.subtype = obj["model"]
 
     def parse_algorithm(self, obj: Any) -> None:
         return super().parse_algorithm(obj)
 
     def parse_firmware(self, obj: Any) -> None:
-        return super().parse_firmware(obj)
+        self.data.fw_version = obj["version"]
 
     def parse_platform(self, obj: Any) -> None:
         return super().parse_platform(obj)
 
     def parse_system_info(self, obj: Any) -> None:
-        return super().parse_system_info(obj)
+        self.parse_hostname(obj)
+        self.parse_mac(obj)
+        self.parse_serial(obj)
+        self.parse_subtype(obj)
+        self.parse_firmware(obj)
 
     def parse_pools(self, obj: list[dict]) -> None:
-        return super().parse_pools(obj)
+        for pool in obj:
+            if pool["Status"] == "Alive":
+                self.data.stratum_url = pool["URL"]
+                if "." in pool["User"]:
+                    user, worker = pool["User"].split(".", 1)
+                    self.data.username = user
+                    self.data.worker_name = worker
+                else:
+                    self.data.username = pool["User"]
+                break

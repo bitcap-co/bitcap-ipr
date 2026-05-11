@@ -14,6 +14,7 @@ from mod.apiv2.base import BaseHTTPClient, BaseRPCClient, BaseTCPClient
 from mod.apiv2.data import BaseParser, MinerData, MinerType
 from mod.apiv2.data.miners import (
     AntminerParser,
+    AuradineParser,
     ElphapexParser,
     GoldshellParser,
     IceriverParser,
@@ -27,6 +28,7 @@ from mod.apiv2.data.miners import (
 from mod.apiv2.errors import APIError, AuthenticationError, FailedConnectionError
 from mod.apiv2.http import (
     AntminerHTTPClient,
+    AuradineHTTPClient,
     ElphapexHTTPClient,
     GoldshellHTTPClient,
     IceriverHTTPClient,
@@ -111,6 +113,9 @@ class ASICClient(QObject):
     def create_luxos_client(self, ip: str, alt_pwd: str | None = None) -> None:
         self._set_active_client(LuxminerRPCClient(ip, alt_pwd=alt_pwd))
 
+    def create_auradine_client(self, ip: str, alt_pwd: str | None = None) -> None:
+        self._set_active_client(AuradineHTTPClient(ip, alt_pwd=alt_pwd))
+
     def create_client(
         self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
     ) -> None:
@@ -135,6 +140,8 @@ class ASICClient(QObject):
                 self.create_luxos_client(ip, alt_pwd=alt_pwd)
             case MinerType.VNISH:
                 self.create_vnish_client(ip, alt_pwd=alt_pwd)
+            case MinerType.AURADINE:
+                self.create_auradine_client(ip, alt_pwd=alt_pwd)
             case _:
                 # type is unknown or not supported
                 logger.warning(
@@ -194,6 +201,8 @@ class ASICClient(QObject):
             return self._parse_miner_data(WhatsminerParser())
         elif isinstance(self.client, LuxminerRPCClient):
             return self._parse_miner_data(LuxminerParser())
+        elif isinstance(self.client, AuradineHTTPClient):
+            return self._parse_miner_data(AuradineParser())
         return MinerData().as_dict()
 
     def _parse_miner_data(self, parser: BaseParser) -> dict[str, Any]:
@@ -213,6 +222,7 @@ class ASICClient(QObject):
                 or isinstance(parser, WhatsminerV3Parser)
                 or isinstance(parser, ElphapexParser)
                 or isinstance(parser, VnishParser)
+                or isinstance(parser, AuradineParser)
             ):
                 parser.parse_all(system_info)
             elif isinstance(parser, GoldshellParser):
