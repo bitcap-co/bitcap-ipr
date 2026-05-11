@@ -67,6 +67,7 @@ class APIAuth(BaseModel):
     volcminer_alt_passwd: Annotated[str, Field(alias="volcminerAltPasswd")] = ""
     elphapex_alt_passwd: Annotated[str, Field(alias="elphapexAltPasswd")] = ""
     sealminer_alt_passwd: Annotated[str, Field(alias="sealminerAltPasswd")] = ""
+    auradine_alt_passwd: Annotated[str, Field(alias="auradineAltPasswd")] = ""
 
 
 class APISettings(BaseModel):
