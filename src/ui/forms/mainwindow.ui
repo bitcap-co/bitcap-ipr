@@ -1372,8 +1372,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>255</width>
-                   <height>893</height>
+                   <width>476</width>
+                   <height>968</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -1716,6 +1716,41 @@ Uses last 5 of SN or MAC address.</string>
                        </layout>
                       </widget>
                      </item>
+                     <item>
+                      <widget class="QGroupBox" name="groupAuradine">
+                       <property name="title">
+                        <string>Auradine</string>
+                       </property>
+                       <layout class="QGridLayout" name="gridLayout_18">
+                        <item row="0" column="0">
+                         <widget class="QLabel" name="label_28">
+                          <property name="text">
+                           <string>Set Alternative Password:</string>
+                          </property>
+                          <property name="StyleClass" stdset="0">
+                           <string>setText</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="0" column="1">
+                         <widget class="QLineEdit" name="lineAuradinePasswd">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="toolTip">
+                           <string>Set alternative login password for Auradine miners. Default &quot;admin&quot;</string>
+                          </property>
+                          <property name="echoMode">
+                           <enum>QLineEdit::EchoMode::Password</enum>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
                     </layout>
                    </widget>
                   </item>
@@ -1809,7 +1844,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>368</width>
+                   <width>478</width>
                    <height>227</height>
                   </rect>
                  </property>
