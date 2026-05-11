@@ -41,6 +41,7 @@ class Listeners(BaseModel):
     goldshell: Annotated[bool, Field(strict=True)] = True
     sealminer: Annotated[bool, Field(strict=True)] = True
     elphapex: Annotated[bool, Field(strict=True)] = True
+    auradine: Annotated[bool, Field(strict=True)] = True
 
 
 class ListenerSettings(BaseModel):
@@ -66,6 +67,7 @@ class APIAuth(BaseModel):
     volcminer_alt_passwd: Annotated[str, Field(alias="volcminerAltPasswd")] = ""
     elphapex_alt_passwd: Annotated[str, Field(alias="elphapexAltPasswd")] = ""
     sealminer_alt_passwd: Annotated[str, Field(alias="sealminerAltPasswd")] = ""
+    auradine_alt_passwd: Annotated[str, Field(alias="auradineAltPasswd")] = ""
 
 
 class APISettings(BaseModel):

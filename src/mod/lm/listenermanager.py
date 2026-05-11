@@ -139,6 +139,8 @@ class ListenerManager(QObject):
                     self._append_listener(18650)
                 case 8:  # elphapex
                     self._append_listener(9999)
+                case 9:  # auradine
+                    self._append_listener(12345)
         for listener in self._listeners:
             listener.result.connect(self.emit_listen_complete)
             listener.error.connect(self.emit_listen_error)

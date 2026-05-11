@@ -20,6 +20,7 @@ class MinerType(str, Enum):
     VOLCMINER = "volcminer"
     HAMMER = "hammer"
     ELPHAPEX = "elphapex"
+    AURADINE = "auradine"
     LUX_OS = "luxor"
     VNISH = "vnish"
 

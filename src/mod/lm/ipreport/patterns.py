@@ -23,6 +23,7 @@ class MinerTypeHint(IntEnum):
     SEALMINER = 18650
     GOLDSHELL = 1314
     ELPHAPEX = 9999
+    AURADINE = 12345
     UNKNOWN = 0
 
     @classmethod
@@ -118,3 +119,14 @@ class SealMinerIPReport:
             self._interfaces = iface_list.validate_python(self._data[2:4])
         except ValidationError as exc:
             raise exc
+
+
+class AuradineIPReport(BaseModel):
+    command: str
+    serial: str = Field(validation_alias="SerialNo")
+    ip: Annotated[str, Field(pattern=rf"^{IP_PATTERN}$")]
+    mac: Annotated[str, Field(pattern=rf"^{MAC_PATTERN}$")]
+    model: str
+    version: str
+    hostname: str
+    internal_type: str = Field(validation_alias="InternalType")

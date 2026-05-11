@@ -567,6 +567,12 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.checkListenHammer, 3, 1, 1, 1)
 
+        self.checkListenAuradine = QCheckBox(self.groupListeners)
+        self.checkListenAuradine.setObjectName(u"checkListenAuradine")
+        self.checkListenAuradine.setMaximumSize(QSize(100, 30))
+
+        self.gridLayout_4.addWidget(self.checkListenAuradine, 4, 2, 1, 1)
+
 
         self.verticalLayout_6.addWidget(self.groupListeners)
 
@@ -614,7 +620,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 476, 893))
+        self.scrollAPI.setGeometry(QRect(0, 0, 476, 968))
         self.verticalLayout_8 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_8.setSpacing(15)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
@@ -804,6 +810,26 @@ class Ui_MainWindow(object):
 
 
         self.verticalLayout_10.addWidget(self.groupSealminer)
+
+        self.groupAuradine = QGroupBox(self.groupAPIAuth)
+        self.groupAuradine.setObjectName(u"groupAuradine")
+        self.gridLayout_18 = QGridLayout(self.groupAuradine)
+        self.gridLayout_18.setObjectName(u"gridLayout_18")
+        self.label_28 = QLabel(self.groupAuradine)
+        self.label_28.setObjectName(u"label_28")
+
+        self.gridLayout_18.addWidget(self.label_28, 0, 0, 1, 1)
+
+        self.lineAuradinePasswd = QLineEdit(self.groupAuradine)
+        self.lineAuradinePasswd.setObjectName(u"lineAuradinePasswd")
+        sizePolicy.setHeightForWidth(self.lineAuradinePasswd.sizePolicy().hasHeightForWidth())
+        self.lineAuradinePasswd.setSizePolicy(sizePolicy)
+        self.lineAuradinePasswd.setEchoMode(QLineEdit.EchoMode.Password)
+
+        self.gridLayout_18.addWidget(self.lineAuradinePasswd, 0, 1, 1, 1)
+
+
+        self.verticalLayout_10.addWidget(self.groupAuradine)
 
 
         self.verticalLayout_8.addWidget(self.groupAPIAuth)
@@ -1120,6 +1146,10 @@ class Ui_MainWindow(object):
         self.checkListenHammer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Hammer miners", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenHammer.setText(QCoreApplication.translate("MainWindow", u"Hammer", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenAuradine.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Auradine miners", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenAuradine.setText(QCoreApplication.translate("MainWindow", u"Auradine", None))
         self.groupIPRD.setTitle(QCoreApplication.translate("MainWindow", u"IPR Daemon", None))
 #if QT_CONFIG(tooltip)
         self.checkEnableIPRDBackend.setToolTip(QCoreApplication.translate("MainWindow", u"Use the IPR Daemon backend instead of the built-in listener", None))
@@ -1193,6 +1223,12 @@ class Ui_MainWindow(object):
         self.label_17.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
 #if QT_CONFIG(tooltip)
         self.lineSealminerPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative login password for Sealminers. Default: \"seal\"", None))
+#endif // QT_CONFIG(tooltip)
+        self.groupAuradine.setTitle(QCoreApplication.translate("MainWindow", u"Auradine", None))
+        self.label_28.setText(QCoreApplication.translate("MainWindow", u"Set Alternative Password:", None))
+        self.label_28.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.lineAuradinePasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative login password for Auradine miners. Default \"admin\"", None))
 #endif // QT_CONFIG(tooltip)
         self.groupAPIAuthFirmwares.setTitle(QCoreApplication.translate("MainWindow", u"Firmwares", None))
 #if QT_CONFIG(tooltip)

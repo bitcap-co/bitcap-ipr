@@ -183,6 +183,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.listenerConfig.addButton(self.checkListenGoldshell, 6)
         self.listenerConfig.addButton(self.checkListenSealminer, 7)
         self.listenerConfig.addButton(self.checkListenElphapex, 8)
+        self.listenerConfig.addButton(self.checkListenAuradine, 9)
         self.listenerConfig.buttonClicked.connect(self.restart_listen)
         # listener signals
         self.pushIPRListenStart.clicked.connect(self.start_listen)
@@ -303,6 +304,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         self.actionToggleVnishPasswd = self.create_passwd_toggle_action(
             self.lineVnishPasswd
+        )
+        self.actionToggleAuradinePasswd = self.create_passwd_toggle_action(
+            self.lineAuradinePasswd
         )
 
         # configuration control signals
@@ -442,6 +446,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.checkListenGoldshell.setChecked(self.config.listen_for.goldshell)
         self.checkListenSealminer.setChecked(self.config.listen_for.sealminer)
         self.checkListenElphapex.setChecked(self.config.listen_for.elphapex)
+        self.checkListenAuradine.setChecked(self.config.listen_for.auradine)
         self.checkEnableIPRDBackend.setChecked(self.config.listener.iprd.enable_iprd)
         self.lineIPRDSocketAddress.setText(self.config.listener.iprd.socket_addr)
 
@@ -454,6 +459,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.lineGoldshellPasswd.setText(self.config.api.auth.goldshell_alt_passwd)
         self.lineElphapexPasswd.setText(self.config.api.auth.elphapex_alt_passwd)
         self.lineVnishPasswd.setText(self.config.api.firmware.vnish_alt_passwd)
+        self.lineAuradinePasswd.setText(self.config.api.auth.auradine_alt_passwd)
 
         # api settings
         self.spinLocateDuration.setValue(self.config.api.locate_duration)
@@ -569,6 +575,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "goldshell": self.checkListenGoldshell.isChecked(),
                 "sealminer": self.checkListenSealminer.isChecked(),
                 "elphapex": self.checkListenElphapex.isChecked(),
+                "auradine": self.checkListenAuradine.isChecked(),
             },
             "IPRD": {
                 "enableIPRD": self.checkEnableIPRDBackend.isChecked(),
@@ -586,6 +593,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "volcminerAltPasswd": self.lineVolcminerPasswd.text(),
                 "elphapexAltPasswd": self.lineElphapexPasswd.text(),
                 "sealminerAltPasswd": self.lineSealminerPasswd.text(),
+                "auradineAltPasswd": self.lineAuradinePasswd.text(),
             },
             "firmware": {
                 "useAntminerLogin": self.checkUseAntminerLogin.isChecked(),
@@ -1263,6 +1271,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                 client_auth = self.lineIceriverPasswd.text()
             case "elphapex":
                 client_auth = self.lineElphapexPasswd.text()
+            case "auradine":
+                client_auth = self.lineAuradinePasswd.text()
             case "vnish":
                 if not self.checkUseAntminerLogin.isChecked():
                     client_auth = self.lineVnishPasswd.text()

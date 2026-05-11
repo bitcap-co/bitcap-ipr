@@ -39,6 +39,7 @@ class Version(BaseModel):
     api: str = Field(alias="API")
     cgminer: str | None = Field(None, alias="CGMiner")
     luxminer: str | None = Field(None, alias="LUXminer")
+    gcminer: str | None = Field(None, alias="GCMiner")
     compile_time: str | None = Field(None, alias="CompileTime")
     miner: str | None = Field(None, alias="Miner")
     type: str | None = Field(None, alias="Type")

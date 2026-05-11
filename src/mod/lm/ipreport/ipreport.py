@@ -14,6 +14,7 @@ from PySide6.QtNetwork import QNetworkDatagram
 
 from mod.lm.ipreport.patterns import (
     ZLIB_DEFAULT_MAGIC,
+    AuradineIPReport,
     GoldshellIPReport,
     MinerTypeHint,
     SealMinerIPReport,
@@ -185,6 +186,22 @@ class IPReportDatagram:
                             self.ip_addr = ip
                             self.mac_addr = mac
                             self.miner_sn = model.boxsn
+                            self.valid = True
+                case MinerTypeHint.AURADINE:
+                    try:
+                        obj = json.loads(self.payload)
+                    except json.JSONDecodeError:
+                        self.valid = False
+                    else:
+                        try:
+                            model = AuradineIPReport.model_validate(obj)
+                            ip = model.ip
+                            mac = model.mac
+                        except ValidationError:
+                            self.valid = False
+                        else:
+                            self.ip_addr = ip
+                            self.mac_addr = mac
                             self.valid = True
                 case _:
                     self.valid = False

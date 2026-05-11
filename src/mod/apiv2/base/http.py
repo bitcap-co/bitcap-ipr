@@ -54,6 +54,7 @@ class BaseHTTPClient(BaseClient):
         self.session.verify = verify
         if self.token:
             self.session.headers.update({"Authorization": "Bearer " + self.token})
+            self.session.headers.update({"Token": self.token})
         if headers:
             self.session.headers.update(headers)
         req = requests.Request(

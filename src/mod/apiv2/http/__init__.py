@@ -4,6 +4,7 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 from .antminer import AntminerHTTPClient
+from .auradine import AuradineHTTPClient
 from .elphapex import ElphapexHTTPClient
 from .goldshell import GoldshellHTTPClient
 from .iceriver import IceriverHTTPClient

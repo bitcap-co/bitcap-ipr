@@ -203,6 +203,23 @@ class TestListeners(unittest.TestCase):
             expected_result=test["expected_result"],
         )
 
+    def test_auradine_listen(self):
+        "Test Auradine payload (port 12345)"
+        test = {
+            "port": 12345,
+            "payload": f"{read_payload('tests/payloads/auradine.json')}",
+            "expected_result": {
+                "ip": "192.168.34.34",
+                "mac": "aa:bb:cc:dd:ee:ff",
+                "miner_type": "auradine",
+            },
+        }
+        self.listenFor(
+            port=test["port"],
+            payload=test["payload"],
+            expected_result=test["expected_result"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
