@@ -168,6 +168,7 @@ class ModeResponse(BaseModel):
     mode: str | None = Field(None, alias="Mode")
     sleep: str | None = Field(None, alias="Sleep")
     tune: str | None = Field(None, alias="Tune")
+    ths: float | None = Field(None, alias="Ths")
     power: int | None = Field(None, alias="Power")
     fans_in_standby: str | None = Field(None, alias="FansInStandby")
     coolant_default_action: str | None = Field(None, alias="coolantDefaultAction")
@@ -194,6 +195,7 @@ class LEDResponse(BaseModel):
     led1: int = Field(validation_alias="LED1")
     led2: int = Field(validation_alias="LED2")
     msg: str = Field(validation_alias="Msg")
+    standby_reason: str | None = Field(None, validation_alias="standbyReason")
     display_msg: str | None = Field(None, validation_alias="DisplayMsg")
 
 
