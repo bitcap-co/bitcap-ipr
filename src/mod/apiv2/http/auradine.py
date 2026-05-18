@@ -462,5 +462,4 @@ class AuradineHTTPClient(BaseHTTPClient):
         valid = self._validate_response(resp)
         if valid.update_pools is None or len(valid.update_pools) != 1:
             raise APIInvalidResponse(reason="malformed")
-        else:
-            return resp
+        return resp
