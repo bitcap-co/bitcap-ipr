@@ -1341,11 +1341,25 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.tableIPRID.setItem(rowPosition, 14, QTableWidgetItem(data["platform"]))
         self.tableIPRID.scrollToBottom()
 
+    def retrieve_miner_from_table(
+        self, row: int
+    ) -> tuple[str, MinerType, MinerFirmware]:
+        ip_addr = self.tableIPRID.item(row, 2).text()
+        miner_type = MinerType.from_value(self.tableIPRID.item(row, 4).text())
+        fw_type = MinerFirmware(self.tableIPRID.item(row, 12).text())
+
+        match fw_type:
+            case MinerFirmware.LUX_OS:
+                miner_type = MinerType.LUX_OS
+            case MinerFirmware.VNISH:
+                miner_type = MinerType.VNISH
+            case _:
+                pass
+        return ip_addr, miner_type, fw_type
+
     def locate_miner(self, row: int, col: int):
         if col == 0:
-            miner_type = MinerType.from_value(self.tableIPRID.item(row, 4).text())
-            fw_type = MinerFirmware.from_value(self.tableIPRID.item(row, 12).text())
-            ip_addr = self.tableIPRID.item(row, 2).text()
+            ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(row)
             if self.asic.locate_timer and self.asic.locate_timer.isActive():
                 return logger.warning(
                     "locate_miner : already locating a miner. Ignoring..."
@@ -1357,13 +1371,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "Status :: Failed to locate miner: VolcMiner is currently not supported.",
                     5000,
                 )
-            match fw_type:
-                case MinerFirmware.LUX_OS:
-                    miner_type = MinerType.LUX_OS
-                case MinerFirmware.VNISH:
-                    miner_type = MinerType.VNISH
-                case _:
-                    pass
             alt_pwd = self.get_client_auth(miner_type.value)
             self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
             self.asic.locate_miner()
@@ -1384,15 +1391,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         selected_ips = [x for x in self.tableIPRID.selectedIndexes() if x.column() == 2]
         index = selected_ips[0]
         item = self.tableIPRID.itemFromIndex(index)
-        miner_type = MinerType.from_value(self.tableIPRID.item(item.row(), 4).text())
-        fw_type = MinerFirmware.from_value(self.tableIPRID.item(item.row(), 12).text())
-        match fw_type:
-            case MinerFirmware.LUX_OS:
-                miner_type = MinerType.LUX_OS
-            case MinerFirmware.VNISH:
-                miner_type = MinerType.VNISH
-            case _:
-                pass
+        _, miner_type, fw_type = self.retrieve_miner_from_table(item.row())
         alt_pwd = self.get_client_auth(miner_type.value)
         self.asic.create_client(miner_type=miner_type, ip=item.text(), alt_pwd=alt_pwd)
         urls, users, passwds = self.asic.get_miner_pool_conf()
@@ -1432,20 +1431,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             return
         for index in selected_ips:
             item = self.tableIPRID.itemFromIndex(index)
-            ip_addr = item.text()
-            miner_type = MinerType.from_value(
-                self.tableIPRID.item(item.row(), 4).text()
-            )
-            fw_type = MinerFirmware.from_value(
-                self.tableIPRID.item(item.row(), 12).text()
-            )
-            match fw_type:
-                case MinerFirmware.LUX_OS:
-                    miner_type = MinerType.LUX_OS
-                case MinerFirmware.VNISH:
-                    miner_type = MinerType.VNISH
-                case _:
-                    pass
+            ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(item.row())
             macaddr = self.tableIPRID.item(item.row(), 3)
             serial = self.tableIPRID.item(item.row(), 6)
             urls = [
