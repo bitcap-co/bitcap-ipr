@@ -3,8 +3,6 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-from __future__ import annotations
-
 import json
 import os
 from typing import Annotated, Any, Dict
@@ -144,7 +142,7 @@ class IPRConfigModel(BaseModel):
 
 class IPRConfig:
     def __init__(self):
-        self.__set_default()
+        self._set_default()
         self.config_dir = get_config_dir()
         self.config_path = get_config_file_path()
 
@@ -157,7 +155,7 @@ class IPRConfig:
         """
         return self.config.model_dump(by_alias=True)
 
-    def __set_default(self) -> None:
+    def _set_default(self) -> None:
         self.general = GeneralSettings()
         self.listen_for = Listeners()
         self.listener = ListenerSettings()
@@ -179,7 +177,7 @@ class IPRConfig:
             instance=self.instance,
         )
 
-    def __validate_model(self, conf: Dict[str, Any]) -> None:
+    def _validate_model(self, conf: Dict[str, Any]) -> None:
         try:
             self.config = IPRConfigModel.model_validate(
                 conf, strict=True, by_alias=True
@@ -199,7 +197,7 @@ class IPRConfig:
             self.views = self.config.instance.views
             self.instance = self.config.instance
 
-    def __read_config(self) -> None:
+    def _read_config(self) -> None:
         os.makedirs(self.config_dir, exist_ok=True)
         if not os.path.exists(self.config_path):
             return self.write_default()
@@ -208,22 +206,22 @@ class IPRConfig:
                 c = json.load(d)
             except json.JSONDecodeError as exc:
                 raise exc
-        self.__validate_model(c)
+        self._validate_model(c)
 
-    def __write_config(self) -> None:
+    def _write_config(self) -> None:
         c = self.config.model_dump_json(indent=2, by_alias=True)
         with open(self.config_path, "w") as f:
             f.write(c)
 
     def validate(self, conf: Dict[str, Any]) -> None:
-        self.__validate_model(conf)
+        self._validate_model(conf)
 
     def read(self) -> None:
-        self.__read_config()
+        self._read_config()
 
     def write(self) -> None:
-        self.__write_config()
+        self._write_config()
 
     def write_default(self) -> None:
-        self.__set_default()
-        self.__write_config()
+        self._set_default()
+        self._write_config()

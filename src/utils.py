@@ -5,7 +5,6 @@
 
 
 import collections.abc
-import json
 import os
 import sys
 from pathlib import Path
@@ -54,18 +53,6 @@ def get_config_dir() -> str:
 
 def get_config_file_path() -> Path:
     return Path(get_config_dir(), "config.json")
-
-
-def read_config(fp: Path) -> Dict[str, Any]:
-    with open(fp, "r") as f:
-        c = json.load(f)
-    return c
-
-
-def write_config(fp: Path, conf: Dict[str, Any]) -> None:
-    config = json.dumps(conf, indent=2)
-    with open(fp, "w") as f:
-        f.write(config)
 
 
 def get_log_dir() -> str:
