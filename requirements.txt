@@ -1,7 +1,7 @@
 annotated-types==0.7.0
 certifi==2026.5.20
 charset-normalizer==3.4.7
-idna==3.15
+idna==3.16
 Nuitka==4.1.1
 passlib==1.7.4
 platformdirs==4.9.6
