@@ -165,12 +165,6 @@ class Main:
         logger.info(f"init_logger : set logger to level {self.config.logs.log_level}.")
 
     def _ipr_entry(self) -> None:
-        if not self._init_conf():
-            return
-        self._init_logger()
-        logger.debug(f"launch_app : bitcap-ipr v{IPR_METADATA['appversion']}")
-        logger.info("launch_app : start app.")
-
         app_key = IPR_METADATA["appname"]
         # check for existing instance
         conn = QLocalSocket()
@@ -181,7 +175,6 @@ class Main:
             conn.deleteLater()
             sys.exit(0)
         conn.deleteLater()
-
         # clean up any stale socket file left by a previous crash
         QLocalServer.removeServer(app_key)
 
@@ -192,6 +185,13 @@ class Main:
             self.app.exit(1)
         self.ipc_server.newConnection.connect(self._handle_ipc_connection)
 
+        # initialize app
+        if not self._init_conf():
+            return
+        self._init_logger()
+        logger.debug(f"launch_app : bitcap-ipr v{IPR_METADATA['appversion']}")
+        logger.info("launch_app : start app.")
+
         self.main_window = IPR(stored=self.config)
         self.main_window.show()
 
@@ -200,7 +200,10 @@ class Main:
 
     def _handle_ipc_connection(self):
         conn = self.ipc_server.nextPendingConnection()
-        self.main_window.show_window()
+        try:
+            self.main_window.show_window()
+        except AttributeError:
+            pass
         conn.disconnectFromServer()
         conn.deleteLater()
 
