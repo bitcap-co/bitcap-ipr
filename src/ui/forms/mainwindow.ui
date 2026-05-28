@@ -847,7 +847,10 @@ Uses last 5 of SN or MAC address.</string>
              <bool>true</bool>
             </property>
             <property name="columnCount">
-             <number>15</number>
+             <number>16</number>
+            </property>
+            <property name="supportedDragActions">
+             <set>Qt::DropAction::IgnoreAction</set>
             </property>
             <attribute name="horizontalHeaderMinimumSectionSize">
              <number>15</number>
@@ -855,6 +858,7 @@ Uses last 5 of SN or MAC address.</string>
             <attribute name="horizontalHeaderDefaultSectionSize">
              <number>105</number>
             </attribute>
+            <column/>
             <column/>
             <column/>
             <column/>
@@ -930,8 +934,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>478</width>
-                   <height>563</height>
+                   <width>474</width>
+                   <height>575</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1372,8 +1376,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>476</width>
-                   <height>968</height>
+                   <width>270</width>
+                   <height>993</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -1844,8 +1848,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>478</width>
-                   <height>227</height>
+                   <width>368</width>
+                   <height>233</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_11">

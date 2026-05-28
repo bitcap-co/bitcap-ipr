@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.11.0
+## Created by: Qt User Interface Compiler version 6.11.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -380,8 +380,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.tableIPRID = QTableWidget(self.tableView)
-        if (self.tableIPRID.columnCount() < 15):
-            self.tableIPRID.setColumnCount(15)
+        if (self.tableIPRID.columnCount() < 16):
+            self.tableIPRID.setColumnCount(16)
         self.tableIPRID.setObjectName(u"tableIPRID")
         sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
         sizePolicy5.setHorizontalStretch(0)
@@ -393,7 +393,8 @@ class Ui_MainWindow(object):
         self.tableIPRID.setProperty(u"showDropIndicator", False)
         self.tableIPRID.setShowGrid(False)
         self.tableIPRID.setSortingEnabled(True)
-        self.tableIPRID.setColumnCount(15)
+        self.tableIPRID.setColumnCount(16)
+        self.tableIPRID.setSupportedDragActions(Qt.DropAction.IgnoreAction)
         self.tableIPRID.horizontalHeader().setMinimumSectionSize(15)
         self.tableIPRID.horizontalHeader().setDefaultSectionSize(105)
 
@@ -429,7 +430,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 478, 563))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 474, 575))
         self.verticalLayout_5 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_5.setSpacing(15)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
@@ -620,7 +621,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 476, 968))
+        self.scrollAPI.setGeometry(QRect(0, 0, 270, 993))
         self.verticalLayout_8 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_8.setSpacing(15)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
@@ -884,7 +885,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollLogs = QWidget()
         self.scrollLogs.setObjectName(u"scrollLogs")
-        self.scrollLogs.setGeometry(QRect(0, 0, 478, 227))
+        self.scrollLogs.setGeometry(QRect(0, 0, 368, 233))
         self.verticalLayout_11 = QVBoxLayout(self.scrollLogs)
         self.verticalLayout_11.setSpacing(15)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
