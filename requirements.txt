@@ -4,7 +4,7 @@ charset-normalizer==3.4.7
 idna==3.16
 Nuitka==4.1.1
 passlib==1.7.4
-platformdirs==4.9.6
+platformdirs==4.10.0
 pycryptodome==3.23.0
 pydantic==2.13.4
 pydantic_core==2.46.4
