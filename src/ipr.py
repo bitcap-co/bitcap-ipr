@@ -240,7 +240,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.tableIPRID.setColumnWidth(11, 300)
         self.tableIPRID.setColumnWidth(14, 180)
         self.tableIPRID.doubleClicked.connect(self.double_click_item)
-        self.tableIPRID.cellClicked.connect(self.locate_miner)
+        self.tableIPRID.cellClicked.connect(self.handle_widget_action)
         self.tableIPRID.setSortingEnabled(True)
         self.id_header = self.tableIPRID.horizontalHeader()
         self.id_header.sectionDoubleClicked.connect(self.select_column)
@@ -1284,19 +1284,28 @@ class IPR(QMainWindow, Ui_MainWindow):
                 return None
         return client_auth
 
-    def populate_table_row(self, data: dict[str, Any]) -> None:
+    def populate_table_row(self, data: dict[str, Any], row: int | None = None) -> None:
         """
         Arguments:
-            data (dict[str, Any]): stringified data from MinerData.
+            data (dict[str, Any]): stringified MinerData.
+            row (int | None): optional row position to populate.
         """
         logger.info("populate_table : write table data.")
-        rowPosition = self.tableIPRID.rowCount()
-        self.tableIPRID.insertRow(rowPosition)
+        if row is not None:
+            rowPosition = row
+        else:
+            rowPosition = self.tableIPRID.rowCount()
+            self.tableIPRID.insertRow(rowPosition)
+
+        actionRefreshMiner = QLabel()
+        actionRefreshMiner.setPixmap(QPixmap(":theme/icons/rc/refresh.png"))
+        actionRefreshMiner.setToolTip("Refresh Miner Data")
+        self.tableIPRID.setCellWidget(rowPosition, 0, actionRefreshMiner)
+        self.tableIPRID.setItem(rowPosition, 0, IPRIndexWidgetItem(rowPosition))
         actionLocateMiner = QLabel()
         actionLocateMiner.setPixmap(QPixmap(":theme/icons/rc/flash.png"))
         actionLocateMiner.setToolTip("Locate Miner")
         self.tableIPRID.setCellWidget(rowPosition, 1, actionLocateMiner)
-        self.tableIPRID.setItem(rowPosition, 1, IPRIndexWidgetItem(rowPosition))
         # recv at
         date_item = QTableWidgetItem()
         try:
@@ -1359,32 +1368,62 @@ class IPR(QMainWindow, Ui_MainWindow):
                 pass
         return ip_addr, miner_type, fw_type
 
-    def locate_miner(self, row: int, col: int):
-        if col == 0:
-            ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(row)
-            if self.asic.locate_timer and self.asic.locate_timer.isActive():
-                return logger.warning(
-                    "locate_miner : already locating a miner. Ignoring..."
-                )
-            logger.info(f" locate miner {ip_addr}.")
-            # disable volcminer locating do to it soft rebooting miner.
-            if miner_type == MinerType.VOLCMINER:
-                return self.iprStatusBar.showMessage(
-                    "Status :: Failed to locate miner: VolcMiner is currently not supported.",
-                    5000,
-                )
-            alt_pwd = self.get_client_auth(miner_type.value)
-            self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
-            self.asic.locate_miner()
-            if self.asic.client_error():
-                return self.iprStatusBar.showMessage(
-                    f"Status :: Failed to locate miner: {str(self.asic.client_error())}",
-                    5000,
-                )
-            self.iprStatusBar.showMessage(
-                f"Status :: Locating miner: {ip_addr}...",
-                self.miner_locate_duration,
+    def handle_widget_action(self, row: int, col: int) -> None:
+        match col:
+            case 0:
+                self.refresh_miner(row)
+            case 1:
+                self.locate_miner(row)
+            case _:
+                return
+
+    def locate_miner(self, row: int):
+        ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(row)
+        if self.asic.locate_timer and self.asic.locate_timer.isActive():
+            return logger.warning(
+                "locate_miner : already locating a miner. Ignoring..."
             )
+        logger.info(f" locate miner {ip_addr}.")
+        # disable volcminer locating do to it soft rebooting miner.
+        if miner_type == MinerType.VOLCMINER:
+            return self.iprStatusBar.showMessage(
+                "Status :: Failed to locate miner: VolcMiner is currently not supported.",
+                5000,
+            )
+        alt_pwd = self.get_client_auth(miner_type.value)
+        self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
+        self.asic.locate_miner()
+        if self.asic.client_error():
+            return self.iprStatusBar.showMessage(
+                f"Status :: Failed to locate miner: {str(self.asic.client_error())}",
+                5000,
+            )
+        self.iprStatusBar.showMessage(
+            f"Status :: Locating miner: {ip_addr}...",
+            self.miner_locate_duration,
+        )
+
+    def refresh_miner(self, row: int):
+        ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(row)
+        logger.info(f" refresh miner {ip_addr}.")
+        alt_pwd = self.get_client_auth(miner_type.value)
+        self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
+        miner_data = self.asic.get_miner_data()
+        if self.asic.client_error():
+            return self.iprStatusBar.showMessage(
+                f"Status :: Failed to get complete miner data {ip_addr}: {str(self.asic.client_error())}",
+                5000,
+            )
+        self.asic.close_client()
+        miner_data["recv_at"] = int(time.time())
+        miner_data["ip"] = ip_addr
+        miner_data["mac"] = (
+            miner_data["mac"].lower() if miner_data["mac"] != "N/A" else "N/A"
+        )
+        self.populate_table_row(miner_data, row)
+        self.iprStatusBar.showMessage(
+            f"Status :: Successfully refreshed {ip_addr} (row {row}) miner data.", 3000
+        )
 
     def get_miner_pool(self):
         rows = self.tableIPRID.rowCount()
