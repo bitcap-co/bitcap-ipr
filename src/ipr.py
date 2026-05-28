@@ -213,6 +213,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.tableIPRID.setHorizontalHeaderLabels(
             [
                 "",
+                "",
                 "RECV AT",
                 "IP",
                 "MAC",
@@ -230,13 +231,14 @@ class IPR(QMainWindow, Ui_MainWindow):
             ]
         )
         self.tableIPRID.setColumnWidth(0, 15)
-        self.tableIPRID.setColumnWidth(1, 180)
-        self.tableIPRID.setColumnWidth(3, 120)
-        self.tableIPRID.setColumnWidth(5, 130)
-        self.tableIPRID.setColumnWidth(6, 145)
-        self.tableIPRID.setColumnWidth(9, 385)
-        self.tableIPRID.setColumnWidth(10, 300)
-        self.tableIPRID.setColumnWidth(13, 180)
+        self.tableIPRID.setColumnWidth(1, 15)
+        self.tableIPRID.setColumnWidth(2, 180)
+        self.tableIPRID.setColumnWidth(4, 120)
+        self.tableIPRID.setColumnWidth(6, 130)
+        self.tableIPRID.setColumnWidth(7, 145)
+        self.tableIPRID.setColumnWidth(10, 385)
+        self.tableIPRID.setColumnWidth(11, 300)
+        self.tableIPRID.setColumnWidth(14, 180)
         self.tableIPRID.doubleClicked.connect(self.double_click_item)
         self.tableIPRID.cellClicked.connect(self.locate_miner)
         self.tableIPRID.setSortingEnabled(True)
@@ -867,9 +869,9 @@ class IPR(QMainWindow, Ui_MainWindow):
     def double_click_item(self, model_index: QModelIndex):
         item = self.tableIPRID.itemFromIndex(model_index)
         match item.column():
-            case 2:  # ip column
+            case 3:  # ip column
                 self.open_dashboard(item.text())
-            case 6:  # serial column
+            case 7:  # serial column
                 self.tableIPRID.editItem(item)
             case _:
                 return
@@ -898,7 +900,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         rows = self.tableIPRID.rowCount()
         if not rows:
             return
-        selected_ips = [x for x in self.tableIPRID.selectedIndexes() if x.column() == 2]
+        selected_ips = [x for x in self.tableIPRID.selectedIndexes() if x.column() == 3]
         for index in selected_ips:
             item = self.tableIPRID.itemFromIndex(index)
             self.open_dashboard(item.text())
@@ -922,9 +924,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                     continue
                 item = self.tableIPRID.itemFromIndex(selected_indexes_in_row[index])
                 match item.column():
-                    case 0:  # ignore locate
+                    case 0 | 1:  # ignore widget actions
                         continue
-                    case 2:  # ip
+                    case 3:  # ip
                         out += f"http://{item.text()}{sep}"
                     case _:
                         out += f"{item.text()}{sep}"
@@ -989,7 +991,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             return
         out = "RECV_AT,IP,MAC,TYPE,SUBTYPE,SERIAL,ALGORITHM,HOSTNAME,STRATUM_URL,USERNAME,WORKER_NAME,FIRMWARE,FW_VERSION,PLATFORM\n"
         for i in range(rows):
-            for j in range(1, cols):
+            for j in range(2, cols):
                 out += self.tableIPRID.item(i, j).text()
                 out += ","
             out += "\n"
@@ -1293,8 +1295,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         actionLocateMiner = QLabel()
         actionLocateMiner.setPixmap(QPixmap(":theme/icons/rc/flash.png"))
         actionLocateMiner.setToolTip("Locate Miner")
-        self.tableIPRID.setCellWidget(rowPosition, 0, actionLocateMiner)
-        self.tableIPRID.setItem(rowPosition, 0, IPRIndexWidgetItem(rowPosition))
+        self.tableIPRID.setCellWidget(rowPosition, 1, actionLocateMiner)
+        self.tableIPRID.setItem(rowPosition, 1, IPRIndexWidgetItem(rowPosition))
         # recv at
         date_item = QTableWidgetItem()
         try:
@@ -1304,7 +1306,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             recv_at_datetime = QDateTime.fromString(data["recv_at"])
         date_item.setData(Qt.ItemDataRole.UserRole, recv_at_datetime)
         date_item.setText(recv_at_datetime.toString())
-        self.tableIPRID.setItem(rowPosition, 1, date_item)
+        self.tableIPRID.setItem(rowPosition, 2, date_item)
         # ip
         ip_item = QTableWidgetItem()
         if "ip_report" not in data:
@@ -1315,38 +1317,38 @@ class IPR(QMainWindow, Ui_MainWindow):
             addr = data["ip_report"]["src_addr"]
         ip_item.setData(Qt.ItemDataRole.UserRole, addr)
         ip_item.setText(data["ip"])
-        self.tableIPRID.setItem(rowPosition, 2, ip_item)
-        self.tableIPRID.setItem(rowPosition, 3, QTableWidgetItem(data["mac"]))
+        self.tableIPRID.setItem(rowPosition, 3, ip_item)
+        self.tableIPRID.setItem(rowPosition, 4, QTableWidgetItem(data["mac"]))
         # ASIC TYPE
-        self.tableIPRID.setItem(rowPosition, 4, QTableWidgetItem(data["type"]))
+        self.tableIPRID.setItem(rowPosition, 5, QTableWidgetItem(data["type"]))
         # SUBTYPE
-        self.tableIPRID.setItem(rowPosition, 5, QTableWidgetItem(data["subtype"]))
+        self.tableIPRID.setItem(rowPosition, 6, QTableWidgetItem(data["subtype"]))
         # SERIAL
-        self.tableIPRID.setItem(rowPosition, 6, QTableWidgetItem(data["serial"]))
+        self.tableIPRID.setItem(rowPosition, 7, QTableWidgetItem(data["serial"]))
         # ALGO
-        self.tableIPRID.setItem(rowPosition, 7, QTableWidgetItem(data["algorithm"]))
+        self.tableIPRID.setItem(rowPosition, 8, QTableWidgetItem(data["algorithm"]))
         # HOSTNAME
-        self.tableIPRID.setItem(rowPosition, 8, QTableWidgetItem(data["hostname"]))
+        self.tableIPRID.setItem(rowPosition, 9, QTableWidgetItem(data["hostname"]))
         # ACTIVE POOL
-        self.tableIPRID.setItem(rowPosition, 9, QTableWidgetItem(data["stratum_url"]))
+        self.tableIPRID.setItem(rowPosition, 10, QTableWidgetItem(data["stratum_url"]))
         # ACTIVE USER
-        self.tableIPRID.setItem(rowPosition, 10, QTableWidgetItem(data["username"]))
+        self.tableIPRID.setItem(rowPosition, 11, QTableWidgetItem(data["username"]))
         # ACTIVE WORKER
-        self.tableIPRID.setItem(rowPosition, 11, QTableWidgetItem(data["worker_name"]))
+        self.tableIPRID.setItem(rowPosition, 12, QTableWidgetItem(data["worker_name"]))
         # FIRMWARE TYPE
-        self.tableIPRID.setItem(rowPosition, 12, QTableWidgetItem(data["firmware"]))
+        self.tableIPRID.setItem(rowPosition, 13, QTableWidgetItem(data["firmware"]))
         # FIRMWARE VERSION
-        self.tableIPRID.setItem(rowPosition, 13, QTableWidgetItem(data["fw_version"]))
+        self.tableIPRID.setItem(rowPosition, 14, QTableWidgetItem(data["fw_version"]))
         # PLATFORM
-        self.tableIPRID.setItem(rowPosition, 14, QTableWidgetItem(data["platform"]))
+        self.tableIPRID.setItem(rowPosition, 15, QTableWidgetItem(data["platform"]))
         self.tableIPRID.scrollToBottom()
 
     def retrieve_miner_from_table(
         self, row: int
     ) -> tuple[str, MinerType, MinerFirmware]:
-        ip_addr = self.tableIPRID.item(row, 2).text()
-        miner_type = MinerType.from_value(self.tableIPRID.item(row, 4).text())
-        fw_type = MinerFirmware(self.tableIPRID.item(row, 12).text())
+        ip_addr = self.tableIPRID.item(row, 3).text()
+        miner_type = MinerType.from_value(self.tableIPRID.item(row, 5).text())
+        fw_type = MinerFirmware(self.tableIPRID.item(row, 13).text())
 
         match fw_type:
             case MinerFirmware.LUX_OS:
@@ -1388,7 +1390,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         rows = self.tableIPRID.rowCount()
         if not rows:
             return
-        selected_ips = [x for x in self.tableIPRID.selectedIndexes() if x.column() == 2]
+        selected_ips = [x for x in self.tableIPRID.selectedIndexes() if x.column() == 3]
         index = selected_ips[0]
         item = self.tableIPRID.itemFromIndex(index)
         _, miner_type, fw_type = self.retrieve_miner_from_table(item.row())
@@ -1421,7 +1423,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         passed: list[str] = []
         failed: list[str] = []
         selected_ips = self.get_selected_indexes_for_action(
-            "update_miner_pools", section=2
+            "update_miner_pools", section=3
         )
         self._app_instance.processEvents(
             QEventLoop.ProcessEventsFlag.AllEvents
@@ -1432,8 +1434,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         for index in selected_ips:
             item = self.tableIPRID.itemFromIndex(index)
             ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(item.row())
-            macaddr = self.tableIPRID.item(item.row(), 3)
-            serial = self.tableIPRID.item(item.row(), 6)
+            macaddr = self.tableIPRID.item(item.row(), 4)
+            serial = self.tableIPRID.item(item.row(), 7)
             urls = [
                 self.linePoolURL.text(),
                 self.linePoolURL_2.text(),
