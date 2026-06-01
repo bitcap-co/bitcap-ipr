@@ -579,7 +579,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "elphapex": self.checkListenElphapex.isChecked(),
                 "auradine": self.checkListenAuradine.isChecked(),
             },
-            "IPRD": {
+            "iprd": {
                 "enableIPRD": self.checkEnableIPRDBackend.isChecked(),
                 "socketAddress": self.lineIPRDSocketAddress.text(),
             },

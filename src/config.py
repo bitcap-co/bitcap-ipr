@@ -46,7 +46,7 @@ class ListenerSettings(BaseModel):
     enable_filter: Annotated[bool, Field(alias="enableFiltering")] = False
     enable_all: Annotated[bool, Field(alias="enableAll")] = True
     listen_for: Annotated[Listeners, Field(alias="listenFor")] = Listeners()
-    iprd: Annotated[IPRD, Field(alias="IPRD")] = IPRD()
+    iprd: Annotated[IPRD, Field(alias="iprd")] = IPRD()
 
 
 class APIAuthFirmware(BaseModel):
