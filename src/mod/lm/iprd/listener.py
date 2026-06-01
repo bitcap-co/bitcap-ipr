@@ -32,21 +32,24 @@ class IPRDPacketData(BaseModel):
 
 class IPRDListener(QObject):
     """
-    TCP Listener for the IP Report daemon (iprd) backend.
+    TCP Listener class for the IPR Daemon (iprd) backend.
 
-    iprd is an alternative listening backend for receiving IP Report packets from a LAN
+    IPR Daemon is an alternative listening backend for receiving IP Report packets from a LAN
     and forwards the data over a TCP stream on port 7788 by default.
 
-    Arguments:
+    This is a standalone listener that is NOT managed by ListenerManager.
+
+    Arguements:
         parent (QObject | None): Optional parent object.
 
     Signals:
-        subscribed: emits when socket successfully connected and is subscribed to the stream.
-        stopped: emits when socket successfully disconnects from the stream.
+        subscribed: emits when socket succussfully connects and is subscribed to TCP stream.
+        stopped: emits when socket succussfully disconnects from stream.
         result (IPReport): emits IPReport on received data from the stream.
         error (str): emits socket error string if one occurred.
     """
 
+    # Signals
     subscribed = Signal()
     stopped = Signal()
     result = Signal(IPReport)
@@ -54,13 +57,12 @@ class IPRDListener(QObject):
 
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
-        self.addr: QHostAddress = QHostAddress()
-        self.port: int = 7788  # default port to 7788
+        self.addr = QHostAddress()
+        self.port = 7788  # default port set to 7788
         # active flag for socket when socket is actively reading from stream.
-        self.active: bool = False
-        self.sock: QTcpSocket = QTcpSocket()
+        self.active = False
+        self.sock = QTcpSocket()
 
-        # init signals for socket
         self.sock.errorOccurred.connect(self.emit_error)
         self.sock.connected.connect(self._send_subscribe)
         self.sock.readyRead.connect(self._process_message)
@@ -69,7 +71,6 @@ class IPRDListener(QObject):
         return f"{self.__class__.__name__}[{self.port}]"
 
     def _send_subscribe(self) -> None:
-        # once we are connected to host, send subscribe command.
         logger.info(
             f"{self.__repr__()} : connected to {self.addr.toString()}:{self.port}."
         )
@@ -77,35 +78,33 @@ class IPRDListener(QObject):
         sub_msg = cmd.model_dump_json() + "\n"
         wrote = self.sock.write(sub_msg.encode())
         logger.debug(f"{self.__repr__()} : write subscribe ({wrote}).")
-        # if we failed to write, emit error
+        # if we failed to write (-1), emit error
         if wrote == -1:
             self.active = False
             logger.error(f"{self.__repr__()} : failed to write subscribe!")
-            return self.error.emit("Failed to write.")
-        # otherwise, we mark the socket as "active" and emit subscribed.
+            return self.error.emit("Failed to write command.")
         self.active = True
         self.subscribed.emit()
 
     @Slot()
     def _process_message(self) -> None:
         logger.info(f"{self.__repr__()} : received packet.")
-        buf = self.sock.readAll()
-        logger.debug(f"{self.__repr__()} : read {buf.toStdString()} ({buf.length()})")
-        data = buf.toStdString().splitlines()[0]
+        stream = self.sock.readAll()
+        pkt_data = stream.toStdString().splitlines()[0]
+        logger.debug(f"{self.__repr__()} : read {pkt_data} ({len(pkt_data)})")
         try:
-            obj = json.loads(data)
+            obj = json.loads(pkt_data)
             packet = IPRDPacketData.model_validate(obj=obj, by_alias=True)
-        except (ValidationError, json.JSONDecodeError) as ex:
-            logger.error(f"{self.__repr__()} : invalid IP Report packet data. {ex}")
+        except (ValidationError, json.JSONDecodeError) as e:
+            logger.error(f"{self.__repr__()} : invalid IP Report packet data: {e}.")
             return
-        else:
-            self.emit_result(packet)
+        self.emit_result(packet)
 
     def set_socket_addr(self, addr: str, port: int) -> None:
         self.port = port
         if QHostAddress(addr).toIPv4Address() == 0:
             logger.error(
-                f"{self.__repr__()} : failed to initialize socket address! Invalid IPv4 address."
+                f"{self.__repr__()} : failed to initialize socket address! Invalid IPv4 address"
             )
             return self.error.emit("Invalid IPv4 address.")
         self.addr.setAddress(addr)
@@ -113,9 +112,9 @@ class IPRDListener(QObject):
     def start(self) -> None:
         if self.addr.isNull():
             logger.error(
-                f"{self.__repr__()} : failed to start IPRD listener! socket address cannot be null."
+                f"{self.__repr__()} : failed to start IPRD listener! Socket address cannot be null."
             )
-            return self.error.emit("Address is null.")
+            return self.error.emit("Null address.")
         if not self.active:
             self.sock.connectToHost(self.addr, self.port)
 
@@ -148,8 +147,8 @@ class IPRDListener(QObject):
         self.result.emit(ip_report)
 
     def emit_error(self, error: QAbstractSocket.SocketError) -> None:
-        logger.error(f"{self.__repr__()} : emit error! {error.name}")
-        self.error.emit(self.sock.errorString())
+        logger.error(f"{self.__repr__()} : emit error! {self.sock.errorString()}")
+        self.error.emit(error.name)
 
     def close(self) -> None:
         self.stop()

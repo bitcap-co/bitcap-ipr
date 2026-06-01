@@ -8,6 +8,7 @@ import logging
 import re
 import time
 import zlib
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, ValidationError
 from PySide6.QtNetwork import QNetworkDatagram
@@ -52,6 +53,7 @@ class IPReportDatagram:
         self.dst_port = datagram.destinationPort()
         self.data = datagram.data()
         self.payload: str = ""
+        self.payload_json: Any = None
         self.compressed = False
         self.valid = False
         self.created_at = time.time()
@@ -134,6 +136,13 @@ class IPReportDatagram:
                     return False
             else:
                 self.payload = self.data.toStdString().rstrip("\x00")
+                try:
+                    self.payload_json = json.loads(self.payload)
+                except json.JSONDecodeError as e:
+                    logger.debug(
+                        f"{self.miner_type}[{self.src_addr.toString()}] : {self.payload} - JSON error {e}."
+                    )
+                    pass
 
             match self.port_type:
                 case MinerTypeHint.COMMON:
@@ -155,13 +164,11 @@ class IPReportDatagram:
                         self.ip_addr = self.src_addr.toString()
                         self.valid = True
                 case MinerTypeHint.SEALMINER:
-                    try:
-                        obj = json.loads(self.payload)
-                    except json.JSONDecodeError:
+                    if self.payload_json is None:
                         self.valid = False
                     else:
                         try:
-                            model = SealMinerIPReport(payload=obj)
+                            model = SealMinerIPReport(payload=self.payload_json)
                             ip = model.interfaces[1].ipv4
                             mac = model.info.mac
                         except (ValueError, ValidationError):
@@ -171,13 +178,11 @@ class IPReportDatagram:
                             self.mac_addr = mac
                             self.valid = True
                 case MinerTypeHint.GOLDSHELL:
-                    try:
-                        obj = json.loads(self.payload)
-                    except json.JSONDecodeError:
+                    if self.payload_json is None:
                         self.valid = False
                     else:
                         try:
-                            model = GoldshellIPReport.model_validate(obj)
+                            model = GoldshellIPReport.model_validate(self.payload_json)
                             ip = model.ip
                             mac = model.mac
                         except ValidationError:
@@ -188,13 +193,11 @@ class IPReportDatagram:
                             self.miner_sn = model.boxsn
                             self.valid = True
                 case MinerTypeHint.AURADINE:
-                    try:
-                        obj = json.loads(self.payload)
-                    except json.JSONDecodeError:
+                    if self.payload_json is None:
                         self.valid = False
                     else:
                         try:
-                            model = AuradineIPReport.model_validate(obj)
+                            model = AuradineIPReport.model_validate(self.payload_json)
                             ip = model.ip
                             mac = model.mac
                         except ValidationError:
@@ -207,6 +210,9 @@ class IPReportDatagram:
                     self.valid = False
 
         if not self.valid:
+            logger.debug(
+                f"{self.miner_type}[{self.src_addr.toString()}] : {self.payload}"
+            )
             logger.error(
                 f"{self.miner_type}[{self.src_addr.toString()}] : failed to validate ip report packet"
             )

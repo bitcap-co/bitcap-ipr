@@ -4,7 +4,6 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 import logging
-from typing import Optional
 
 from PySide6.QtCore import QObject, Signal, Slot
 from PySide6.QtNetwork import QAbstractSocket, QHostAddress, QUdpSocket
@@ -18,58 +17,63 @@ class Listener(QObject):
     """
     UDP Socket Listener class
 
-    Listens on 0.0.0.0 (Any IPv4) on specified port for IPReportDatagram.
+    Listens on 0.0.0.0 (Any IPv4) on given port for IP Report datagrams.
 
     Args:
-        port (int): UDP port to listen on.
-        parent (QObject): Optional parent object.
+        port (int) : UDP port to listen on.
+        parent (QObject | None) : Optional parent object.
 
     Signals:
-        result (IPReport): emits IPReport data on valid IPReportDatagram.
-        error (str): emits sock.errorString() on socket error.
+        result (IPReport): emits IPReport data on valid IP Report datagram.
+        error (str) : emits socket error string on socket error.
     """
 
+    # Signals
     result = Signal(IPReport)
     error = Signal(str)
 
-    def __init__(self, port: int, parent: Optional[QObject] = None) -> None:
+    def __init__(self, port: int, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self.addr = QHostAddress()
         self.addr.setAddress(QHostAddress.SpecialAddress.AnyIPv4)
         self.port = port
-        self.buf_size = 1024
+        self.snap_len = 1600
         self.sock = QUdpSocket()
         self.bound = self.sock.bind(self.addr, self.port)
 
         self.sock.errorOccurred.connect(self.emit_error)
         self.sock.readyRead.connect(self._process_datagram)
 
+    def __repr__(self, /) -> str:
+        return f"{self.__class__.__name__}[{self.port}]"
+
     @Slot()
     def _process_datagram(self) -> None:
         while self.sock.hasPendingDatagrams():
-            datagram = self.sock.receiveDatagram(self.buf_size)
+            datagram = self.sock.receiveDatagram(self.snap_len)
             if not datagram.isValid():
+                # ignore if not a valid datagram
                 return
-            logger.info(f"Listener[{self.port}] : received datagram.")
-            ip_dgram = IPReportDatagram(datagram)
-            if not ip_dgram.valid:
+            logger.info(f"{self.__repr__()} : received datagram.")
+            ipr_dgram = IPReportDatagram(datagram)
+            if not ipr_dgram.valid:
                 logger.warning(
-                    f"Listener[{self.port}] : invalid IP Report datagram. Ignoring..."
+                    f"{self.__repr__()} : invalid IP Report datagram. Ignoring..."
                 )
                 return
-            self.emit_result(ip_dgram.ip_report)
+            self.emit_result(ipr_dgram.ip_report)
 
     def emit_result(self, result: IPReport) -> None:
-        logger.info(f"Listener[{self.port}] : emit result.")
+        logger.info(f"{self.__repr__()} : emit result.")
         self.result.emit(result)
 
     def emit_error(self, error: QAbstractSocket.SocketError) -> None:
-        logger.error(f"Listener[{self.port}] : emit error! {self.sock.errorString()}")
+        logger.error(f"{self.__repr__()} : emit error! {self.sock.errorString()}")
         self.error.emit(error.name)
         self.close()
 
     def close(self) -> None:
-        logger.info(f"Listener[{self.port}] : close socket.")
+        logger.info(f"{self.__repr__()} : close socket.")
         self.sock.readyRead.disconnect(self._process_datagram)
         self.sock.errorOccurred.disconnect(self.emit_error)
         self.sock.close()

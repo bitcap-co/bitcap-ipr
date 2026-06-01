@@ -129,4 +129,4 @@ class AuradineIPReport(BaseModel):
     model: str
     version: str
     hostname: str
-    internal_type: str = Field(validation_alias="InternalType")
+    internal_type: str | None = Field(None, validation_alias="InternalType")
