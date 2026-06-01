@@ -53,7 +53,6 @@ class IPReportDatagram:
         self.dst_port = datagram.destinationPort()
         self.data = datagram.data()
         self.payload: str = ""
-        self.payload_json: Any = None
         self.compressed = False
         self.valid = False
         self.created_at = time.time()
@@ -124,6 +123,15 @@ class IPReportDatagram:
                 return out
         return bytes()
 
+    def _from_json(self) -> Any:
+        try:
+            obj = json.loads(self.payload)
+        except json.JSONDecodeError as ex:
+            return logger.debug(
+                f"{self.miner_type}[{self.src_addr.toString()}] : {self.payload} - JSON error {ex}."
+            )
+        return obj
+
     def _validate_payload(self) -> bool:
         if not self.data.isEmpty():
             if not self.data.isValidUtf8():
@@ -136,13 +144,6 @@ class IPReportDatagram:
                     return False
             else:
                 self.payload = self.data.toStdString().rstrip("\x00")
-                try:
-                    self.payload_json = json.loads(self.payload)
-                except json.JSONDecodeError as e:
-                    logger.debug(
-                        f"{self.miner_type}[{self.src_addr.toString()}] : {self.payload} - JSON error {e}."
-                    )
-                    pass
 
             match self.port_type:
                 case MinerTypeHint.COMMON:
@@ -164,11 +165,12 @@ class IPReportDatagram:
                         self.ip_addr = self.src_addr.toString()
                         self.valid = True
                 case MinerTypeHint.SEALMINER:
-                    if self.payload_json is None:
+                    obj = self._from_json()
+                    if obj is None:
                         self.valid = False
                     else:
                         try:
-                            model = SealMinerIPReport(payload=self.payload_json)
+                            model = SealMinerIPReport(payload=obj)
                             ip = model.interfaces[1].ipv4
                             mac = model.info.mac
                         except (ValueError, ValidationError):
@@ -178,11 +180,12 @@ class IPReportDatagram:
                             self.mac_addr = mac
                             self.valid = True
                 case MinerTypeHint.GOLDSHELL:
-                    if self.payload_json is None:
+                    obj = self._from_json()
+                    if obj is None:
                         self.valid = False
                     else:
                         try:
-                            model = GoldshellIPReport.model_validate(self.payload_json)
+                            model = GoldshellIPReport.model_validate(obj)
                             ip = model.ip
                             mac = model.mac
                         except ValidationError:
@@ -193,11 +196,12 @@ class IPReportDatagram:
                             self.miner_sn = model.boxsn
                             self.valid = True
                 case MinerTypeHint.AURADINE:
-                    if self.payload_json is None:
+                    obj = self._from_json()
+                    if obj is None:
                         self.valid = False
                     else:
                         try:
-                            model = AuradineIPReport.model_validate(self.payload_json)
+                            model = AuradineIPReport.model_validate(obj)
                             ip = model.ip
                             mac = model.mac
                         except ValidationError:
