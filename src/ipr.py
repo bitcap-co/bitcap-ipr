@@ -1225,7 +1225,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.open_dashboard(ip)
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
             logger.info("show_confirmation : populate ID table.")
-            self.populate_table_row(result)
+            self.populate_table_row(result, dedupe_key="mac")
             self.activateWindow()
         else:
             confirm = IPRConfirmation(self.menu_bar.actionConfirmsStayOnTop.isChecked())
@@ -1305,19 +1305,33 @@ class IPR(QMainWindow, Ui_MainWindow):
         cleaned["recv_at"] = self._coerce_recv_at(data.get("recv_at"))
         return MinerData(**cleaned)
 
-    def populate_table_row(self, data: dict[str, Any], row: int | None = None) -> None:
+    def populate_table_row(
+        self,
+        data: dict[str, Any],
+        row: int | None = None,
+        dedupe_key: str | None = None,
+    ) -> None:
         """
         Arguments:
             data (dict[str, Any]): stringified MinerData.
             row (int | None): optional source row to update in place.
+            dedupe_key (str | None): when set (and row is None), refresh an
+                existing row whose MinerData field matches instead of
+                appending a duplicate (e.g. "mac" for repeat IP reports).
         """
         logger.info("populate_table : write table data.")
         miner = self._miner_from_data(data)
         if row is not None:
             self.id_model.update_row(row, miner)
+        elif dedupe_key:
+            before = self.id_model.rowCount()
+            self.id_model.upsert(miner, key=dedupe_key)
+            # only follow the view to the bottom when a new row was appended
+            if self.id_model.rowCount() > before:
+                self.tableIPRID.scrollToBottom()
         else:
             self.id_model.append(miner)
-        self.tableIPRID.scrollToBottom()
+            self.tableIPRID.scrollToBottom()
 
     def retrieve_miner_from_table(
         self, row: int
