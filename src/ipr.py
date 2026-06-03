@@ -236,6 +236,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.tableIPRID.setSortingEnabled(True)
         self.id_header = self.tableIPRID.horizontalHeader()
         self.id_header.sectionDoubleClicked.connect(self.select_column)
+        self.lineIDTableFilter.textChanged.connect(self.id_proxy.set_filter_text)
 
         # id table context menu
         self.id_context_menu = IPRTableContextMenu(self)

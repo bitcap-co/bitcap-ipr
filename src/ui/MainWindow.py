@@ -379,6 +379,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.setSpacing(0)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.lineIDTableFilter = QLineEdit(self.tableView)
+        self.lineIDTableFilter.setObjectName(u"lineIDTableFilter")
+        self.lineIDTableFilter.setClearButtonEnabled(True)
+
+        self.verticalLayout_2.addWidget(self.lineIDTableFilter)
+
         self.tableIPRID = QTableView(self.tableView)
         self.tableIPRID.setObjectName(u"tableIPRID")
         sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
@@ -1079,6 +1085,7 @@ class Ui_MainWindow(object):
         self.label_23.setText(QCoreApplication.translate("MainWindow", u"Password:", None))
         self.label_23.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.labelIPRLogo.setText("")
+        self.lineIDTableFilter.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Filter miners\u2026", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Configuration", None))
         self.label.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.groupSystemTray.setTitle(QCoreApplication.translate("MainWindow", u"System Tray", None))

@@ -824,6 +824,16 @@ Uses last 5 of SN or MAC address.</string>
            <number>0</number>
           </property>
           <item>
+           <widget class="QLineEdit" name="lineIDTableFilter">
+            <property name="clearButtonEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="placeholderText">
+             <string>Filter miners…</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QTableView" name="tableIPRID">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">

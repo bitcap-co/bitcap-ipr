@@ -5,6 +5,5 @@
 
 from .contextmenu import IPRTableContextMenu
 from .delegate import IPRActionDelegate
-from .indexwidgetitem import IPRIndexWidgetItem
 from .model import COL_LOCATE, COL_REFRESH, IPRTableModel
 from .proxy import IPRFilterProxyModel
