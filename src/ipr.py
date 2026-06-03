@@ -60,6 +60,7 @@ from ui.widgets import (
 )
 from ui.widgets.ipr.idtable import (
     COL_LOCATE,
+    COL_RECV_AT,
     COL_REFRESH,
     IPRActionDelegate,
     IPRFilterProxyModel,
@@ -237,6 +238,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.id_header = self.tableIPRID.horizontalHeader()
         self.id_header.sectionDoubleClicked.connect(self.select_column)
         self.lineIDTableFilter.textChanged.connect(self.id_proxy.set_filter_text)
+        # default sort: oldest -> newest by RECV AT (new arrivals at the bottom)
+        self.tableIPRID.sortByColumn(COL_RECV_AT, Qt.SortOrder.AscendingOrder)
 
         # id table context menu
         self.id_context_menu = IPRTableContextMenu(self)
@@ -941,8 +944,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                 )
 
     def reset_sort(self):
-        self.id_proxy.sort(-1)
-        self.id_header.setSortIndicator(-1, Qt.SortOrder.AscendingOrder)
+        # reset to the default sort: RECV AT ascending
+        self.tableIPRID.sortByColumn(COL_RECV_AT, Qt.SortOrder.AscendingOrder)
 
     def clear_table(self):
         return self.id_model.clear()

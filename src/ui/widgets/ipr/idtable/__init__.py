@@ -5,5 +5,5 @@
 
 from .contextmenu import IPRTableContextMenu
 from .delegate import IPRActionDelegate
-from .model import COL_LOCATE, COL_REFRESH, IPRTableModel
+from .model import COL_LOCATE, COL_RECV_AT, COL_REFRESH, IPRTableModel
 from .proxy import IPRFilterProxyModel

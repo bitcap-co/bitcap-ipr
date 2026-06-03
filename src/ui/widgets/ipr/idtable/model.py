@@ -22,6 +22,8 @@ from mod.apiv2.data import MinerData
 # action columns (icon-only, no underlying MinerData field)
 COL_REFRESH = 0
 COL_LOCATE = 1
+# first data column / default sort column
+COL_RECV_AT = 2
 
 # custom role used by the proxy for type-aware sorting (epoch int, ip int, ...)
 SortRole = Qt.ItemDataRole.UserRole + 1
