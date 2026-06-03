@@ -20,8 +20,8 @@ from PySide6.QtWidgets import (QAbstractItemView, QAbstractSpinBox, QApplication
     QHBoxLayout, QHeaderView, QLabel, QLineEdit,
     QMainWindow, QPushButton, QScrollArea, QSizePolicy,
     QSpacerItem, QSpinBox, QStackedWidget, QStatusBar,
-    QTabWidget, QTableWidget, QTableWidgetItem, QToolButton,
-    QVBoxLayout, QWidget)
+    QTabWidget, QTableView, QToolButton, QVBoxLayout,
+    QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -379,9 +379,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.setSpacing(0)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.tableIPRID = QTableWidget(self.tableView)
-        if (self.tableIPRID.columnCount() < 16):
-            self.tableIPRID.setColumnCount(16)
+        self.tableIPRID = QTableView(self.tableView)
         self.tableIPRID.setObjectName(u"tableIPRID")
         sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
         sizePolicy5.setHorizontalStretch(0)
@@ -393,8 +391,6 @@ class Ui_MainWindow(object):
         self.tableIPRID.setProperty(u"showDropIndicator", False)
         self.tableIPRID.setShowGrid(False)
         self.tableIPRID.setSortingEnabled(True)
-        self.tableIPRID.setColumnCount(16)
-        self.tableIPRID.setSupportedDragActions(Qt.DropAction.IgnoreAction)
         self.tableIPRID.horizontalHeader().setMinimumSectionSize(15)
         self.tableIPRID.horizontalHeader().setDefaultSectionSize(105)
 
