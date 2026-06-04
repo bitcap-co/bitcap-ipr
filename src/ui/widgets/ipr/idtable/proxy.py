@@ -12,13 +12,13 @@ free-text needle against every backing field of a row.
 
 from PySide6.QtCore import QModelIndex, QPersistentModelIndex, QSortFilterProxyModel, Qt
 
-from .model import ACTION_COLUMN_COUNT, COLUMN_COUNT, SortRole
+from .model import ACTION_COLUMN_COUNT, COLUMN_COUNT, IPR_SORT_ROLE
 
 
 class IPRFilterProxyModel(QSortFilterProxyModel):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
-        self.setSortRole(SortRole)
+        self.setSortRole(IPR_SORT_ROLE)
         self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self._needle = ""
 

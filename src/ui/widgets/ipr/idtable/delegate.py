@@ -3,14 +3,6 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-"""Delegate that paints the action-column icons (refresh / locate).
-
-Replaces the old ``setCellWidget(row, col, QLabel(...))`` approach. A delegate
-paints once per cell instead of allocating a QLabel per row, centers the icon
-in the narrow 15px columns, and emits a signal carrying the *source* row when
-clicked.
-"""
-
 from PySide6.QtCore import QEvent, QModelIndex, QPersistentModelIndex, QRect, Qt, Signal
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QStyledItemDelegate, QStyleOptionViewItem

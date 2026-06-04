@@ -3,19 +3,17 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-"""Model for the ID table.
-
-Holds ``MinerData`` rows directly instead of stringified ``QTableWidgetItem``s.
-This is the source model; sorting/filtering is layered on top via
-``IPRFilterProxyModel`` (see ``proxy.py``). Action icons are painted by
-``IPRActionDelegate`` (see ``delegate.py``).
-"""
-
 from typing import Any, Callable
 
-from PySide6.QtCore import QAbstractTableModel, QDateTime, QModelIndex, Qt
-from PySide6.QtNetwork import QHostAddress
 from pydantic import BaseModel, ConfigDict
+from PySide6.QtCore import (
+    QAbstractTableModel,
+    QDateTime,
+    QModelIndex,
+    QPersistentModelIndex,
+    Qt,
+)
+from PySide6.QtNetwork import QHostAddress
 
 from mod.apiv2.data import MinerData
 
@@ -26,7 +24,7 @@ COL_LOCATE = 1
 COL_RECV_AT = 2
 
 # custom role used by the proxy for type-aware sorting (epoch int, ip int, ...)
-SortRole = Qt.ItemDataRole.UserRole + 1
+IPR_SORT_ROLE = Qt.ItemDataRole.UserRole + 1
 
 
 class Column(BaseModel):
@@ -83,12 +81,14 @@ class IPRTableModel(QAbstractTableModel):
         super().__init__(parent)
         self._rows: list[MinerData] = []
 
-    # --- required overrides -------------------------------------------------
-
-    def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
+    def rowCount(
+        self, parent: QModelIndex | QPersistentModelIndex = QModelIndex()
+    ) -> int:
         return 0 if parent.isValid() else len(self._rows)
 
-    def columnCount(self, parent: QModelIndex = QModelIndex()) -> int:
+    def columnCount(
+        self, parent: QModelIndex | QPersistentModelIndex = QModelIndex()
+    ) -> int:
         return 0 if parent.isValid() else COLUMN_COUNT
 
     def headerData(
@@ -104,7 +104,7 @@ class IPRTableModel(QAbstractTableModel):
             return HEADERS[section]
         return None
 
-    def flags(self, index: QModelIndex) -> Qt.ItemFlag:
+    def flags(self, index: QModelIndex | QPersistentModelIndex) -> Qt.ItemFlag:
         if not index.isValid():
             return Qt.ItemFlag.NoItemFlags
         flags = Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
@@ -113,13 +113,17 @@ class IPRTableModel(QAbstractTableModel):
             flags |= Qt.ItemFlag.ItemIsEditable
         return flags
 
-    def data(self, index: QModelIndex, role: int = Qt.ItemDataRole.DisplayRole) -> Any:
+    def data(
+        self,
+        index: QModelIndex | QPersistentModelIndex,
+        role: int = Qt.ItemDataRole.DisplayRole,
+    ) -> Any:
         if not index.isValid():
             return None
         miner = self._rows[index.row()]
         col = _column_for(index.column())
 
-        if role == SortRole:
+        if role == IPR_SORT_ROLE:
             if col is None:
                 return index.row()  # action cols: stable by insertion order
             if col.sort_key is not None:
@@ -134,7 +138,10 @@ class IPRTableModel(QAbstractTableModel):
         return None
 
     def setData(
-        self, index: QModelIndex, value: Any, role: int = Qt.ItemDataRole.EditRole
+        self,
+        index: QModelIndex | QPersistentModelIndex,
+        value: Any,
+        role: int = Qt.ItemDataRole.EditRole,
     ) -> bool:
         if role != Qt.ItemDataRole.EditRole or not index.isValid():
             return False
@@ -145,8 +152,6 @@ class IPRTableModel(QAbstractTableModel):
         self.dataChanged.emit(index, index, [Qt.ItemDataRole.DisplayRole, role])
         return True
 
-    # --- display helpers ----------------------------------------------------
-
     @staticmethod
     def _display(miner: MinerData, col: Column) -> str:
         value = getattr(miner, col.field, None)
@@ -156,8 +161,6 @@ class IPRTableModel(QAbstractTableModel):
             # recv_at is an epoch int; render like the old QDateTime string
             return QDateTime.fromSecsSinceEpoch(int(value)).toString()
         return str(value)
-
-    # --- public mutators (used by ipr.py) -----------------------------------
 
     def miner_at(self, row: int) -> MinerData:
         """Return the MinerData for a *source* row (caller maps proxy->source)."""
