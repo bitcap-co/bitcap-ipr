@@ -1294,7 +1294,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             return int(text)
         # datetime string produced by a previous export
         recv_at_datetime = QDateTime.fromString(text)
-        return recv_at_datetime.toSecsSinceEpoch() if recv_at_datetime.isValid() else None
+        return (
+            recv_at_datetime.toSecsSinceEpoch() if recv_at_datetime.isValid() else None
+        )
 
     def _miner_from_data(self, data: dict[str, Any]) -> MinerData:
         """Build a MinerData from a stringified dict (the "N/A"-filled
@@ -1416,7 +1418,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         self.populate_table_row(miner_data, row)
         self.iprStatusBar.showMessage(
-            f"Status :: Successfully refreshed {ip_addr} (row {row}) miner data.", 3000
+            f"Status :: Successfully refreshed {ip_addr} miner data.", 3000
         )
 
     def get_miner_pool(self):
@@ -1505,9 +1507,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             ]
 
             alt_pwd = self.get_client_auth(miner_type.value)
-            self.asic.create_client(
-                miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd
-            )
+            self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
             self.asic.update_miner_pools(urls, users, passwds)
             if self.asic.client_error():
                 failed.append(ip_addr)
