@@ -52,6 +52,7 @@ from mod.apiv2 import ASICClient
 from mod.apiv2 import settings as api_settings
 from mod.apiv2.data import MinerData, MinerFirmware, MinerType
 from mod.lm import IPRDListener, IPReport, ListenerManager
+from mod.updater import UpdateChecker
 from ui.MainWindow import Ui_MainWindow
 from ui.widgets import (
     IPR_Menubar,
@@ -84,6 +85,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self._app_instance = QApplication.instance()
         self.confirms: list[IPRConfirmation] = []
         self.aboutDialog: IPRAbout | None = None
+        self.update_checker: UpdateChecker | None = None
         self.sys_tray: QSystemTrayIcon = QSystemTrayIcon(
             QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"),
             parent=self,
@@ -147,6 +149,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionOpenLog.triggered.connect(self.open_log)
         self.menu_bar.actionReportIssue.triggered.connect(self.open_issues)
         self.menu_bar.actionSourceCode.triggered.connect(self.open_source)
+        self.menu_bar.actionCheckForUpdates.triggered.connect(self.check_for_updates)
         self.menu_bar.actionKillAllConfirmations.triggered.connect(self.killall)
         self.menu_bar.actionQuit.triggered.connect(self.quit)
         self.menu_bar.menuOptions.triggered.connect(self.update_settings)
@@ -879,6 +882,52 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def open_source(self):
         webbrowser.open(f"{IPR_METADATA['source']}", new=2)
+
+    def check_for_updates(self):
+        if self.update_checker and self.update_checker.isRunning():
+            return
+        self.menu_bar.actionCheckForUpdates.setEnabled(False)
+        self.update_checker = UpdateChecker(IPR_METADATA["appversion"], self)
+        self.update_checker.update_available.connect(self.on_update_available)
+        self.update_checker.up_to_date.connect(self.on_up_to_date)
+        self.update_checker.error.connect(self.on_update_error)
+        self.update_checker.finished.connect(
+            lambda: self.menu_bar.actionCheckForUpdates.setEnabled(True)
+        )
+        self.update_checker.start()
+
+    def on_update_available(self, release: dict[str, str]):
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Update Available")
+        msg.setIcon(QMessageBox.Icon.Information)
+        msg.setText(
+            f"A new version of {IPR_METADATA['name']} is available: {release['name']}\n"
+            f"You are currently running {IPR_METADATA['appversion']}."
+        )
+        msg.setStandardButtons(
+            QMessageBox.StandardButton.Open | QMessageBox.StandardButton.Close
+        )
+        msg.button(QMessageBox.StandardButton.Open).setText("Download")
+        msg.setDefaultButton(QMessageBox.StandardButton.Open)
+        if msg.exec() == QMessageBox.StandardButton.Open:
+            webbrowser.open(
+                release["url"] or f"{IPR_METADATA['source']}/releases/latest", new=2
+            )
+
+    def on_up_to_date(self, current: str):
+        QMessageBox.information(
+            self,
+            "No Updates",
+            f"You are running the latest version ({current}).",
+        )
+
+    def on_update_error(self, error: str):
+        logger.error(f" failed to check for updates: {error}")
+        QMessageBox.warning(
+            self,
+            "Update Check Failed",
+            f"Could not check for updates. Please try again later.\n\n{error}",
+        )
 
     def open_dashboard(self, host: str):
         webbrowser.open(f"http://{host}", new=2)

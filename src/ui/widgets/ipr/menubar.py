@@ -44,6 +44,10 @@ class IPR_Menubar(QMenuBar):
         self.actionReportIssue.setToolTip("Report a new issue on GitHub.")
         self.actionSourceCode = self.menuHelp.addAction("Source Code")
         self.actionSourceCode.setToolTip("Opens the GitHub repo in browser.")
+        self.actionCheckForUpdates = self.menuHelp.addAction("Check for Updates")
+        self.actionCheckForUpdates.setToolTip(
+            "Check GitHub for a newer release of the app."
+        )
         self.actionVersion = self.menuHelp.addAction(
             f"Version {IPR_METADATA['appversion']}"
         )
