@@ -250,6 +250,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.comboSortColumn.addItem(header, col)
         self.comboSortColumn.currentIndexChanged.connect(self.apply_sort)
         self.btnSortOrder.toggled.connect(self.apply_sort)
+        self.btnResetView.setIcon(QIcon(":theme/icons/rc/clear.png"))
         self.btnResetView.clicked.connect(self.reset_view)
         # asc/desc glyphs for the sort order toggle (keyed by "is descending")
         self.id_sort_icons = {

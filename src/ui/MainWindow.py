@@ -435,8 +435,9 @@ class Ui_MainWindow(object):
 
         self.btnResetView = QToolButton(self.tableSortFilter)
         self.btnResetView.setObjectName(u"btnResetView")
-        self.btnResetView.setMinimumSize(QSize(60, 25))
-        self.btnResetView.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
+        self.btnResetView.setMinimumSize(QSize(32, 25))
+        self.btnResetView.setIconSize(QSize(14, 14))
+        self.btnResetView.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
 
         self.horizontalLayout_8.addWidget(self.btnResetView)
 
@@ -1162,7 +1163,6 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.btnResetView.setToolTip(QCoreApplication.translate("MainWindow", u"Clear the filter and reset the sort order", None))
 #endif // QT_CONFIG(tooltip)
-        self.btnResetView.setText(QCoreApplication.translate("MainWindow", u"Reset", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Configuration", None))
         self.label.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.groupSystemTray.setTitle(QCoreApplication.translate("MainWindow", u"System Tray", None))
