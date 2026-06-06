@@ -416,6 +416,7 @@ class Ui_MainWindow(object):
         self.btnSortOrder = QToolButton(self.tableToolBar)
         self.btnSortOrder.setObjectName(u"btnSortOrder")
         self.btnSortOrder.setMinimumSize(QSize(32, 25))
+        self.btnSortOrder.setIconSize(QSize(14, 14))
         self.btnSortOrder.setCheckable(True)
 
         self.horizontalLayout_7.addWidget(self.btnSortOrder)
@@ -1135,7 +1136,6 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.btnSortOrder.setToolTip(QCoreApplication.translate("MainWindow", u"Toggle ascending / descending sort order", None))
 #endif // QT_CONFIG(tooltip)
-        self.btnSortOrder.setText(QCoreApplication.translate("MainWindow", u"\u2191", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Configuration", None))
         self.label.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.groupSystemTray.setTitle(QCoreApplication.translate("MainWindow", u"System Tray", None))
