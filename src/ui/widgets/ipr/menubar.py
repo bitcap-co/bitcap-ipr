@@ -37,13 +37,13 @@ class IPR_Menubar(QMenuBar):
 
         # help
         self.actionAbout = self.menuHelp.addAction("About")
-        self.actionAbout.setToolTip("Opens the about dialog")
+        self.actionAbout.setToolTip("Opens the about dialog.")
         self.actionOpenLog = self.menuHelp.addAction("Open Log")
-        self.actionOpenLog.setToolTip("Opens log file")
+        self.actionOpenLog.setToolTip("Opens log file.")
         self.actionReportIssue = self.menuHelp.addAction("Report Issue")
-        self.actionReportIssue.setToolTip("Report a new issue on GitHub")
+        self.actionReportIssue.setToolTip("Report a new issue on GitHub.")
         self.actionSourceCode = self.menuHelp.addAction("Source Code")
-        self.actionSourceCode.setToolTip("Opens the GitHub repo in browser")
+        self.actionSourceCode.setToolTip("Opens the GitHub repo in browser.")
         self.actionVersion = self.menuHelp.addAction(
             f"Version {IPR_METADATA['appversion']}"
         )
@@ -55,26 +55,26 @@ class IPR_Menubar(QMenuBar):
         )
         self.actionAlwaysOpenIPInBrowser.setCheckable(True)
         self.actionAlwaysOpenIPInBrowser.setToolTip(
-            "Always open received IPs in browser"
+            "Always open received IPs in browser."
         )
         self.actionDisableInactiveTimer = self.menuOptions.addAction(
             "Disable Inactive Timer"
         )
         self.actionDisableInactiveTimer.setCheckable(True)
         self.actionDisableInactiveTimer.setToolTip(
-            "Disables inactive timer of 15 minutes (Listens until stopped)"
+            "Disables inactive timer of 15 minutes. (Listens until stopped)"
         )
         self.actionConfirmsStayOnTop = self.menuOptions.addAction(
             "Confirms Stay on Top"
         )
         self.actionConfirmsStayOnTop.setCheckable(True)
-        self.actionConfirmsStayOnTop.setToolTip("Show IP Confirmation windows on top")
+        self.actionConfirmsStayOnTop.setToolTip("Show IP Confirmation windows on top.")
         self.actionAutoStartOnLaunch = self.menuOptions.addAction(
             "Auto Start on Launch"
         )
         self.actionAutoStartOnLaunch.setCheckable(True)
         self.actionAutoStartOnLaunch.setToolTip(
-            "Automatically start listeners on launch (Takes effect on next launch)"
+            "Automatically start listeners on launch. (Takes effect on next launch)"
         )
         self.actionClearTableAfterStopListen = self.menuOptions.addAction(
             "Clear ID Table When Stopped"
@@ -88,17 +88,17 @@ class IPR_Menubar(QMenuBar):
         self.actionEnableIDTable = self.menuTable.addAction("Enable ID Table")
         self.actionEnableIDTable.setCheckable(True)
         self.actionEnableIDTable.setToolTip(
-            "Stores identifying information in a table on confirmation"
+            "Stores identifying information in a table on confirmation."
         )
         self.actionOpenSelectedIPs = self.menuTable.addAction("Open Selected IPs")
         self.actionOpenSelectedIPs.setEnabled(False)
-        self.actionOpenSelectedIPs.setToolTip("Open selected IPs in browser")
+        self.actionOpenSelectedIPs.setToolTip("Open selected IPs in browser.")
         self.actionCopySelectedElements = self.menuTable.addAction(
             "Copy Selected Elements"
         )
         self.actionCopySelectedElements.setEnabled(False)
         self.actionCopySelectedElements.setToolTip(
-            "Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows"
+            "Copy selected elements to clipboard. Drag or Ctrl-click to select multiple cols/rows."
         )
         self.menuTableAction = self.menuTable.addMenu("Table Actions")
         self.menuTableAction.setEnabled(False)
@@ -106,6 +106,9 @@ class IPR_Menubar(QMenuBar):
         self.actionResetSort = self.menuTableAction.addAction("Reset Sort Order")
         self.actionResetSort.setEnabled(False)
         self.actionResetSort.setToolTip("Reset the current sort order to default.")
+        self.actionResetView = self.menuTableAction.addAction("Reset View")
+        self.actionResetView.setEnabled(False)
+        self.actionResetView.setToolTip("Clear filter and reset sort order.")
         self.actionClearTable = self.menuTableAction.addAction("Clear Table")
         self.actionClearTable.setEnabled(False)
         self.actionClearTable.setToolTip("Clear the current data in table.")
@@ -124,29 +127,29 @@ class IPR_Menubar(QMenuBar):
         self.actionShowPoolConfigurator.setEnabled(False)
         self.actionShowPoolConfigurator.setCheckable(True)
         self.actionShowPoolConfigurator.setToolTip(
-            "Get, store, and apply pool configurations"
+            "Get, store, and apply pool configurations."
         )
         self.actionGetMinerPoolConfig = self.menuPools.addAction(
             "Get Miner Pool Config"
         )
         self.actionGetMinerPoolConfig.setEnabled(False)
-        self.actionGetMinerPoolConfig.setToolTip("Retrieve miner pool configuration")
+        self.actionGetMinerPoolConfig.setToolTip("Retrieve miner pool configuration.")
         self.actionSetPoolFromPreset = self.menuPools.addAction(
             "Set Pool From Current Preset"
         )
         self.actionSetPoolFromPreset.setEnabled(False)
         self.actionSetPoolFromPreset.setToolTip(
-            "Set pool from current preset to selected miners"
+            "Set pool from current preset to selected miners."
         )
 
         # settings
         self.actionSettings = self.menuSettings.addAction("Settings...")
-        self.actionSettings.setToolTip("Change application settings")
+        self.actionSettings.setToolTip("Change application settings.")
 
         # quit
         self.actionKillAllConfirmations = self.menuQuit.addAction(
             "Kill All Confirmations"
         )
-        self.actionKillAllConfirmations.setToolTip("Kills all IP confirmation windows")
+        self.actionKillAllConfirmations.setToolTip("Kills all IP confirmation windows.")
         self.actionQuit = self.menuQuit.addAction("Quit")
-        self.actionQuit.setToolTip("Quits app")
+        self.actionQuit.setToolTip("Quits app.")

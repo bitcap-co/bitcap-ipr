@@ -18,6 +18,7 @@ from PySide6.QtCore import (
     QEventLoop,
     QFile,
     QIODevice,
+    QItemSelectionModel,
     QModelIndex,
     Qt,
     QTextStream,
@@ -31,18 +32,15 @@ from PySide6.QtGui import (
     QIcon,
     QPixmap,
 )
-from PySide6.QtNetwork import QHostAddress
 from PySide6.QtWidgets import (
     QApplication,
     QButtonGroup,
     QFileDialog,
-    QLabel,
     QLineEdit,
     QMainWindow,
     QMenu,
     QMessageBox,
     QSystemTrayIcon,
-    QTableWidgetItem,
     QWidget,
 )
 
@@ -58,8 +56,15 @@ from ui.MainWindow import Ui_MainWindow
 from ui.widgets import (
     IPR_Menubar,
     IPR_Titlebar,
-    IPRIndexWidgetItem,
     IPRTableContextMenu,
+)
+from ui.widgets.ipr.idtable import (
+    COL_LOCATE,
+    COL_RECV_AT,
+    COL_REFRESH,
+    IPRActionDelegate,
+    IPRFilterProxyModel,
+    IPRTableModel,
 )
 from utils import (
     IPR_METADATA,
@@ -150,6 +155,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionOpenSelectedIPs.triggered.connect(self.open_selected_ips)
         self.menu_bar.actionCopySelectedElements.triggered.connect(self.copy_selected)
         self.menu_bar.actionResetSort.triggered.connect(self.reset_sort)
+        self.menu_bar.actionResetView.triggered.connect(self.reset_view)
         self.menu_bar.actionClearTable.triggered.connect(self.clear_table)
         self.menu_bar.actionImport.triggered.connect(self.import_table)
         self.menu_bar.actionExport.triggered.connect(self.export_table)
@@ -209,27 +215,16 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionIPRSavePreset.clicked.connect(self.write_pool_preset)
         self.actionIPRClearPreset.clicked.connect(self.clear_pool_preset)
 
-        # initialize ID Table
-        self.tableIPRID.setHorizontalHeaderLabels(
-            [
-                "",
-                "",
-                "RECV AT",
-                "IP",
-                "MAC",
-                "TYPE",
-                "SUBTYPE",
-                "SERIAL",
-                "ALGORITHM",
-                "HOSTNAME",
-                "STRATUM URL",
-                "USERNAME",
-                "WORKER NAME",
-                "FIRMWARE",
-                "FW VERSION",
-                "PLATFORM",
-            ]
-        )
+        # initialize ID Table (headers are provided by IPRTableModel)
+        self.id_model = IPRTableModel(self)
+        self.id_proxy = IPRFilterProxyModel(self)
+        self.id_proxy.setSourceModel(self.id_model)
+        self.tableIPRID.setModel(self.id_proxy)
+        # action-column icons (refresh / locate) painted by a delegate
+        self.id_action_delegate = IPRActionDelegate(self.tableIPRID)
+        self.tableIPRID.setItemDelegateForColumn(COL_REFRESH, self.id_action_delegate)
+        self.tableIPRID.setItemDelegateForColumn(COL_LOCATE, self.id_action_delegate)
+        self.id_action_delegate.action_clicked.connect(self.handle_widget_action)
         self.tableIPRID.setColumnWidth(0, 15)
         self.tableIPRID.setColumnWidth(1, 15)
         self.tableIPRID.setColumnWidth(2, 180)
@@ -240,10 +235,31 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.tableIPRID.setColumnWidth(11, 300)
         self.tableIPRID.setColumnWidth(14, 180)
         self.tableIPRID.doubleClicked.connect(self.double_click_item)
-        self.tableIPRID.cellClicked.connect(self.handle_widget_action)
-        self.tableIPRID.setSortingEnabled(True)
+        # sorting is driven by the toolbar controls, not header clicks, so a
+        # header click is free to select the column without sorting it
+        self.tableIPRID.setSortingEnabled(False)
         self.id_header = self.tableIPRID.horizontalHeader()
-        self.id_header.sectionDoubleClicked.connect(self.select_column)
+        self.id_header.setSortIndicatorShown(False)
+        self.id_header.sectionClicked.connect(self.select_column)
+        self.lineIDTableFilter.textChanged.connect(self.id_proxy.set_filter_text)
+        # sort controls: column combo + asc/desc toggle (next to the filter)
+        for col in range(self.id_model.columnCount()):
+            header = self.id_model.headerData(
+                col, Qt.Orientation.Horizontal, Qt.ItemDataRole.DisplayRole
+            )
+            if header:  # skip the icon-only action columns (empty header)
+                self.comboSortColumn.addItem(header, col)
+        self.comboSortColumn.currentIndexChanged.connect(self.apply_sort)
+        self.btnSortOrder.toggled.connect(self.apply_sort)
+        self.btnResetView.setIcon(QIcon(":theme/icons/rc/clear.png"))
+        self.btnResetView.clicked.connect(self.reset_view)
+        # asc/desc glyphs for the sort order toggle (keyed by "is descending")
+        self.id_sort_icons = {
+            False: QIcon(":theme/icons/rc/arrow_up.png"),
+            True: QIcon(":theme/icons/rc/arrow_down.png"),
+        }
+        # default sort: oldest -> newest by RECV AT (new arrivals at the bottom)
+        self.reset_sort()
 
         # id table context menu
         self.id_context_menu = IPRTableContextMenu(self)
@@ -262,6 +278,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         self.id_context_menu.contextActionTableResetSortOrder.triggered.connect(
             self.reset_sort
+        )
+        self.id_context_menu.contextActionTableResetView.triggered.connect(
+            self.reset_view
         )
         self.id_context_menu.contextActionConfiguratorShowHide.toggled.connect(
             self.toggle_pool_config
@@ -800,6 +819,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionResetSort.setEnabled(enabled)
         self.menu_bar.actionClearTable.setEnabled(enabled)
         self.menu_bar.actionResetSort.setEnabled(enabled)
+        self.menu_bar.actionResetView.setEnabled(enabled)
         self.menu_bar.actionImport.setEnabled(enabled)
         self.menu_bar.actionExport.setEnabled(enabled)
         if not enabled:
@@ -867,51 +887,50 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.id_context_menu.exec(QCursor.pos())
 
     def double_click_item(self, model_index: QModelIndex):
-        item = self.tableIPRID.itemFromIndex(model_index)
-        match item.column():
+        # model_index is a proxy index
+        match model_index.column():
             case 3:  # ip column
-                self.open_dashboard(item.text())
+                self.open_dashboard(model_index.data())
             case 7:  # serial column
-                self.tableIPRID.editItem(item)
+                self.tableIPRID.edit(model_index)
             case _:
                 return
 
     def get_selected_indexes_for_action(
         self, action: str, section: int | None = None
     ) -> list[QModelIndex] | None:
-        rows = self.tableIPRID.rowCount()
+        rows = self.id_proxy.rowCount()
         if not rows:
             return
+        selected = self.tableIPRID.selectionModel().selectedIndexes()
         if section is not None and section != 0:
-            selected = [
-                x for x in self.tableIPRID.selectedIndexes() if x.column() == section
-            ]
-        else:
-            selected = self.tableIPRID.selectedIndexes()
+            selected = [x for x in selected if x.column() == section]
         if not len(selected):
             return
-        selected_text = [self.tableIPRID.itemFromIndex(x).text() for x in selected]
+        selected_text = [x.data() for x in selected]
         logger.info(f"{action} : running action for {selected_text}...")
         status_msg = f"Status :: Running action: {action} for [{','.join(selected_text[0:3])}...]..."
         self.iprStatusBar.showMessage(status_msg, 3000)
         return selected
 
     def open_selected_ips(self):
-        rows = self.tableIPRID.rowCount()
-        if not rows:
+        if not self.id_proxy.rowCount():
             return
-        selected_ips = [x for x in self.tableIPRID.selectedIndexes() if x.column() == 3]
+        selected_ips = [
+            x
+            for x in self.tableIPRID.selectionModel().selectedIndexes()
+            if x.column() == 3
+        ]
         for index in selected_ips:
-            item = self.tableIPRID.itemFromIndex(index)
-            self.open_dashboard(item.text())
+            self.open_dashboard(index.data())
 
     def copy_selected(self):
         logger.info(" copy selected elements.")
-        rows = self.tableIPRID.rowCount()
+        rows = self.id_proxy.rowCount()
         if not rows:
             return
         out = ""
-        selected_indexes = self.tableIPRID.selectedIndexes()
+        selected_indexes = self.tableIPRID.selectionModel().selectedIndexes()
         for r in range(rows):
             selected_indexes_in_row = [x for x in selected_indexes if x.row() == r]
             if len(selected_indexes_in_row) == 0:
@@ -920,16 +939,14 @@ class IPR(QMainWindow, Ui_MainWindow):
                 sep = ""
                 if len(selected_indexes_in_row) > 1:
                     sep = ","
-                if not self.tableIPRID.itemFromIndex(selected_indexes_in_row[index]):
-                    continue
-                item = self.tableIPRID.itemFromIndex(selected_indexes_in_row[index])
-                match item.column():
+                cell = selected_indexes_in_row[index]
+                match cell.column():
                     case 0 | 1:  # ignore widget actions
                         continue
                     case 3:  # ip
-                        out += f"http://{item.text()}{sep}"
+                        out += f"http://{cell.data()}{sep}"
                     case _:
-                        out += f"{item.text()}{sep}"
+                        out += f"{cell.data()}{sep}"
                 continue
             out += "\n"
         logger.info("copy_selected : copy elements to clipboard.")
@@ -939,20 +956,43 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprStatusBar.showMessage("Status :: Copied elements to clipboard.", 3000)
 
     def select_column(self, section: int):
-        rows = self.tableIPRID.rowCount()
+        rows = self.id_proxy.rowCount()
         if not rows:
             return
         if section != 0:
+            selection_model = self.tableIPRID.selectionModel()
             for row in range(rows):
-                item = self.tableIPRID.item(row, section)
-                item.setSelected(True)
+                selection_model.select(
+                    self.id_proxy.index(row, section),
+                    QItemSelectionModel.SelectionFlag.Select,
+                )
+
+    def apply_sort(self, *_args):
+        """Sort the proxy from the current toolbar control state."""
+        col = self.comboSortColumn.currentData()
+        if col is None:
+            return
+        descending = self.btnSortOrder.isChecked()
+        order = (
+            Qt.SortOrder.DescendingOrder if descending else Qt.SortOrder.AscendingOrder
+        )
+        self.btnSortOrder.setIcon(self.id_sort_icons[descending])
+        self.id_proxy.sort(col, order)
 
     def reset_sort(self):
-        self.tableIPRID.sortByColumn(0, Qt.SortOrder.AscendingOrder)
-        self.id_header.setSortIndicator(-1, Qt.SortOrder.AscendingOrder)
+        # reset to the default sort: RECV AT ascending
+        self.comboSortColumn.setCurrentIndex(self.comboSortColumn.findData(COL_RECV_AT))
+        self.btnSortOrder.setChecked(False)
+        self.apply_sort()
+
+    def reset_view(self):
+        # clear the active filter and return the sort to its default
+        self.lineIDTableFilter.clear()
+        self.reset_sort()
 
     def clear_table(self):
-        return self.tableIPRID.setRowCount(0)
+        self.reset_view()
+        return self.id_model.clear()
 
     def import_table(self):
         logger.info(" import table.")
@@ -985,14 +1025,15 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def export_table(self):
         logger.info("export table.")
-        rows = self.tableIPRID.rowCount()
-        cols = self.tableIPRID.columnCount()
+        rows = self.id_proxy.rowCount()
+        cols = self.id_proxy.columnCount()
         if not rows:
             return
         out = "RECV_AT,IP,MAC,TYPE,SUBTYPE,SERIAL,ALGORITHM,HOSTNAME,STRATUM_URL,USERNAME,WORKER_NAME,FIRMWARE,FW_VERSION,PLATFORM\n"
         for i in range(rows):
+            # skip the two action columns; write data columns in display order
             for j in range(2, cols):
-                out += self.tableIPRID.item(i, j).text()
+                out += str(self.id_proxy.index(i, j).data())
                 out += ","
             out += "\n"
 
@@ -1231,7 +1272,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.open_dashboard(ip)
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
             logger.info("show_confirmation : populate ID table.")
-            self.populate_table_row(result)
+            self.populate_table_row(result, dedupe_key="mac")
             self.activateWindow()
         else:
             confirm = IPRConfirmation(self.menu_bar.actionConfirmsStayOnTop.isChecked())
@@ -1284,80 +1325,78 @@ class IPR(QMainWindow, Ui_MainWindow):
                 return None
         return client_auth
 
-    def populate_table_row(self, data: dict[str, Any], row: int | None = None) -> None:
+    @staticmethod
+    def _coerce_recv_at(value: Any) -> int | None:
+        """Normalize a recv_at value (epoch int, numeric string, or a CSV
+        datetime string) to an epoch int for the typed MinerData field."""
+        if value is None:
+            return None
+        if isinstance(value, int):
+            return value
+        text = str(value)
+        if text.isdigit():
+            return int(text)
+        # datetime string produced by a previous export
+        recv_at_datetime = QDateTime.fromString(text)
+        return (
+            recv_at_datetime.toSecsSinceEpoch() if recv_at_datetime.isValid() else None
+        )
+
+    def _miner_from_data(self, data: dict[str, Any]) -> MinerData:
+        """Build a MinerData from a stringified dict (the "N/A"-filled
+        as_dict() shape used throughout the listener/import pipeline)."""
+        cleaned: dict[str, Any] = {}
+        for key in MinerData.model_fields:
+            if key not in data:
+                continue
+            value = data[key]
+            cleaned[key] = None if value in ("N/A", "") else value
+        cleaned["recv_at"] = self._coerce_recv_at(data.get("recv_at"))
+        return MinerData(**cleaned)
+
+    def populate_table_row(
+        self,
+        data: dict[str, Any],
+        row: int | None = None,
+        dedupe_key: str | None = None,
+    ) -> None:
         """
         Arguments:
             data (dict[str, Any]): stringified MinerData.
-            row (int | None): optional row position to populate.
+            row (int | None): optional source row to update in place.
+            dedupe_key (str | None): when set (and row is None), refresh an
+                existing row whose MinerData field matches instead of
+                appending a duplicate (e.g. "mac" for repeat IP reports).
         """
         logger.info("populate_table : write table data.")
+        miner = self._miner_from_data(data)
         if row is not None:
-            rowPosition = row
+            self.id_model.update_row(row, miner)
+        elif dedupe_key:
+            before = self.id_model.rowCount()
+            self.id_model.upsert(miner, key=dedupe_key)
+            # only follow the view to the bottom when a new row was appended
+            if self.id_model.rowCount() > before:
+                self.tableIPRID.scrollToBottom()
         else:
-            rowPosition = self.tableIPRID.rowCount()
-            self.tableIPRID.insertRow(rowPosition)
-
-        actionRefreshMiner = QLabel()
-        actionRefreshMiner.setPixmap(QPixmap(":theme/icons/rc/refresh.png"))
-        actionRefreshMiner.setToolTip("Refresh Miner Data")
-        self.tableIPRID.setCellWidget(rowPosition, 0, actionRefreshMiner)
-        self.tableIPRID.setItem(rowPosition, 0, IPRIndexWidgetItem(rowPosition))
-        actionLocateMiner = QLabel()
-        actionLocateMiner.setPixmap(QPixmap(":theme/icons/rc/flash.png"))
-        actionLocateMiner.setToolTip("Locate Miner")
-        self.tableIPRID.setCellWidget(rowPosition, 1, actionLocateMiner)
-        # recv at
-        date_item = QTableWidgetItem()
-        try:
-            recv_at_datetime = QDateTime.fromSecsSinceEpoch(data["recv_at"])
-        except (TypeError, ValueError):
-            # from import
-            recv_at_datetime = QDateTime.fromString(data["recv_at"])
-        date_item.setData(Qt.ItemDataRole.UserRole, recv_at_datetime)
-        date_item.setText(recv_at_datetime.toString())
-        self.tableIPRID.setItem(rowPosition, 2, date_item)
-        # ip
-        ip_item = QTableWidgetItem()
-        if "ip_report" not in data:
-            # manually create src_addr for sorting
-            src_addr = QHostAddress(data["ip"])
-            addr: int = src_addr.toIPv4Address()
-        else:
-            addr = data["ip_report"]["src_addr"]
-        ip_item.setData(Qt.ItemDataRole.UserRole, addr)
-        ip_item.setText(data["ip"])
-        self.tableIPRID.setItem(rowPosition, 3, ip_item)
-        self.tableIPRID.setItem(rowPosition, 4, QTableWidgetItem(data["mac"]))
-        # ASIC TYPE
-        self.tableIPRID.setItem(rowPosition, 5, QTableWidgetItem(data["type"]))
-        # SUBTYPE
-        self.tableIPRID.setItem(rowPosition, 6, QTableWidgetItem(data["subtype"]))
-        # SERIAL
-        self.tableIPRID.setItem(rowPosition, 7, QTableWidgetItem(data["serial"]))
-        # ALGO
-        self.tableIPRID.setItem(rowPosition, 8, QTableWidgetItem(data["algorithm"]))
-        # HOSTNAME
-        self.tableIPRID.setItem(rowPosition, 9, QTableWidgetItem(data["hostname"]))
-        # ACTIVE POOL
-        self.tableIPRID.setItem(rowPosition, 10, QTableWidgetItem(data["stratum_url"]))
-        # ACTIVE USER
-        self.tableIPRID.setItem(rowPosition, 11, QTableWidgetItem(data["username"]))
-        # ACTIVE WORKER
-        self.tableIPRID.setItem(rowPosition, 12, QTableWidgetItem(data["worker_name"]))
-        # FIRMWARE TYPE
-        self.tableIPRID.setItem(rowPosition, 13, QTableWidgetItem(data["firmware"]))
-        # FIRMWARE VERSION
-        self.tableIPRID.setItem(rowPosition, 14, QTableWidgetItem(data["fw_version"]))
-        # PLATFORM
-        self.tableIPRID.setItem(rowPosition, 15, QTableWidgetItem(data["platform"]))
-        self.tableIPRID.scrollToBottom()
+            self.id_model.append(miner)
+            self.tableIPRID.scrollToBottom()
 
     def retrieve_miner_from_table(
         self, row: int
     ) -> tuple[str, MinerType, MinerFirmware]:
-        ip_addr = self.tableIPRID.item(row, 3).text()
-        miner_type = MinerType.from_value(self.tableIPRID.item(row, 5).text())
-        fw_type = MinerFirmware(self.tableIPRID.item(row, 13).text())
+        miner = self.id_model.miner_at(row)
+        ip_addr = miner.ip
+        miner_type = (
+            miner.type
+            if isinstance(miner.type, MinerType)
+            else MinerType.from_value(str(miner.type or ""))
+        )
+        fw_type = (
+            miner.firmware
+            if isinstance(miner.firmware, MinerFirmware)
+            else MinerFirmware.from_value(str(miner.firmware or ""))
+        )
 
         match fw_type:
             case MinerFirmware.LUX_OS:
@@ -1368,11 +1407,12 @@ class IPR(QMainWindow, Ui_MainWindow):
                 pass
         return ip_addr, miner_type, fw_type
 
-    def handle_widget_action(self, row: int, col: int) -> None:
+    def handle_widget_action(self, col: int, row: int) -> None:
+        # col/row come from IPRActionDelegate.action_clicked (source row)
         match col:
-            case 0:
+            case _ if col == COL_REFRESH:
                 self.refresh_miner(row)
-            case 1:
+            case _ if col == COL_LOCATE:
                 self.locate_miner(row)
             case _:
                 return
@@ -1422,19 +1462,22 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         self.populate_table_row(miner_data, row)
         self.iprStatusBar.showMessage(
-            f"Status :: Successfully refreshed {ip_addr} (row {row}) miner data.", 3000
+            f"Status :: Successfully refreshed {ip_addr} miner data.", 3000
         )
 
     def get_miner_pool(self):
-        rows = self.tableIPRID.rowCount()
-        if not rows:
+        if not self.id_proxy.rowCount():
             return
-        selected_ips = [x for x in self.tableIPRID.selectedIndexes() if x.column() == 3]
+        selected_ips = [
+            x
+            for x in self.tableIPRID.selectionModel().selectedIndexes()
+            if x.column() == 3
+        ]
         index = selected_ips[0]
-        item = self.tableIPRID.itemFromIndex(index)
-        _, miner_type, fw_type = self.retrieve_miner_from_table(item.row())
+        source_row = self.id_proxy.mapToSource(index).row()
+        ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(source_row)
         alt_pwd = self.get_client_auth(miner_type.value)
-        self.asic.create_client(miner_type=miner_type, ip=item.text(), alt_pwd=alt_pwd)
+        self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
         urls, users, passwds = self.asic.get_miner_pool_conf()
         if self.asic.client_error():
             return self.iprStatusBar.showMessage(
@@ -1454,7 +1497,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.linePoolPasswd_3.setText(passwds[2])
         self.write_pool_preset()
         self.iprStatusBar.showMessage(
-            f"Status :: Updated {self.comboPoolPreset.currentText()} preset from {item.text()}.",
+            f"Status :: Updated {self.comboPoolPreset.currentText()} preset from {ip_addr}.",
             3000,
         )
 
@@ -1471,10 +1514,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         if selected_ips is None:
             return
         for index in selected_ips:
-            item = self.tableIPRID.itemFromIndex(index)
-            ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(item.row())
-            macaddr = self.tableIPRID.item(item.row(), 4)
-            serial = self.tableIPRID.item(item.row(), 7)
+            source_row = self.id_proxy.mapToSource(index).row()
+            ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(source_row)
+            miner = self.id_model.miner_at(source_row)
+            macaddr = miner.mac
+            serial = miner.serial
             urls = [
                 self.linePoolURL.text(),
                 self.linePoolURL_2.text(),
@@ -1488,10 +1532,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             # append worker name
             if self.checkAutomaticWorkerNames.isChecked():
                 worker_name = ""
-                if serial and serial.text() != "N/A" and serial.text() != "Unknown":
-                    worker_name = f".{serial.text()[-5:]}"
-                elif macaddr and macaddr.text() != "N/A":
-                    worker_name = f".{macaddr.text().replace(':', '')[-5:]}"
+                if serial and serial not in ("N/A", "Unknown"):
+                    worker_name = f".{serial[-5:]}"
+                elif macaddr and macaddr != "N/A":
+                    worker_name = f".{macaddr.replace(':', '')[-5:]}"
                 if worker_name:
                     for i in range(0, len(users)):
                         if len(users[i]):
@@ -1507,9 +1551,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             ]
 
             alt_pwd = self.get_client_auth(miner_type.value)
-            self.asic.create_client(
-                miner_type=miner_type, ip=item.text(), alt_pwd=alt_pwd
-            )
+            self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
             self.asic.update_miner_pools(urls, users, passwds)
             if self.asic.client_error():
                 failed.append(ip_addr)

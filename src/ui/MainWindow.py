@@ -20,8 +20,8 @@ from PySide6.QtWidgets import (QAbstractItemView, QAbstractSpinBox, QApplication
     QHBoxLayout, QHeaderView, QLabel, QLineEdit,
     QMainWindow, QPushButton, QScrollArea, QSizePolicy,
     QSpacerItem, QSpinBox, QStackedWidget, QStatusBar,
-    QTabWidget, QTableWidget, QTableWidgetItem, QToolButton,
-    QVBoxLayout, QWidget)
+    QTabWidget, QTableView, QToolButton, QVBoxLayout,
+    QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -379,22 +379,90 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.setSpacing(0)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.tableIPRID = QTableWidget(self.tableView)
-        if (self.tableIPRID.columnCount() < 16):
-            self.tableIPRID.setColumnCount(16)
-        self.tableIPRID.setObjectName(u"tableIPRID")
-        sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+        self.tableToolBar = QWidget(self.tableView)
+        self.tableToolBar.setObjectName(u"tableToolBar")
+        sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         sizePolicy5.setHorizontalStretch(0)
         sizePolicy5.setVerticalStretch(0)
-        sizePolicy5.setHeightForWidth(self.tableIPRID.sizePolicy().hasHeightForWidth())
-        self.tableIPRID.setSizePolicy(sizePolicy5)
+        sizePolicy5.setHeightForWidth(self.tableToolBar.sizePolicy().hasHeightForWidth())
+        self.tableToolBar.setSizePolicy(sizePolicy5)
+        self.horizontalLayout_7 = QHBoxLayout(self.tableToolBar)
+        self.horizontalLayout_7.setSpacing(6)
+        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
+        self.horizontalLayout_7.setContentsMargins(6, 6, 0, 6)
+        self.tableSortFilter = QWidget(self.tableToolBar)
+        self.tableSortFilter.setObjectName(u"tableSortFilter")
+        self.horizontalLayout_8 = QHBoxLayout(self.tableSortFilter)
+        self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
+        self.horizontalLayout_8.setContentsMargins(0, 0, 0, 0)
+        self.lineIDTableFilter = QLineEdit(self.tableSortFilter)
+        self.lineIDTableFilter.setObjectName(u"lineIDTableFilter")
+        sizePolicy.setHeightForWidth(self.lineIDTableFilter.sizePolicy().hasHeightForWidth())
+        self.lineIDTableFilter.setSizePolicy(sizePolicy)
+        self.lineIDTableFilter.setMinimumSize(QSize(250, 25))
+        self.lineIDTableFilter.setMaximumSize(QSize(640, 25))
+        self.lineIDTableFilter.setClearButtonEnabled(True)
+
+        self.horizontalLayout_8.addWidget(self.lineIDTableFilter)
+
+        self.labelSortBy = QLabel(self.tableSortFilter)
+        self.labelSortBy.setObjectName(u"labelSortBy")
+        sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+        sizePolicy6.setHorizontalStretch(0)
+        sizePolicy6.setVerticalStretch(0)
+        sizePolicy6.setHeightForWidth(self.labelSortBy.sizePolicy().hasHeightForWidth())
+        self.labelSortBy.setSizePolicy(sizePolicy6)
+        self.labelSortBy.setMinimumSize(QSize(50, 25))
+        self.labelSortBy.setMaximumSize(QSize(50, 25))
+
+        self.horizontalLayout_8.addWidget(self.labelSortBy)
+
+        self.comboSortColumn = QComboBox(self.tableSortFilter)
+        self.comboSortColumn.setObjectName(u"comboSortColumn")
+        sizePolicy4.setHeightForWidth(self.comboSortColumn.sizePolicy().hasHeightForWidth())
+        self.comboSortColumn.setSizePolicy(sizePolicy4)
+        self.comboSortColumn.setMinimumSize(QSize(130, 25))
+
+        self.horizontalLayout_8.addWidget(self.comboSortColumn)
+
+        self.btnSortOrder = QToolButton(self.tableSortFilter)
+        self.btnSortOrder.setObjectName(u"btnSortOrder")
+        self.btnSortOrder.setMinimumSize(QSize(32, 25))
+        self.btnSortOrder.setIconSize(QSize(14, 14))
+        self.btnSortOrder.setCheckable(True)
+
+        self.horizontalLayout_8.addWidget(self.btnSortOrder)
+
+        self.btnResetView = QToolButton(self.tableSortFilter)
+        self.btnResetView.setObjectName(u"btnResetView")
+        self.btnResetView.setMinimumSize(QSize(32, 25))
+        self.btnResetView.setIconSize(QSize(14, 14))
+        self.btnResetView.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+
+        self.horizontalLayout_8.addWidget(self.btnResetView)
+
+        self.horizontalSpacer_3 = QSpacerItem(340, 20, QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_8.addItem(self.horizontalSpacer_3)
+
+
+        self.horizontalLayout_7.addWidget(self.tableSortFilter)
+
+
+        self.verticalLayout_2.addWidget(self.tableToolBar)
+
+        self.tableIPRID = QTableView(self.tableView)
+        self.tableIPRID.setObjectName(u"tableIPRID")
+        sizePolicy7 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+        sizePolicy7.setHorizontalStretch(0)
+        sizePolicy7.setVerticalStretch(0)
+        sizePolicy7.setHeightForWidth(self.tableIPRID.sizePolicy().hasHeightForWidth())
+        self.tableIPRID.setSizePolicy(sizePolicy7)
         self.tableIPRID.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.tableIPRID.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tableIPRID.setProperty(u"showDropIndicator", False)
         self.tableIPRID.setShowGrid(False)
         self.tableIPRID.setSortingEnabled(True)
-        self.tableIPRID.setColumnCount(16)
-        self.tableIPRID.setSupportedDragActions(Qt.DropAction.IgnoreAction)
         self.tableIPRID.horizontalHeader().setMinimumSectionSize(15)
         self.tableIPRID.horizontalHeader().setDefaultSectionSize(105)
 
@@ -547,11 +615,11 @@ class Ui_MainWindow(object):
 
         self.checkListenElphapex = QCheckBox(self.groupListeners)
         self.checkListenElphapex.setObjectName(u"checkListenElphapex")
-        sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-        sizePolicy6.setHorizontalStretch(0)
-        sizePolicy6.setVerticalStretch(0)
-        sizePolicy6.setHeightForWidth(self.checkListenElphapex.sizePolicy().hasHeightForWidth())
-        self.checkListenElphapex.setSizePolicy(sizePolicy6)
+        sizePolicy8 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        sizePolicy8.setHorizontalStretch(0)
+        sizePolicy8.setVerticalStretch(0)
+        sizePolicy8.setHeightForWidth(self.checkListenElphapex.sizePolicy().hasHeightForWidth())
+        self.checkListenElphapex.setSizePolicy(sizePolicy8)
         self.checkListenElphapex.setMaximumSize(QSize(100, 30))
 
         self.gridLayout_4.addWidget(self.checkListenElphapex, 4, 0, 1, 1)
@@ -1083,6 +1151,18 @@ class Ui_MainWindow(object):
         self.label_23.setText(QCoreApplication.translate("MainWindow", u"Password:", None))
         self.label_23.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.labelIPRLogo.setText("")
+        self.lineIDTableFilter.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Filter miners\u2026", None))
+        self.labelSortBy.setText(QCoreApplication.translate("MainWindow", u"Sort by:", None))
+        self.labelSortBy.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.comboSortColumn.setToolTip(QCoreApplication.translate("MainWindow", u"Column to sort the table by", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.btnSortOrder.setToolTip(QCoreApplication.translate("MainWindow", u"Toggle ascending / descending sort order", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.btnResetView.setToolTip(QCoreApplication.translate("MainWindow", u"Clear the filter and reset the sort order", None))
+#endif // QT_CONFIG(tooltip)
         self.label.setText(QCoreApplication.translate("MainWindow", u"Configuration", None))
         self.label.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.groupSystemTray.setTitle(QCoreApplication.translate("MainWindow", u"System Tray", None))
