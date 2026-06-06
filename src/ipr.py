@@ -903,9 +903,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.update_checker.finished.connect(
             lambda: self.menu_bar.actionCheckForUpdates.setEnabled(True)
         )
+        self.iprStatusBar.showMessage("Status :: Checking for updates...", 3000)
         self.update_checker.start()
 
     def on_update_available(self, release: dict[str, str]):
+        self.iprStatusBar.clearMessage()
+        self.iprStatusBar.showMessage("Status :: Update available!", 3000)
         msg = QMessageBox(self)
         msg.setWindowTitle("Update Available")
         msg.setIcon(QMessageBox.Icon.Information)
@@ -924,6 +927,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
 
     def on_up_to_date(self, current: str):
+        self.iprStatusBar.clearMessage()
+        self.iprStatusBar.showMessage("Status :: Up to date.", 3000)
         if self._update_check_silent:
             return
         QMessageBox.information(
@@ -933,6 +938,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
 
     def on_update_error(self, error: str):
+        self.iprStatusBar.clearMessage()
+        self.iprStatusBar.showMessage("Status :: Failed to check for updates.", 3000)
         logger.error(f" failed to check for updates: {error}")
         if self._update_check_silent:
             return
