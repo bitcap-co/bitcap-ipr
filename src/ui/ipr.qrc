@@ -26,5 +26,6 @@ Licensed under the GNU General Public License v3.0; see LICENSE
         <file>rc/dashboard.png</file>
         <file>rc/time.png</file>
         <file>rc/refresh.png</file>
+        <file>rc/clear.png</file>
     </qresource>
 </RCC>
