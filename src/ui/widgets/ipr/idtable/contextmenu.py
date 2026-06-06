@@ -33,14 +33,18 @@ class IPRTableContextMenu(QMenu):
         self.menuConf.setToolTipsVisible(True)
 
         self.contextActionTableImport = self.menuTable.addAction("Import Table..")
-        self.contextActionTableImport.setToolTip("Import existing .CSV file")
+        self.contextActionTableImport.setToolTip("Import existing .CSV file.")
         self.contextActionTableExport = self.menuTable.addAction("Export Table..")
-        self.contextActionTableExport.setToolTip("Export the table to a .CSV file")
+        self.contextActionTableExport.setToolTip("Export the table to a .CSV file.")
         self.contextActionTableResetSortOrder = self.menuTable.addAction(
             "Reset Sort Order"
         )
         self.contextActionTableResetSortOrder.setToolTip(
             "Reset the current sort order to default."
+        )
+        self.contextActionTableResetView = self.menuTable.addAction("Reset View")
+        self.contextActionTableResetView.setToolTip(
+            "Clear filter and reset sort order."
         )
 
         self.contextActionConfiguratorShowHide = self.menuConf.addAction(
@@ -48,7 +52,7 @@ class IPRTableContextMenu(QMenu):
         )
         self.contextActionConfiguratorShowHide.setCheckable(True)
         self.contextActionConfiguratorShowHide.setToolTip(
-            "Toggle visibility of the Pool Configurator"
+            "Toggle visibility of the Pool Configurator."
         )
         self.contextActionConfiguratorGetPool = self.menuConf.addAction(
             "Get Pool Config From Selected Miner"

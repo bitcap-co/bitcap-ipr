@@ -155,6 +155,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionOpenSelectedIPs.triggered.connect(self.open_selected_ips)
         self.menu_bar.actionCopySelectedElements.triggered.connect(self.copy_selected)
         self.menu_bar.actionResetSort.triggered.connect(self.reset_sort)
+        self.menu_bar.actionResetView.triggered.connect(self.reset_view)
         self.menu_bar.actionClearTable.triggered.connect(self.clear_table)
         self.menu_bar.actionImport.triggered.connect(self.import_table)
         self.menu_bar.actionExport.triggered.connect(self.export_table)
@@ -277,6 +278,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         self.id_context_menu.contextActionTableResetSortOrder.triggered.connect(
             self.reset_sort
+        )
+        self.id_context_menu.contextActionTableResetView.triggered.connect(
+            self.reset_view
         )
         self.id_context_menu.contextActionConfiguratorShowHide.toggled.connect(
             self.toggle_pool_config
@@ -815,6 +819,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionResetSort.setEnabled(enabled)
         self.menu_bar.actionClearTable.setEnabled(enabled)
         self.menu_bar.actionResetSort.setEnabled(enabled)
+        self.menu_bar.actionResetView.setEnabled(enabled)
         self.menu_bar.actionImport.setEnabled(enabled)
         self.menu_bar.actionExport.setEnabled(enabled)
         if not enabled:
@@ -986,6 +991,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.reset_sort()
 
     def clear_table(self):
+        self.reset_view()
         return self.id_model.clear()
 
     def import_table(self):
