@@ -400,6 +400,26 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_7.addWidget(self.lineIDTableFilter)
 
+        self.labelSortBy = QLabel(self.tableToolBar)
+        self.labelSortBy.setObjectName(u"labelSortBy")
+
+        self.horizontalLayout_7.addWidget(self.labelSortBy)
+
+        self.comboSortColumn = QComboBox(self.tableToolBar)
+        self.comboSortColumn.setObjectName(u"comboSortColumn")
+        sizePolicy4.setHeightForWidth(self.comboSortColumn.sizePolicy().hasHeightForWidth())
+        self.comboSortColumn.setSizePolicy(sizePolicy4)
+        self.comboSortColumn.setMinimumSize(QSize(130, 25))
+
+        self.horizontalLayout_7.addWidget(self.comboSortColumn)
+
+        self.btnSortOrder = QToolButton(self.tableToolBar)
+        self.btnSortOrder.setObjectName(u"btnSortOrder")
+        self.btnSortOrder.setMinimumSize(QSize(32, 25))
+        self.btnSortOrder.setCheckable(True)
+
+        self.horizontalLayout_7.addWidget(self.btnSortOrder)
+
         self.horizontalSpacer_3 = QSpacerItem(640, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_7.addItem(self.horizontalSpacer_3)
@@ -1108,6 +1128,14 @@ class Ui_MainWindow(object):
         self.label_23.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.labelIPRLogo.setText("")
         self.lineIDTableFilter.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Filter miners\u2026", None))
+        self.labelSortBy.setText(QCoreApplication.translate("MainWindow", u"Sort by:", None))
+#if QT_CONFIG(tooltip)
+        self.comboSortColumn.setToolTip(QCoreApplication.translate("MainWindow", u"Column to sort the table by", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.btnSortOrder.setToolTip(QCoreApplication.translate("MainWindow", u"Toggle ascending / descending sort order", None))
+#endif // QT_CONFIG(tooltip)
+        self.btnSortOrder.setText(QCoreApplication.translate("MainWindow", u"\u2191", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Configuration", None))
         self.label.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.groupSystemTray.setTitle(QCoreApplication.translate("MainWindow", u"System Tray", None))

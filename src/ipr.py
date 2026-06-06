@@ -234,12 +234,24 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.tableIPRID.setColumnWidth(11, 300)
         self.tableIPRID.setColumnWidth(14, 180)
         self.tableIPRID.doubleClicked.connect(self.double_click_item)
-        self.tableIPRID.setSortingEnabled(True)
+        # sorting is driven by the toolbar controls, not header clicks, so a
+        # header double-click is free to select the column without sorting it
+        self.tableIPRID.setSortingEnabled(False)
         self.id_header = self.tableIPRID.horizontalHeader()
+        self.id_header.setSortIndicatorShown(True)
         self.id_header.sectionDoubleClicked.connect(self.select_column)
         self.lineIDTableFilter.textChanged.connect(self.id_proxy.set_filter_text)
+        # sort controls: column combo + asc/desc toggle (next to the filter)
+        for col in range(self.id_model.columnCount()):
+            header = self.id_model.headerData(
+                col, Qt.Orientation.Horizontal, Qt.ItemDataRole.DisplayRole
+            )
+            if header:  # skip the icon-only action columns (empty header)
+                self.comboSortColumn.addItem(header, col)
+        self.comboSortColumn.currentIndexChanged.connect(self.apply_sort)
+        self.btnSortOrder.toggled.connect(self.apply_sort)
         # default sort: oldest -> newest by RECV AT (new arrivals at the bottom)
-        self.tableIPRID.sortByColumn(COL_RECV_AT, Qt.SortOrder.AscendingOrder)
+        self.reset_sort()
 
         # id table context menu
         self.id_context_menu = IPRTableContextMenu(self)
@@ -943,9 +955,26 @@ class IPR(QMainWindow, Ui_MainWindow):
                     QItemSelectionModel.SelectionFlag.Select,
                 )
 
+    def apply_sort(self, *_args):
+        """Sort the proxy from the current toolbar control state."""
+        col = self.comboSortColumn.currentData()
+        if col is None:
+            return
+        descending = self.btnSortOrder.isChecked()
+        order = (
+            Qt.SortOrder.DescendingOrder
+            if descending
+            else Qt.SortOrder.AscendingOrder
+        )
+        self.btnSortOrder.setText("↓" if descending else "↑")
+        self.id_proxy.sort(col, order)
+        self.id_header.setSortIndicator(col, order)
+
     def reset_sort(self):
         # reset to the default sort: RECV AT ascending
-        self.tableIPRID.sortByColumn(COL_RECV_AT, Qt.SortOrder.AscendingOrder)
+        self.comboSortColumn.setCurrentIndex(self.comboSortColumn.findData(COL_RECV_AT))
+        self.btnSortOrder.setChecked(False)
+        self.apply_sort()
 
     def clear_table(self):
         return self.id_model.clear()
