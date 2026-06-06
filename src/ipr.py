@@ -250,6 +250,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.comboSortColumn.addItem(header, col)
         self.comboSortColumn.currentIndexChanged.connect(self.apply_sort)
         self.btnSortOrder.toggled.connect(self.apply_sort)
+        self.btnResetView.clicked.connect(self.reset_view)
         # asc/desc glyphs for the sort order toggle (keyed by "is descending")
         self.id_sort_icons = {
             False: QIcon(":theme/icons/rc/arrow_up.png"),
@@ -977,6 +978,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.comboSortColumn.setCurrentIndex(self.comboSortColumn.findData(COL_RECV_AT))
         self.btnSortOrder.setChecked(False)
         self.apply_sort()
+
+    def reset_view(self):
+        # clear the active filter and return the sort to its default
+        self.lineIDTableFilter.clear()
+        self.reset_sort()
 
     def clear_table(self):
         return self.id_model.clear()
