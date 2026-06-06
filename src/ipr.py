@@ -35,6 +35,7 @@ from PySide6.QtGui import (
 from PySide6.QtWidgets import (
     QApplication,
     QButtonGroup,
+    QDialog,
     QFileDialog,
     QLineEdit,
     QMainWindow,
@@ -48,6 +49,7 @@ import ui.resources  # noqa F401
 from config import IPRConfig, PoolPreset
 from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
+from iprmessage import IPRMessage
 from mod.apiv2 import ASICClient
 from mod.apiv2 import settings as api_settings
 from mod.apiv2.data import MinerData, MinerFirmware, MinerType
@@ -909,19 +911,14 @@ class IPR(QMainWindow, Ui_MainWindow):
     def on_update_available(self, release: dict[str, str]):
         self.iprStatusBar.clearMessage()
         self.iprStatusBar.showMessage("Status :: Update available!", 3000)
-        msg = QMessageBox(self)
-        msg.setWindowTitle("Update Available")
-        msg.setIcon(QMessageBox.Icon.Information)
-        msg.setText(
+        dialog = IPRMessage(
+            self,
+            "Update Available",
             f"A new version of {IPR_METADATA['name']} is available: {release['name']}\n"
-            f"You are currently running {IPR_METADATA['appversion']}."
+            f"You are currently running {IPR_METADATA['appversion']}.",
+            action_text="Download",
         )
-        msg.setStandardButtons(
-            QMessageBox.StandardButton.Open | QMessageBox.StandardButton.Close
-        )
-        msg.button(QMessageBox.StandardButton.Open).setText("Download")
-        msg.setDefaultButton(QMessageBox.StandardButton.Open)
-        if msg.exec() == QMessageBox.StandardButton.Open:
+        if dialog.exec() == QDialog.DialogCode.Accepted:
             webbrowser.open(
                 release["url"] or f"{IPR_METADATA['source']}/releases/latest", new=2
             )
@@ -931,11 +928,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprStatusBar.showMessage("Status :: Up to date.", 3000)
         if self._update_check_silent:
             return
-        QMessageBox.information(
+        IPRMessage(
             self,
             "No Updates",
             f"You are running the latest version ({current}).",
-        )
+        ).exec()
 
     def on_update_error(self, error: str):
         self.iprStatusBar.clearMessage()
@@ -943,11 +940,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.error(f" failed to check for updates: {error}")
         if self._update_check_silent:
             return
-        QMessageBox.warning(
+        IPRMessage(
             self,
             "Update Check Failed",
             f"Could not check for updates. Please try again later.\n\n{error}",
-        )
+        ).exec()
 
     def open_dashboard(self, host: str):
         webbrowser.open(f"http://{host}", new=2)
