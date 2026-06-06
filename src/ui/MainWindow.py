@@ -530,6 +530,18 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_5.addWidget(self.groupSystemTray)
 
+        self.groupUpdates = QGroupBox(self.scrollGeneral)
+        self.groupUpdates.setObjectName(u"groupUpdates")
+        self.verticalLayout_updates = QVBoxLayout(self.groupUpdates)
+        self.verticalLayout_updates.setObjectName(u"verticalLayout_updates")
+        self.checkCheckUpdatesOnStartup = QCheckBox(self.groupUpdates)
+        self.checkCheckUpdatesOnStartup.setObjectName(u"checkCheckUpdatesOnStartup")
+
+        self.verticalLayout_updates.addWidget(self.checkCheckUpdatesOnStartup)
+
+
+        self.verticalLayout_5.addWidget(self.groupUpdates)
+
         self.groupInactiveTimer = QGroupBox(self.scrollGeneral)
         self.groupInactiveTimer.setObjectName(u"groupInactiveTimer")
         self.gridLayout_3 = QGridLayout(self.groupInactiveTimer)
@@ -1178,6 +1190,11 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.comboOnWindowClose.setToolTip(QCoreApplication.translate("MainWindow", u"Set behavior on window close", None))
 #endif // QT_CONFIG(tooltip)
+        self.groupUpdates.setTitle(QCoreApplication.translate("MainWindow", u"Updates", None))
+#if QT_CONFIG(tooltip)
+        self.checkCheckUpdatesOnStartup.setToolTip(QCoreApplication.translate("MainWindow", u"Check GitHub for a newer release when the app starts", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkCheckUpdatesOnStartup.setText(QCoreApplication.translate("MainWindow", u"Check for Updates on Startup", None))
         self.groupInactiveTimer.setTitle(QCoreApplication.translate("MainWindow", u"Inactive Timer", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Inactive Timeout:", None))
         self.label_3.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))

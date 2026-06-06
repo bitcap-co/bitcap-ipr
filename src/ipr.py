@@ -86,6 +86,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.confirms: list[IPRConfirmation] = []
         self.aboutDialog: IPRAbout | None = None
         self.update_checker: UpdateChecker | None = None
+        self._update_check_silent = False
         self.sys_tray: QSystemTrayIcon = QSystemTrayIcon(
             QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"),
             parent=self,
@@ -367,6 +368,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         if self.menu_bar.actionAutoStartOnLaunch.isChecked():
             self.start_listen()
 
+        if self.config.general.check_updates_on_startup:
+            self.check_for_updates(silent=True)
+
     # logger
     def set_logger_level(self):
         logger.manager.root.setLevel(self.comboLogLevel.currentText())
@@ -458,6 +462,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.comboOnWindowClose.setCurrentIndex(self.config.general.on_close)
         self.checkUseCustomTimeout.setChecked(self.config.general.use_custom_timeout)
         self.spinInactiveTimeout.setValue(self.config.general.inactive_timeout)
+        self.checkCheckUpdatesOnStartup.setChecked(
+            self.config.general.check_updates_on_startup
+        )
 
         # listener
         self.groupListeners.setChecked(self.config.listener.enable_all)
@@ -586,6 +593,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             "onWindowClose": self.comboOnWindowClose.currentIndex(),
             "useCustomTimeout": self.checkUseCustomTimeout.isChecked(),
             "inactiveTimeoutMins": self.spinInactiveTimeout.value(),
+            "checkForUpdatesOnStartup": self.checkCheckUpdatesOnStartup.isChecked(),
         }
         settings["listener"] = {
             "enableFiltering": self.checkEnableListenFilter.isChecked(),
@@ -883,9 +891,10 @@ class IPR(QMainWindow, Ui_MainWindow):
     def open_source(self):
         webbrowser.open(f"{IPR_METADATA['source']}", new=2)
 
-    def check_for_updates(self):
+    def check_for_updates(self, silent: bool = False):
         if self.update_checker and self.update_checker.isRunning():
             return
+        self._update_check_silent = silent
         self.menu_bar.actionCheckForUpdates.setEnabled(False)
         self.update_checker = UpdateChecker(IPR_METADATA["appversion"], self)
         self.update_checker.update_available.connect(self.on_update_available)
@@ -915,6 +924,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
 
     def on_up_to_date(self, current: str):
+        if self._update_check_silent:
+            return
         QMessageBox.information(
             self,
             "No Updates",
@@ -923,6 +934,8 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def on_update_error(self, error: str):
         logger.error(f" failed to check for updates: {error}")
+        if self._update_check_silent:
+            return
         QMessageBox.warning(
             self,
             "Update Check Failed",

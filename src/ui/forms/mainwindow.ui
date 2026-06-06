@@ -1165,6 +1165,25 @@ Uses last 5 of SN or MAC address.</string>
                    </widget>
                   </item>
                   <item>
+                   <widget class="QGroupBox" name="groupUpdates">
+                    <property name="title">
+                     <string>Updates</string>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_updates">
+                     <item>
+                      <widget class="QCheckBox" name="checkCheckUpdatesOnStartup">
+                       <property name="toolTip">
+                        <string>Check GitHub for a newer release when the app starts</string>
+                       </property>
+                       <property name="text">
+                        <string>Check for Updates on Startup</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
                    <widget class="QGroupBox" name="groupInactiveTimer">
                     <property name="title">
                      <string>Inactive Timer</string>
