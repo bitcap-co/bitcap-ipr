@@ -5,7 +5,10 @@
 
 from .updater import (
     UpdateChecker,
+    UpdateDownloader,
     fetch_latest_release,
+    get_platform,
     is_newer,
     parse_version,
+    select_asset,
 )

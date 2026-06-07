@@ -5,7 +5,26 @@
 
 import unittest
 
-from mod.updater import is_newer, parse_version
+from mod.updater import is_newer, parse_version, select_asset
+
+
+def _asset(name: str) -> dict:
+    return {"name": name, "url": f"https://example.com/{name}", "size": 1}
+
+
+# mirrors the asset names published on a real release.
+RELEASE_ASSETS = [
+    _asset("BitCapIPR-v1.3.1-macos-15-intel-x64-portable.zip"),
+    _asset("BitCapIPR-v1.3.1-macos-15-intel-x64-setup.dmg"),
+    _asset("BitCapIPR-v1.3.1-macos-latest-arm64-portable.zip"),
+    _asset("BitCapIPR-v1.3.1-macos-latest-arm64-setup.dmg"),
+    _asset("BitCapIPR-v1.3.1-ubuntu-22.04-x64-portable.zip"),
+    _asset("BitCapIPR-v1.3.1-ubuntu-22.04-x64.deb"),
+    _asset("BitCapIPR-v1.3.1-ubuntu-latest-x64-portable.zip"),
+    _asset("BitCapIPR-v1.3.1-ubuntu-latest-x64.deb"),
+    _asset("BitCapIPR-v1.3.1-win-x64-portable.zip"),
+    _asset("BitCapIPR-v1.3.1-win-x64-setup.exe"),
+]
 
 
 class TestParseVersion(unittest.TestCase):
@@ -52,6 +71,43 @@ class TestIsNewer(unittest.TestCase):
 
     def test_unparseable_latest(self):
         self.assertFalse(is_newer("", "1.3.1"))
+
+
+class TestSelectAsset(unittest.TestCase):
+    def test_windows_picks_setup_exe(self):
+        asset = select_asset(RELEASE_ASSETS, "windows", False)
+        self.assertEqual(asset["name"], "BitCapIPR-v1.3.1-win-x64-setup.exe")
+
+    def test_windows_portable_when_not_prefer_installer(self):
+        asset = select_asset(RELEASE_ASSETS, "windows", False, prefer_installer=False)
+        self.assertEqual(asset["name"], "BitCapIPR-v1.3.1-win-x64-portable.zip")
+
+    def test_windows_arm_has_no_match(self):
+        self.assertIsNone(select_asset(RELEASE_ASSETS, "windows", True))
+
+    def test_macos_intel_picks_intel_dmg(self):
+        asset = select_asset(RELEASE_ASSETS, "macos", False)
+        self.assertEqual(asset["name"], "BitCapIPR-v1.3.1-macos-15-intel-x64-setup.dmg")
+
+    def test_macos_arm_picks_arm_dmg(self):
+        asset = select_asset(RELEASE_ASSETS, "macos", True)
+        self.assertEqual(asset["name"], "BitCapIPR-v1.3.1-macos-latest-arm64-setup.dmg")
+
+    def test_linux_picks_a_deb(self):
+        asset = select_asset(RELEASE_ASSETS, "linux", False)
+        self.assertTrue(asset["name"].endswith(".deb"))
+
+    def test_linux_selection_is_deterministic(self):
+        first = select_asset(RELEASE_ASSETS, "linux", False)
+        second = select_asset(list(reversed(RELEASE_ASSETS)), "linux", False)
+        self.assertEqual(first["name"], second["name"])
+
+    def test_no_assets(self):
+        self.assertIsNone(select_asset([], "linux", False))
+
+    def test_unrelated_assets(self):
+        assets = [_asset("BitCapIPR-v1.3.1-source.tar.gz")]
+        self.assertIsNone(select_asset(assets, "windows", False))
 
 
 if __name__ == "__main__":

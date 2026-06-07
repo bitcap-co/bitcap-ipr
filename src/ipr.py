@@ -5,6 +5,7 @@
 
 import logging
 import os
+import sys
 import time
 import webbrowser
 from datetime import datetime
@@ -50,11 +51,17 @@ from config import IPRConfig, PoolPreset
 from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
 from iprmessage import IPRMessage
+from iprprogress import IPRProgress
 from mod.apiv2 import ASICClient
 from mod.apiv2 import settings as api_settings
 from mod.apiv2.data import MinerData, MinerFirmware, MinerType
 from mod.lm import IPRDListener, IPReport, ListenerManager
-from mod.updater import UpdateChecker
+from mod.updater import (
+    UpdateChecker,
+    UpdateDownloader,
+    get_platform,
+    select_asset,
+)
 from ui.MainWindow import Ui_MainWindow
 from ui.widgets import (
     IPR_Menubar,
@@ -72,6 +79,7 @@ from ui.widgets.ipr.idtable import (
 from utils import (
     IPR_METADATA,
     deep_update,
+    get_download_dir,
     get_log_dir,
 )
 
@@ -89,6 +97,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.aboutDialog: IPRAbout | None = None
         self.update_checker: UpdateChecker | None = None
         self._update_check_silent = False
+        self.downloader: UpdateDownloader | None = None
+        self.download_dialog: IPRProgress | None = None
         self.sys_tray: QSystemTrayIcon = QSystemTrayIcon(
             QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"),
             parent=self,
@@ -908,7 +918,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprStatusBar.showMessage("Status :: Checking for updates...", 3000)
         self.update_checker.start()
 
-    def on_update_available(self, release: dict[str, str]):
+    def on_update_available(self, release: dict):
         self.iprStatusBar.clearMessage()
         self.iprStatusBar.showMessage("Status :: Update available!", 3000)
         dialog = IPRMessage(
@@ -919,9 +929,70 @@ class IPR(QMainWindow, Ui_MainWindow):
             action_text="Download",
         )
         if dialog.exec() == QDialog.DialogCode.Accepted:
+            self.download_update(release)
+
+    def download_update(self, release: dict):
+        os_name, is_arm = get_platform()
+        asset = select_asset(release.get("assets", []), os_name, is_arm)
+        if not asset:
+            # no binary matches this platform; fall back to the release page.
+            logger.warning(" no matching release asset; opening release page.")
             webbrowser.open(
                 release["url"] or f"{IPR_METADATA['source']}/releases/latest", new=2
             )
+            return
+
+        dest = Path(get_download_dir(), asset["name"])
+        logger.info(f" downloading update asset {asset['name']} to {dest}")
+        self.download_dialog = IPRProgress(
+            self, "Downloading Update", f"Downloading {asset['name']}..."
+        )
+        self.download_dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
+        self.downloader = UpdateDownloader(asset["url"], str(dest), self)
+        self.downloader.progress.connect(self.download_dialog.set_progress)
+        self.downloader.completed.connect(self.on_download_complete)
+        self.downloader.error.connect(self.on_download_error)
+        self.download_dialog.cancelled.connect(self.downloader.cancel)
+        self.iprStatusBar.showMessage("Status :: Downloading update...", 3000)
+        self.downloader.start()
+        self.download_dialog.show()
+
+    def _close_download_dialog(self):
+        if self.download_dialog:
+            self.download_dialog.close()
+            self.download_dialog = None
+
+    def on_download_complete(self, path: str):
+        self._close_download_dialog()
+        self.iprStatusBar.showMessage("Status :: Update downloaded.", 5000)
+        dialog = IPRMessage(
+            self,
+            "Download Complete",
+            f"The update was saved to:\n{path}\n\n"
+            "Install now? The application will close to complete installation.",
+            action_text="Install",
+        )
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self.install_update(path)
+
+    def on_download_error(self, error: str):
+        self._close_download_dialog()
+        logger.error(f" failed to download update: {error}")
+        self.iprStatusBar.showMessage("Status :: Download failed.", 5000)
+        IPRMessage(
+            self,
+            "Download Failed",
+            f"Could not download the update. Please try again later.\n\n{error}",
+        ).exec()
+
+    def install_update(self, path: str):
+        logger.info(f" launching installer {path}")
+        if sys.platform.startswith("win"):
+            os.startfile(path)  # type: ignore[attr-defined]  # noqa: S606
+        else:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(path))
+        # quit so the platform installer can replace the running application.
+        self.quit()
 
     def on_up_to_date(self, current: str):
         self.iprStatusBar.clearMessage()
@@ -1663,10 +1734,26 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.confirms = []
         self.iprStatusBar.showMessage("Status :: Killed all confirmations.", 3000)
 
+    def _stop_update_threads(self):
+        # stop any in-flight update check/download so their QThreads do not
+        # outlive the application and abort the process on exit.
+        if self.downloader and self.downloader.isRunning():
+            logger.info(" cancelling in-progress update download.")
+            self.downloader.cancel()
+            if not self.downloader.wait(5000):
+                self.downloader.terminate()
+                self.downloader.wait()
+        if self.update_checker and self.update_checker.isRunning():
+            logger.info(" waiting for update check to finish.")
+            if not self.update_checker.wait(3000):
+                self.update_checker.terminate()
+                self.update_checker.wait()
+
     def quit(self):
         if self.is_minimized_to_tray():
             self.toggle_visibility()
         self.sys_tray.hide()
+        self._stop_update_threads()
         self.iprd.close()
         self.iprd.error.disconnect(self.show_iprd_error)
         self.iprd.result.disconnect(self.process_result)

@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict
 
-from platformdirs import user_data_dir, user_log_dir
+from platformdirs import user_data_dir, user_downloads_dir, user_log_dir
 from PySide6.QtCore import qVersion
 
 CURR_PLATFORM = sys.platform
@@ -53,6 +53,10 @@ def get_config_dir() -> str:
 
 def get_config_file_path() -> Path:
     return Path(get_config_dir(), "config.json")
+
+
+def get_download_dir() -> str:
+    return user_downloads_dir()
 
 
 def get_log_dir() -> str:
