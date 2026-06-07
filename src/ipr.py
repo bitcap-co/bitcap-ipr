@@ -5,6 +5,7 @@
 
 import logging
 import os
+import subprocess
 import sys
 import time
 import webbrowser
@@ -987,8 +988,14 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def install_update(self, path: str):
         logger.info(f" launching installer {path}")
-        if sys.platform.startswith("win"):
-            os.startfile(path)  # type: ignore[attr-defined]  # noqa: S606
+        if sys.platform.startswith("win") and path.lower().endswith(".exe"):
+            # silent install: the Inno Setup installer shows only a progress
+            # window, closes the running app via Restart Manager and relaunches
+            # it once the files are replaced.
+            subprocess.Popen(
+                [path, "/SILENT", "/SUPPRESSMSGBOXES", "/NORESTART"],
+                close_fds=True,
+            )
         else:
             QDesktopServices.openUrl(QUrl.fromLocalFile(path))
         # quit so the platform installer can replace the running application.
