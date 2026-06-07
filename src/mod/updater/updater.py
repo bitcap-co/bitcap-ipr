@@ -307,21 +307,26 @@ class UpdateDownloader(QThread):
 class DebInstaller(QThread):
     """Installs a .deb package via pkexec in a background thread.
 
-    Runs `pkexec apt-get install -y <deb>`, which raises a graphical polkit
-    prompt for authentication and then installs as root. Network/UI work
-    stays off the main thread so the app does not freeze while installing.
+    Runs `pkexec dpkg -i <deb>`, which raises a graphical polkit prompt for
+    authentication and then installs as root. dpkg is used directly because
+    the package is standalone and declares no dependencies. After install the
+    package version is queried and compared against the version in the .deb to
+    confirm the upgrade actually took effect. UI work stays off the main
+    thread so the app does not freeze while installing.
 
     Args:
         deb_path (str): path to the .deb package to install.
         parent (QObject): parent object.
 
     Signals:
-        completed (): emitted when the install succeeds.
+        completed (str): emits the installed package version on success.
         error (str): emits the error message when the install fails.
     """
 
+    PACKAGE_NAME = "bitcap-ipr"
+
     # Signals
-    completed = Signal()
+    completed = Signal(str)
     error = Signal(str)
 
     def __init__(self, deb_path: str, parent: QObject | None = None) -> None:
@@ -331,11 +336,21 @@ class DebInstaller(QThread):
     def __repr__(self, /) -> str:
         return f"{self.__class__.__name__}"
 
+    @staticmethod
+    def _query(args: list[str]) -> str:
+        try:
+            proc = subprocess.run(args, capture_output=True, text=True)
+        except OSError:
+            return ""
+        return proc.stdout.strip() if proc.returncode == 0 else ""
+
     def run(self) -> None:
-        logger.info(f" installing {self._deb} via pkexec apt-get")
+        logger.info(f" installing {self._deb} via pkexec dpkg")
+        # version the package will install to (read from the .deb, no root).
+        expected = self._query(["dpkg-deb", "-f", self._deb, "Version"])
         try:
             proc = subprocess.run(
-                ["pkexec", "apt-get", "install", "-y", self._deb],
+                ["pkexec", "dpkg", "-i", self._deb],
                 capture_output=True,
                 text=True,
             )
@@ -346,10 +361,23 @@ class DebInstaller(QThread):
         if proc.returncode != 0:
             # pkexec returns 126 when authentication is dismissed/denied.
             message = proc.stderr.strip() or (
-                f"apt-get exited with code {proc.returncode}"
+                f"dpkg exited with code {proc.returncode}"
             )
             logger.error(f" install failed: {message}")
             self.error.emit(message)
             return
-        logger.info(" install complete.")
-        self.completed.emit()
+        # confirm the installed version now matches the package version.
+        installed = self._query(
+            ["dpkg-query", "-W", "-f=${Version}", self.PACKAGE_NAME]
+        )
+        if expected and installed != expected:
+            message = (
+                f"install reported success but the installed version "
+                f"'{installed or 'unknown'}' does not match the expected "
+                f"version '{expected}'."
+            )
+            logger.error(f" install verification failed: {message}")
+            self.error.emit(message)
+            return
+        logger.info(f" install complete; verified version {installed}.")
+        self.completed.emit(installed)

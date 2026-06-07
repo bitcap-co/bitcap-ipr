@@ -1039,13 +1039,14 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.install_dialog.close()
             self.install_dialog = None
 
-    def on_install_complete(self):
+    def on_install_complete(self, version: str):
         self._close_install_dialog()
         self.iprStatusBar.showMessage("Status :: Update installed.", 5000)
+        installed = f" (version {version})" if version else ""
         dialog = IPRMessage(
             self,
             "Update Installed",
-            "The update was installed successfully.\n\n"
+            f"The update was installed successfully{installed}.\n\n"
             "Restart now to use the new version?",
             action_text="Restart",
         )
