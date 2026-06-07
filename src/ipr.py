@@ -610,7 +610,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             "enableSystemTray": self.checkEnableSysTray.isChecked(),
             "onWindowClose": self.comboOnWindowClose.currentIndex(),
             "useCustomTimeout": self.checkUseCustomTimeout.isChecked(),
-            "inactiveTimeoutMins": self.spinInactiveTimeout.value(),
+            "inactiveTimeoutDuration": self.spinInactiveTimeout.value(),
             "checkForUpdatesOnStartup": self.checkCheckUpdatesOnStartup.isChecked(),
         }
         settings["listener"] = {
