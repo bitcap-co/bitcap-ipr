@@ -5,8 +5,9 @@
 
 import logging
 import os
+import shlex
+import shutil
 import subprocess
-import sys
 import time
 import webbrowser
 from datetime import datetime
@@ -58,6 +59,7 @@ from mod.apiv2 import settings as api_settings
 from mod.apiv2.data import MinerData, MinerFirmware, MinerType
 from mod.lm import IPRDListener, IPReport, ListenerManager
 from mod.updater import (
+    DebInstaller,
     UpdateChecker,
     UpdateDownloader,
     get_platform,
@@ -78,6 +80,7 @@ from ui.widgets.ipr.idtable import (
     IPRTableModel,
 )
 from utils import (
+    CURR_PLATFORM,
     IPR_METADATA,
     deep_update,
     get_download_dir,
@@ -100,6 +103,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self._update_check_silent = False
         self.downloader: UpdateDownloader | None = None
         self.download_dialog: IPRProgress | None = None
+        self.installer: DebInstaller | None = None
+        self.install_dialog: IPRProgress | None = None
         self.sys_tray: QSystemTrayIcon = QSystemTrayIcon(
             QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"),
             parent=self,
@@ -987,19 +992,91 @@ class IPR(QMainWindow, Ui_MainWindow):
         ).exec()
 
     def install_update(self, path: str):
-        logger.info(f" launching installer {path}")
-        if sys.platform.startswith("win") and path.lower().endswith(".exe"):
-            # silent install: the Inno Setup installer shows only a progress
-            # window, closes the running app via Restart Manager and relaunches
-            # it once the files are replaced.
+        logger.info(f" installing update from {path}")
+        if CURR_PLATFORM.startswith("win") and path.lower().endswith(".exe"):
+            self._install_windows(path)
+        elif (
+            CURR_PLATFORM.startswith("linux")
+            and path.lower().endswith(".deb")
+            and shutil.which("pkexec")
+            and shutil.which("apt-get")
+        ):
+            self._install_deb(path)
+        else:
+            # hand the file to the OS default handler (e.g. a macOS .dmg, or
+            # when no silent install path is available for this platform).
+            QDesktopServices.openUrl(QUrl.fromLocalFile(path))
+            self.quit()
+
+    def _install_windows(self, path: str):
+        # silent install: the Inno Setup installer shows only a progress
+        # window, closes the running app via Restart Manager and relaunches
+        # it once the files are replaced.
+        subprocess.Popen(
+            [path, "/SILENT", "/SUPPRESSMSGBOXES", "/NORESTART"],
+            close_fds=True,
+        )
+        # quit so the installer can replace the running application.
+        self.quit()
+
+    def _install_deb(self, path: str):
+        self.install_dialog = IPRProgress(
+            self,
+            "Installing Update",
+            "Installing update... You may be prompted for your password.",
+            cancellable=False,
+        )
+        self.install_dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
+        self.installer = DebInstaller(path, self)
+        self.installer.completed.connect(self.on_install_complete)
+        self.installer.error.connect(self.on_install_error)
+        self.iprStatusBar.showMessage("Status :: Installing update...", 3000)
+        self.installer.start()
+        self.install_dialog.show()
+
+    def _close_install_dialog(self):
+        if self.install_dialog:
+            self.install_dialog.close()
+            self.install_dialog = None
+
+    def on_install_complete(self):
+        self._close_install_dialog()
+        self.iprStatusBar.showMessage("Status :: Update installed.", 5000)
+        dialog = IPRMessage(
+            self,
+            "Update Installed",
+            "The update was installed successfully.\n\n"
+            "Restart now to use the new version?",
+            action_text="Restart",
+        )
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self._relaunch()
+            self.quit()
+
+    def on_install_error(self, error: str):
+        self._close_install_dialog()
+        logger.error(f" failed to install update: {error}")
+        self.iprStatusBar.showMessage("Status :: Install failed.", 5000)
+        IPRMessage(
+            self,
+            "Install Failed",
+            f"Could not install the update.\n\n{error}",
+        ).exec()
+
+    def _relaunch(self):
+        # relaunch the installed binary after a short delay so the running
+        # instance releases its single-instance lock before the new one starts.
+        bin_path = "/opt/bitcap-ipr/BitCapIPR"
+        if not os.path.exists(bin_path):
+            logger.info(" installed binary not found; skipping relaunch.")
+            return
+        try:
             subprocess.Popen(
-                [path, "/SILENT", "/SUPPRESSMSGBOXES", "/NORESTART"],
+                ["sh", "-c", f"sleep 1; exec {shlex.quote(bin_path)}"],
                 close_fds=True,
             )
-        else:
-            QDesktopServices.openUrl(QUrl.fromLocalFile(path))
-        # quit so the platform installer can replace the running application.
-        self.quit()
+        except OSError as exc:
+            logger.warning(f" failed to relaunch app: {exc}")
 
     def on_up_to_date(self, current: str):
         self.iprStatusBar.clearMessage()
@@ -1755,6 +1832,13 @@ class IPR(QMainWindow, Ui_MainWindow):
             if not self.update_checker.wait(3000):
                 self.update_checker.terminate()
                 self.update_checker.wait()
+        if self.installer and self.installer.isRunning():
+            # let the install finish; the underlying apt-get child outlives a
+            # terminated thread and completes on its own.
+            logger.info(" waiting for update install to finish.")
+            if not self.installer.wait(3000):
+                self.installer.terminate()
+                self.installer.wait()
 
     def quit(self):
         if self.is_minimized_to_tray():

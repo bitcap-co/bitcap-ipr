@@ -8,10 +8,12 @@ import logging
 import os
 import platform
 import re
-import sys
+import subprocess
 
 import requests
 from PySide6.QtCore import QObject, QThread, Signal
+
+from utils import CURR_PLATFORM
 
 logger = logging.getLogger(__name__)
 
@@ -120,9 +122,9 @@ def get_platform() -> tuple[str, bool]:
     """
     machine = platform.machine().lower()
     is_arm = machine in ("arm64", "aarch64")
-    if sys.platform.startswith("win"):
+    if CURR_PLATFORM.startswith("win"):
         return "windows", is_arm
-    if sys.platform == "darwin":
+    if CURR_PLATFORM == "darwin":
         return "macos", is_arm
     return "linux", is_arm
 
@@ -254,9 +256,7 @@ class UpdateDownloader(QThread):
     completed = Signal(str)
     error = Signal(str)
 
-    def __init__(
-        self, url: str, dest_path: str, parent: QObject | None = None
-    ) -> None:
+    def __init__(self, url: str, dest_path: str, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._url = url
         self._dest = dest_path
@@ -279,9 +279,7 @@ class UpdateDownloader(QThread):
     def run(self) -> None:
         logger.info(f" downloading update from {self._url}")
         try:
-            with requests.get(
-                self._url, stream=True, timeout=REQUEST_TIMEOUT
-            ) as resp:
+            with requests.get(self._url, stream=True, timeout=REQUEST_TIMEOUT) as resp:
                 resp.raise_for_status()
                 total = int(resp.headers.get("Content-Length", 0))
                 received = 0
@@ -304,3 +302,54 @@ class UpdateDownloader(QThread):
             return
         logger.info(f" download complete: {self._dest}")
         self.completed.emit(self._dest)
+
+
+class DebInstaller(QThread):
+    """Installs a .deb package via pkexec in a background thread.
+
+    Runs `pkexec apt-get install -y <deb>`, which raises a graphical polkit
+    prompt for authentication and then installs as root. Network/UI work
+    stays off the main thread so the app does not freeze while installing.
+
+    Args:
+        deb_path (str): path to the .deb package to install.
+        parent (QObject): parent object.
+
+    Signals:
+        completed (): emitted when the install succeeds.
+        error (str): emits the error message when the install fails.
+    """
+
+    # Signals
+    completed = Signal()
+    error = Signal(str)
+
+    def __init__(self, deb_path: str, parent: QObject | None = None) -> None:
+        super().__init__(parent)
+        self._deb = deb_path
+
+    def __repr__(self, /) -> str:
+        return f"{self.__class__.__name__}"
+
+    def run(self) -> None:
+        logger.info(f" installing {self._deb} via pkexec apt-get")
+        try:
+            proc = subprocess.run(
+                ["pkexec", "apt-get", "install", "-y", self._deb],
+                capture_output=True,
+                text=True,
+            )
+        except OSError as exc:
+            logger.error(f" install failed: {exc}")
+            self.error.emit(str(exc))
+            return
+        if proc.returncode != 0:
+            # pkexec returns 126 when authentication is dismissed/denied.
+            message = proc.stderr.strip() or (
+                f"apt-get exited with code {proc.returncode}"
+            )
+            logger.error(f" install failed: {message}")
+            self.error.emit(message)
+            return
+        logger.info(" install complete.")
+        self.completed.emit()
