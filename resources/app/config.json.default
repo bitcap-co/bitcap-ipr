@@ -3,7 +3,8 @@
     "enableSystemTray": false,
     "onWindowClose": 0,
     "useCustomTimeout": false,
-    "inactiveTimeoutDuration": 15
+    "inactiveTimeoutDuration": 15,
+    "checkForUpdatesOnStartup": false
   },
   "listener": {
     "enableFiltering": false,

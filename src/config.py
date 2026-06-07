@@ -23,6 +23,9 @@ class GeneralSettings(BaseModel):
         Field(multiple_of=15),
         Field(alias="inactiveTimeoutDuration"),
     ] = 15
+    check_updates_on_startup: Annotated[
+        bool, Field(alias="checkForUpdatesOnStartup")
+    ] = False
 
 
 class IPRD(BaseModel):

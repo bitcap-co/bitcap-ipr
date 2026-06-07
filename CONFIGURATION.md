@@ -11,7 +11,8 @@ Below is the default configuration file. All of these options can be found in th
     "enableSystemTray": false, // Enable/Disable system tray icon.
     "onWindowClose": 0, // window on close behavior (X). 0 = "Minimize to Tray", 1 = "Close".
     "useCustomTimeout": false, // Enable/Disable custom inactive timeout duration.
-    "inactiveTimeoutDuration": 15 // the duration of the inactive timeout in minutes.
+    "inactiveTimeoutDuration": 15, // the duration of the inactive timeout in minutes.
+    "checkForUpdatesOnStartup": false // Enable/Disable checking GitHub for a newer release on startup.
   },
   // "Listener Configuration" settings
   "listener": {

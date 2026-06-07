@@ -20,6 +20,7 @@
     - Select what miners to listen for at any time!
     - Listen filtering to ONLY allow specified miners.
  - System Tray support!
+ - Check for updates and download/install new releases right from the app!
  - Miner API support including some custom firmwares (Vnish, LuxOS).
  - Use "alternative" (non-default) passwords for miner authentication.
  - Custom "ID Table" view for retrieving identifying information from received miners.
@@ -43,6 +44,16 @@ The BitCap IPReporter (later referred to as IPR) is supported on Debian-flavored
 Download the latest installer for your OS and Arch from [Releases](https://github.com/bitcap-co/bitcap-ipr/releases).
 
 Portable artifacts are also available!
+
+## Updating
+IPR can check GitHub for new releases from **Help -> "Check for Updates"**. To check automatically on launch, enable **"Check for Updates on Startup"** under Settings -> General.
+
+When a newer release is available, IPR downloads the correct binary for your OS and architecture and installs it:
+ - **Windows:** runs the installer silently and relaunches the app.
+ - **Linux (.deb):** installs via `dpkg` (you'll be prompted for your password) and offers to restart.
+ - **MacOS:** opens the downloaded `.dmg` to install manually.
+
+If no matching binary is found for your platform, IPR opens the release page in your browser instead.
 
 ## Usage
 To start listening with IPR, simply press the "Start" button!
