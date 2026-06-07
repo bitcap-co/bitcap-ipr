@@ -62,8 +62,10 @@ class IPR_Titlebar(QWidget):
                     "min": "#AA8800",
                     "max": "#008800",
                 }
-                for x in self._button_hints:
-                    if x in self._buttons:
+                # buttons are internally in darwin order.
+                # Other OSes (Windows, Linux), we follow hint order.
+                for x in self._buttons:
+                    if x in self._button_hints:
                         self._buttons[x].setFixedSize(btn_size, btn_size)
                         border_color = QColor(btn_colors[x])
                         border_color_name = border_color.name()
