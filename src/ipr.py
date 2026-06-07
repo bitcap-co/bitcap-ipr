@@ -970,7 +970,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def on_download_complete(self, path: str):
         self._close_download_dialog()
-        self.iprStatusBar.showMessage("Status :: Update downloaded.", 5000)
+        self.iprStatusBar.showMessage("Status :: Update downloaded.", 3000)
         dialog = IPRMessage(
             self,
             "Download Complete",
@@ -1041,7 +1041,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def on_install_complete(self, version: str):
         self._close_install_dialog()
-        self.iprStatusBar.showMessage("Status :: Update installed.", 5000)
+        self.iprStatusBar.showMessage("Status :: Update installed.", 3000)
         installed = f" (version {version})" if version else ""
         dialog = IPRMessage(
             self,
@@ -1079,28 +1079,26 @@ class IPR(QMainWindow, Ui_MainWindow):
         except OSError as exc:
             logger.warning(f" failed to relaunch app: {exc}")
 
-    def on_up_to_date(self, current: str):
+    def on_up_to_date(self, current: str) -> None:
         self.iprStatusBar.clearMessage()
         self.iprStatusBar.showMessage("Status :: Up to date.", 3000)
-        if self._update_check_silent:
-            return
-        IPRMessage(
-            self,
-            "No Updates",
-            f"You are running the latest version ({current}).",
-        ).exec()
+        if not self._update_check_silent:
+            IPRMessage(
+                self,
+                "No Updates",
+                f"You are running the latest version ({current}).",
+            ).exec()
 
-    def on_update_error(self, error: str):
+    def on_update_error(self, error: str) -> None:
         self.iprStatusBar.clearMessage()
-        self.iprStatusBar.showMessage("Status :: Failed to check for updates.", 3000)
+        self.iprStatusBar.showMessage("Status :: Failed to check for updates.", 5000)
         logger.error(f" failed to check for updates: {error}")
-        if self._update_check_silent:
-            return
-        IPRMessage(
-            self,
-            "Update Check Failed",
-            f"Could not check for updates. Please try again later.\n\n{error}",
-        ).exec()
+        if not self._update_check_silent:
+            IPRMessage(
+                self,
+                "Update Check Failed",
+                f"Could not check for updates. Please try again later.\n\n{error}",
+            ).exec()
 
     def open_dashboard(self, host: str):
         webbrowser.open(f"http://{host}", new=2)
