@@ -24,6 +24,7 @@ class MinerTypeHint(IntEnum):
     GOLDSHELL = 1314
     ELPHAPEX = 9999
     AURADINE = 12345
+    IPOLLO = 54321
     UNKNOWN = 0
 
     @classmethod
@@ -34,9 +35,12 @@ class MinerTypeHint(IntEnum):
 # IP Report Models
 msg_patterns = {
     "common": re.compile(f"^{IP_PATTERN},{MAC_PATTERN}"),
-    "ir": re.compile(f"^addr:{IP_PATTERN}"),
-    "bt": re.compile(f"^IP:{IP_PATTERN}MAC:{MAC_PATTERN}"),
+    "iceriver": re.compile(f"^addr:{IP_PATTERN}"),
+    "whatsminer": re.compile(f"^IP:{IP_PATTERN}MAC:{MAC_PATTERN}"),
     "elphapex": re.compile("^DG_IPREPORT_ONLY"),
+    "ipollo": re.compile(
+        f"^IP Addr:\\[(?P<IP>{IP_PATTERN})\\].*?MAC Addr:\\[(?P<MAC>{MAC_PATTERN})\\]"
+    ),
 }
 
 

@@ -151,11 +151,11 @@ class IPReportDatagram:
                         self.ip_addr, self.mac_addr = self.payload.split(",")
                         self.valid = True
                 case MinerTypeHint.ICERIVER:
-                    if re.match(msg_patterns["ir"], self.payload):
+                    if re.match(msg_patterns["iceriver"], self.payload):
                         self.ip_addr = self.payload.split(":")[1]
                         self.valid = True
                 case MinerTypeHint.WHATSMINER:
-                    if re.match(msg_patterns["bt"], self.payload):
+                    if re.match(msg_patterns["whatsminer"], self.payload):
                         self.ip_addr, self.mac_addr = self.payload.split("M")
                         self.ip_addr = self.ip_addr[3:]
                         self.mac_addr = self.mac_addr[3:]
@@ -210,6 +210,12 @@ class IPReportDatagram:
                             self.ip_addr = ip
                             self.mac_addr = mac
                             self.valid = True
+                case MinerTypeHint.IPOLLO:
+                    match = re.match(msg_patterns["ipollo"], self.payload)
+                    if match:
+                        self.ip_addr = match.group("IP")
+                        self.mac_addr = match.group("MAC")
+                        self.valid = True
                 case _:
                     self.valid = False
 

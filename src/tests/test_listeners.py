@@ -187,7 +187,7 @@ class TestListeners(unittest.TestCase):
         )
 
     def test_elphapex_listen(self):
-        "Test elphapex payload (port 9999)"
+        """Test elphapex payload (port 9999)"""
         test = {
             "port": 9999,
             "payload": "DG_IPREPORT_ONLY",
@@ -204,7 +204,7 @@ class TestListeners(unittest.TestCase):
         )
 
     def test_auradine_listen(self):
-        "Test Auradine payload (port 12345)"
+        """Test Auradine payload (port 12345)"""
         test = {
             "port": 12345,
             "payload": f"{read_payload('tests/payloads/auradine.json')}",
@@ -212,6 +212,23 @@ class TestListeners(unittest.TestCase):
                 "ip": "192.168.34.34",
                 "mac": "aa:bb:cc:dd:ee:ff",
                 "miner_type": "auradine",
+            },
+        }
+        self.listenFor(
+            port=test["port"],
+            payload=test["payload"],
+            expected_result=test["expected_result"],
+        )
+
+    def test_ipollo_listen(self):
+        """Test iPollo payload (port 54321)"""
+        test = {
+            "port": 54321,
+            "payload": "IP Addr:[192.168.6.22]   MAC Addr:[AA:BB:CC:DD:EE:FF]    Time:[2026-06-04 23:02:19]",
+            "expected_result": {
+                "ip": "192.168.6.22",
+                "mac": "AA:BB:CC:DD:EE:FF",
+                "miner_type": "ipollo",
             },
         }
         self.listenFor(

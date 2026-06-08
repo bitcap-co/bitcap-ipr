@@ -134,6 +134,8 @@ class ListenerManager(QObject):
                     self._append_listener(9999)
                 case 9:  # auradine
                     self._append_listener(12345)
+                case 10:  # ipollo
+                    self._append_listener(54321)
                 case _:
                     continue
         for listener in self._listeners:
