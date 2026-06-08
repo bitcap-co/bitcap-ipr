@@ -227,7 +227,7 @@ class TestListeners(unittest.TestCase):
             "payload": "IP Addr:[192.168.6.22]   MAC Addr:[AA:BB:CC:DD:EE:FF]    Time:[2026-06-04 23:02:19]",
             "expected_result": {
                 "ip": "192.168.6.22",
-                "mac": "AA:BB:CC:DD:EE:FF",
+                "mac": "aa:bb:cc:dd:ee:ff",
                 "miner_type": "ipollo",
             },
         }

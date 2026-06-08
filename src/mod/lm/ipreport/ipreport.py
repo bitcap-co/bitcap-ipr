@@ -80,7 +80,7 @@ class IPReportDatagram:
             port_type=self.port_type,
             src_addr=addr,
             src_ip=self.ip_addr,
-            src_mac=self.mac_addr,
+            src_mac=self.mac_addr.lower(),
             miner_type=self.miner_type,
             miner_sn=self.miner_sn,
         )
