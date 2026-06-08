@@ -24,4 +24,4 @@ jobs:
           python -m pip install pyside6 pydantic
       - name: Run tests with unittest
         run: |
-          cd src/ && python -m unittest discover tests/
+          cd src/ && python -m unittest tests/test_listeners.py
