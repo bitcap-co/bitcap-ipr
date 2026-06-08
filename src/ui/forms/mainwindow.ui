@@ -1092,8 +1092,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>474</width>
-                   <height>575</height>
+                   <width>478</width>
+                   <height>696</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1304,8 +1304,8 @@ Uses last 5 of SN or MAC address.</string>
                         <property name="verticalSpacing">
                          <number>15</number>
                         </property>
-                        <item row="2" column="2">
-                         <widget class="QCheckBox" name="checkListenWhatsminer">
+                        <item row="2" column="1">
+                         <widget class="QCheckBox" name="checkListenIceRiver">
                           <property name="maximumSize">
                            <size>
                             <width>100</width>
@@ -1313,13 +1313,10 @@ Uses last 5 of SN or MAC address.</string>
                            </size>
                           </property>
                           <property name="toolTip">
-                           <string>Enable listening for Whatsminers</string>
+                           <string>Enable listening for Icerivers</string>
                           </property>
                           <property name="text">
-                           <string>Whatsminer</string>
-                          </property>
-                          <property name="checked">
-                           <bool>false</bool>
+                           <string>IceRiver</string>
                           </property>
                          </widget>
                         </item>
@@ -1337,13 +1334,10 @@ Uses last 5 of SN or MAC address.</string>
                           <property name="text">
                            <string>Antminer</string>
                           </property>
-                          <property name="checked">
-                           <bool>false</bool>
-                          </property>
                          </widget>
                         </item>
-                        <item row="2" column="1">
-                         <widget class="QCheckBox" name="checkListenIceRiver">
+                        <item row="4" column="2">
+                         <widget class="QCheckBox" name="checkListenAuradine">
                           <property name="maximumSize">
                            <size>
                             <width>100</width>
@@ -1351,29 +1345,10 @@ Uses last 5 of SN or MAC address.</string>
                            </size>
                           </property>
                           <property name="toolTip">
-                           <string>Enable listening for Icerivers</string>
+                           <string>Enable listening for Auradine miners</string>
                           </property>
                           <property name="text">
-                           <string>IceRiver</string>
-                          </property>
-                          <property name="checked">
-                           <bool>false</bool>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="3" column="0">
-                         <widget class="QCheckBox" name="checkListenSealminer">
-                          <property name="maximumSize">
-                           <size>
-                            <width>100</width>
-                            <height>30</height>
-                           </size>
-                          </property>
-                          <property name="toolTip">
-                           <string>Enable listening for Sealminers</string>
-                          </property>
-                          <property name="text">
-                           <string>Sealminer</string>
+                           <string>Auradine</string>
                           </property>
                          </widget>
                         </item>
@@ -1415,8 +1390,8 @@ Uses last 5 of SN or MAC address.</string>
                           </property>
                          </widget>
                         </item>
-                        <item row="4" column="1">
-                         <widget class="QCheckBox" name="checkListenGoldshell">
+                        <item row="2" column="2">
+                         <widget class="QCheckBox" name="checkListenWhatsminer">
                           <property name="maximumSize">
                            <size>
                             <width>100</width>
@@ -1424,10 +1399,10 @@ Uses last 5 of SN or MAC address.</string>
                            </size>
                           </property>
                           <property name="toolTip">
-                           <string>Enable listening for Goldshells</string>
+                           <string>Enable listening for Whatsminers</string>
                           </property>
                           <property name="text">
-                           <string>Goldshell</string>
+                           <string>Whatsminer</string>
                           </property>
                          </widget>
                         </item>
@@ -1447,8 +1422,8 @@ Uses last 5 of SN or MAC address.</string>
                           </property>
                          </widget>
                         </item>
-                        <item row="4" column="2">
-                         <widget class="QCheckBox" name="checkListenAuradine">
+                        <item row="3" column="0">
+                         <widget class="QCheckBox" name="checkListenSealminer">
                           <property name="maximumSize">
                            <size>
                             <width>100</width>
@@ -1456,10 +1431,42 @@ Uses last 5 of SN or MAC address.</string>
                            </size>
                           </property>
                           <property name="toolTip">
-                           <string>Enable listening for Auradine miners</string>
+                           <string>Enable listening for Sealminers</string>
                           </property>
                           <property name="text">
-                           <string>Auradine</string>
+                           <string>Sealminer</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="4" column="1">
+                         <widget class="QCheckBox" name="checkListenGoldshell">
+                          <property name="maximumSize">
+                           <size>
+                            <width>100</width>
+                            <height>30</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Enable listening for Goldshells</string>
+                          </property>
+                          <property name="text">
+                           <string>Goldshell</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="5" column="0">
+                         <widget class="QCheckBox" name="checkListenIPollo">
+                          <property name="maximumSize">
+                           <size>
+                            <width>100</width>
+                            <height>30</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Enable Listening for iPollo miners</string>
+                          </property>
+                          <property name="text">
+                           <string>iPollo</string>
                           </property>
                          </widget>
                         </item>
@@ -1553,8 +1560,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>270</width>
-                   <height>993</height>
+                   <width>476</width>
+                   <height>1070</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -1932,6 +1939,47 @@ Uses last 5 of SN or MAC address.</string>
                        </layout>
                       </widget>
                      </item>
+                     <item>
+                      <widget class="QGroupBox" name="groupIPollo">
+                       <property name="enabled">
+                        <bool>false</bool>
+                       </property>
+                       <property name="title">
+                        <string>iPollo</string>
+                       </property>
+                       <layout class="QGridLayout" name="gridLayout_19">
+                        <item row="0" column="0">
+                         <widget class="QLabel" name="label_29">
+                          <property name="text">
+                           <string>Set Alternative Password:</string>
+                          </property>
+                          <property name="StyleClass" stdset="0">
+                           <string>setText</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="0" column="1">
+                         <widget class="QLineEdit" name="lineIPolloPasswd">
+                          <property name="enabled">
+                           <bool>false</bool>
+                          </property>
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="toolTip">
+                           <string>Set alternative login password for iPollo miners. Default &quot;admin&quot;</string>
+                          </property>
+                          <property name="echoMode">
+                           <enum>QLineEdit::EchoMode::Password</enum>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
                     </layout>
                    </widget>
                   </item>
@@ -2025,7 +2073,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>368</width>
+                   <width>478</width>
                    <height>233</height>
                   </rect>
                  </property>

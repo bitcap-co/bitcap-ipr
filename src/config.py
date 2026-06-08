@@ -43,6 +43,7 @@ class Listeners(BaseModel):
     sealminer: Annotated[bool, Field(strict=True)] = True
     elphapex: Annotated[bool, Field(strict=True)] = True
     auradine: Annotated[bool, Field(strict=True)] = True
+    ipollo: Annotated[bool, Field(strict=True)] = True
 
 
 class ListenerSettings(BaseModel):
@@ -69,6 +70,7 @@ class APIAuth(BaseModel):
     elphapex_alt_passwd: Annotated[str, Field(alias="elphapexAltPasswd")] = ""
     sealminer_alt_passwd: Annotated[str, Field(alias="sealminerAltPasswd")] = ""
     auradine_alt_passwd: Annotated[str, Field(alias="auradineAltPasswd")] = ""
+    ipollo_alt_passwd: Annotated[str, Field(alias="ipolloAltPasswd")] = ""
 
 
 class APISettings(BaseModel):
