@@ -702,6 +702,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.info(" reset settings.")
             self.config.write_default()
             self.toggle_pool_config()
+            # reset pool presets
+            self.clear_pool_preset()
+            self.comboPoolPreset.clear()
             self.read_settings()
             self.update_inactive_timer()
             self.update_miner_locate_duration()
