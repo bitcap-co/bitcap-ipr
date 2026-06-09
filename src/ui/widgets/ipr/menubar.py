@@ -94,6 +94,11 @@ class IPR_Menubar(QMenuBar):
         self.actionEnableIDTable.setToolTip(
             "Stores identifying information in a table on confirmation."
         )
+        self.actionEnableLiveCapture = self.menuTable.addAction("Enable Live Capture")
+        self.actionEnableLiveCapture.setCheckable(True)
+        self.actionEnableLiveCapture.setToolTip(
+            "Always inserts received miners to a new row, reflecting history of live capture."
+        )
         self.actionOpenSelectedIPs = self.menuTable.addAction("Open Selected IPs")
         self.actionOpenSelectedIPs.setEnabled(False)
         self.actionOpenSelectedIPs.setToolTip("Open selected IPs in browser.")

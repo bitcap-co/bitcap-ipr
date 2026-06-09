@@ -117,6 +117,7 @@ class PoolConfiguratorSettings(BaseModel):
 
 class InstanceViews(BaseModel):
     show_table: Annotated[bool, Field(alias="showIDTable")] = False
+    table_live_capture: Annotated[bool, Field(alias="enableTableLiveCapture")] = False
     show_pool_conf: Annotated[bool, Field(alias="showPoolConfigurator")] = False
 
 

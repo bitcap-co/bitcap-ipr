@@ -587,6 +587,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionEnableIDTable.setChecked(
             self.config.instance.views.show_table
         )
+        self.menu_bar.actionEnableLiveCapture.setChecked(
+            self.config.instance.views.table_live_capture
+        )
         self.menu_bar.actionShowPoolConfigurator.setChecked(
             self.config.instance.views.show_pool_conf
         )
@@ -610,6 +613,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             },
             "views": {
                 "showIDTable": self.menu_bar.actionEnableIDTable.isChecked(),
+                "enableTableLiveCapture": self.menu_bar.actionEnableLiveCapture.isChecked(),
                 "showPoolConfigurator": self.menu_bar.actionShowPoolConfigurator.isChecked(),
             },
         }
@@ -854,6 +858,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.comboOnWindowClose.setEnabled(False)
 
     def toggle_table_settings(self, enabled: bool):
+        self.menu_bar.actionEnableLiveCapture.setEnabled(enabled)
         self.menu_bar.actionOpenSelectedIPs.setEnabled(enabled)
         self.menu_bar.actionCopySelectedElements.setEnabled(enabled)
         self.menu_bar.menuTableAction.setEnabled(enabled)
@@ -1504,7 +1509,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.open_dashboard(ip)
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
             logger.info("show_confirmation : populate ID table.")
-            self.populate_table_row(result, dedupe_key="mac")
+            if self.menu_bar.actionEnableLiveCapture.isChecked():
+                self.populate_table_row(result)
+            else:
+                self.populate_table_row(result, dedupe_key="mac")
             self.activateWindow()
         else:
             confirm = IPRConfirmation(self.menu_bar.actionConfirmsStayOnTop.isChecked())
