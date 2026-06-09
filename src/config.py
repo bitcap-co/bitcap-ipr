@@ -115,9 +115,13 @@ class PoolConfiguratorSettings(BaseModel):
     pool_presets: Annotated[list[PoolPreset], Field(alias="poolPresets")] = []
 
 
+class IDTableInstanceSettings(BaseModel):
+    table_live_capture: Annotated[bool, Field(alias="enableTableLiveCapture")] = False
+    clear_table_on_stop: Annotated[bool, Field(alias="clearTableOnStop")] = False
+
+
 class InstanceViews(BaseModel):
     show_table: Annotated[bool, Field(alias="showIDTable")] = False
-    table_live_capture: Annotated[bool, Field(alias="enableTableLiveCapture")] = False
     show_pool_conf: Annotated[bool, Field(alias="showPoolConfigurator")] = False
 
 
@@ -125,8 +129,10 @@ class InstanceOptions(BaseModel):
     always_open_ip: Annotated[bool, Field(alias="alwaysOpenIP")] = False
     disable_inactive: Annotated[bool, Field(alias="disableInactiveTimer")] = False
     auto_start: Annotated[bool, Field(alias="autoStartOnLaunch")] = False
-    clear_table_on_stop: Annotated[bool, Field(alias="clearTableOnStop")] = False
     confirms_on_top: Annotated[bool, Field(alias="confirmsStayOnTop")] = False
+    table: Annotated[IDTableInstanceSettings, Field(alias="idTable")] = (
+        IDTableInstanceSettings()
+    )
 
 
 class InstanceSettings(BaseModel):
@@ -172,6 +178,7 @@ class IPRConfig:
         self.pool_config = PoolConfiguratorSettings()
         self.logs = LogSettings()
         self.options = InstanceOptions()
+        self.table = IDTableInstanceSettings()
         self.views = InstanceViews()
         self.instance = InstanceSettings(options=self.options, views=self.views)
         self.config = IPRConfigModel(
@@ -200,6 +207,7 @@ class IPRConfig:
             self.pool_config = self.config.pool_config
             self.logs = self.config.logs
             self.options = self.config.instance.options
+            self.table = self.config.instance.options.table
             self.views = self.config.instance.views
             self.instance = self.config.instance
 

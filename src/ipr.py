@@ -582,13 +582,13 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.config.instance.options.auto_start
         )
         self.menu_bar.actionClearTableAfterStopListen.setChecked(
-            self.config.instance.options.clear_table_on_stop
+            self.config.table.clear_table_on_stop
         )
         self.menu_bar.actionEnableIDTable.setChecked(
             self.config.instance.views.show_table
         )
         self.menu_bar.actionEnableLiveCapture.setChecked(
-            self.config.instance.views.table_live_capture
+            self.config.table.table_live_capture
         )
         self.menu_bar.actionShowPoolConfigurator.setChecked(
             self.config.instance.views.show_pool_conf
@@ -608,12 +608,14 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "alwaysOpenIP": self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked(),
                 "disableInactiveTimer": self.menu_bar.actionDisableInactiveTimer.isChecked(),
                 "autoStartOnLaunch": self.menu_bar.actionAutoStartOnLaunch.isChecked(),
-                "clearTableOnStop": self.menu_bar.actionClearTableAfterStopListen.isChecked(),
                 "confirmsStayOnTop": self.menu_bar.actionConfirmsStayOnTop.isChecked(),
+            },
+            "idTable": {
+                "enableTableLiveCapture": self.menu_bar.actionEnableLiveCapture.isChecked(),
+                "clearTableOnStop": self.menu_bar.actionClearTableAfterStopListen.isChecked(),
             },
             "views": {
                 "showIDTable": self.menu_bar.actionEnableIDTable.isChecked(),
-                "enableTableLiveCapture": self.menu_bar.actionEnableLiveCapture.isChecked(),
                 "showPoolConfigurator": self.menu_bar.actionShowPoolConfigurator.isChecked(),
             },
         }
