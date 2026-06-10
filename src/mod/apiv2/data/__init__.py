@@ -21,6 +21,7 @@ class MinerType(str, Enum):
     HAMMER = "hammer"
     ELPHAPEX = "elphapex"
     AURADINE = "auradine"
+    IPOLLO = "ipollo"
     LUX_OS = "luxor"
     VNISH = "vnish"
 
