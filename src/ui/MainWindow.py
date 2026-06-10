@@ -401,6 +401,7 @@ class Ui_MainWindow(object):
         self.lineIDTableFilter.setSizePolicy(sizePolicy)
         self.lineIDTableFilter.setMinimumSize(QSize(250, 25))
         self.lineIDTableFilter.setMaximumSize(QSize(640, 25))
+        self.lineIDTableFilter.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
         self.lineIDTableFilter.setClearButtonEnabled(True)
 
         self.horizontalLayout_8.addWidget(self.lineIDTableFilter)
@@ -422,6 +423,7 @@ class Ui_MainWindow(object):
         sizePolicy4.setHeightForWidth(self.comboSortColumn.sizePolicy().hasHeightForWidth())
         self.comboSortColumn.setSizePolicy(sizePolicy4)
         self.comboSortColumn.setMinimumSize(QSize(130, 25))
+        self.comboSortColumn.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
         self.horizontalLayout_8.addWidget(self.comboSortColumn)
 
@@ -498,7 +500,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 478, 696))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 463, 663))
         self.verticalLayout_5 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_5.setSpacing(15)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
@@ -704,7 +706,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 476, 1070))
+        self.scrollAPI.setGeometry(QRect(0, 0, 273, 972))
         self.verticalLayout_8 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_8.setSpacing(15)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
@@ -990,7 +992,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollLogs = QWidget()
         self.scrollLogs.setObjectName(u"scrollLogs")
-        self.scrollLogs.setGeometry(QRect(0, 0, 478, 233))
+        self.scrollLogs.setGeometry(QRect(0, 0, 360, 219))
         self.verticalLayout_11 = QVBoxLayout(self.scrollLogs)
         self.verticalLayout_11.setSpacing(15)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")

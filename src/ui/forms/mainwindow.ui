@@ -882,6 +882,9 @@ Uses last 5 of SN or MAC address.</string>
                     <height>25</height>
                    </size>
                   </property>
+                  <property name="focusPolicy">
+                   <enum>Qt::FocusPolicy::ClickFocus</enum>
+                  </property>
                   <property name="placeholderText">
                    <string>Filter miners…</string>
                   </property>
@@ -931,6 +934,9 @@ Uses last 5 of SN or MAC address.</string>
                     <width>130</width>
                     <height>25</height>
                    </size>
+                  </property>
+                  <property name="focusPolicy">
+                   <enum>Qt::FocusPolicy::ClickFocus</enum>
                   </property>
                   <property name="toolTip">
                    <string>Column to sort the table by</string>
@@ -1092,8 +1098,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>478</width>
-                   <height>696</height>
+                   <width>463</width>
+                   <height>663</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1560,8 +1566,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>476</width>
-                   <height>1070</height>
+                   <width>273</width>
+                   <height>972</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -2073,8 +2079,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>478</width>
-                   <height>233</height>
+                   <width>360</width>
+                   <height>219</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_11">
