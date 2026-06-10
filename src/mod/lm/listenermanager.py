@@ -118,7 +118,7 @@ class ListenerManager(QObject):
         )
 
     def _start_listeners(self) -> None:
-        for btn in [btn for btn in self.listen_for.buttons() if btn.isChecked]:
+        for btn in [btn for btn in self.listen_for.buttons() if btn.isChecked()]:
             match self.listen_for.id(btn):
                 case 1 | 4 | 5:  # antminer | volcminer | hammer
                     self._append_listener(14235)
