@@ -1454,6 +1454,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
             miner_data = self.asic.get_miner_data()
 
+        # in the event of an unsupported miner, return miner type hint from IP Report
+        if miner_data["type"] == "N/A":
+            miner_data["type"] = result.miner_type
+
         # check versus current listen configuration if listen filter is enabled
         if self.checkEnableListenFilter.isChecked() and miner_data["type"] not in [
             btn.text().lower()
