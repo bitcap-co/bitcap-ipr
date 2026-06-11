@@ -4,14 +4,24 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 from PySide6.QtCore import QEvent, QModelIndex, QPersistentModelIndex, QRect, Qt, Signal
-from PySide6.QtGui import QPixmap
-from PySide6.QtWidgets import QStyledItemDelegate, QStyleOptionViewItem
+from PySide6.QtGui import QHelpEvent, QPixmap
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QStyledItemDelegate,
+    QStyleOptionViewItem,
+    QToolTip,
+)
 
 from .model import COL_LOCATE, COL_REFRESH
 
 _ICONS = {
     COL_REFRESH: ":theme/icons/rc/refresh.png",
     COL_LOCATE: ":theme/icons/rc/flash.png",
+}
+
+_TOOLTIPS = {
+    COL_REFRESH: "Refresh miner data",
+    COL_LOCATE: "Locate miner (flash LEDs)",
 }
 
 
@@ -58,3 +68,19 @@ class IPRActionDelegate(QStyledItemDelegate):
             self.action_clicked.emit(col, source_row)
             return True
         return super().editorEvent(event, model, option, index)
+
+    def helpEvent(
+        self,
+        event: QHelpEvent,
+        view: QAbstractItemView,
+        option: QStyleOptionViewItem,
+        index: QModelIndex | QPersistentModelIndex,
+    ) -> bool:
+        if event.type() == QEvent.Type.ToolTip:
+            tip = _TOOLTIPS.get(index.column())
+            if tip is not None:
+                QToolTip.showText(event.globalPos(), tip, view)
+                return True
+            # non-action cell: hide any lingering action tooltip
+            QToolTip.hideText()
+        return super().helpEvent(event, view, option, index)
