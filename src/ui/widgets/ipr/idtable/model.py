@@ -37,6 +37,8 @@ class Column(BaseModel):
     editable: bool = False
     # optional: value used for sorting instead of the display string
     sort_key: Callable[[MinerData], Any] | None = None
+    # optional: hover hint shown via Qt.ItemDataRole.ToolTipRole
+    tooltip: str | None = None
 
 
 def _ip_sort_key(m: MinerData) -> int:
@@ -48,11 +50,21 @@ def _ip_sort_key(m: MinerData) -> int:
 # index in this list == column index - 2 (action columns occupy 0 and 1)
 COLUMNS: list[Column] = [
     Column(header="RECV AT", field="recv_at", sort_key=lambda m: m.recv_at or 0),
-    Column(header="IP", field="ip", sort_key=_ip_sort_key),
+    Column(
+        header="IP",
+        field="ip",
+        sort_key=_ip_sort_key,
+        tooltip="Double-click to open in browser",
+    ),
     Column(header="MAC", field="mac"),
     Column(header="TYPE", field="type"),
     Column(header="SUBTYPE", field="subtype"),
-    Column(header="SERIAL", field="serial", editable=True),
+    Column(
+        header="SERIAL",
+        field="serial",
+        editable=True,
+        tooltip="Double-click to edit",
+    ),
     Column(header="ALGORITHM", field="algorithm"),
     Column(header="HOSTNAME", field="hostname"),
     Column(header="STRATUM URL", field="stratum_url"),
@@ -134,6 +146,9 @@ class IPRTableModel(QAbstractTableModel):
             if col is None:
                 return None  # action columns render via the delegate, no text
             return self._display(miner, col)
+
+        if role == Qt.ItemDataRole.ToolTipRole and col is not None:
+            return col.tooltip
 
         return None
 
