@@ -16,7 +16,7 @@ from ui.widgets import IPR_Titlebar, SvgLabel
 
 class IPRAbout(QDialog, Ui_IPRAbout):
     def __init__(self, parent: QWidget, title: str, text: str):
-        super().__init__(f=Qt.WindowType.FramelessWindowHint)
+        super().__init__(parent=parent, f=Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
 
         self._parent = parent

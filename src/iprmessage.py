@@ -49,7 +49,7 @@ class IPRMessage(QDialog):
         text: str,
         action_text: str | None = None,
     ):
-        super().__init__(f=Qt.WindowType.FramelessWindowHint)
+        super().__init__(parent=parent, f=Qt.WindowType.FramelessWindowHint)
 
         self._parent = parent
         self._title_str = title

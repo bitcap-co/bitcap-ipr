@@ -45,7 +45,7 @@ class IPRProgress(QDialog):
     def __init__(
         self, parent: QWidget, title: str, text: str, cancellable: bool = True
     ):
-        super().__init__(f=Qt.WindowType.FramelessWindowHint)
+        super().__init__(parent=parent, f=Qt.WindowType.FramelessWindowHint)
 
         self._parent = parent
         self._title_str = title
