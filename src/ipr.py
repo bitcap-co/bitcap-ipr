@@ -264,6 +264,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.id_header = self.tableIPRID.horizontalHeader()
         self.id_header.setSortIndicatorShown(False)
         self.id_header.sectionClicked.connect(self.select_column)
+        # vertical header: 1-based row-count column on the left
+        v_header = self.tableIPRID.verticalHeader()
+        v_header.setVisible(True)
         self.lineIDTableFilter.textChanged.connect(self.id_proxy.set_filter_text)
         # sort controls: column combo + asc/desc toggle (next to the filter)
         for col in range(self.id_model.columnCount()):

@@ -22,6 +22,21 @@ class IPRFilterProxyModel(QSortFilterProxyModel):
         self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self._needle = ""
 
+    def headerData(
+        self,
+        section: int,
+        orientation: Qt.Orientation,
+        role: int = Qt.ItemDataRole.DisplayRole,
+    ):
+        # vertical header = 1-based row count in the current (sorted/filtered)
+        # display order, rather than the underlying source row index
+        if (
+            orientation == Qt.Orientation.Vertical
+            and role == Qt.ItemDataRole.DisplayRole
+        ):
+            return section + 1
+        return super().headerData(section, orientation, role)
+
     def set_filter_text(self, text: str) -> None:
         """Filter rows to those where any field contains ``text``."""
         self._needle = text.strip().lower()
