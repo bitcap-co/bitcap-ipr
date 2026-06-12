@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 from utils import IPR_METADATA
 
 
-class IPR_Menubar(QMenuBar):
+class IPRMenubar(QMenuBar):
     def __init__(
         self,
         parent: Optional[QWidget] = None,

@@ -52,8 +52,6 @@ import ui.resources  # noqa F401
 from config import IPRConfig, PoolPreset
 from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
-from iprmessage import IPRMessage
-from iprprogress import IPRProgress
 from mod.apiv2 import ASICClient
 from mod.apiv2 import settings as api_settings
 from mod.apiv2.data import MinerData, MinerFirmware, MinerType
@@ -65,19 +63,19 @@ from mod.updater import (
     get_platform,
     select_asset,
 )
-from ui.MainWindow import Ui_MainWindow
+from ui import Ui_MainWindow
 from ui.widgets import (
-    IPR_Menubar,
-    IPR_Titlebar,
-    IPRTableContextMenu,
-)
-from ui.widgets.ipr.idtable import (
     COL_LOCATE,
     COL_RECV_AT,
     COL_REFRESH,
     IPRActionDelegate,
     IPRFilterProxyModel,
+    IPRMenubar,
+    IPRMessage,
+    IPRProgress,
+    IPRTableContextMenu,
     IPRTableModel,
+    IPRTitlebar,
 )
 from utils import (
     CURR_PLATFORM,
@@ -150,7 +148,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.miner_locate_duration: int = api_settings.get("locate_duration_ms")
 
         # initialize IPR_Titlebar widget
-        self.title_bar = IPR_Titlebar(self, "BitCap IPReporter", ["min", "close"])
+        self.title_bar = IPRTitlebar(self, "BitCap IPReporter", ["min", "close"])
         self.title_bar.minimize_button.clicked.connect(self.window().showMinimized)
         self.title_bar.close_button.clicked.connect(self.close_to_tray_or_exit)
         title_bar_widget = self.titleBarWidget.layout()
@@ -158,7 +156,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             title_bar_widget.addWidget(self.title_bar)
 
         # initialize IPR_Menubar widget
-        self.menu_bar = IPR_Menubar(self)
+        self.menu_bar = IPRMenubar(self)
         menu_bar_widget = self.menuBarWidget.layout()
         if menu_bar_widget:
             menu_bar_widget.addWidget(self.menu_bar)

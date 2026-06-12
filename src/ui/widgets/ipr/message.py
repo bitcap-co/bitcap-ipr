@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ui.widgets import IPR_Titlebar
+from .titlebar import IPRTitlebar
 
 
 class IPRMessage(QDialog):
@@ -63,7 +63,7 @@ class IPRMessage(QDialog):
         # size the dialog to fit its content and keep it non-resizable.
         layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
 
-        self.title_bar = IPR_Titlebar(self, self._title_str, ["close"])
+        self.title_bar = IPRTitlebar(self, self._title_str, ["close"])
         self.title_bar.setFixedHeight(self.TITLE_BAR_HEIGHT)
         self.title_bar.close_button.clicked.connect(self.reject)
         layout.addWidget(self.title_bar)

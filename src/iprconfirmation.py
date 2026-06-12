@@ -7,8 +7,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QIcon, QPixmap
 from PySide6.QtWidgets import QApplication, QDialog, QLineEdit
 
-from ui.Confirmation import Ui_IPRConfirmation
-from ui.widgets import IPR_Titlebar
+from ui import Ui_IPRConfirmation
+from ui.widgets import IPRTitlebar
 
 
 class IPRConfirmation(QDialog, Ui_IPRConfirmation):
@@ -17,7 +17,7 @@ class IPRConfirmation(QDialog, Ui_IPRConfirmation):
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, stay_on_top)
         self.setupUi(self)
 
-        self.title_bar = IPR_Titlebar(self, "IP Confirmation", ["min", "close"])
+        self.title_bar = IPRTitlebar(self, "IP Confirmation", ["min", "close"])
         self.title_bar.minimize_button.clicked.connect(self.window().showMinimized)
         self.title_bar.close_button.clicked.connect(self.window().hide)
         title_bar_widget = self.titleBarWidget.layout()

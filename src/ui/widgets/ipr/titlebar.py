@@ -12,11 +12,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-import ui.resources  # noqa: F401
 from utils import CURR_PLATFORM
 
 
-class IPR_Titlebar(QWidget):
+class IPRTitlebar(QWidget):
     def __init__(
         self,
         parent: QWidget,

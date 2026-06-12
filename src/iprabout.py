@@ -10,8 +10,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ui.About import Ui_IPRAbout
-from ui.widgets import IPR_Titlebar, SvgLabel
+from ui import Ui_IPRAbout
+from ui.widgets import IPRTitlebar, SvgLabel
 
 
 class IPRAbout(QDialog, Ui_IPRAbout):
@@ -26,7 +26,7 @@ class IPRAbout(QDialog, Ui_IPRAbout):
 
         self.setWindowTitle(self._title_str)
 
-        self.title_bar = IPR_Titlebar(self, self._title_str, ["close"])
+        self.title_bar = IPRTitlebar(self, self._title_str, ["close"])
         self.title_bar.close_button.clicked.connect(self.window().close)
         title_bar_widget = self.titleBarWidget.layout()
         if title_bar_widget:

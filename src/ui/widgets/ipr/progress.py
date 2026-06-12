@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ui.widgets import IPR_Titlebar
+from .titlebar import IPRTitlebar
 
 
 class IPRProgress(QDialog):
@@ -59,7 +59,7 @@ class IPRProgress(QDialog):
         layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
 
         title_buttons = ["close"] if cancellable else []
-        self.title_bar = IPR_Titlebar(self, self._title_str, title_buttons)
+        self.title_bar = IPRTitlebar(self, self._title_str, title_buttons)
         self.title_bar.setFixedHeight(self.TITLE_BAR_HEIGHT)
         if cancellable:
             self.title_bar.close_button.clicked.connect(self._on_cancel)
