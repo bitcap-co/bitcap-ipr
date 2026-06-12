@@ -1245,7 +1245,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             ".CSV Files (*.csv)",
         )
         self.clear_table()
-        self.reset_sort()
         csv = QFile(file_name)
         if csv.open(QFile.OpenModeFlag.ReadOnly | QFile.OpenModeFlag.Text):
             data_stream = QTextStream(csv)
@@ -1259,7 +1258,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                         MinerData().as_dict(),
                         dict(zip(included_headers, line.split(","))),
                     )
-                    self.populate_table_row(row)
+                    miner = self._miner_from_data(row)
+                    self.id_model.append(miner)
+            self.tableIPRID.scrollToBottom()
         else:
             logger.error(f"import_table : failed to read file {file_name}.")
             self.iprStatusBar.showMessage("Status :: Failed to import table.", 5000)
