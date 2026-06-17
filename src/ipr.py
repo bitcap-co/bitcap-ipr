@@ -55,6 +55,7 @@ from iprconfirmation import IPRConfirmation
 from mod.apiv2 import ASICClient
 from mod.apiv2 import settings as api_settings
 from mod.apiv2.data import MinerData, MinerFirmware, MinerType
+from mod.apiv2.errors import UnknownClientError
 from mod.lm import IPRDListener, IPReport, ListenerManager
 from mod.updater import (
     DebInstaller,
@@ -1479,9 +1480,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         else:
             # get miner data from src ip
             alt_pwd = self.get_client_auth(miner_type=miner_type.value)
-            self.asic.create_client(
-                miner_type=miner_type, ip=result.src_ip, alt_pwd=alt_pwd
-            )
+            try:
+                self.asic.create_client(
+                    miner_type=miner_type, ip=result.src_ip, alt_pwd=alt_pwd
+                )
+            except UnknownClientError as ex:
+                # ignore error to at least get result
+                logger.warning(f"process_result : {str(ex)}")
+                pass
             miner_data = self.asic.get_miner_data()
 
         # in the event of an unsupported miner, return miner type hint from IP Report
@@ -1700,14 +1706,23 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "locate_miner : already locating a miner. Ignoring..."
             )
         logger.info(f" locate miner {ip_addr}.")
-        # disable volcminer locating do to it soft rebooting miner.
-        if miner_type == MinerType.VOLCMINER:
-            return self.iprStatusBar.showMessage(
-                "Status :: Failed to locate miner: VolcMiner is currently not supported.",
-                5000,
-            )
+        match miner_type:
+            case MinerType.VOLCMINER | MinerType.HIVEGPU:
+                logger.error(
+                    f"locate_miner : {miner_type.value} is currently not supported."
+                )
+                return self.iprStatusBar.showMessage(
+                    f"Status :: Failed to locate miner: {miner_type.value.capitalize()} is currently not supported.",
+                    5000,
+                )
         alt_pwd = self.get_client_auth(miner_type.value)
-        self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
+        try:
+            self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
+        except UnknownClientError as ex:
+            logger.error(f"locate_miner : {str(ex)}")
+            return self.iprStatusBar.showMessage(
+                f"Status :: Failed action: {str(ex)}", 5000
+            )
         self.asic.locate_miner()
         if self.asic.client_error():
             return self.iprStatusBar.showMessage(
@@ -1723,7 +1738,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(row)
         logger.info(f" refresh miner {ip_addr}.")
         alt_pwd = self.get_client_auth(miner_type.value)
-        self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
+        try:
+            self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
+        except UnknownClientError as ex:
+            logger.error(f"refresh_miner : {str(ex)}")
+            return self.iprStatusBar.showMessage(
+                f"Status :: Failed action: {str(ex)}", 5000
+            )
         miner_data = self.asic.get_miner_data()
         if self.asic.client_error():
             return self.iprStatusBar.showMessage(
@@ -1753,7 +1774,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         source_row = self.id_proxy.mapToSource(index).row()
         ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(source_row)
         alt_pwd = self.get_client_auth(miner_type.value)
-        self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
+        try:
+            self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
+        except UnknownClientError as ex:
+            logger.error(f"get_miner_pool : {str(ex)}")
+            return self.iprStatusBar.showMessage(
+                f"Status :: Failed action: {str(ex)}", 5000
+            )
         urls, users, passwds = self.asic.get_miner_pool_conf()
         if self.asic.client_error():
             return self.iprStatusBar.showMessage(
@@ -1827,7 +1854,14 @@ class IPR(QMainWindow, Ui_MainWindow):
             ]
 
             alt_pwd = self.get_client_auth(miner_type.value)
-            self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
+            try:
+                self.asic.create_client(
+                    miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd
+                )
+            except UnknownClientError as ex:
+                logger.error(f"update_miner_pools : {str(ex)}")
+                failed.append(ip_addr)
+                continue
             self.asic.update_miner_pools(urls, users, passwds)
             if self.asic.client_error():
                 failed.append(ip_addr)
