@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 GITHUB_API = "https://api.github.com"
 REPO = "bitcap-co/bitcap-ipr"
 LATEST_RELEASE_URL = f"{GITHUB_API}/repos/{REPO}/releases/latest"
+RELEASES_URL = f"{GITHUB_API}/repos/{REPO}/releases"
 REQUEST_TIMEOUT = 10
 DOWNLOAD_CHUNK_SIZE = 1024 * 64
 
@@ -33,6 +34,11 @@ INSTALLER_EXTS = {
 }
 
 _VERSION_RE = re.compile(r"(\d+(?:\.\d+)*)")
+# Pre-release tag marker used by this project: a base version followed by a
+# '-rp-<feature>' suffix, e.g. 'v1.4.2-rp-hivegpu'. The suffix is free text
+# (a feature name), so previews of the same base have no order among
+# themselves; each is a preview of that upcoming base version.
+_PRERELEASE_RE = re.compile(r"-rp-\S+", re.IGNORECASE)
 
 
 def parse_version(version: str) -> tuple[int, ...]:
@@ -55,8 +61,42 @@ def parse_version(version: str) -> tuple[int, ...]:
     return tuple(int(part) for part in match.group(1).split("."))
 
 
+def is_prerelease(version: str) -> bool:
+    """Whether a version tag is a pre-release preview ('-rp-<feature>').
+
+    Args:
+        version (str): the version string to inspect.
+
+    Returns:
+        bool: True if the tag carries a '-rp-' pre-release suffix.
+    """
+    return bool(_PRERELEASE_RE.search(version or ""))
+
+
+def version_key(version: str) -> tuple[tuple[int, ...], int]:
+    """Build a sortable key for a version tag, pre-release aware.
+
+    Orders by numeric base version first, then places pre-release previews
+    (e.g. 'v1.4.2-rp-hivegpu') before the matching final release of the same
+    base. Previews of the same base have equal keys; callers relying on this
+    for selection should break ties by source order (newest first).
+
+    Args:
+        version (str): the version string to key.
+
+    Returns:
+        tuple: a key suitable for sorting / max().
+    """
+    return (parse_version(version), 0 if is_prerelease(version) else 1)
+
+
 def is_newer(latest: str, current: str) -> bool:
     """Check if latest is a strictly newer version than current.
+
+    A pre-release tag (e.g. 'v1.4.2-rp-hivegpu') previews an upcoming base
+    version, so it is newer than any older release and is itself superseded
+    by the matching final release. Two different previews of the same base
+    are not comparable and never report newer than one another.
 
     Args:
         latest (str): the candidate (remote) version string.
@@ -71,37 +111,27 @@ def is_newer(latest: str, current: str) -> bool:
     length = max(len(latest_v), len(current_v))
     latest_v += (0,) * (length - len(latest_v))
     current_v += (0,) * (length - len(current_v))
-    return latest_v > current_v
+    if latest_v != current_v:
+        return latest_v > current_v
+    # same base version: only a final release supersedes a preview of it.
+    return not is_prerelease(latest) and is_prerelease(current)
 
 
-def fetch_latest_release(timeout: int = REQUEST_TIMEOUT) -> dict:
-    """Fetch the latest release from the GitHub repository.
+_GITHUB_HEADERS = {
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+}
 
-    Args:
-        timeout (int): request timeout in seconds.
 
-    Returns:
-        dict: release info with keys 'tag', 'name', 'url' and 'body'.
-
-    Raises:
-        requests.RequestException: on network or HTTP errors.
-    """
-    resp = requests.get(
-        LATEST_RELEASE_URL,
-        headers={
-            "Accept": "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-        },
-        timeout=timeout,
-    )
-    resp.raise_for_status()
-    data = resp.json()
+def _release_info(data: dict) -> dict:
+    """Normalize a GitHub release payload into our release info shape."""
     tag = data.get("tag_name", "")
     return {
         "tag": tag,
         "name": data.get("name") or tag,
         "url": data.get("html_url", ""),
         "body": data.get("body") or "",
+        "prerelease": bool(data.get("prerelease")),
         "assets": [
             {
                 "name": asset.get("name", ""),
@@ -111,6 +141,47 @@ def fetch_latest_release(timeout: int = REQUEST_TIMEOUT) -> dict:
             for asset in data.get("assets", [])
         ],
     }
+
+
+def fetch_latest_release(
+    include_prereleases: bool = False, timeout: int = REQUEST_TIMEOUT
+) -> dict:
+    """Fetch the latest release from the GitHub repository.
+
+    By default only published, non-pre-release versions are considered (the
+    'releases/latest' endpoint). When include_prereleases is True the full
+    release list is fetched and the highest version is chosen, so a newer
+    pre-release preview (e.g. 'vX.Y.Z-rp-N') is picked up when one exists.
+
+    Args:
+        include_prereleases (bool): also consider pre-release versions.
+        timeout (int): request timeout in seconds.
+
+    Returns:
+        dict: release info with keys 'tag', 'name', 'url', 'body',
+        'prerelease' and 'assets'. Empty 'tag' when nothing is found.
+
+    Raises:
+        requests.RequestException: on network or HTTP errors.
+    """
+    if not include_prereleases:
+        resp = requests.get(
+            LATEST_RELEASE_URL, headers=_GITHUB_HEADERS, timeout=timeout
+        )
+        resp.raise_for_status()
+        return _release_info(resp.json())
+
+    resp = requests.get(RELEASES_URL, headers=_GITHUB_HEADERS, timeout=timeout)
+    resp.raise_for_status()
+    # GitHub returns releases newest-first; max() keeps the first of any tie,
+    # so competing previews of the same base resolve to the most recent one.
+    releases = [
+        release for release in resp.json() if not release.get("draft")
+    ]
+    if not releases:
+        return _release_info({})
+    latest = max(releases, key=lambda r: version_key(r.get("tag_name", "")))
+    return _release_info(latest)
 
 
 def get_platform() -> tuple[str, bool]:
@@ -197,6 +268,7 @@ class UpdateChecker(QThread):
 
     Args:
         current_version (str): the running version to compare against.
+        include_prereleases (bool): also consider pre-release versions.
         parent (QObject) : parent object.
 
     Signals:
@@ -210,9 +282,15 @@ class UpdateChecker(QThread):
     up_to_date = Signal(str)
     error = Signal(str)
 
-    def __init__(self, current_version: str, parent: QObject | None = None) -> None:
+    def __init__(
+        self,
+        current_version: str,
+        include_prereleases: bool = False,
+        parent: QObject | None = None,
+    ) -> None:
         super().__init__(parent)
         self._current = current_version
+        self._include_prereleases = include_prereleases
 
     def __repr__(self, /) -> str:
         return f"{self.__class__.__name__}"
@@ -220,7 +298,7 @@ class UpdateChecker(QThread):
     def run(self) -> None:
         logger.info(" checking for updates...")
         try:
-            release = fetch_latest_release()
+            release = fetch_latest_release(self._include_prereleases)
         except requests.RequestException as exc:
             logger.error(f" update check failed: {exc}")
             self.error.emit(str(exc))

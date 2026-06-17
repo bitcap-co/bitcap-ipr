@@ -5,7 +5,13 @@
 
 import unittest
 
-from mod.updater import is_newer, parse_version, select_asset
+from mod.updater import (
+    is_newer,
+    is_prerelease,
+    parse_version,
+    select_asset,
+    version_key,
+)
 
 
 def _asset(name: str) -> dict:
@@ -71,6 +77,54 @@ class TestIsNewer(unittest.TestCase):
 
     def test_unparseable_latest(self):
         self.assertFalse(is_newer("", "1.3.1"))
+
+    def test_prerelease_preview_of_higher_version(self):
+        # a preview of an upcoming patch is newer than the current release.
+        self.assertTrue(is_newer("v1.4.2-rp-hivegpu", "1.4.1"))
+
+    def test_final_release_supersedes_its_prerelease(self):
+        self.assertTrue(is_newer("v1.4.2", "1.4.2-rp-hivegpu"))
+
+    def test_prerelease_not_newer_than_final(self):
+        # a preview of the version you already run is not an upgrade.
+        self.assertFalse(is_newer("v1.4.2-rp-hivegpu", "1.4.2"))
+
+    def test_sibling_prereleases_not_comparable(self):
+        # two feature previews of the same base never supersede each other.
+        self.assertFalse(is_newer("v1.4.2-rp-hivegpu", "1.4.2-rp-pools"))
+        self.assertFalse(is_newer("v1.4.2-rp-pools", "1.4.2-rp-hivegpu"))
+
+    def test_equal_prerelease(self):
+        self.assertFalse(is_newer("v1.4.2-rp-hivegpu", "1.4.2-rp-hivegpu"))
+
+
+class TestIsPrerelease(unittest.TestCase):
+    def test_prerelease_tag(self):
+        self.assertTrue(is_prerelease("v1.4.2-rp-hivegpu"))
+
+    def test_final_tag(self):
+        self.assertFalse(is_prerelease("v1.4.2"))
+
+    def test_empty(self):
+        self.assertFalse(is_prerelease(""))
+
+
+class TestVersionKey(unittest.TestCase):
+    def test_prerelease_orders_before_final(self):
+        self.assertLess(version_key("v1.4.2-rp-hivegpu"), version_key("v1.4.2"))
+
+    def test_sibling_prereleases_share_a_key(self):
+        self.assertEqual(
+            version_key("v1.4.2-rp-hivegpu"), version_key("v1.4.2-rp-pools")
+        )
+
+    def test_higher_base_wins_over_prerelease(self):
+        self.assertGreater(version_key("v1.4.2-rp-hivegpu"), version_key("v1.4.1"))
+
+    def test_max_prefers_prerelease_of_highest_base(self):
+        # newest-first order; max keeps the first of a tie (most recent).
+        tags = ["v1.4.2-rp-pools", "v1.4.2-rp-hivegpu", "v1.4.1", "v1.3.2"]
+        self.assertEqual(max(tags, key=version_key), "v1.4.2-rp-pools")
 
 
 class TestSelectAsset(unittest.TestCase):

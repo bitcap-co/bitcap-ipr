@@ -26,6 +26,9 @@ class GeneralSettings(BaseModel):
     check_updates_on_startup: Annotated[
         bool, Field(alias="checkForUpdatesOnStartup")
     ] = False
+    include_prereleases: Annotated[
+        bool, Field(alias="includePreReleases")
+    ] = False
 
 
 class IPRD(BaseModel):

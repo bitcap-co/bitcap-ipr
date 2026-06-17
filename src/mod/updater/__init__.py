@@ -10,6 +10,8 @@ from .updater import (
     fetch_latest_release,
     get_platform,
     is_newer,
+    is_prerelease,
     parse_version,
     select_asset,
+    version_key,
 )

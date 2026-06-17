@@ -541,6 +541,11 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_updates.addWidget(self.checkCheckUpdatesOnStartup)
 
+        self.checkIncludePreReleases = QCheckBox(self.groupUpdates)
+        self.checkIncludePreReleases.setObjectName(u"checkIncludePreReleases")
+
+        self.verticalLayout_updates.addWidget(self.checkIncludePreReleases)
+
 
         self.verticalLayout_5.addWidget(self.groupUpdates)
 
@@ -1222,6 +1227,10 @@ class Ui_MainWindow(object):
         self.checkCheckUpdatesOnStartup.setToolTip(QCoreApplication.translate("MainWindow", u"Check GitHub for a newer release when the app starts", None))
 #endif // QT_CONFIG(tooltip)
         self.checkCheckUpdatesOnStartup.setText(QCoreApplication.translate("MainWindow", u"Check for Updates on Startup", None))
+#if QT_CONFIG(tooltip)
+        self.checkIncludePreReleases.setToolTip(QCoreApplication.translate("MainWindow", u"Also offer pre-release (vX.Y.Z-rp-N) versions when checking for updates", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkIncludePreReleases.setText(QCoreApplication.translate("MainWindow", u"Include Pre-Releases", None))
         self.groupInactiveTimer.setTitle(QCoreApplication.translate("MainWindow", u"Inactive Timer", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Inactive Timeout:", None))
         self.label_3.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))

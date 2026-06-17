@@ -488,6 +488,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.checkCheckUpdatesOnStartup.setChecked(
             self.config.general.check_updates_on_startup
         )
+        self.checkIncludePreReleases.setChecked(self.config.general.include_prereleases)
 
         # listener
         self.groupListeners.setChecked(self.config.listener.enable_all)
@@ -626,6 +627,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             "useCustomTimeout": self.checkUseCustomTimeout.isChecked(),
             "inactiveTimeoutDuration": self.spinInactiveTimeout.value(),
             "checkForUpdatesOnStartup": self.checkCheckUpdatesOnStartup.isChecked(),
+            "includePreReleases": self.checkIncludePreReleases.isChecked(),
         }
         settings["listener"] = {
             "enableFiltering": self.checkEnableListenFilter.isChecked(),
@@ -934,7 +936,11 @@ class IPR(QMainWindow, Ui_MainWindow):
             return
         self._update_check_silent = silent
         self.menu_bar.actionCheckForUpdates.setEnabled(False)
-        self.update_checker = UpdateChecker(IPR_METADATA["appversion"], self)
+        self.update_checker = UpdateChecker(
+            IPR_METADATA["appversion"],
+            self.config.general.include_prereleases,
+            self,
+        )
         self.update_checker.update_available.connect(self.on_update_available)
         self.update_checker.up_to_date.connect(self.on_up_to_date)
         self.update_checker.error.connect(self.on_update_error)
@@ -946,11 +952,16 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def on_update_available(self, release: dict):
         self.iprStatusBar.clearMessage()
-        self.iprStatusBar.showMessage("Status :: Update available!", 3000)
+        is_prerelease = release.get("prerelease", False)
+        kind = "pre-release" if is_prerelease else "version"
+        self.iprStatusBar.showMessage(
+            f"Status :: {'Pre-release' if is_prerelease else 'Update'} available!",
+            3000,
+        )
         dialog = IPRMessage(
             self,
             "Update Available",
-            f"A new version of {IPR_METADATA['name']} is available: {release['name']}\n"
+            f"A new {kind} of {IPR_METADATA['name']} is available: {release['name']}\n"
             f"You are currently running {IPR_METADATA['appversion']}.",
             action_text="Download",
         )
@@ -1120,7 +1131,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                 f"Could not check for updates. Please try again later.\n\n{error}",
             ).exec()
 
-    def dashboard_url(self, host: str, miner_type: MinerType | str | None = None) -> str:
+    def dashboard_url(
+        self, host: str, miner_type: MinerType | str | None = None
+    ) -> str:
         mtype = (
             miner_type
             if isinstance(miner_type, MinerType)

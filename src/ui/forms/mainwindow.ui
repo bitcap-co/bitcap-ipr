@@ -1186,6 +1186,16 @@ Uses last 5 of SN or MAC address.</string>
                        </property>
                       </widget>
                      </item>
+                     <item>
+                      <widget class="QCheckBox" name="checkIncludePreReleases">
+                       <property name="toolTip">
+                        <string>Also offer pre-release (vX.Y.Z-rp-N) versions when checking for updates</string>
+                       </property>
+                       <property name="text">
+                        <string>Include Pre-Releases</string>
+                       </property>
+                      </widget>
+                     </item>
                     </layout>
                    </widget>
                   </item>
