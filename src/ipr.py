@@ -1770,6 +1770,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             for x in self.tableIPRID.selectionModel().selectedIndexes()
             if x.column() == 3
         ]
+        if not selected_ips:
+            return self.iprStatusBar.showMessage(
+                "Status :: Failed action: no selected IPs.", 5000
+            )
         index = selected_ips[0]
         source_row = self.id_proxy.mapToSource(index).row()
         ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(source_row)
@@ -1815,7 +1819,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             | QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents
         )
         if selected_ips is None:
-            return
+            return self.iprStatusBar.showMessage(
+                "Status :: Failed action: no selected IPs.", 5000
+            )
         for index in selected_ips:
             source_row = self.id_proxy.mapToSource(index).row()
             ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(source_row)
