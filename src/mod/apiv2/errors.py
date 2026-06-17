@@ -25,3 +25,7 @@ class APIInvalidResponse(APIError):
         if self.reason:
             self.msg = f"{self.msg}: {self.reason}"
         super().__init__(self.msg)
+
+
+class UnknownClientError(Exception):
+    """Raise for unknown/unsupported client error"""

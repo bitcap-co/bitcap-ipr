@@ -25,7 +25,12 @@ from mod.apiv2.data.miners import (
     WhatsminerParser,
     WhatsminerV3Parser,
 )
-from mod.apiv2.errors import APIError, AuthenticationError, FailedConnectionError
+from mod.apiv2.errors import (
+    APIError,
+    AuthenticationError,
+    FailedConnectionError,
+    UnknownClientError,
+)
 from mod.apiv2.http import (
     AntminerHTTPClient,
     AuradineHTTPClient,
@@ -144,11 +149,10 @@ class ASICClient(QObject):
                 self.create_auradine_client(ip, alt_pwd=alt_pwd)
             case _:
                 # type is unknown or not supported
-                logger.warning(
-                    f"{self.__repr__()} : Unknown or unsupported client for IP {ip}: {miner_type.value}"
-                )
                 self.client = None
-                return
+                err_msg = f"unsupported client for IP {ip}: {miner_type.value}"
+                # logger.error(f"{self.__repr__()} : {err_msg}")
+                raise UnknownClientError(err_msg)
 
     def identify(self, miner_hint: MinerTypeHint, ip: str) -> MinerType:
         match miner_hint:
@@ -211,7 +215,6 @@ class ASICClient(QObject):
 
     def _parse_miner_data(self, parser: BaseParser) -> dict[str, Any]:
         if not self.client:
-            logger.warning(f"{self.__repr__()} : no active client.")
             return parser.get_data()
         try:
             system_info = self.client.get_system_info()
@@ -332,7 +335,6 @@ class ASICClient(QObject):
 
     def locate_miner(self) -> None:
         if not self.client:
-            logger.warning(f"{self.__repr__()} : no active client.")
             return
         self.locate_timer = QTimer(self._parent)
         self.locate_timer.setSingleShot(True)
@@ -352,9 +354,7 @@ class ASICClient(QObject):
 
     def get_miner_pool_conf(self) -> tuple[list[str], list[str], list[str]]:
         if not self.client:
-            logger.warning(f"{self.__repr__()} : no active client.")
             return [], [], []
-
         urls: list[str] = []
         users: list[str] = []
         passwds: list[str] = []
@@ -383,7 +383,6 @@ class ASICClient(QObject):
         self, urls: list[str], users: list[str], passwds: list[str]
     ) -> None:
         if not self.client:
-            logger.warning(f"{self.__repr__()} : no active client.")
             return
         try:
             self.client.update_pool_conf(urls, users, passwds)
