@@ -166,6 +166,8 @@ class ASICClient(QObject):
                 return MinerType.AURADINE
             case MinerTypeHint.IPOLLO:
                 return MinerType.IPOLLO
+            case MinerTypeHint.HIVEGPU:
+                return MinerType.HIVEGPU
             case MinerTypeHint.COMMON:
                 miner_type = self._parse_http_type(ip)
                 if miner_type is None:

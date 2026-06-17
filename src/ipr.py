@@ -1120,8 +1120,17 @@ class IPR(QMainWindow, Ui_MainWindow):
                 f"Could not check for updates. Please try again later.\n\n{error}",
             ).exec()
 
-    def open_dashboard(self, host: str):
-        webbrowser.open(f"http://{host}", new=2)
+    def dashboard_url(self, host: str, miner_type: MinerType | str | None = None) -> str:
+        mtype = (
+            miner_type
+            if isinstance(miner_type, MinerType)
+            else MinerType.from_value(str(miner_type or ""))
+        )
+        port = 4200 if mtype == MinerType.HIVEGPU else 80
+        return f"http://{host}:{port}"
+
+    def open_dashboard(self, host: str, miner_type: MinerType | str | None = None):
+        webbrowser.open(self.dashboard_url(host, miner_type), new=2)
 
     def show_table_context(self):
         self.id_context_menu.exec(QCursor.pos())
@@ -1130,7 +1139,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         # model_index is a proxy index
         match model_index.column():
             case 3:  # ip column
-                self.open_dashboard(model_index.data())
+                source_row = self.id_proxy.mapToSource(model_index).row()
+                miner = self.id_model.miner_at(source_row)
+                self.open_dashboard(model_index.data(), miner.type)
             case 7:  # serial column
                 self.tableIPRID.edit(model_index)
             case _:
@@ -1162,7 +1173,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             if x.column() == 3
         ]
         for index in selected_ips:
-            self.open_dashboard(index.data())
+            source_row = self.id_proxy.mapToSource(index).row()
+            miner = self.id_model.miner_at(source_row)
+            self.open_dashboard(index.data(), miner.type)
 
     def copy_selected(self):
         logger.info(" copy selected elements.")
@@ -1184,7 +1197,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                     case 0 | 1:  # ignore widget actions
                         continue
                     case 3:  # ip
-                        out += f"http://{cell.data()}{sep}"
+                        source_row = self.id_proxy.mapToSource(cell).row()
+                        miner = self.id_model.miner_at(source_row)
+                        out += f"{self.dashboard_url(cell.data(), miner.type)}{sep}"
                     case _:
                         out += f"{cell.data()}{sep}"
                 continue
@@ -1514,7 +1529,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         recv_timestamp = QDateTime.fromSecsSinceEpoch(recv_at).toString()
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
-            self.open_dashboard(ip)
+            self.open_dashboard(ip, type)
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
             logger.info("show_confirmation : populate ID table.")
             if self.menu_bar.actionEnableLiveCapture.isChecked():
@@ -1525,7 +1540,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         else:
             confirm = IPRConfirmation(self.menu_bar.actionConfirmsStayOnTop.isChecked())
             confirm.actionOpenDashboard.triggered.connect(
-                lambda: self.open_dashboard(ip)
+                lambda: self.open_dashboard(ip, type)
             )
 
             logger.info("show_confirmation : show IPRConfirmation.")

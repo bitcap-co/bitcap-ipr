@@ -25,6 +25,7 @@ class MinerTypeHint(IntEnum):
     ELPHAPEX = 9999
     AURADINE = 12345
     IPOLLO = 54321
+    HIVEGPU = 42069
     UNKNOWN = 0
 
     @classmethod
@@ -41,6 +42,7 @@ msg_patterns = {
     "ipollo": re.compile(
         f"^IP Addr:\\[(?P<IP>{IP_PATTERN})\\].*?MAC Addr:\\[(?P<MAC>{MAC_PATTERN})\\]"
     ),
+    "hivegpu": re.compile(f"^HiveOS {IP_PATTERN}"),
 }
 
 

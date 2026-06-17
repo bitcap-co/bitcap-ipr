@@ -24,6 +24,7 @@ class MinerType(str, Enum):
     IPOLLO = "ipollo"
     LUX_OS = "luxor"
     VNISH = "vnish"
+    HIVEGPU = "hivegpu"
 
     def __str__(self) -> str:
         return self.value
