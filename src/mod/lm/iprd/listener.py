@@ -211,7 +211,7 @@ class IPRDListener(QObject):
     def _schedule_reconnect(self) -> None:
         if self._reconnect_attempts >= self.max_reconnect_attempts:
             logger.error(
-                f"{self.__repr__} : giving up after "
+                f"{self.__repr__()} : giving up after "
                 f"{self._reconnect_attempts} reconnect attempts."
             )
             self._intentional_stop = True
@@ -222,7 +222,7 @@ class IPRDListener(QObject):
         self._reconnect_attempts += 1
         delay = self._reconnect_delay
         logger.info(
-            f"{self.__repr__} : reconnect attempt "
+            f"{self.__repr__()} : reconnect attempt "
             f"{self._reconnect_attempts}/{self.max_reconnect_attempts} in {delay} ms."
         )
         self.reconnecting.emit(self._reconnect_attempts, delay)
@@ -233,7 +233,7 @@ class IPRDListener(QObject):
     def _attempt_reconnect(self) -> None:
         if self._intentional_stop:
             return
-        logger.info(f"{self.__repr__} : attempting reconnect...")
+        logger.info(f"{self.__repr__()} : attempting reconnect...")
         self.sock.abort()
         self.sock.connectToHost(self.addr, self.port)
 
