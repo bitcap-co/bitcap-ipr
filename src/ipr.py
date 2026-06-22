@@ -11,6 +11,7 @@ import subprocess
 import time
 import webbrowser
 from datetime import datetime
+from enum import Enum, auto
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any
@@ -89,6 +90,16 @@ from utils import (
 logger = logging.getLogger(__name__)
 
 
+class ListenState(Enum):
+    """Persistent state of the listening backend, reflected in the status bar."""
+
+    READY = auto()  # idle, not listening
+    LISTENING = auto()  # ListenerManager UDP listeners active
+    CONNECTING = auto()  # iprd socket connecting/subscribing
+    SUBSCRIBED = auto()  # iprd connected and subscribed to the stream
+    RECONNECTING = auto()  # iprd connection lost, retrying
+
+
 class IPR(QMainWindow, Ui_MainWindow):
     def __init__(self, stored: IPRConfig):
         logger.info(" start IPR() init.")
@@ -141,9 +152,19 @@ class IPR(QMainWindow, Ui_MainWindow):
         # init iprd listener
         self.iprd = IPRDListener(self)
         self.iprd.result.connect(self.process_result)
+        self.iprd.subscribed.connect(self.on_iprd_subscribed)
         self.iprd.error.connect(self.show_iprd_error)
         self.iprd.reconnecting.connect(self.on_iprd_reconnecting)
         self.iprd.reconnect_failed.connect(self.on_iprd_reconnect_failed)
+
+        # status bar state: a single persistent "base" message reflects what the
+        # app is currently doing; transient notifications are layered on top via
+        # notify() and fall back to the base when they expire.
+        self._listen_state = ListenState.READY
+        self._showing_transient = False
+        self._reconnect_attempt = 0
+        self._reconnect_delay_ms = 0
+        self._last_iprd_error = ""
 
         logger.info(" init mod api.")
         self.asic = ASICClient(self)
@@ -366,7 +387,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.pushIPRResetConfig.clicked.connect(self.reset_settings)
 
         # status bar
-        self.iprStatusBar.messageChanged.connect(self.update_status_msg)
+        self.iprStatusBar.messageChanged.connect(self._on_status_message_changed)
 
         # system tray signals
         self.checkEnableSysTray.toggled.connect(self.toggle_system_tray_settings)
@@ -382,7 +403,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.read_settings()
 
         self.update_stacked_widget()
-        self.update_status_msg()
+        self._show_base_status()
         self.update_pool_preset_names()
 
         if self.menu_bar.actionEnableIDTable.isChecked():
@@ -446,20 +467,62 @@ class IPR(QMainWindow, Ui_MainWindow):
                     self.poolConfigurator.setVisible(False)
             self.stackedWidget.setCurrentIndex(view_index)
 
-    def update_status_msg(self):
-        if (
-            self.checkEnableIPRDBackend.isChecked() and self.iprd.active
-            # and not self.iprStatusBar.currentMessage()
-        ):
-            self.iprStatusBar.showMessage(
-                f"Status :: Listening on [{self.iprd.__repr__()}]..."
+    # status bar
+    #
+    # The status bar shows exactly one of two kinds of message at a time:
+    #   - a persistent "base" message describing the current ListenState
+    #     (Ready / Listening / Connecting / Reconnecting). It has no timeout.
+    #   - a transient notification (errors, save confirmations, timeouts) shown
+    #     via notify() with a timeout. When it expires Qt clears the message and
+    #     messageChanged fires, restoring the base message.
+    #
+    # State changes update the base message but never clobber a transient that is
+    # still on screen; the new base simply takes effect once the transient ends.
+    def _base_status_text(self) -> str:
+        """Build the persistent status message for the current ListenState."""
+        if self._listen_state is ListenState.SUBSCRIBED:
+            return f"Status :: Listening on [{self.iprd!r}]..."
+        if self._listen_state is ListenState.CONNECTING:
+            return (
+                f"Status :: Connecting to "
+                f"{self.iprd.addr.toString()}:{self.iprd.port}..."
             )
-        if self.lm.count and not self.iprStatusBar.currentMessage():
-            self.iprStatusBar.showMessage(
-                f"Status :: Listening on 0.0.0.0[{self.lm.status}]..."
+        if self._listen_state is ListenState.RECONNECTING:
+            reason = f" ({self._last_iprd_error})" if self._last_iprd_error else ""
+            return (
+                f"Status :: Connection lost{reason}; reconnecting "
+                f"{self._reconnect_attempt}/{self.iprd.max_reconnect_attempts} "
+                f"in {self._reconnect_delay_ms // 1000}s…"
             )
-        if not self.iprStatusBar.currentMessage():
-            self.iprStatusBar.showMessage("Status :: Ready.")
+        if self._listen_state is ListenState.LISTENING:
+            return f"Status :: Listening on 0.0.0.0[{self.lm.status}]..."
+        return "Status :: Ready."
+
+    def _show_base_status(self):
+        """Display the persistent base message for the current state."""
+        self._showing_transient = False
+        self.iprStatusBar.showMessage(self._base_status_text())
+
+    def set_listen_state(self, state: ListenState):
+        """Update the persistent state and refresh the status bar.
+
+        If a transient notification is currently displayed it is left alone; the
+        new base message takes over once that notification expires.
+        """
+        self._listen_state = state
+        if not self._showing_transient:
+            self._show_base_status()
+
+    def notify(self, message: str, timeout: int = 5000):
+        """Show a transient status message that reverts to the base state."""
+        self._showing_transient = True
+        self.iprStatusBar.showMessage(message, timeout)
+
+    def _on_status_message_changed(self, message: str):
+        # Qt clears the message (empty string) when a transient times out or
+        # clearMessage() is called; restore whatever the app is currently doing.
+        if not message:
+            self._show_base_status()
 
     def update_pool_preset_names(self):
         for idx in range(0, len(self.config.pool_config.pool_presets)):
@@ -1354,8 +1417,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.error(
                 "start_listen : no listeners configured. at least one listener needs to be checked."
             )
-            self.iprStatusBar.showMessage(
-                "Status :: Failed to start listeners. No listeners configured", 5000
+            self.notify(
+                "Status :: Failed to start listeners. No listeners configured"
             )
             return
         if not self.menu_bar.actionDisableInactiveTimer.isChecked():
@@ -1367,11 +1430,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.pushIPRListenStop.setEnabled(True)
         if not self.checkEnableIPRDBackend.isChecked():
             self.lm.start(self.listenerConfig)
-            listen_status = f"Listening on 0.0.0.0[{self.lm.status}]..."
+            self._last_iprd_error = ""
+            self.set_listen_state(ListenState.LISTENING)
         else:
-            self.iprd.subscribed.connect(
-                self.update_status_msg, Qt.ConnectionType.UniqueConnection
-            )
             try:
                 addr, port = self.lineIPRDSocketAddress.text().split(":")
                 port = int(port)
@@ -1380,16 +1441,17 @@ class IPR(QMainWindow, Ui_MainWindow):
                 logger.error(
                     "start_listen : failed to start IPRD listener! Invalid socket address."
                 )
-                return self.iprStatusBar.showMessage(
-                    "Status :: Failed to start IPRD Listener: Invalid socket address.",
-                    5000,
+                return self.notify(
+                    "Status :: Failed to start IPRD Listener: Invalid socket address."
                 )
             else:
                 self.iprd.set_socket_addr(addr, port)
                 self.iprd.start()
-                listen_status = f"Connecting to {addr}:{port}..."
+                self._last_iprd_error = ""
+                self.set_listen_state(ListenState.CONNECTING)
 
-        logger.info(f"start_listen : {listen_status}.")
+        listen_status = self._base_status_text().removeprefix("Status :: ")
+        logger.info(f"start_listen : {listen_status}")
         if self.is_minimized_to_tray():
             self.sys_tray.showMessage(
                 "IPR Listener: Start",
@@ -1397,7 +1459,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                 QSystemTrayIcon.MessageIcon.Information,
                 3000,
             )
-        self.iprStatusBar.showMessage(f"Status :: {listen_status}", 8000)
 
     def stop_listen(self, timeout: bool = False, restart: bool = False):
         logger.info(" stop listeners.")
@@ -1414,14 +1475,15 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.pushIPRListenStop.setEnabled(False)
         # ensure lm is stopped
         self.lm.stop()
-        if self.iprd.active:
-            self.iprd.subscribed.disconnect(self.update_status_msg)
-            self.iprd.stop()
+        # always stop iprd: during a reconnect loop active is False but the retry
+        # timer is still running, so a guard on active would leave it retrying.
+        self.iprd.stop()
+        # back to idle; any transient below will revert here once it expires.
+        self._last_iprd_error = ""
+        self.set_listen_state(ListenState.READY)
         if timeout:
             logger.warning("stop_listen : timeout.")
-            self.iprStatusBar.showMessage(
-                "Status :: Inactive timeout. Stopped listeners", 5000
-            )
+            self.notify("Status :: Inactive timeout. Stopped listeners")
             if self.is_minimized_to_tray():
                 self.sys_tray.showMessage(
                     "IPR Listener: Inactive timeout!",
@@ -1442,7 +1504,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                 QSystemTrayIcon.MessageIcon.Information,
                 3000,
             )
-        self.iprStatusBar.clearMessage()
 
     def restart_listen(self):
         if self.lm.count or self.iprd.active:
@@ -1450,26 +1511,27 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.stop_listen(restart=True)
             self.start_listen()
 
+    def on_iprd_subscribed(self):
+        self._last_iprd_error = ""
+        self.set_listen_state(ListenState.SUBSCRIBED)
+
     def show_iprd_error(self, error_str: str):
+        # The daemon emits error() once per drop, immediately followed by
+        # reconnecting(). Rather than flash a standalone error message that the
+        # reconnect status would instantly overwrite, we stash the reason so it
+        # can be folded into the persistent "reconnecting…" message.
         logger.error(f" received IPRD Listener error: {error_str}")
-        # self.stop_listen()
-        # if self.is_minimized_to_tray():
-        #     self.sys_tray.showMessage(
-        #         "IPR Listener: Error",
-        #         f"Got Listener error: {error_str}",
-        #         QSystemTrayIcon.MessageIcon.Warning,
-        #         5000,
-        #     )
-        self.iprStatusBar.showMessage(
-            f"Status :: Got IPRD Listener error: {error_str}. Reconnecting...", 5000
-        )
+        self._last_iprd_error = error_str
+        # If auto-reconnect is disabled no reconnecting() follows, so surface the
+        # error here and reflect that we are no longer connected.
+        if not self.iprd.auto_reconnect:
+            self.set_listen_state(ListenState.READY)
+            self.notify(f"Status :: IPRD Listener error: {error_str}. Stopped.")
 
     def on_iprd_reconnecting(self, attempt: int, delay_ms: int):
-        self.iprStatusBar.showMessage(
-            f"Status :: Reconnecting ({attempt}/{self.iprd.max_reconnect_attempts}) "
-            f"in {delay_ms // 1000}s…",
-            delay_ms,
-        )
+        self._reconnect_attempt = attempt
+        self._reconnect_delay_ms = delay_ms
+        self.set_listen_state(ListenState.RECONNECTING)
 
     def on_iprd_reconnect_failed(self):
         logger.error("IPRD reconnect failed; giving up.")
@@ -1481,7 +1543,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 QSystemTrayIcon.MessageIcon.Critical,
                 5000,
             )
-        self.iprStatusBar.showMessage("Status :: Could not reconnect. Stopped.", 5000)
+        self.notify("Status :: Could not reconnect. Stopped.")
 
     def process_result(self, result: IPReport):
         # reset inactive timer
@@ -1965,6 +2027,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd.close()
         self.iprd.error.disconnect(self.show_iprd_error)
         self.iprd.result.disconnect(self.process_result)
+        self.iprd.subscribed.disconnect(self.on_iprd_subscribed)
+        self.iprd.reconnecting.disconnect(self.on_iprd_reconnecting)
+        self.iprd.reconnect_failed.disconnect(self.on_iprd_reconnect_failed)
         self.lm.stop()
         self.lm.listen_complete.disconnect(self.process_result)
         self.lm.listen_error.disconnect(self.restart_listen)
