@@ -1368,7 +1368,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.lm.start(self.listenerConfig)
             listen_status = f"Listening on 0.0.0.0[{self.lm.status}]..."
         else:
-            self.iprd.subscribed.connect(self.update_status_msg)
+            self.iprd.subscribed.connect(
+                self.update_status_msg, Qt.ConnectionType.UniqueConnection
+            )
             try:
                 addr, port = self.lineIPRDSocketAddress.text().split(":")
                 port = int(port)
