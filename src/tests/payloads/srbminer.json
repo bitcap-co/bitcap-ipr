@@ -1,0 +1,143 @@
+{
+  "rig_name": "SRBMiner-Multi-Rig",
+  "miner_version": "3.3.7",
+  "mining_time": 147714,
+  "total_cpu_workers": 0,
+  "total_gpu_workers": 4,
+  "total_workers": 4,
+  "cpu_devices": [
+    {
+      "id": 0,
+      "device": "cpu0",
+      "model": "Intel(R) Celeron(R) CPU G3930 @ 2.90GHz",
+      "L3": 2097152,
+      "L2": 524288,
+      "L1": 65536
+    }
+  ],
+  "gpu_devices": [
+    {
+      "id": 0,
+      "topology_id": "0000:01:00.0",
+      "bus_id": 1,
+      "device": "gpu0",
+      "vendor": "nvidia",
+      "model": "nvidia_geforce_rtx_3070",
+      "fan_speed_percent": 100,
+      "core_clock": 1305,
+      "memory_clock": 7800,
+      "temperature": 68,
+      "asic_power": 171,
+      "off_temperature": 100
+    },
+    {
+      "id": 1,
+      "topology_id": "0000:03:00.0",
+      "bus_id": 3,
+      "device": "gpu1",
+      "vendor": "nvidia",
+      "model": "nvidia_geforce_rtx_3070",
+      "fan_speed_percent": 100,
+      "core_clock": 1305,
+      "memory_clock": 7800,
+      "temperature": 63,
+      "asic_power": 163,
+      "off_temperature": 100
+    },
+    {
+      "id": 2,
+      "topology_id": "0000:04:00.0",
+      "bus_id": 4,
+      "device": "gpu2",
+      "vendor": "nvidia",
+      "model": "nvidia_geforce_rtx_3070",
+      "fan_speed_percent": 100,
+      "core_clock": 1305,
+      "memory_clock": 7800,
+      "temperature": 70,
+      "asic_power": 168,
+      "off_temperature": 100
+    },
+    {
+      "id": 3,
+      "topology_id": "0000:05:00.0",
+      "bus_id": 5,
+      "device": "gpu3",
+      "vendor": "nvidia",
+      "model": "nvidia_geforce_rtx_3070",
+      "fan_speed_percent": 100,
+      "core_clock": 1305,
+      "memory_clock": 7800,
+      "temperature": 86,
+      "asic_power": 183,
+      "off_temperature": 100
+    }
+  ],
+  "algorithms": [
+    {
+      "id": 0,
+      "name": "pearlhash",
+      "pool": {
+        "pool": "us2.pearl.herominers.com:1200",
+        "wallet": "prl1xxxxxxxx.4x",
+        "time_connected": "2026-06-20 11:07:36",
+        "uptime": 147712,
+        "difficulty": 0.987,
+        "last_job_received": 269,
+        "latency": 246
+      },
+      "shares": {
+        "total": 2137,
+        "accepted": 2129,
+        "rejected": 8,
+        "avg_find_time": 69
+      },
+      "hashrate": {
+        "1min": 228131658910186.56,
+        "1hr": 227535394142388.75,
+        "6hr": 217193360986162.53,
+        "12hr": 213179792894369.88,
+        "cpu": {
+          "total": 0.0
+        },
+        "gpu": {
+          "gpu0": 57163468486147.54,
+          "gpu1": 57168809156323.78,
+          "gpu2": 57162354037352.37,
+          "gpu3": 56181867533665.41,
+          "total": 227676499213489.1
+        }
+      },
+      "gpu_accepted_shares": {
+        "gpu0": 567,
+        "gpu1": 522,
+        "gpu2": 531,
+        "gpu3": 509
+      },
+      "gpu_rejected_shares": {
+        "gpu0": 1,
+        "gpu1": 1,
+        "gpu2": 2,
+        "gpu3": 4
+      },
+      "gpu_compute_errors": {
+        "gpu0": 0,
+        "gpu1": 0,
+        "gpu2": 0,
+        "gpu3": 0
+      },
+      "gpu_efficiency": {
+        "gpu0": 334289289392.68,
+        "gpu1": 350728890529.59,
+        "gpu2": 340252107365.19,
+        "gpu3": 307004740621.12
+      },
+      "gpu_autotune_results": {
+        "gpu0": "0",
+        "gpu1": "0",
+        "gpu2": "0",
+        "gpu3": "0"
+      }
+    }
+  ]
+}

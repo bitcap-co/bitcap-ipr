@@ -9,5 +9,6 @@ from .elphapex import ElphapexHTTPClient
 from .goldshell import GoldshellHTTPClient
 from .iceriver import IceriverHTTPClient
 from .sealminer import SealminerHTTPClient
+from .srbminer import SRBMinerHTTPClient
 from .vnish import VnishHTTPClient
 from .volcminer import VolcminerHTTPClient

@@ -20,6 +20,7 @@ from mod.apiv2.data.miners import (
     IceriverParser,
     LuxminerParser,
     SealminerParser,
+    SRBMinerParser,
     VnishParser,
     VolcminerParser,
     WhatsminerParser,
@@ -38,6 +39,7 @@ from mod.apiv2.http import (
     GoldshellHTTPClient,
     IceriverHTTPClient,
     SealminerHTTPClient,
+    SRBMinerHTTPClient,
     VnishHTTPClient,
     VolcminerHTTPClient,
 )
@@ -121,6 +123,9 @@ class ASICClient(QObject):
     def create_auradine_client(self, ip: str, alt_pwd: str | None = None) -> None:
         self._set_active_client(AuradineHTTPClient(ip, alt_pwd=alt_pwd))
 
+    def create_hivegpu_client(self, ip: str, alt_pwd: str | None = None) -> None:
+        self._set_active_client(SRBMinerHTTPClient(ip, alt_pwd=alt_pwd))
+
     def create_client(
         self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
     ) -> None:
@@ -147,6 +152,8 @@ class ASICClient(QObject):
                 self.create_vnish_client(ip, alt_pwd=alt_pwd)
             case MinerType.AURADINE:
                 self.create_auradine_client(ip, alt_pwd=alt_pwd)
+            case MinerType.HIVEGPU:
+                self.create_hivegpu_client(ip, alt_pwd=alt_pwd)
             case _:
                 # type is unknown or not supported
                 self.client = None
@@ -211,6 +218,8 @@ class ASICClient(QObject):
             return self._parse_miner_data(LuxminerParser())
         elif isinstance(self.client, AuradineHTTPClient):
             return self._parse_miner_data(AuradineParser())
+        elif isinstance(self.client, SRBMinerHTTPClient):
+            return self._parse_miner_data(SRBMinerParser())
         return MinerData().as_dict()
 
     def _parse_miner_data(self, parser: BaseParser) -> dict[str, Any]:
@@ -232,6 +241,10 @@ class ASICClient(QObject):
                 or isinstance(parser, AuradineParser)
             ):
                 parser.parse_all(system_info)
+            elif isinstance(parser, SRBMinerParser):
+                parser.parse_all(system_info)
+                # uptime is not part of the generic parse_all() sequence.
+                parser.parse_uptime(system_info)
             elif isinstance(parser, GoldshellParser):
                 parser.parse_system_info(system_info)
                 settings = self.client.get_miner_conf()
