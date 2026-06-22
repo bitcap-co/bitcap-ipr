@@ -664,6 +664,12 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.checkListenIPollo, 5, 0, 1, 1)
 
+        self.checkListenHiveGPU = QCheckBox(self.groupListeners)
+        self.checkListenHiveGPU.setObjectName(u"checkListenHiveGPU")
+        self.checkListenHiveGPU.setMaximumSize(QSize(100, 30))
+
+        self.gridLayout_4.addWidget(self.checkListenHiveGPU, 5, 1, 1, 1)
+
 
         self.verticalLayout_6.addWidget(self.groupListeners)
 
@@ -1308,6 +1314,10 @@ class Ui_MainWindow(object):
         self.checkListenIPollo.setToolTip(QCoreApplication.translate("MainWindow", u"Enable Listening for iPollo miners", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenIPollo.setText(QCoreApplication.translate("MainWindow", u"iPollo", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenHiveGPU.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for HiveOS GPU rigs (IPR Daemon only)", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenHiveGPU.setText(QCoreApplication.translate("MainWindow", u"HiveGPU", None))
         self.groupIPRD.setTitle(QCoreApplication.translate("MainWindow", u"IPR Daemon", None))
 #if QT_CONFIG(tooltip)
         self.checkEnableIPRDBackend.setToolTip(QCoreApplication.translate("MainWindow", u"Use the IPR Daemon backend instead of the built-in listener", None))

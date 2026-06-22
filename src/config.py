@@ -49,6 +49,7 @@ class Listeners(BaseModel):
     elphapex: Annotated[bool, Field(strict=True)] = True
     auradine: Annotated[bool, Field(strict=True)] = True
     ipollo: Annotated[bool, Field(strict=True)] = True
+    hivegpu: Annotated[bool, Field(strict=True)] = True
 
 
 class ListenerSettings(BaseModel):
