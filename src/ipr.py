@@ -142,6 +142,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd = IPRDListener(self)
         self.iprd.result.connect(self.process_result)
         self.iprd.error.connect(self.show_iprd_error)
+        self.iprd.reconnecting.connect(self.on_iprd_reconnecting)
+        self.iprd.reconnect_failed.connect(self.on_iprd_reconnect_failed)
 
         logger.info(" init mod api.")
         self.asic = ASICClient(self)
@@ -446,9 +448,8 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def update_status_msg(self):
         if (
-            self.checkEnableIPRDBackend.isChecked()
-            and self.iprd.active
-            and not self.iprStatusBar.currentMessage()
+            self.checkEnableIPRDBackend.isChecked() and self.iprd.active
+            # and not self.iprStatusBar.currentMessage()
         ):
             self.iprStatusBar.showMessage(
                 f"Status :: Listening on [{self.iprd.__repr__()}]..."
@@ -1451,17 +1452,36 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def show_iprd_error(self, error_str: str):
         logger.error(f" received IPRD Listener error: {error_str}")
+        # self.stop_listen()
+        # if self.is_minimized_to_tray():
+        #     self.sys_tray.showMessage(
+        #         "IPR Listener: Error",
+        #         f"Got Listener error: {error_str}",
+        #         QSystemTrayIcon.MessageIcon.Warning,
+        #         5000,
+        #     )
+        self.iprStatusBar.showMessage(
+            f"Status :: Got IPRD Listener error: {error_str}. Reconnecting...", 5000
+        )
+
+    def on_iprd_reconnecting(self, attempt: int, delay_ms: int):
+        self.iprStatusBar.showMessage(
+            f"Status :: Reconnecting ({attempt}/{self.iprd.max_reconnect_attempts}) "
+            f"in {delay_ms // 1000}s…",
+            delay_ms,
+        )
+
+    def on_iprd_reconnect_failed(self):
+        logger.error("IPRD reconnect failed; giving up.")
         self.stop_listen()
         if self.is_minimized_to_tray():
             self.sys_tray.showMessage(
-                "IPR Listener: Error",
-                f"Got Listener error: {error_str}",
-                QSystemTrayIcon.MessageIcon.Warning,
+                "IPR Listener: Disconnected",
+                "Could not reconnect to the daemon.",
+                QSystemTrayIcon.MessageIcon.Critical,
                 5000,
             )
-        return self.iprStatusBar.showMessage(
-            f"Status :: Got IPRD Listener error: {error_str}", 5000
-        )
+        self.iprStatusBar.showMessage("Status :: Could not reconnect. Stopped.", 5000)
 
     def process_result(self, result: IPReport):
         # reset inactive timer
