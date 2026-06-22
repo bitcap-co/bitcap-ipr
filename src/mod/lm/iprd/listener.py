@@ -10,7 +10,7 @@ import socket
 import time
 
 from pydantic import BaseModel, Field, ValidationError
-from PySide6.QtCore import QObject, Signal, Slot
+from PySide6.QtCore import QObject, QTimer, Signal, Slot
 from PySide6.QtNetwork import QAbstractSocket, QHostAddress, QTcpSocket
 
 from mod.lm.ipreport import IPReport, MinerTypeHint
@@ -56,6 +56,8 @@ class IPRDListener(QObject):
     stopped = Signal()
     result = Signal(IPReport)
     error = Signal(str)
+    reconnecting = Signal(int, int)  # (attempt, delay_ms)
+    reconnect_failed = Signal()
 
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
@@ -65,12 +67,30 @@ class IPRDListener(QObject):
         self.active = False
         self.sock = QTcpSocket()
 
+        # reconnect config / state
+        self.auto_reconnect = False
+        self.max_reconnect_attempts = 3
+        self._reconnect_base_ms = 1000
+        self._reconnect_max_ms = 30000
+        self._intentional_stop = False
+        self._notified = False
+        self._reconnect_attempts = 0
+        self._reconnect_delay = self._reconnect_base_ms
+        self._reconnect_timer = QTimer(self)
+        self._reconnect_timer.setSingleShot(True)
+        self._reconnect_timer.timeout.connect(self._attempt_reconnect)
+
         self.sock.errorOccurred.connect(self.emit_error)
         self.sock.connected.connect(self._send_subscribe)
         self.sock.readyRead.connect(self._process_message)
 
     def __repr__(self, /) -> str:
         return f"{self.__class__.__name__}[{self.port}]"
+
+    def _reset_reconnect_state(self) -> None:
+        self._notified = False
+        self._reconnect_attempts = 0
+        self._reconnect_delay = self._reconnect_base_ms
 
     def _enable_keepalive(self) -> None:
         fd = self.sock.socketDescriptor()
@@ -111,6 +131,7 @@ class IPRDListener(QObject):
             logger.error(f"{self.__repr__()} : failed to write subscribe!")
             return self.error.emit("Failed to write command.")
         self.active = True
+        self._reset_reconnect_state()
         self.subscribed.emit()
 
     @Slot()
@@ -142,10 +163,14 @@ class IPRDListener(QObject):
                 f"{self.__repr__()} : failed to start IPRD listener! Socket address cannot be null."
             )
             return self.error.emit("Null address.")
+        self._intentional_stop = False
+        self._reset_reconnect_state()
         if not self.active:
             self.sock.connectToHost(self.addr, self.port)
 
     def stop(self) -> None:
+        self._intentional_stop = True
+        self._reconnect_timer.stop()
         if self.active:
             logger.info(f"{self.__repr__()} : disconnect from host.")
             self.sock.abort()
@@ -175,7 +200,42 @@ class IPRDListener(QObject):
 
     def emit_error(self, error: QAbstractSocket.SocketError) -> None:
         logger.error(f"{self.__repr__()} : emit error! {self.sock.errorString()}")
-        self.error.emit(error.name)
+        self.active = False
+        # notify the user ONCE per drop; retries stay quiet
+        if not self._notified:
+            self._notified = True
+            self.error.emit(error.name)
+        if self.auto_reconnect and not self._intentional_stop:
+            self._schedule_reconnect()
+
+    def _schedule_reconnect(self) -> None:
+        if self._reconnect_attempts >= self.max_reconnect_attempts:
+            logger.error(
+                f"{self.__repr__()} : giving up after "
+                f"{self._reconnect_attempts} reconnect attempts."
+            )
+            self._intentional_stop = True
+            self._reconnect_timer.stop()
+            self.sock.abort()
+            self.reconnect_failed.emit()
+            return
+        self._reconnect_attempts += 1
+        delay = self._reconnect_delay
+        logger.info(
+            f"{self.__repr__()} : reconnect attempt "
+            f"{self._reconnect_attempts}/{self.max_reconnect_attempts} in {delay} ms."
+        )
+        self.reconnecting.emit(self._reconnect_attempts, delay)
+        self._reconnect_timer.start(delay)
+        self._reconnect_delay = min(self._reconnect_delay * 2, self._reconnect_max_ms)
+
+    @Slot()
+    def _attempt_reconnect(self) -> None:
+        if self._intentional_stop:
+            return
+        logger.info(f"{self.__repr__()} : attempting reconnect...")
+        self.sock.abort()
+        self.sock.connectToHost(self.addr, self.port)
 
     def close(self) -> None:
         self.stop()

@@ -691,6 +691,26 @@ class Ui_MainWindow(object):
 
         self.gridLayout_17.addWidget(self.lineIPRDSocketAddress, 1, 1, 1, 1)
 
+        self.checkIPRDAutoReconnect = QCheckBox(self.groupIPRD)
+        self.checkIPRDAutoReconnect.setObjectName(u"checkIPRDAutoReconnect")
+        self.checkIPRDAutoReconnect.setChecked(True)
+
+        self.gridLayout_17.addWidget(self.checkIPRDAutoReconnect, 2, 0, 1, 1)
+
+        self.labelIPRDMaxRetries = QLabel(self.groupIPRD)
+        self.labelIPRDMaxRetries.setObjectName(u"labelIPRDMaxRetries")
+
+        self.gridLayout_17.addWidget(self.labelIPRDMaxRetries, 3, 0, 1, 1)
+
+        self.spinIPRDMaxRetries = QSpinBox(self.groupIPRD)
+        self.spinIPRDMaxRetries.setObjectName(u"spinIPRDMaxRetries")
+        self.spinIPRDMaxRetries.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
+        self.spinIPRDMaxRetries.setMinimum(1)
+        self.spinIPRDMaxRetries.setMaximum(10)
+        self.spinIPRDMaxRetries.setValue(3)
+
+        self.gridLayout_17.addWidget(self.spinIPRDMaxRetries, 3, 1, 1, 1)
+
 
         self.verticalLayout_6.addWidget(self.groupIPRD)
 
@@ -1299,6 +1319,15 @@ class Ui_MainWindow(object):
         self.lineIPRDSocketAddress.setToolTip(QCoreApplication.translate("MainWindow", u"Socket address pointing to IPRD instance in the format of <HOST>:<PORT>", None))
 #endif // QT_CONFIG(tooltip)
         self.lineIPRDSocketAddress.setPlaceholderText(QCoreApplication.translate("MainWindow", u"HOST:PORT", None))
+#if QT_CONFIG(tooltip)
+        self.checkIPRDAutoReconnect.setToolTip(QCoreApplication.translate("MainWindow", u"Automatically try to reconnect when the IPR Daemon connection drops", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkIPRDAutoReconnect.setText(QCoreApplication.translate("MainWindow", u"Auto-reconnect", None))
+        self.labelIPRDMaxRetries.setText(QCoreApplication.translate("MainWindow", u"Max Retries:", None))
+        self.labelIPRDMaxRetries.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.spinIPRDMaxRetries.setToolTip(QCoreApplication.translate("MainWindow", u"Number of reconnect attempts before giving up", None))
+#endif // QT_CONFIG(tooltip)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
 #if QT_CONFIG(tooltip)
         self.tabWidget.setTabToolTip(self.tabWidget.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))

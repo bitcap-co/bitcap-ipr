@@ -29,3 +29,6 @@ src/ipr.spec
 Logs/
 src/resources
 config.json
+
+# Claude agent memory
+memory/
