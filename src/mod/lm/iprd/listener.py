@@ -148,8 +148,8 @@ class IPRDListener(QObject):
     def stop(self) -> None:
         if self.active:
             logger.info(f"{self.__repr__()} : disconnect from host.")
-            self.active = False
             self.sock.abort()
+            self.active = False
             self.stopped.emit()
 
     def emit_result(self, result: IPRDPacketData) -> None:
