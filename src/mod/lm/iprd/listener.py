@@ -6,6 +6,7 @@
 
 import json
 import logging
+import socket
 import time
 
 from pydantic import BaseModel, Field, ValidationError
@@ -13,6 +14,7 @@ from PySide6.QtCore import QObject, Signal, Slot
 from PySide6.QtNetwork import QAbstractSocket, QHostAddress, QTcpSocket
 
 from mod.lm.ipreport import IPReport, MinerTypeHint
+from utils import CURR_PLATFORM
 
 logger = logging.getLogger(__name__)
 
@@ -70,10 +72,35 @@ class IPRDListener(QObject):
     def __repr__(self, /) -> str:
         return f"{self.__class__.__name__}[{self.port}]"
 
+    def _enable_keepalive(self) -> None:
+        fd = self.sock.socketDescriptor()
+        if fd == -1:
+            logger.warning(
+                f"{self.__repr__()} : no socket descriptor; skipping keepalive"
+            )
+            return
+        try:
+            # Wrap Qt's native handle. We must NOT let this Python object close it,
+            # so we detach() before it goes out of scope (see finally).
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM, fileno=int(fd))
+            try:
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                if CURR_PLATFORM == "win32":
+                    # (onoff, keepalive_time_ms, keepalive_interval_ms)
+                    # start probing after 15s idle, then every 3s.
+                    s.ioctl(socket.SIO_KEEPALIVE_VALS, (1, 15000, 3000))
+            finally:
+                # Release the fd back to Qt without closing the underlying socket.
+                s.detach()
+            logger.debug(f"{self.__repr__()} : keepalive enabled.")
+        except OSError as e:
+            logger.error(f"{self.__repr__()} : failed to set keepalive: {e}")
+
     def _send_subscribe(self) -> None:
         logger.info(
             f"{self.__repr__()} : connected to {self.addr.toString()}:{self.port}."
         )
+        self._enable_keepalive()
         cmd = IPRDCommand(command="iprd_subscribe")
         sub_msg = cmd.model_dump_json() + "\n"
         wrote = self.sock.write(sub_msg.encode())
