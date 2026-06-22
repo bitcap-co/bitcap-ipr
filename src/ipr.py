@@ -240,8 +240,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.pushIPRListenStart.clicked.connect(self.start_listen)
         self.pushIPRListenStop.clicked.connect(self.stop_listen)
 
+        self.checkEnableIPRDBackend.toggled.connect(self.toggle_iprd_settings)
         self.checkEnableIPRDBackend.toggled.connect(self.restart_listen)
         self.lineIPRDSocketAddress.editingFinished.connect(self.restart_listen)
+        self.checkIPRDAutoReconnect.toggled.connect(self.update_iprd_reconnect_settings)
+        self.checkIPRDAutoReconnect.toggled.connect(self.restart_listen)
+        self.spinIPRDMaxRetries.valueChanged.connect(self.restart_listen)
 
         self.poolConfigurator.hide()
         self.actionTogglePoolPasswd = self.create_passwd_toggle_action(
@@ -570,6 +574,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.checkListenIPollo.setChecked(self.config.listen_for.ipollo)
         self.checkEnableIPRDBackend.setChecked(self.config.listener.iprd.enable_iprd)
         self.lineIPRDSocketAddress.setText(self.config.listener.iprd.socket_addr)
+        self.checkIPRDAutoReconnect.setChecked(self.config.listener.iprd.auto_reconnect)
+        self.spinIPRDMaxRetries.setValue(
+            self.config.listener.iprd.max_reconnect_attempts
+        )
+        self.toggle_iprd_settings()
 
         # api
         self.lineAntminerPasswd.setText(self.config.api.auth.antminer_alt_passwd)
@@ -712,6 +721,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             "iprd": {
                 "enableIPRD": self.checkEnableIPRDBackend.isChecked(),
                 "socketAddress": self.lineIPRDSocketAddress.text(),
+                "autoReconnect": self.checkIPRDAutoReconnect.isChecked(),
+                "maxReconnectAttempts": self.spinIPRDMaxRetries.value(),
             },
         }
         settings["api"] = {
@@ -919,6 +930,20 @@ class IPR(QMainWindow, Ui_MainWindow):
         else:
             self.spinInactiveTimeout.setValue(self.spinInactiveTimeout.minimum())
             self.spinInactiveTimeout.setEnabled(False)
+
+    def toggle_iprd_settings(self):
+        # disable the daemon options when the IPRD backend itself is disabled.
+        enabled = self.checkEnableIPRDBackend.isChecked()
+        self.lineIPRDSocketAddress.setEnabled(enabled)
+        self.checkIPRDAutoReconnect.setEnabled(enabled)
+        self.update_iprd_reconnect_settings()
+
+    def update_iprd_reconnect_settings(self):
+        # max retries only applies when the backend and auto-reconnect are both on.
+        self.spinIPRDMaxRetries.setEnabled(
+            self.checkEnableIPRDBackend.isChecked()
+            and self.checkIPRDAutoReconnect.isChecked()
+        )
 
     def toggle_system_tray_settings(self):
         if self.checkEnableSysTray.isChecked():
@@ -1417,9 +1442,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.error(
                 "start_listen : no listeners configured. at least one listener needs to be checked."
             )
-            self.notify(
-                "Status :: Failed to start listeners. No listeners configured"
-            )
+            self.notify("Status :: Failed to start listeners. No listeners configured")
             return
         if not self.menu_bar.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
@@ -1445,6 +1468,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "Status :: Failed to start IPRD Listener: Invalid socket address."
                 )
             else:
+                self.iprd.auto_reconnect = self.checkIPRDAutoReconnect.isChecked()
+                self.iprd.max_reconnect_attempts = self.spinIPRDMaxRetries.value()
                 self.iprd.set_socket_addr(addr, port)
                 self.iprd.start()
                 self._last_iprd_error = ""
@@ -1522,10 +1547,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         # can be folded into the persistent "reconnecting…" message.
         logger.error(f" received IPRD Listener error: {error_str}")
         self._last_iprd_error = error_str
-        # If auto-reconnect is disabled no reconnecting() follows, so surface the
-        # error here and reflect that we are no longer connected.
+        # If auto-reconnect is disabled no reconnecting() follows, so fully stop
+        # the listener and surface the error.
         if not self.iprd.auto_reconnect:
-            self.set_listen_state(ListenState.READY)
+            self.stop_listen()
             self.notify(f"Status :: IPRD Listener error: {error_str}. Stopped.")
 
     def on_iprd_reconnecting(self, attempt: int, delay_ms: int):

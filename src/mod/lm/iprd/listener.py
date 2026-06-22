@@ -68,8 +68,8 @@ class IPRDListener(QObject):
         self.sock = QTcpSocket()
 
         # reconnect config / state
-        self.auto_reconnect = True
-        self.max_reconnect_attempts = 5
+        self.auto_reconnect = False
+        self.max_reconnect_attempts = 3
         self._reconnect_base_ms = 1000
         self._reconnect_max_ms = 30000
         self._intentional_stop = False

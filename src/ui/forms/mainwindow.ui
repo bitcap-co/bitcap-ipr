@@ -1546,6 +1546,48 @@ Uses last 5 of SN or MAC address.</string>
                           </property>
                          </widget>
                         </item>
+                        <item row="2" column="0">
+                         <widget class="QCheckBox" name="checkIPRDAutoReconnect">
+                          <property name="toolTip">
+                           <string>Automatically try to reconnect when the IPR Daemon connection drops</string>
+                          </property>
+                          <property name="text">
+                           <string>Auto-reconnect</string>
+                          </property>
+                          <property name="checked">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="3" column="0">
+                         <widget class="QLabel" name="labelIPRDMaxRetries">
+                          <property name="text">
+                           <string>Max Retries:</string>
+                          </property>
+                          <property name="StyleClass" stdset="0">
+                           <string>setText</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="3" column="1">
+                         <widget class="QSpinBox" name="spinIPRDMaxRetries">
+                          <property name="contextMenuPolicy">
+                           <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
+                          </property>
+                          <property name="toolTip">
+                           <string>Number of reconnect attempts before giving up</string>
+                          </property>
+                          <property name="minimum">
+                           <number>1</number>
+                          </property>
+                          <property name="maximum">
+                           <number>10</number>
+                          </property>
+                          <property name="value">
+                           <number>3</number>
+                          </property>
+                         </widget>
+                        </item>
                        </layout>
                       </widget>
                      </item>

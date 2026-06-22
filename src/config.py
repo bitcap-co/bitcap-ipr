@@ -26,14 +26,16 @@ class GeneralSettings(BaseModel):
     check_updates_on_startup: Annotated[
         bool, Field(alias="checkForUpdatesOnStartup")
     ] = False
-    include_prereleases: Annotated[
-        bool, Field(alias="includePreReleases")
-    ] = False
+    include_prereleases: Annotated[bool, Field(alias="includePreReleases")] = False
 
 
 class IPRD(BaseModel):
     enable_iprd: Annotated[bool, Field(alias="enableIPRD")] = False
     socket_addr: Annotated[str, Field(alias="socketAddress")] = ""
+    auto_reconnect: Annotated[bool, Field(alias="autoReconnect")] = False
+    max_reconnect_attempts: Annotated[
+        int, Field(ge=1), Field(le=10), Field(alias="maxReconnectAttempts")
+    ] = 3
 
 
 class Listeners(BaseModel):
