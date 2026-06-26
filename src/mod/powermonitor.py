@@ -21,11 +21,15 @@ class PowerMonitor(QObject):
     consumers (e.g. the IPRD listener) can pause network activity like
     auto-reconnect rather than fighting the OS as it tries to sleep.
 
-    Backends, all dependency-free (PySide6 + ctypes only):
+    Backends:
         - Linux : org.freedesktop.login1 ``PrepareForSleep`` signal via QtDBus.
         - win32 : ``WM_POWERBROADCAST`` via a native event filter.
-        - other : no-op (macOS has no pyobjc-free hook; consumers fall back to
-                  the monotonic-gap heuristic in the listener).
+        - darwin: ``NSWorkspace`` sleep/wake notifications via pyobjc.
+        - other : no-op (consumers fall back to the monotonic-gap heuristic in
+                  the listener).
+
+    Linux and win32 backends are dependency-free (PySide6 + ctypes); the macOS
+    backend needs pyobjc-framework-Cocoa and degrades to a no-op if absent.
 
     Arguments:
         parent (QObject | None): Optional parent object.
@@ -46,6 +50,8 @@ class PowerMonitor(QObject):
             self._init_linux()
         elif CURR_PLATFORM == "win32":
             self._init_win32()
+        elif CURR_PLATFORM == "darwin":
+            self._init_macos()
         else:
             logger.info(
                 f"PowerMonitor : no power backend for '{CURR_PLATFORM}'; "
@@ -145,3 +151,44 @@ class PowerMonitor(QObject):
         app.installNativeEventFilter(self._event_filter)
         self._backend = "win32"
         logger.info("PowerMonitor : installed WM_POWERBROADCAST event filter.")
+
+    # -- macOS (NSWorkspace sleep/wake notifications) ----------------------
+    def _init_macos(self) -> None:
+        try:
+            from AppKit import (
+                NSWorkspace,
+                NSWorkspaceDidWakeNotification,
+                NSWorkspaceWillSleepNotification,
+            )
+            from Foundation import NSObject
+        except ImportError as e:
+            logger.warning(
+                f"PowerMonitor : pyobjc unavailable ({e}); macOS backend disabled."
+            )
+            return
+
+        monitor = self
+
+        class _SleepObserver(NSObject):
+            def willSleep_(self, notification):
+                logger.info("PowerMonitor : NSWorkspaceWillSleep.")
+                monitor.aboutToSuspend.emit()
+
+            def didWake_(self, notification):
+                logger.info("PowerMonitor : NSWorkspaceDidWake.")
+                monitor.resumed.emit()
+
+        # NSWorkspace notifications are posted to its own notification center,
+        # NOT the default one. Qt's macOS event loop drives the CFRunLoop, so
+        # these are delivered while the app is running.
+        nc = NSWorkspace.sharedWorkspace().notificationCenter()
+        # keep a reference so the observer isn't garbage collected.
+        self._observer = _SleepObserver.alloc().init()
+        nc.addObserver_selector_name_object_(
+            self._observer, b"willSleep:", NSWorkspaceWillSleepNotification, None
+        )
+        nc.addObserver_selector_name_object_(
+            self._observer, b"didWake:", NSWorkspaceDidWakeNotification, None
+        )
+        self._backend = "nsworkspace"
+        logger.info("PowerMonitor : subscribed to NSWorkspace sleep/wake.")
