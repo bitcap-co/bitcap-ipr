@@ -76,6 +76,14 @@ class IPRDListener(QObject):
         self._notified = False
         self._reconnect_attempts = 0
         self._reconnect_delay = self._reconnect_base_ms
+        # set True between an OS suspend and the following resume so reconnects
+        # are not attempted while the host is asleep (which would wake it).
+        self._power_suspended = False
+        # monotonic-clock guard: records when/how long a reconnect was scheduled
+        # so we can detect an oversized wall-clock gap (i.e. we just resumed from
+        # sleep) on platforms without a power backend.
+        self._reconnect_scheduled_at = 0.0
+        self._reconnect_scheduled_delay = 0.0
         self._reconnect_timer = QTimer(self)
         self._reconnect_timer.setSingleShot(True)
         self._reconnect_timer.timeout.connect(self._attempt_reconnect)
@@ -209,6 +217,13 @@ class IPRDListener(QObject):
             self._schedule_reconnect()
 
     def _schedule_reconnect(self) -> None:
+        if self._power_suspended:
+            # host is asleep; don't generate traffic that would wake it.
+            # on_resume() drives the reconnect once the OS comes back.
+            logger.info(
+                f"{self.__repr__()} : host suspended; deferring reconnect to resume."
+            )
+            return
         if self._reconnect_attempts >= self.max_reconnect_attempts:
             logger.error(
                 f"{self.__repr__()} : giving up after "
@@ -226,16 +241,52 @@ class IPRDListener(QObject):
             f"{self._reconnect_attempts}/{self.max_reconnect_attempts} in {delay} ms."
         )
         self.reconnecting.emit(self._reconnect_attempts, delay)
+        self._reconnect_scheduled_at = time.monotonic()
+        self._reconnect_scheduled_delay = delay / 1000.0
         self._reconnect_timer.start(delay)
         self._reconnect_delay = min(self._reconnect_delay * 2, self._reconnect_max_ms)
 
     @Slot()
     def _attempt_reconnect(self) -> None:
-        if self._intentional_stop:
+        if self._intentional_stop or self._power_suspended:
             return
+        # Fallback for platforms without a power backend (e.g. macOS): if far
+        # more wall-clock elapsed than the delay we scheduled, the host most
+        # likely suspended and just resumed. Reset backoff for a single clean
+        # retry instead of immediately burning a (likely stale) attempt.
+        elapsed = time.monotonic() - self._reconnect_scheduled_at
+        if elapsed > self._reconnect_scheduled_delay + 30.0:
+            logger.info(
+                f"{self.__repr__()} : detected suspend gap "
+                f"({elapsed:.0f}s elapsed); resetting reconnect backoff."
+            )
+            self._reset_reconnect_state()
         logger.info(f"{self.__repr__()} : attempting reconnect...")
         self.sock.abort()
         self.sock.connectToHost(self.addr, self.port)
+
+    @Slot()
+    def on_suspend(self) -> None:
+        """The host is about to sleep: stop reconnecting and drop the socket
+        cleanly so we don't keep the machine awake. on_resume() restores it."""
+        self._power_suspended = True
+        self._reconnect_timer.stop()
+        if self.active:
+            logger.info(f"{self.__repr__()} : host suspending; aborting socket.")
+            self.sock.abort()
+            self.active = False
+
+    @Slot()
+    def on_resume(self) -> None:
+        """The host has woken: reconnect if auto-reconnect is on and the user
+        hasn't intentionally stopped the listener."""
+        self._power_suspended = False
+        if self._intentional_stop or self.active:
+            return
+        if self.auto_reconnect and not self.addr.isNull():
+            logger.info(f"{self.__repr__()} : host resumed; reconnecting.")
+            self._reset_reconnect_state()
+            self._schedule_reconnect()
 
     def close(self) -> None:
         self.stop()

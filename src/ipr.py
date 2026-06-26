@@ -58,6 +58,7 @@ from mod.apiv2 import settings as api_settings
 from mod.apiv2.data import MinerData, MinerFirmware, MinerType
 from mod.apiv2.errors import UnknownClientError
 from mod.lm import IPRDListener, IPReport, ListenerManager
+from mod.powermonitor import PowerMonitor
 from mod.updater import (
     DebInstaller,
     UpdateChecker,
@@ -156,6 +157,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd.error.connect(self.show_iprd_error)
         self.iprd.reconnecting.connect(self.on_iprd_reconnecting)
         self.iprd.reconnect_failed.connect(self.on_iprd_reconnect_failed)
+        # pause/resume iprd reconnect around OS sleep so we don't wake the host.
+        self.power = PowerMonitor(self)
+        self.power.aboutToSuspend.connect(self.iprd.on_suspend)
+        self.power.resumed.connect(self.iprd.on_resume)
 
         # status bar state: a single persistent "base" message reflects what the
         # app is currently doing; transient notifications are layered on top via
@@ -2060,6 +2065,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd.subscribed.disconnect(self.on_iprd_subscribed)
         self.iprd.reconnecting.disconnect(self.on_iprd_reconnecting)
         self.iprd.reconnect_failed.disconnect(self.on_iprd_reconnect_failed)
+        self.power.aboutToSuspend.disconnect(self.iprd.on_suspend)
+        self.power.resumed.disconnect(self.iprd.on_resume)
         self.lm.stop()
         self.lm.listen_complete.disconnect(self.process_result)
         self.lm.listen_error.disconnect(self.restart_listen)
