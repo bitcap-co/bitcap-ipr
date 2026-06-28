@@ -46,6 +46,10 @@ class PowerMonitor(QObject):
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._backend = None
+        # Track suspend state so duplicate OS notifications collapse to a single
+        # signal. WM_POWERBROADCAST in particular is delivered to every
+        # top-level window, so one real event fires the filter several times.
+        self._suspended = False
         if CURR_PLATFORM.startswith("linux"):
             self._init_linux()
         elif CURR_PLATFORM == "win32":
@@ -57,6 +61,20 @@ class PowerMonitor(QObject):
                 f"PowerMonitor : no power backend for '{CURR_PLATFORM}'; "
                 "relying on listener fallback."
             )
+
+    def _emit_suspend(self) -> None:
+        if self._suspended:
+            return
+        self._suspended = True
+        logger.info("PowerMonitor : suspend.")
+        self.aboutToSuspend.emit()
+
+    def _emit_resume(self) -> None:
+        if not self._suspended:
+            return
+        self._suspended = False
+        logger.info("PowerMonitor : resume.")
+        self.resumed.emit()
 
     # -- Linux (systemd-logind over D-Bus) ---------------------------------
     def _init_linux(self) -> None:
@@ -89,11 +107,9 @@ class PowerMonitor(QObject):
         # before == True  -> system is about to suspend
         # before == False -> system has resumed
         if before:
-            logger.info("PowerMonitor : PrepareForSleep(suspend).")
-            self.aboutToSuspend.emit()
+            self._emit_suspend()
         else:
-            logger.info("PowerMonitor : PrepareForSleep(resume).")
-            self.resumed.emit()
+            self._emit_resume()
 
     # -- Windows (WM_POWERBROADCAST) ---------------------------------------
     def _init_win32(self) -> None:
@@ -131,14 +147,18 @@ class PowerMonitor(QObject):
                         return False, 0
                     if msg.message == WM_POWERBROADCAST:
                         if msg.wParam == PBT_APMSUSPEND:
-                            logger.info("PowerMonitor : WM_POWERBROADCAST suspend.")
-                            monitor.aboutToSuspend.emit()
-                        elif msg.wParam in (
-                            PBT_APMRESUMESUSPEND,
-                            PBT_APMRESUMEAUTOMATIC,
-                        ):
-                            logger.info("PowerMonitor : WM_POWERBROADCAST resume.")
-                            monitor.resumed.emit()
+                            monitor._emit_suspend()
+                        elif msg.wParam == PBT_APMRESUMESUSPEND:
+                            # user-present resume (sent only on user activity):
+                            # this is when we actually want to reconnect.
+                            monitor._emit_resume()
+                        elif msg.wParam == PBT_APMRESUMEAUTOMATIC:
+                            # unattended wake: the system woke for a background
+                            # task and intends to sleep again. Stay quiet so we
+                            # don't re-open the socket and hold the host awake.
+                            logger.info(
+                                "PowerMonitor : automatic wake; staying suspended."
+                            )
                 # never consume the event; let Qt keep processing it.
                 return False, 0
 
@@ -171,12 +191,10 @@ class PowerMonitor(QObject):
 
         class _SleepObserver(NSObject):
             def willSleep_(self, notification):
-                logger.info("PowerMonitor : NSWorkspaceWillSleep.")
-                monitor.aboutToSuspend.emit()
+                monitor._emit_suspend()
 
             def didWake_(self, notification):
-                logger.info("PowerMonitor : NSWorkspaceDidWake.")
-                monitor.resumed.emit()
+                monitor._emit_resume()
 
         # NSWorkspace notifications are posted to its own notification center,
         # NOT the default one. Qt's macOS event loop drives the CFRunLoop, so
