@@ -29,6 +29,11 @@ class GeneralSettings(BaseModel):
     include_prereleases: Annotated[bool, Field(alias="includePreReleases")] = False
 
 
+class IPRDPreset(BaseModel):
+    socket_addr: str = ""
+    preset_name: str = ""
+
+
 class IPRD(BaseModel):
     enable_iprd: Annotated[bool, Field(alias="enableIPRD")] = False
     socket_addr: Annotated[str, Field(alias="socketAddress")] = ""
@@ -36,6 +41,8 @@ class IPRD(BaseModel):
     max_reconnect_attempts: Annotated[
         int, Field(ge=1), Field(le=10), Field(alias="maxReconnectAttempts")
     ] = 3
+    selected_preset: Annotated[int, Field(alias="selectedSocketPreset")] = -1
+    socket_presets: Annotated[list[IPRDPreset], Field(alias="socketPresets")] = []
 
 
 class Listeners(BaseModel):

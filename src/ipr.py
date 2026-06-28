@@ -50,7 +50,7 @@ from PySide6.QtWidgets import (
 )
 
 import ui.resources  # noqa F401
-from config import IPRConfig, PoolPreset
+from config import IPRConfig, IPRDPreset, PoolPreset
 from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
 from mod.apiv2 import ASICClient
@@ -245,10 +245,15 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         self.checkEnableIPRDBackend.toggled.connect(self.toggle_iprd_settings)
         self.checkEnableIPRDBackend.toggled.connect(self.restart_listen)
+        self.lineIPRDSocketAddress.editingFinished.connect(self.write_iprd_preset)
         self.lineIPRDSocketAddress.editingFinished.connect(self.restart_listen)
         self.checkIPRDAutoReconnect.toggled.connect(self.update_iprd_reconnect_settings)
         self.checkIPRDAutoReconnect.toggled.connect(self.restart_listen)
         self.spinIPRDMaxRetries.valueChanged.connect(self.restart_listen)
+        self.comboIPRDPreset.currentIndexChanged.connect(self.read_iprd_preset)
+        self.comboIPRDPreset.editTextChanged.connect(self.update_iprd_preset)
+        self.actionIPRDCreatePreset.clicked.connect(self.add_new_iprd_preset)
+        self.actionIPRDRemovePreset.clicked.connect(self.remove_iprd_preset)
 
         self.poolConfigurator.hide()
         self.actionTogglePoolPasswd = self.create_passwd_toggle_action(
@@ -412,6 +417,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.update_stacked_widget()
         self._show_base_status()
         self.update_pool_preset_names()
+        self.update_iprd_preset_names()
 
         if self.menu_bar.actionEnableIDTable.isChecked():
             self.toggle_table_settings(True)
@@ -537,6 +543,12 @@ class IPR(QMainWindow, Ui_MainWindow):
                 idx, self.config.pool_config.pool_presets[idx].preset_name
             )
         self.comboPoolPreset.setCurrentIndex(self.config.pool_config.selected_preset)
+
+    def update_iprd_preset_names(self):
+        presets = self.config.listener.iprd.socket_presets
+        for idx in range(0, len(presets)):
+            self.comboIPRDPreset.insertItem(idx, presets[idx].preset_name)
+        self.comboIPRDPreset.setCurrentIndex(self.config.listener.iprd.selected_preset)
 
     # system tray
     def activate_system_tray(self, reason):
@@ -728,6 +740,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "socketAddress": self.lineIPRDSocketAddress.text(),
                 "autoReconnect": self.checkIPRDAutoReconnect.isChecked(),
                 "maxReconnectAttempts": self.spinIPRDMaxRetries.value(),
+                "selectedSocketPreset": self.comboIPRDPreset.currentIndex(),
+                "socketPresets": self.update_current_iprd_preset_to_config(),
             },
         }
         settings["api"] = {
@@ -795,6 +809,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             # reset pool presets
             self.clear_pool_preset()
             self.comboPoolPreset.clear()
+            # reset iprd socket presets
+            self.comboIPRDPreset.clear()
             self.read_settings()
             self.update_inactive_timer()
             self.update_miner_locate_duration()
@@ -939,6 +955,9 @@ class IPR(QMainWindow, Ui_MainWindow):
     def toggle_iprd_settings(self):
         # disable the daemon options when the IPRD backend itself is disabled.
         enabled = self.checkEnableIPRDBackend.isChecked()
+        self.comboIPRDPreset.setEnabled(enabled)
+        self.actionIPRDCreatePreset.setEnabled(enabled)
+        self.actionIPRDRemovePreset.setEnabled(enabled)
         self.lineIPRDSocketAddress.setEnabled(enabled)
         self.checkIPRDAutoReconnect.setEnabled(enabled)
         self.update_iprd_reconnect_settings()
@@ -949,6 +968,77 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.checkEnableIPRDBackend.isChecked()
             and self.checkIPRDAutoReconnect.isChecked()
         )
+
+    def update_current_iprd_preset_to_config(self) -> list[dict[str, str]]:
+        presets = TypeAdapter(list[IPRDPreset])
+        saved: list[dict[str, str]] = presets.dump_python(
+            self.config.listener.iprd.socket_presets, by_alias=True
+        )
+        current_index = self.comboIPRDPreset.currentIndex()
+        if not len(saved) or current_index < 0:
+            return saved
+        saved[current_index]["preset_name"] = self.comboIPRDPreset.currentText()
+        saved[current_index]["socket_addr"] = self.lineIPRDSocketAddress.text()
+        return saved
+
+    def update_iprd_preset(self, preset_name: str):
+        current_index = self.comboIPRDPreset.currentIndex()
+        if current_index < 0:
+            return
+        self.comboIPRDPreset.setItemText(current_index, preset_name)
+
+    def add_new_iprd_preset(self, *_, preset: IPRDPreset | None = None) -> None:
+        iprd = self.config.listener.iprd
+        index = len(iprd.socket_presets)
+        if preset is None:
+            preset = IPRDPreset(
+                preset_name="New Preset",
+                socket_addr=self.lineIPRDSocketAddress.text(),
+            )
+        iprd.socket_presets.append(preset)
+        iprd.selected_preset = index
+        self.config.write()
+
+        self.comboIPRDPreset.insertItem(index, preset.preset_name)
+        self.comboIPRDPreset.setCurrentIndex(index)
+        self.comboIPRDPreset.setCurrentText(preset.preset_name)
+        self.comboIPRDPreset.lineEdit().setFocus()
+        self.comboIPRDPreset.lineEdit().selectAll()
+
+    def remove_iprd_preset(self) -> None:
+        iprd = self.config.listener.iprd
+        index = self.comboIPRDPreset.currentIndex()
+        if index < 0 or not len(iprd.socket_presets):
+            return
+        iprd.socket_presets.pop(index)
+        self.comboIPRDPreset.removeItem(index)
+        iprd.selected_preset = self.comboIPRDPreset.currentIndex()
+        if self.comboIPRDPreset.currentIndex() == -1:
+            self.lineIPRDSocketAddress.clear()
+        self.config.write()
+
+    def read_iprd_preset(self, index: int) -> None:
+        presets = self.config.listener.iprd.socket_presets
+        if index < 0 or index >= len(presets):
+            return
+        self.lineIPRDSocketAddress.setText(presets[index].socket_addr)
+        # switch the live connection over to the newly selected instance.
+        self.restart_listen()
+
+    def write_iprd_preset(self) -> None:
+        iprd = self.config.listener.iprd
+        index = self.comboIPRDPreset.currentIndex()
+        if index < 0 or index >= len(iprd.socket_presets):
+            return
+        preset = iprd.socket_presets[index]
+        new_addr = self.lineIPRDSocketAddress.text()
+        new_name = self.comboIPRDPreset.currentText()
+        if preset.socket_addr == new_addr and preset.preset_name == new_name:
+            return
+        preset.socket_addr = new_addr
+        preset.preset_name = new_name
+        iprd.selected_preset = index
+        self.config.write()
 
     def toggle_system_tray_settings(self):
         if self.checkEnableSysTray.isChecked():

@@ -682,10 +682,52 @@ class Ui_MainWindow(object):
 
         self.gridLayout_17.addWidget(self.checkEnableIPRDBackend, 0, 0, 1, 1)
 
+        self.labelIPRDPreset = QLabel(self.groupIPRD)
+        self.labelIPRDPreset.setObjectName(u"labelIPRDPreset")
+
+        self.gridLayout_17.addWidget(self.labelIPRDPreset, 1, 0, 1, 1)
+
+        self.iprdPresetSet = QWidget(self.groupIPRD)
+        self.iprdPresetSet.setObjectName(u"iprdPresetSet")
+        self.horizontalLayout_iprd_preset = QHBoxLayout(self.iprdPresetSet)
+        self.horizontalLayout_iprd_preset.setSpacing(5)
+        self.horizontalLayout_iprd_preset.setObjectName(u"horizontalLayout_iprd_preset")
+        self.horizontalLayout_iprd_preset.setContentsMargins(0, 0, 0, 0)
+        self.comboIPRDPreset = QComboBox(self.iprdPresetSet)
+        self.comboIPRDPreset.setObjectName(u"comboIPRDPreset")
+        sizePolicy2.setHeightForWidth(self.comboIPRDPreset.sizePolicy().hasHeightForWidth())
+        self.comboIPRDPreset.setSizePolicy(sizePolicy2)
+        self.comboIPRDPreset.setMinimumSize(QSize(110, 25))
+        self.comboIPRDPreset.setMaximumSize(QSize(225, 25))
+        self.comboIPRDPreset.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
+        self.comboIPRDPreset.setEditable(True)
+        self.comboIPRDPreset.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+
+        self.horizontalLayout_iprd_preset.addWidget(self.comboIPRDPreset)
+
+        self.actionIPRDCreatePreset = QToolButton(self.iprdPresetSet)
+        self.actionIPRDCreatePreset.setObjectName(u"actionIPRDCreatePreset")
+        self.actionIPRDCreatePreset.setMinimumSize(QSize(25, 22))
+        self.actionIPRDCreatePreset.setMaximumSize(QSize(25, 22))
+        self.actionIPRDCreatePreset.setFont(font)
+
+        self.horizontalLayout_iprd_preset.addWidget(self.actionIPRDCreatePreset)
+
+        self.actionIPRDRemovePreset = QToolButton(self.iprdPresetSet)
+        self.actionIPRDRemovePreset.setObjectName(u"actionIPRDRemovePreset")
+        self.actionIPRDRemovePreset.setMinimumSize(QSize(25, 22))
+        self.actionIPRDRemovePreset.setMaximumSize(QSize(25, 22))
+        self.actionIPRDRemovePreset.setFont(font)
+
+        self.horizontalLayout_iprd_preset.addWidget(self.actionIPRDRemovePreset)
+
+
+        self.gridLayout_17.addWidget(self.iprdPresetSet, 1, 1, 1, 1)
+
         self.label_6 = QLabel(self.groupIPRD)
         self.label_6.setObjectName(u"label_6")
 
-        self.gridLayout_17.addWidget(self.label_6, 1, 0, 1, 1)
+        self.gridLayout_17.addWidget(self.label_6, 2, 0, 1, 1)
 
         self.lineIPRDSocketAddress = QLineEdit(self.groupIPRD)
         self.lineIPRDSocketAddress.setObjectName(u"lineIPRDSocketAddress")
@@ -695,18 +737,18 @@ class Ui_MainWindow(object):
         self.lineIPRDSocketAddress.setMaximumSize(QSize(225, 25))
         self.lineIPRDSocketAddress.setClearButtonEnabled(True)
 
-        self.gridLayout_17.addWidget(self.lineIPRDSocketAddress, 1, 1, 1, 1)
+        self.gridLayout_17.addWidget(self.lineIPRDSocketAddress, 2, 1, 1, 1)
 
         self.checkIPRDAutoReconnect = QCheckBox(self.groupIPRD)
         self.checkIPRDAutoReconnect.setObjectName(u"checkIPRDAutoReconnect")
         self.checkIPRDAutoReconnect.setChecked(True)
 
-        self.gridLayout_17.addWidget(self.checkIPRDAutoReconnect, 2, 0, 1, 1)
+        self.gridLayout_17.addWidget(self.checkIPRDAutoReconnect, 3, 0, 1, 1)
 
         self.labelIPRDMaxRetries = QLabel(self.groupIPRD)
         self.labelIPRDMaxRetries.setObjectName(u"labelIPRDMaxRetries")
 
-        self.gridLayout_17.addWidget(self.labelIPRDMaxRetries, 3, 0, 1, 1)
+        self.gridLayout_17.addWidget(self.labelIPRDMaxRetries, 4, 0, 1, 1)
 
         self.spinIPRDMaxRetries = QSpinBox(self.groupIPRD)
         self.spinIPRDMaxRetries.setObjectName(u"spinIPRDMaxRetries")
@@ -715,7 +757,7 @@ class Ui_MainWindow(object):
         self.spinIPRDMaxRetries.setMaximum(10)
         self.spinIPRDMaxRetries.setValue(3)
 
-        self.gridLayout_17.addWidget(self.spinIPRDMaxRetries, 3, 1, 1, 1)
+        self.gridLayout_17.addWidget(self.spinIPRDMaxRetries, 4, 1, 1, 1)
 
 
         self.verticalLayout_6.addWidget(self.groupIPRD)
@@ -1323,6 +1365,19 @@ class Ui_MainWindow(object):
         self.checkEnableIPRDBackend.setToolTip(QCoreApplication.translate("MainWindow", u"Use the IPR Daemon backend instead of the built-in listener", None))
 #endif // QT_CONFIG(tooltip)
         self.checkEnableIPRDBackend.setText(QCoreApplication.translate("MainWindow", u"Enable IPR Daemon backend", None))
+        self.labelIPRDPreset.setText(QCoreApplication.translate("MainWindow", u"Preset:", None))
+        self.labelIPRDPreset.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.comboIPRDPreset.setToolTip(QCoreApplication.translate("MainWindow", u"Saved IPR Daemon socket addresses. Select one to switch instances.", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.actionIPRDCreatePreset.setToolTip(QCoreApplication.translate("MainWindow", u"Save current socket address as a new preset", None))
+#endif // QT_CONFIG(tooltip)
+        self.actionIPRDCreatePreset.setText(QCoreApplication.translate("MainWindow", u"\uff0b", None))
+#if QT_CONFIG(tooltip)
+        self.actionIPRDRemovePreset.setToolTip(QCoreApplication.translate("MainWindow", u"Remove selected preset", None))
+#endif // QT_CONFIG(tooltip)
+        self.actionIPRDRemovePreset.setText(QCoreApplication.translate("MainWindow", u"\u2212", None))
         self.label_6.setText(QCoreApplication.translate("MainWindow", u"Socket Address:", None))
         self.label_6.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
 #if QT_CONFIG(tooltip)
