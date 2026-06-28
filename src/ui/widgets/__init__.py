@@ -11,6 +11,7 @@ from .ipr import (
     IPRFilterProxyModel,
     IPRMenubar,
     IPRMessage,
+    IPRPresetSelector,
     IPRProgress,
     IPRTableContextMenu,
     IPRTableModel,

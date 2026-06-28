@@ -74,6 +74,7 @@ from ui.widgets import (
     IPRFilterProxyModel,
     IPRMenubar,
     IPRMessage,
+    IPRPresetSelector,
     IPRProgress,
     IPRTableContextMenu,
     IPRTableModel,
@@ -250,10 +251,20 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.checkIPRDAutoReconnect.toggled.connect(self.update_iprd_reconnect_settings)
         self.checkIPRDAutoReconnect.toggled.connect(self.restart_listen)
         self.spinIPRDMaxRetries.valueChanged.connect(self.restart_listen)
+        self.iprd_preset = IPRPresetSelector(
+            tooltip="Saved IPR Daemon socket addresses. Select one to switch instances.",
+            add_tooltip="Save current socket address as a new preset",
+            remove_tooltip="Remove selected preset",
+        )
+        iprd_preset_layout = self.iprdPresetSet.layout()
+        if iprd_preset_layout:
+            iprd_preset_layout.addWidget(self.iprd_preset)
+        # alias the combo so the preset handlers read like the pool ones
+        self.comboIPRDPreset = self.iprd_preset.combo
         self.comboIPRDPreset.currentIndexChanged.connect(self.read_iprd_preset)
         self.comboIPRDPreset.editTextChanged.connect(self.update_iprd_preset)
-        self.actionIPRDCreatePreset.clicked.connect(self.add_new_iprd_preset)
-        self.actionIPRDRemovePreset.clicked.connect(self.remove_iprd_preset)
+        self.iprd_preset.create_requested.connect(self.add_new_iprd_preset)
+        self.iprd_preset.remove_requested.connect(self.remove_iprd_preset)
 
         self.poolConfigurator.hide()
         self.actionTogglePoolPasswd = self.create_passwd_toggle_action(
@@ -955,9 +966,7 @@ class IPR(QMainWindow, Ui_MainWindow):
     def toggle_iprd_settings(self):
         # disable the daemon options when the IPRD backend itself is disabled.
         enabled = self.checkEnableIPRDBackend.isChecked()
-        self.comboIPRDPreset.setEnabled(enabled)
-        self.actionIPRDCreatePreset.setEnabled(enabled)
-        self.actionIPRDRemovePreset.setEnabled(enabled)
+        self.iprd_preset.setEnabled(enabled)
         self.lineIPRDSocketAddress.setEnabled(enabled)
         self.checkIPRDAutoReconnect.setEnabled(enabled)
         self.update_iprd_reconnect_settings()
