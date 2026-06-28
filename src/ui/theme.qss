@@ -380,6 +380,10 @@ QLineEdit:focus {
   border: 1px solid #92beff;
 }
 
+QLineEdit:disabled {
+  color: #828282;
+}
+
 QAbstractSpinBox {
   background-color: #151d28;
   border: 1px solid #525252;
