@@ -33,12 +33,17 @@ class IPRPresetSelector(QWidget):
         tooltip: str = "",
         add_tooltip: str = "Add new preset",
         remove_tooltip: str = "Remove preset",
+        combo_max_width: int = 225,
     ):
         super().__init__(parent)
-        self._init_ui(tooltip, add_tooltip, remove_tooltip)
+        self._init_ui(tooltip, add_tooltip, remove_tooltip, combo_max_width)
 
     def _init_ui(
-        self, tooltip: str, add_tooltip: str, remove_tooltip: str
+        self,
+        tooltip: str,
+        add_tooltip: str,
+        remove_tooltip: str,
+        combo_max_width: int,
     ) -> None:
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -50,7 +55,7 @@ class IPRPresetSelector(QWidget):
         )
         self.combo.setSizePolicy(size_policy)
         self.combo.setMinimumSize(QSize(110, 25))
-        self.combo.setMaximumSize(QSize(225, 25))
+        self.combo.setMaximumSize(QSize(combo_max_width, 25))
         self.combo.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
         self.combo.setEditable(True)
         self.combo.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)

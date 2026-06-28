@@ -276,10 +276,16 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionTogglePoolPasswd3 = self.create_passwd_toggle_action(
             self.linePoolPasswd_3
         )
+        self.pool_preset = IPRPresetSelector(combo_max_width=280)
+        pool_preset_layout = self.presetSet.layout()
+        if pool_preset_layout:
+            pool_preset_layout.addWidget(self.pool_preset)
+        # alias the combo so the existing pool-preset handlers are unchanged
+        self.comboPoolPreset = self.pool_preset.combo
         self.comboPoolPreset.currentIndexChanged.connect(self.read_pool_preset)
         self.comboPoolPreset.editTextChanged.connect(self.update_pool_preset)
-        self.actionIPRCreatePreset.clicked.connect(self.add_new_preset)
-        self.actionIPRRemovePreset.clicked.connect(self.remove_preset)
+        self.pool_preset.create_requested.connect(self.add_new_preset)
+        self.pool_preset.remove_requested.connect(self.remove_preset)
         self.actionIPRSavePreset.clicked.connect(self.write_pool_preset)
         self.actionIPRClearPreset.clicked.connect(self.clear_pool_preset)
 
