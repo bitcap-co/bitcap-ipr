@@ -1013,8 +1013,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>463</width>
-                   <height>663</height>
+                   <width>478</width>
+                   <height>821</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1426,6 +1426,9 @@ Uses last 5 of SN or MAC address.</string>
                         <string>IPR Daemon</string>
                        </property>
                        <layout class="QGridLayout" name="gridLayout_17">
+                        <property name="verticalSpacing">
+                         <number>9</number>
+                        </property>
                         <item row="0" column="0">
                          <widget class="QCheckBox" name="checkEnableIPRDBackend">
                           <property name="toolTip">
@@ -1439,7 +1442,7 @@ Uses last 5 of SN or MAC address.</string>
                         <item row="1" column="0">
                          <widget class="QLabel" name="labelIPRDPreset">
                           <property name="text">
-                           <string>Preset:</string>
+                           <string>Instance:</string>
                           </property>
                           <property name="StyleClass" stdset="0">
                            <string>setText</string>
@@ -1448,6 +1451,24 @@ Uses last 5 of SN or MAC address.</string>
                         </item>
                         <item row="1" column="1">
                          <widget class="QWidget" name="iprdPresetSet" native="true">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="minimumSize">
+                           <size>
+                            <width>180</width>
+                            <height>35</height>
+                           </size>
+                          </property>
+                          <property name="maximumSize">
+                           <size>
+                            <width>250</width>
+                            <height>35</height>
+                           </size>
+                          </property>
                           <layout class="QHBoxLayout" name="horizontalLayout_iprd_preset">
                            <property name="spacing">
                             <number>0</number>
@@ -1480,7 +1501,7 @@ Uses last 5 of SN or MAC address.</string>
                         <item row="2" column="1">
                          <widget class="QLineEdit" name="lineIPRDSocketAddress">
                           <property name="sizePolicy">
-                           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                             <horstretch>0</horstretch>
                             <verstretch>0</verstretch>
                            </sizepolicy>
@@ -1493,7 +1514,7 @@ Uses last 5 of SN or MAC address.</string>
                           </property>
                           <property name="maximumSize">
                            <size>
-                            <width>225</width>
+                            <width>250</width>
                             <height>25</height>
                            </size>
                           </property>
@@ -1533,6 +1554,18 @@ Uses last 5 of SN or MAC address.</string>
                         </item>
                         <item row="4" column="1">
                          <widget class="QSpinBox" name="spinIPRDMaxRetries">
+                          <property name="minimumSize">
+                           <size>
+                            <width>180</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                          <property name="maximumSize">
+                           <size>
+                            <width>250</width>
+                            <height>25</height>
+                           </size>
+                          </property>
                           <property name="contextMenuPolicy">
                            <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
                           </property>
@@ -1580,8 +1613,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>273</width>
-                   <height>972</height>
+                   <width>476</width>
+                   <height>1043</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -2093,8 +2126,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>360</width>
-                   <height>219</height>
+                   <width>478</width>
+                   <height>227</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_11">
