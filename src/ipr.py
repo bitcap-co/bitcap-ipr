@@ -161,6 +161,15 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.power = PowerMonitor(self)
         self.power.aboutToSuspend.connect(self.iprd.on_suspend)
         self.power.resumed.connect(self.iprd.on_resume)
+        # whether the user currently wants the iprd backend listening. Survives a
+        # reconnect give-up so we can recover when the window is reactivated
+        # (e.g. resume from sleep, where the network isn't up yet for the
+        # automatic retry burst). See _maybe_reconnect_iprd().
+        self._iprd_listening = False
+        if self._app_instance is not None:
+            self._app_instance.applicationStateChanged.connect(
+                self.on_application_state_changed
+            )
 
         # status bar state: a single persistent "base" message reflects what the
         # app is currently doing; transient notifications are layered on top via
@@ -1482,6 +1491,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.iprd.max_reconnect_attempts = self.spinIPRDMaxRetries.value()
                 self.iprd.set_socket_addr(addr, port)
                 self.iprd.start()
+                self._iprd_listening = True
                 self._last_iprd_error = ""
                 self.set_listen_state(ListenState.CONNECTING)
 
@@ -1495,8 +1505,15 @@ class IPR(QMainWindow, Ui_MainWindow):
                 3000,
             )
 
-    def stop_listen(self, timeout: bool = False, restart: bool = False):
+    def stop_listen(
+        self, timeout: bool = False, restart: bool = False, from_giveup: bool = False
+    ):
         logger.info(" stop listeners.")
+        # A reconnect give-up stops the socket but keeps the user's intent to be
+        # listening, so reactivating the window can recover (see
+        # _maybe_reconnect_iprd). Any other stop clears that intent.
+        if not from_giveup:
+            self._iprd_listening = False
         self.inactive.stop()
         if self.checkEnableSysTray.isChecked():
             self.actionSysStartListen.setEnabled(True)
@@ -1570,7 +1587,10 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def on_iprd_reconnect_failed(self):
         logger.error("IPRD reconnect failed; giving up.")
-        self.stop_listen()
+        # keep the listening intent if auto-reconnect is on so refocusing the
+        # window retries (covers resume-from-sleep where the network isn't up
+        # yet during the automatic retry burst).
+        self.stop_listen(from_giveup=self.iprd.auto_reconnect)
         if self.is_minimized_to_tray():
             self.sys_tray.showMessage(
                 "IPR Listener: Disconnected",
@@ -1578,7 +1598,26 @@ class IPR(QMainWindow, Ui_MainWindow):
                 QSystemTrayIcon.MessageIcon.Critical,
                 5000,
             )
-        self.notify("Status :: Could not reconnect. Stopped.")
+        if self._iprd_listening:
+            self.notify("Status :: Could not reconnect. Will retry when refocused.")
+        else:
+            self.notify("Status :: Could not reconnect. Stopped.")
+
+    def on_application_state_changed(self, state: Qt.ApplicationState):
+        if state is Qt.ApplicationState.ApplicationActive:
+            self._maybe_reconnect_iprd()
+
+    def _maybe_reconnect_iprd(self):
+        """Recover an iprd connection that was dropped while the app was inactive
+        (typically a resume from sleep whose automatic retry burst ran before the
+        network was back). Triggered when the window regains focus."""
+        if not self._iprd_listening or self.iprd.active:
+            return
+        # don't interrupt an attempt already in flight.
+        if self._listen_state in (ListenState.CONNECTING, ListenState.RECONNECTING):
+            return
+        logger.info(" app activated; retrying iprd listen.")
+        self.start_listen()
 
     def process_result(self, result: IPReport):
         # reset inactive timer
