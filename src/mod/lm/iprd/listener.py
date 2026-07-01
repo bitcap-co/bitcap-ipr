@@ -85,7 +85,7 @@ class IPRDListener(QObject):
         self.sock.readyRead.connect(self._process_message)
 
     def __repr__(self, /) -> str:
-        return f"{self.__class__.__name__}[{self.port}]"
+        return f"{self.__class__.__name__}[{self.addr.toString()}:{self.port}]"
 
     def _reset_reconnect_state(self) -> None:
         self._notified = False
