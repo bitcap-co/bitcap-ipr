@@ -9,6 +9,10 @@ Opened from the header funnel. Lists the column's distinct values (grouped
 case-insensitively upstream) with a "(Select All)" toggle. ``applied`` carries
 the chosen labels; ``cleared`` removes the column filter entirely. The window
 uses ``Qt.Popup`` so it dismisses on an outside click like a native dropdown.
+
+For longer value lists a search box appears to narrow the visible entries;
+searching only hides rows (checked-but-hidden values stay in the result), and
+"(Select All)" then acts on whatever is currently visible.
 """
 
 from PySide6.QtCore import QEvent, QPoint, Qt, Signal
@@ -17,11 +21,15 @@ from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QListWidget,
     QListWidgetItem,
     QPushButton,
     QVBoxLayout,
 )
+
+# show the search box once a column has at least this many distinct values
+_SEARCH_THRESHOLD = 9
 
 
 class ColumnFilterPopup(QFrame):
@@ -46,6 +54,13 @@ class ColumnFilterPopup(QFrame):
         heading = QLabel(f"Filter: {title}")
         heading.setStyleSheet("font-weight: bold;")
         layout.addWidget(heading)
+
+        self._search = QLineEdit(self)
+        self._search.setPlaceholderText("Search…")
+        self._search.setClearButtonEnabled(True)
+        self._search.textChanged.connect(self._on_search)
+        self._search.setVisible(len(values) >= _SEARCH_THRESHOLD)
+        layout.addWidget(self._search)
 
         self._list = QListWidget(self)
         self._list.setMinimumWidth(200)
@@ -95,22 +110,29 @@ class ColumnFilterPopup(QFrame):
         self.adjustSize()
         self.move(global_pos)
         self.show()
+        if self._search.isVisible():
+            self._search.setFocus()
 
     def _checked_labels(self) -> list[str]:
+        # every checked value, including any hidden by the current search
         return [
             item.text()
             for item in self._value_items
             if item.checkState() == Qt.CheckState.Checked
         ]
 
+    def _visible_value_items(self) -> list[QListWidgetItem]:
+        return [item for item in self._value_items if not item.isHidden()]
+
     def _sync_select_all(self) -> None:
-        total = len(self._value_items)
+        # "(Select All)" reflects the currently visible (searched) items
+        visible = self._visible_value_items()
         on = sum(
-            item.checkState() == Qt.CheckState.Checked for item in self._value_items
+            item.checkState() == Qt.CheckState.Checked for item in visible
         )
-        if on == 0:
+        if not visible or on == 0:
             state = Qt.CheckState.Unchecked
-        elif on == total:
+        elif on == len(visible):
             state = Qt.CheckState.Checked
         else:
             state = Qt.CheckState.PartiallyChecked
@@ -128,13 +150,19 @@ class ColumnFilterPopup(QFrame):
                 else Qt.CheckState.Checked
             )
             self._guard = True
-            for value_item in self._value_items:
+            for value_item in self._visible_value_items():
                 value_item.setCheckState(target)
             self._select_all.setCheckState(target)
             self._guard = False
         else:
             self._sync_select_all()
         self._update_apply_enabled()
+
+    def _on_search(self, text: str) -> None:
+        needle = text.strip().casefold()
+        for item in self._value_items:
+            item.setHidden(bool(needle) and needle not in item.text().casefold())
+        self._sync_select_all()
 
     def _update_apply_enabled(self) -> None:
         # applying an empty selection would hide every row; require at least one
