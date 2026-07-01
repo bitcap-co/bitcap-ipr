@@ -44,6 +44,7 @@ class ColumnFilterPopup(QFrame):
         parent=None,
     ) -> None:
         super().__init__(parent, Qt.WindowType.Popup)
+        self.setObjectName("columnFilterPopup")
         self.setFrameShape(QFrame.Shape.StyledPanel)
         self._guard = False
 
@@ -52,7 +53,7 @@ class ColumnFilterPopup(QFrame):
         layout.setSpacing(6)
 
         heading = QLabel(f"Filter: {title}")
-        heading.setStyleSheet("font-weight: bold;")
+        heading.setObjectName("filterPopupTitle")
         layout.addWidget(heading)
 
         self._search = QLineEdit(self)

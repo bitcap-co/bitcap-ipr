@@ -538,3 +538,64 @@ QTabBar::tab:top:!selected:hover, QDockWidget QTabBar::tab:top:!selected:hover {
 QFrame[frameShape="4"] {
   color: #383e46;
 }
+
+/* ID table column filter popup ------------------------------------------- */
+QFrame#columnFilterPopup {
+  background-color: #383e46;
+  border: 1px solid #60798B;
+}
+
+QFrame#columnFilterPopup QLabel {
+  color: #FFFFFF;
+}
+
+QLabel#filterPopupTitle {
+  font-weight: bold;
+  padding-bottom: 2px;
+}
+
+QFrame#columnFilterPopup QListWidget {
+  background-color: #151d28;
+  border: 1px solid #525252;
+  color: #FFFFFF;
+  outline: 0;
+}
+
+QFrame#columnFilterPopup QListWidget::item {
+  padding: 2px 4px;
+}
+
+QFrame#columnFilterPopup QListWidget::item:selected {
+  background-color: #3183ff;
+  color: #FFFFFF;
+}
+
+QFrame#columnFilterPopup QListWidget::item:hover {
+  background-color: #5c9dff;
+  color: #FFFFFF;
+}
+
+QFrame#columnFilterPopup QListWidget::indicator {
+  width: 14px;
+  height: 14px;
+}
+
+QFrame#columnFilterPopup QListWidget::indicator:unchecked {
+  background-color: #151d28;
+  border: 1px solid #434343;
+}
+
+QFrame#columnFilterPopup QListWidget::indicator:checked {
+  background-color: #92beff;
+  border: 1px solid #434343;
+}
+
+QFrame#columnFilterPopup QListWidget::indicator:indeterminate {
+  background-color: #5c9dff;
+  border: 1px solid #434343;
+}
+
+QFrame#columnFilterPopup QPushButton {
+  padding: 3px 10px;
+  min-width: 60px;
+}
