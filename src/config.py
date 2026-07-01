@@ -25,7 +25,7 @@ class GeneralSettings(BaseModel):
     ] = 15
     check_updates_on_startup: Annotated[
         bool, Field(alias="checkForUpdatesOnStartup")
-    ] = False
+    ] = True
     include_prereleases: Annotated[bool, Field(alias="includePreReleases")] = False
 
 
