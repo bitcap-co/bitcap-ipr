@@ -41,6 +41,7 @@ from PySide6.QtWidgets import (
     QButtonGroup,
     QDialog,
     QFileDialog,
+    QHeaderView,
     QLineEdit,
     QMainWindow,
     QMenu,
@@ -70,6 +71,9 @@ from ui.widgets import (
     COL_LOCATE,
     COL_RECV_AT,
     COL_REFRESH,
+    FILTERABLE_COLUMNS,
+    ColumnFilterPopup,
+    FilterHeaderView,
     IPRActionDelegate,
     IPRFilterProxyModel,
     IPRMenubar,
@@ -294,6 +298,17 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.id_proxy = IPRFilterProxyModel(self)
         self.id_proxy.setSourceModel(self.id_model)
         self.tableIPRID.setModel(self.id_proxy)
+        # custom header: funnel dropdowns on low-cardinality columns, alongside
+        # the existing click-to-select-column behaviour on the header text.
+        # Installed before the setColumnWidth calls below so the widths apply to
+        # this header rather than being reset when it replaces the default one.
+        self.id_header = FilterHeaderView(self.tableIPRID)
+        self.tableIPRID.setHorizontalHeader(self.id_header)
+        # restore the section-size config setupUi applied to the default header
+        # (a fresh header defaults to a larger minimum, which would clamp the
+        # 15px action columns wider and upscale their icons)
+        self.id_header.setMinimumSectionSize(15)
+        self.id_header.setDefaultSectionSize(105)
         # action-column icons (refresh / locate) painted by a delegate
         self.id_action_delegate = IPRActionDelegate(self.tableIPRID)
         self.tableIPRID.setItemDelegateForColumn(COL_REFRESH, self.id_action_delegate)
@@ -312,12 +327,26 @@ class IPR(QMainWindow, Ui_MainWindow):
         # sorting is driven by the toolbar controls, not header clicks, so a
         # header click is free to select the column without sorting it
         self.tableIPRID.setSortingEnabled(False)
-        self.id_header = self.tableIPRID.horizontalHeader()
         self.id_header.setSortIndicatorShown(False)
-        self.id_header.sectionClicked.connect(self.select_column)
-        # vertical header: 1-based row-count column on the left
+        self.id_header.set_filterable_columns(FILTERABLE_COLUMNS)
+        # right-click a header to toggle highlighting its column (left-click is
+        # reserved for the funnel filter and no longer highlights)
+        self.id_header.setContextMenuPolicy(
+            Qt.ContextMenuPolicy.CustomContextMenu
+        )
+        self.id_header.customContextMenuRequested.connect(self.toggle_column_at)
+        self.id_header.filter_clicked.connect(self.open_column_filter)
+        self.id_filter_popup: ColumnFilterPopup | None = None
+        # vertical header: 1-based row-count column on the left. Left-click a
+        # row number to select that row (default behaviour); right-click to
+        # toggle highlighting the whole row (add/remove without clearing others).
         v_header = self.tableIPRID.verticalHeader()
         v_header.setVisible(True)
+        v_header.setSectionsClickable(True)
+        # fixed, non-resizable row height for a consistent table layout
+        v_header.setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
+        v_header.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        v_header.customContextMenuRequested.connect(self.toggle_row_at)
         self.lineIDTableFilter.textChanged.connect(self.id_proxy.set_filter_text)
         # sort controls: column combo + asc/desc toggle (next to the filter)
         for col in range(self.id_model.columnCount()):
@@ -1429,17 +1458,72 @@ class IPR(QMainWindow, Ui_MainWindow):
         cb.setText(out.strip(), mode=cb.Mode.Clipboard)
         self.iprStatusBar.showMessage("Status :: Copied elements to clipboard.", 3000)
 
-    def select_column(self, section: int):
-        rows = self.id_proxy.rowCount()
-        if not rows:
+    def _toggle_selection(self, indexes: list[QModelIndex]):
+        """Select every index, or clear them if all are already selected.
+
+        Giving an explicit un-highlight and letting rows/columns stay
+        highlighted independently.
+        """
+        if not indexes:
             return
-        if section != 0:
-            selection_model = self.tableIPRID.selectionModel()
-            for row in range(rows):
-                selection_model.select(
-                    self.id_proxy.index(row, section),
-                    QItemSelectionModel.SelectionFlag.Select,
-                )
+        selection_model = self.tableIPRID.selectionModel()
+        fully_selected = all(selection_model.isSelected(index) for index in indexes)
+        flag = (
+            QItemSelectionModel.SelectionFlag.Deselect
+            if fully_selected
+            else QItemSelectionModel.SelectionFlag.Select
+        )
+        for index in indexes:
+            selection_model.select(index, flag)
+
+    def toggle_column_at(self, pos):
+        """Right-click a column header to toggle highlighting that column."""
+        section = self.id_header.logicalIndexAt(pos)
+        # skip invalid hits and the icon-only action columns (no cell content)
+        if section < COL_RECV_AT:
+            return
+        rows = self.id_proxy.rowCount()
+        self._toggle_selection(
+            [self.id_proxy.index(row, section) for row in range(rows)]
+        )
+
+    def toggle_row_at(self, pos):
+        """Right-click a row header to toggle highlighting that whole row."""
+        row = self.tableIPRID.verticalHeader().logicalIndexAt(pos)
+        if row < 0:
+            return
+        columns = self.id_proxy.columnCount()
+        self._toggle_selection(
+            [self.id_proxy.index(row, col) for col in range(columns)]
+        )
+
+    def open_column_filter(self, section: int):
+        """Pop up the value checklist for a filterable header column."""
+        title = self.id_model.headerData(
+            section, Qt.Orientation.Horizontal, Qt.ItemDataRole.DisplayRole
+        )
+        values = self.id_model.distinct_values(section)
+        popup = ColumnFilterPopup(
+            str(title), values, self.id_proxy.column_filter(section), self
+        )
+        popup.applied.connect(
+            lambda labels, col=section, choices=values: self._apply_column_filter(
+                col, labels, choices
+            )
+        )
+        popup.cleared.connect(lambda col=section: self._apply_column_filter(col, None))
+        self.id_filter_popup = popup
+        popup.show_at(self.id_header.filter_anchor(section))
+
+    def _apply_column_filter(
+        self, section: int, labels: list[str] | None, choices: list[str] | None = None
+    ):
+        # all values checked is equivalent to no filter; keep the header glyph
+        # indicator in sync with what the proxy is actually filtering on.
+        if labels is not None and choices is not None and len(labels) == len(choices):
+            labels = None
+        self.id_proxy.set_column_filter(section, labels)
+        self.id_header.set_active_columns(self.id_proxy.active_filter_columns())
 
     def apply_sort(self, *_args):
         """Sort the proxy from the current toolbar control state."""
@@ -1460,8 +1544,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.apply_sort()
 
     def reset_view(self):
-        # clear the active filter and return the sort to its default
+        # clear the text filter and every per-column filter, then return the
+        # sort to its default
         self.lineIDTableFilter.clear()
+        self.id_proxy.clear_column_filters()
+        self.id_header.set_active_columns(self.id_proxy.active_filter_columns())
         self.reset_sort()
 
     def clear_table(self):

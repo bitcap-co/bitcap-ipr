@@ -3,6 +3,7 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
+from collections import Counter
 from typing import Any, Callable
 
 from pydantic import BaseModel, ConfigDict
@@ -39,6 +40,8 @@ class Column(BaseModel):
     sort_key: Callable[[MinerData], Any] | None = None
     # optional: hover hint shown via Qt.ItemDataRole.ToolTipRole
     tooltip: str | None = None
+    # low-cardinality columns get an Excel-style header filter dropdown
+    filterable: bool = False
 
 
 def _ip_sort_key(m: MinerData) -> int:
@@ -57,28 +60,33 @@ COLUMNS: list[Column] = [
         tooltip="Double-click to open in browser",
     ),
     Column(header="MAC", field="mac"),
-    Column(header="TYPE", field="type"),
-    Column(header="SUBTYPE", field="subtype"),
+    Column(header="TYPE", field="type", filterable=True),
+    Column(header="SUBTYPE", field="subtype", filterable=True),
     Column(
         header="SERIAL",
         field="serial",
         editable=True,
         tooltip="Double-click to edit",
     ),
-    Column(header="ALGORITHM", field="algorithm"),
-    Column(header="HOSTNAME", field="hostname"),
-    Column(header="STRATUM URL", field="stratum_url"),
-    Column(header="USERNAME", field="username"),
+    Column(header="ALGORITHM", field="algorithm", filterable=True),
+    Column(header="HOSTNAME", field="hostname", filterable=True),
+    Column(header="STRATUM URL", field="stratum_url", filterable=True),
+    Column(header="USERNAME", field="username", filterable=True),
     Column(header="WORKER NAME", field="worker_name"),
-    Column(header="FIRMWARE", field="firmware"),
-    Column(header="FW VERSION", field="fw_version"),
-    Column(header="PLATFORM", field="platform"),
+    Column(header="FIRMWARE", field="firmware", filterable=True),
+    Column(header="FW VERSION", field="fw_version", filterable=True),
+    Column(header="PLATFORM", field="platform", filterable=True),
 ]
 
 # full header row including the two action columns
 HEADERS = ["", ""] + [c.header for c in COLUMNS]
 ACTION_COLUMN_COUNT = 2
 COLUMN_COUNT = len(HEADERS)
+
+# view column indices that expose a header filter dropdown
+FILTERABLE_COLUMNS: set[int] = {
+    i + ACTION_COLUMN_COUNT for i, c in enumerate(COLUMNS) if c.filterable
+}
 
 
 def _column_for(section: int) -> Column | None:
@@ -180,6 +188,29 @@ class IPRTableModel(QAbstractTableModel):
     def miner_at(self, row: int) -> MinerData:
         """Return the MinerData for a *source* row (caller maps proxy->source)."""
         return self._rows[row]
+
+    def distinct_values(self, col: int) -> list[str]:
+        """Distinct display labels for a column, grouped case-insensitively.
+
+        Near-duplicate casings (e.g. ``Antminer``/``antminer``) collapse into a
+        single entry; the representative label is the most frequently occurring
+        casing within the group. Returned sorted case-insensitively so the
+        header filter dropdown lists values in a stable, readable order.
+        """
+        column = _column_for(col)
+        if column is None:
+            return []
+        counts: Counter[str] = Counter(
+            self._display(miner, column) for miner in self._rows
+        )
+        representative: dict[str, str] = {}
+        best_count: dict[str, int] = {}
+        for label, count in counts.items():
+            key = label.casefold()
+            if count > best_count.get(key, -1):
+                best_count[key] = count
+                representative[key] = label
+        return sorted(representative.values(), key=str.casefold)
 
     def append(self, miner: MinerData) -> int:
         row = len(self._rows)
