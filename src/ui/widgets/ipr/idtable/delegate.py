@@ -3,7 +3,15 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-from PySide6.QtCore import QEvent, QModelIndex, QPersistentModelIndex, QRect, Qt, Signal
+from PySide6.QtCore import (
+    QEvent,
+    QModelIndex,
+    QPersistentModelIndex,
+    QRect,
+    QSize,
+    Qt,
+    Signal,
+)
 from PySide6.QtGui import QHelpEvent, QPixmap
 from PySide6.QtWidgets import (
     QAbstractItemView,
@@ -24,6 +32,10 @@ _TOOLTIPS = {
     COL_LOCATE: "Locate miner (flash LEDs)",
 }
 
+# cap the action icons at their native size so they don't upscale to fill a
+# taller row / wider cell
+_ICON_MAX = QSize(15, 15)
+
 
 class IPRActionDelegate(QStyledItemDelegate):
     # emitted with the action column (COL_REFRESH/COL_LOCATE) and source row
@@ -43,7 +55,8 @@ class IPRActionDelegate(QStyledItemDelegate):
         if pixmap is None or pixmap.isNull():
             return super().paint(painter, option, index)
         size = pixmap.size().scaled(
-            option.rect.size(), Qt.AspectRatioMode.KeepAspectRatio
+            option.rect.size().boundedTo(_ICON_MAX),
+            Qt.AspectRatioMode.KeepAspectRatio,
         )
         target = QRect(0, 0, size.width(), size.height())
         target.moveCenter(option.rect.center())
