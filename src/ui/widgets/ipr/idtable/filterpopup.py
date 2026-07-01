@@ -28,6 +28,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
+from .model import normalize_value
+
 # show the search box once a column has at least this many distinct values
 _SEARCH_THRESHOLD = 9
 
@@ -39,7 +41,7 @@ class ColumnFilterPopup(QFrame):
     def __init__(
         self,
         title: str,
-        values: list[str],
+        values: list[tuple[str, int]],
         checked: set[str] | None,
         parent=None,
     ) -> None:
@@ -75,13 +77,16 @@ class ColumnFilterPopup(QFrame):
         self._list.addItem(self._select_all)
 
         # ``checked is None`` means no active filter -> everything is shown.
+        # The raw value lives in UserRole (used for matching/applying) while the
+        # visible text carries the row count, e.g. "S19J (23)".
         self._value_items: list[QListWidgetItem] = []
-        for value in values:
-            item = QListWidgetItem(value)
+        for value, count in values:
+            item = QListWidgetItem(f"{value} ({count})")
+            item.setData(Qt.ItemDataRole.UserRole, value)
             item.setFlags(
                 Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled
             )
-            is_on = checked is None or value.casefold() in checked
+            is_on = checked is None or normalize_value(value) in checked
             item.setCheckState(
                 Qt.CheckState.Checked if is_on else Qt.CheckState.Unchecked
             )
@@ -115,9 +120,10 @@ class ColumnFilterPopup(QFrame):
             self._search.setFocus()
 
     def _checked_labels(self) -> list[str]:
-        # every checked value, including any hidden by the current search
+        # every checked value (raw label, not the "(count)" display text),
+        # including any hidden by the current search
         return [
-            item.text()
+            item.data(Qt.ItemDataRole.UserRole)
             for item in self._value_items
             if item.checkState() == Qt.CheckState.Checked
         ]
@@ -160,9 +166,11 @@ class ColumnFilterPopup(QFrame):
         self._update_apply_enabled()
 
     def _on_search(self, text: str) -> None:
+        # match the raw value so the "(count)" suffix doesn't affect searching
         needle = text.strip().casefold()
         for item in self._value_items:
-            item.setHidden(bool(needle) and needle not in item.text().casefold())
+            label = item.data(Qt.ItemDataRole.UserRole)
+            item.setHidden(bool(needle) and needle not in label.casefold())
         self._sync_select_all()
 
     def _update_apply_enabled(self) -> None:

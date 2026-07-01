@@ -10,12 +10,13 @@ Sorting uses the model's ``SortRole`` so columns sort by their real type
 passes *both* filters that may be active: the free-text needle (matched against
 any backing field) and the per-column value filters set from the Excel-style
 header dropdowns. Column filters are ``AND``-ed together; values are compared
-case-insensitively so near-duplicate casings share one filter entry.
+via ``normalize_value`` (case- and space-insensitive) so near-duplicates share
+one filter entry.
 """
 
 from PySide6.QtCore import QModelIndex, QPersistentModelIndex, QSortFilterProxyModel, Qt
 
-from .model import ACTION_COLUMN_COUNT, COLUMN_COUNT, IPR_SORT_ROLE
+from .model import ACTION_COLUMN_COUNT, COLUMN_COUNT, IPR_SORT_ROLE, normalize_value
 
 
 class IPRFilterProxyModel(QSortFilterProxyModel):
@@ -56,7 +57,7 @@ class IPRFilterProxyModel(QSortFilterProxyModel):
         if not labels:
             self._column_filters.pop(col, None)
         else:
-            self._column_filters[col] = {label.casefold() for label in labels}
+            self._column_filters[col] = {normalize_value(label) for label in labels}
         self.invalidateFilter()
 
     def clear_column_filters(self) -> None:
@@ -70,7 +71,7 @@ class IPRFilterProxyModel(QSortFilterProxyModel):
         return set(self._column_filters)
 
     def column_filter(self, col: int) -> set[str] | None:
-        """Casefolded allowed values for ``col``, or ``None`` if unfiltered."""
+        """Normalized allowed values for ``col``, or ``None`` if unfiltered."""
         return self._column_filters.get(col)
 
     def filterAcceptsRow(
@@ -81,7 +82,7 @@ class IPRFilterProxyModel(QSortFilterProxyModel):
         for col, allowed in self._column_filters.items():
             index = model.index(source_row, col, source_parent)
             value = model.data(index, Qt.ItemDataRole.DisplayRole)
-            if str(value).casefold() not in allowed:
+            if normalize_value(str(value)) not in allowed:
                 return False
         # free-text needle: match against any data column (OR)
         if self._needle:

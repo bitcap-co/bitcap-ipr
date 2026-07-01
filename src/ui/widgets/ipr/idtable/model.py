@@ -96,6 +96,17 @@ def _column_for(section: int) -> Column | None:
     return COLUMNS[section - ACTION_COLUMN_COUNT]
 
 
+def normalize_value(value: str) -> str:
+    """Fold a value for header-filter grouping and matching.
+
+    Case- and whitespace-insensitive, so near-duplicates like ``S19JPRO`` and
+    ``S19j Pro`` (differing only by case and a space) are treated as the same
+    value. Used identically by the model, proxy and popup so grouping and
+    matching stay in sync.
+    """
+    return "".join(value.casefold().split())
+
+
 class IPRTableModel(QAbstractTableModel):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -189,13 +200,14 @@ class IPRTableModel(QAbstractTableModel):
         """Return the MinerData for a *source* row (caller maps proxy->source)."""
         return self._rows[row]
 
-    def distinct_values(self, col: int) -> list[str]:
-        """Distinct display labels for a column, grouped case-insensitively.
+    def distinct_values(self, col: int) -> list[tuple[str, int]]:
+        """Distinct ``(label, count)`` pairs for a column, grouped case-insensitively.
 
         Near-duplicate casings (e.g. ``Antminer``/``antminer``) collapse into a
         single entry; the representative label is the most frequently occurring
-        casing within the group. Returned sorted case-insensitively so the
-        header filter dropdown lists values in a stable, readable order.
+        casing within the group and the count is the group total. Returned
+        sorted case-insensitively so the header filter dropdown lists values in
+        a stable, readable order.
         """
         column = _column_for(col)
         if column is None:
@@ -205,12 +217,17 @@ class IPRTableModel(QAbstractTableModel):
         )
         representative: dict[str, str] = {}
         best_count: dict[str, int] = {}
+        total: dict[str, int] = {}
         for label, count in counts.items():
-            key = label.casefold()
+            key = normalize_value(label)
+            total[key] = total.get(key, 0) + count
             if count > best_count.get(key, -1):
                 best_count[key] = count
                 representative[key] = label
-        return sorted(representative.values(), key=str.casefold)
+        return sorted(
+            ((representative[key], total[key]) for key in representative),
+            key=lambda pair: pair[0].casefold(),
+        )
 
     def append(self, miner: MinerData) -> int:
         row = len(self._rows)
