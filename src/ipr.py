@@ -511,7 +511,13 @@ class IPR(QMainWindow, Ui_MainWindow):
     def _base_status_text(self) -> str:
         """Build the persistent status message for the current ListenState."""
         if self._listen_state is ListenState.SUBSCRIBED:
-            return f"Status :: Listening on [{self.iprd!r}]..."
+            if self.comboIPRDPreset.currentIndex() != -1:
+                curr_instance = self.config.listener.iprd.socket_presets[
+                    self.comboIPRDPreset.currentIndex()
+                ]
+                if curr_instance.preset_name:
+                    return f"Status :: Listening on instance {curr_instance.preset_name}[{self.iprd.addr.toString()}:{self.iprd.port}]..."
+            return f"Status :: Listening on {self.iprd!r}..."
         if self._listen_state is ListenState.CONNECTING:
             return (
                 f"Status :: Connecting to "
