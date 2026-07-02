@@ -107,9 +107,28 @@ class IPRTitlebar(QWidget):
                     self._buttons[x].setFocusPolicy(Qt.FocusPolicy.NoFocus)
                     title_bar_layout.addWidget(self._buttons[x])
 
+    def toggle_maximize(self) -> None:
+        """Toggle the window between maximized and its normal size."""
+        if self._window.isMaximized():
+            self._window.showNormal()
+        else:
+            self._window.showMaximized()
+
+    def sync_maximize_button(self) -> None:
+        """Swap the maximize/restore glyph to match the window state."""
+        if self._bar_style == "darwin":
+            return
+        self.maximize_button.setText("🗗" if self._window.isMaximized() else "🗖")
+
     def changeEvent(self, event):
         super().changeEvent(event)
         event.accept()
+
+    def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:
+        # double-clicking the bar maximizes/restores, like a native title bar
+        if event.button() == Qt.MouseButton.LeftButton and "max" in self._button_hints:
+            self.toggle_maximize()
+        return event.accept()
 
     def enterEvent(self, event):
         if self._bar_style == "darwin":

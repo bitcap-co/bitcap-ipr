@@ -29,7 +29,6 @@ class Ui_MainWindow(object):
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.resize(550, 550)
         MainWindow.setMinimumSize(QSize(550, 550))
-        MainWindow.setMaximumSize(QSize(1280, 800))
         MainWindow.setStyleSheet(u"QWidget#centralwidget {\n"
 "	background-color:qlineargradient(spread:pad, x1:0.500, y1:0, x2:0.500, y2:1, stop:0.5 rgba(6, 16, 31, 255), stop:1 rgba(0, 0, 0, 255));\n"
 "}")

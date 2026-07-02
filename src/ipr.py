@@ -19,6 +19,7 @@ from typing import Any
 from pydantic import TypeAdapter, ValidationError
 from PySide6.QtCore import (
     QDateTime,
+    QEvent,
     QEventLoop,
     QFile,
     QIODevice,
@@ -94,6 +95,9 @@ from utils import (
 
 logger = logging.getLogger(__name__)
 
+# px band along the frameless window border that triggers an edge/corner resize
+RESIZE_MARGIN = 6
+
 
 class ListenState(Enum):
     """Persistent state of the listening backend, reflected in the status bar."""
@@ -112,6 +116,15 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.config = stored
         self._app_instance = QApplication.instance()
+        # frameless-window edge/corner resizing: a global event filter hit-tests
+        # the window border and hands off to the OS via startSystemResize (which
+        # also lets the resize participate in window snapping).
+        self._active_resize_cursor: Qt.CursorShape | None = None
+        self.setMouseTracking(True)
+        self.centralWidget().setMouseTracking(True)
+        self._app_instance.installEventFilter(self)
+        # applied once on first show (Windows only) to re-enable Aero Snap
+        self._snapping_enabled = False
         self.confirms: list[IPRConfirmation] = []
         self.aboutDialog: IPRAbout | None = None
         self.update_checker: UpdateChecker | None = None
@@ -177,8 +190,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.miner_locate_duration: int = api_settings.get("locate_duration_ms")
 
         # initialize IPR_Titlebar widget
-        self.title_bar = IPRTitlebar(self, "BitCap IPReporter", ["min", "close"])
+        self.title_bar = IPRTitlebar(self, "BitCap IPReporter", ["min", "max", "close"])
         self.title_bar.minimize_button.clicked.connect(self.window().showMinimized)
+        self.title_bar.maximize_button.clicked.connect(self.title_bar.toggle_maximize)
         self.title_bar.close_button.clicked.connect(self.close_to_tray_or_exit)
         title_bar_widget = self.titleBarWidget.layout()
         if title_bar_widget:
@@ -504,6 +518,142 @@ class IPR(QMainWindow, Ui_MainWindow):
         if self.sys_tray.isVisible() and not self.isVisible():
             return True
         return False
+
+    def changeEvent(self, event):
+        # keep the titlebar's maximize/restore glyph correct even when the OS
+        # changes the window state (e.g. drag-snap to the top edge)
+        super().changeEvent(event)
+        if event.type() == QEvent.Type.WindowStateChange:
+            title_bar = getattr(self, "title_bar", None)
+            if title_bar is not None:
+                title_bar.sync_maximize_button()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        if not self._snapping_enabled and CURR_PLATFORM.startswith("win"):
+            self._enable_windows_snapping()
+            self._snapping_enabled = True
+
+    def _enable_windows_snapping(self):
+        """Re-enable native Aero Snap for the frameless window (Windows).
+
+        Qt strips ``WS_THICKFRAME``/``WS_MAXIMIZEBOX`` from a frameless window,
+        and without them Windows won't snap it (drag-to-edge, Win+Arrow) even
+        though the titlebar drag uses ``startSystemMove``. Adding the styles
+        back on the HWND restores snapping; the ``FramelessWindowHint`` handling
+        keeps the frame itself from being drawn.
+        """
+        try:
+            import ctypes
+            from ctypes import wintypes
+
+            GWL_STYLE = -16
+            WS_MAXIMIZEBOX = 0x00010000
+            WS_THICKFRAME = 0x00040000
+            SWP_NOSIZE = 0x0001
+            SWP_NOMOVE = 0x0002
+            SWP_NOZORDER = 0x0004
+            SWP_FRAMECHANGED = 0x0020
+
+            user32 = ctypes.windll.user32
+            user32.GetWindowLongW.restype = ctypes.c_long
+            user32.GetWindowLongW.argtypes = [wintypes.HWND, ctypes.c_int]
+            user32.SetWindowLongW.restype = ctypes.c_long
+            user32.SetWindowLongW.argtypes = [
+                wintypes.HWND,
+                ctypes.c_int,
+                ctypes.c_long,
+            ]
+
+            hwnd = int(self.winId())
+            style = user32.GetWindowLongW(hwnd, GWL_STYLE) & 0xFFFFFFFF
+            style |= WS_MAXIMIZEBOX | WS_THICKFRAME
+            # SetWindowLongW takes a signed 32-bit LONG
+            if style >= 0x80000000:
+                style -= 0x100000000
+            user32.SetWindowLongW(hwnd, GWL_STYLE, style)
+            user32.SetWindowPos(
+                hwnd,
+                0,
+                0,
+                0,
+                0,
+                0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED,
+            )
+        except Exception as exc:  # pragma: no cover - platform specific
+            logger.warning(f" could not enable native window snapping: {exc}")
+
+    # frameless window resizing
+    #
+    # A frameless window has no native resize border, so we hit-test the mouse
+    # against the window edges ourselves and delegate the actual resize to the
+    # OS via QWindow.startSystemResize(). Using the system resize means the
+    # drag behaves natively, including snapping.
+    def _resize_edges(self, global_pos) -> Qt.Edge | None:
+        if self.isMaximized() or self.isFullScreen():
+            return None
+        rect = self.frameGeometry()
+        margin = RESIZE_MARGIN
+        edges: Qt.Edge | None = None
+
+        def add(edge: Qt.Edge) -> None:
+            nonlocal edges
+            edges = edge if edges is None else edges | edge
+
+        if global_pos.x() <= rect.left() + margin:
+            add(Qt.Edge.LeftEdge)
+        elif global_pos.x() >= rect.right() - margin:
+            add(Qt.Edge.RightEdge)
+        if global_pos.y() <= rect.top() + margin:
+            add(Qt.Edge.TopEdge)
+        elif global_pos.y() >= rect.bottom() - margin:
+            add(Qt.Edge.BottomEdge)
+        return edges
+
+    @staticmethod
+    def _cursor_for_edges(edges: Qt.Edge | None) -> Qt.CursorShape | None:
+        left, right = Qt.Edge.LeftEdge, Qt.Edge.RightEdge
+        top, bottom = Qt.Edge.TopEdge, Qt.Edge.BottomEdge
+        if edges in (left | top, right | bottom):
+            return Qt.CursorShape.SizeFDiagCursor
+        if edges in (right | top, left | bottom):
+            return Qt.CursorShape.SizeBDiagCursor
+        if edges in (left, right):
+            return Qt.CursorShape.SizeHorCursor
+        if edges in (top, bottom):
+            return Qt.CursorShape.SizeVerCursor
+        return None
+
+    def _apply_resize_cursor(self, edges: Qt.Edge | None) -> None:
+        shape = self._cursor_for_edges(edges)
+        if shape == self._active_resize_cursor:
+            return
+        if self._active_resize_cursor is not None:
+            self._app_instance.restoreOverrideCursor()
+        if shape is not None:
+            self._app_instance.setOverrideCursor(QCursor(shape))
+        self._active_resize_cursor = shape
+
+    def eventFilter(self, obj, event):
+        if self.isActiveWindow() and not self.isMaximized():
+            event_type = event.type()
+            if (
+                event_type == QEvent.Type.MouseButtonPress
+                and event.button() == Qt.MouseButton.LeftButton
+            ):
+                edges = self._resize_edges(event.globalPosition().toPoint())
+                handle = self.windowHandle()
+                if edges is not None and handle is not None:
+                    if handle.startSystemResize(edges):
+                        return True
+            elif event_type == QEvent.Type.MouseMove and not (
+                QApplication.mouseButtons() & Qt.MouseButton.LeftButton
+            ):
+                self._apply_resize_cursor(
+                    self._resize_edges(event.globalPosition().toPoint())
+                )
+        return super().eventFilter(obj, event)
 
     def update_stacked_widget(self, view_index: int | None = None, *_):
         logger.info(" update view.")
