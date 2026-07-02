@@ -19,6 +19,7 @@ from typing import Any
 from pydantic import TypeAdapter, ValidationError
 from PySide6.QtCore import (
     QDateTime,
+    QEvent,
     QEventLoop,
     QFile,
     QIODevice,
@@ -41,6 +42,7 @@ from PySide6.QtWidgets import (
     QButtonGroup,
     QDialog,
     QFileDialog,
+    QHeaderView,
     QLineEdit,
     QMainWindow,
     QMenu,
@@ -70,6 +72,9 @@ from ui.widgets import (
     COL_LOCATE,
     COL_RECV_AT,
     COL_REFRESH,
+    FILTERABLE_COLUMNS,
+    ColumnFilterPopup,
+    FilterHeaderView,
     IPRActionDelegate,
     IPRFilterProxyModel,
     IPRMenubar,
@@ -90,6 +95,9 @@ from utils import (
 
 logger = logging.getLogger(__name__)
 
+# px band along the frameless window border that triggers an edge/corner resize
+RESIZE_MARGIN = 6
+
 
 class ListenState(Enum):
     """Persistent state of the listening backend, reflected in the status bar."""
@@ -108,6 +116,18 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.config = stored
         self._app_instance = QApplication.instance()
+        # frameless-window edge/corner resizing: a global event filter hit-tests
+        # the window border and hands off to the OS via startSystemResize (which
+        # also lets the resize participate in window snapping).
+        self._active_resize_cursor: Qt.CursorShape | None = None
+        self.setMouseTracking(True)
+        self.centralWidget().setMouseTracking(True)
+        self._app_instance.installEventFilter(self)
+        # applied once on first show (Windows only) to re-enable Aero Snap
+        self._snapping_enabled = False
+        # re-entrancy guard for the pool configurator toggle (its setChecked
+        # calls re-emit toggled and re-enter the slot)
+        self._toggling_pool = False
         self.confirms: list[IPRConfirmation] = []
         self.aboutDialog: IPRAbout | None = None
         self.update_checker: UpdateChecker | None = None
@@ -173,8 +193,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.miner_locate_duration: int = api_settings.get("locate_duration_ms")
 
         # initialize IPR_Titlebar widget
-        self.title_bar = IPRTitlebar(self, "BitCap IPReporter", ["min", "close"])
+        self.title_bar = IPRTitlebar(self, "BitCap IPReporter", ["min", "max", "close"])
         self.title_bar.minimize_button.clicked.connect(self.window().showMinimized)
+        self.title_bar.maximize_button.clicked.connect(self.title_bar.toggle_maximize)
         self.title_bar.close_button.clicked.connect(self.close_to_tray_or_exit)
         title_bar_widget = self.titleBarWidget.layout()
         if title_bar_widget:
@@ -294,6 +315,17 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.id_proxy = IPRFilterProxyModel(self)
         self.id_proxy.setSourceModel(self.id_model)
         self.tableIPRID.setModel(self.id_proxy)
+        # custom header: funnel dropdowns on low-cardinality columns, alongside
+        # the existing click-to-select-column behaviour on the header text.
+        # Installed before the setColumnWidth calls below so the widths apply to
+        # this header rather than being reset when it replaces the default one.
+        self.id_header = FilterHeaderView(self.tableIPRID)
+        self.tableIPRID.setHorizontalHeader(self.id_header)
+        # restore the section-size config setupUi applied to the default header
+        # (a fresh header defaults to a larger minimum, which would clamp the
+        # 15px action columns wider and upscale their icons)
+        self.id_header.setMinimumSectionSize(15)
+        self.id_header.setDefaultSectionSize(150)
         # action-column icons (refresh / locate) painted by a delegate
         self.id_action_delegate = IPRActionDelegate(self.tableIPRID)
         self.tableIPRID.setItemDelegateForColumn(COL_REFRESH, self.id_action_delegate)
@@ -302,9 +334,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.tableIPRID.setColumnWidth(0, 15)
         self.tableIPRID.setColumnWidth(1, 15)
         self.tableIPRID.setColumnWidth(2, 180)
-        self.tableIPRID.setColumnWidth(4, 120)
-        self.tableIPRID.setColumnWidth(6, 130)
-        self.tableIPRID.setColumnWidth(7, 145)
+        self.tableIPRID.setColumnWidth(7, 180)
         self.tableIPRID.setColumnWidth(10, 385)
         self.tableIPRID.setColumnWidth(11, 300)
         self.tableIPRID.setColumnWidth(14, 180)
@@ -312,12 +342,24 @@ class IPR(QMainWindow, Ui_MainWindow):
         # sorting is driven by the toolbar controls, not header clicks, so a
         # header click is free to select the column without sorting it
         self.tableIPRID.setSortingEnabled(False)
-        self.id_header = self.tableIPRID.horizontalHeader()
         self.id_header.setSortIndicatorShown(False)
-        self.id_header.sectionClicked.connect(self.select_column)
-        # vertical header: 1-based row-count column on the left
+        self.id_header.set_filterable_columns(FILTERABLE_COLUMNS)
+        # right-click a header to toggle highlighting its column (left-click is
+        # reserved for the funnel filter and no longer highlights)
+        self.id_header.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.id_header.customContextMenuRequested.connect(self.toggle_column_at)
+        self.id_header.filter_clicked.connect(self.open_column_filter)
+        self.id_filter_popup: ColumnFilterPopup | None = None
+        # vertical header: 1-based row-count column on the left. Left-click a
+        # row number to select that row (default behaviour); right-click to
+        # toggle highlighting the whole row (add/remove without clearing others).
         v_header = self.tableIPRID.verticalHeader()
         v_header.setVisible(True)
+        v_header.setSectionsClickable(True)
+        # fixed, non-resizable row height for a consistent table layout
+        v_header.setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
+        v_header.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        v_header.customContextMenuRequested.connect(self.toggle_row_at)
         self.lineIDTableFilter.textChanged.connect(self.id_proxy.set_filter_text)
         # sort controls: column combo + asc/desc toggle (next to the filter)
         for col in range(self.id_model.columnCount()):
@@ -479,6 +521,142 @@ class IPR(QMainWindow, Ui_MainWindow):
         if self.sys_tray.isVisible() and not self.isVisible():
             return True
         return False
+
+    def changeEvent(self, event):
+        # keep the titlebar's maximize/restore glyph correct even when the OS
+        # changes the window state (e.g. drag-snap to the top edge)
+        super().changeEvent(event)
+        if event.type() == QEvent.Type.WindowStateChange:
+            title_bar = getattr(self, "title_bar", None)
+            if title_bar is not None:
+                title_bar.sync_maximize_button()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        if not self._snapping_enabled and CURR_PLATFORM.startswith("win"):
+            self._enable_windows_snapping()
+            self._snapping_enabled = True
+
+    def _enable_windows_snapping(self):
+        """Re-enable native Aero Snap for the frameless window (Windows).
+
+        Qt strips ``WS_THICKFRAME``/``WS_MAXIMIZEBOX`` from a frameless window,
+        and without them Windows won't snap it (drag-to-edge, Win+Arrow) even
+        though the titlebar drag uses ``startSystemMove``. Adding the styles
+        back on the HWND restores snapping; the ``FramelessWindowHint`` handling
+        keeps the frame itself from being drawn.
+        """
+        try:
+            import ctypes
+            from ctypes import wintypes
+
+            GWL_STYLE = -16
+            WS_MAXIMIZEBOX = 0x00010000
+            WS_THICKFRAME = 0x00040000
+            SWP_NOSIZE = 0x0001
+            SWP_NOMOVE = 0x0002
+            SWP_NOZORDER = 0x0004
+            SWP_FRAMECHANGED = 0x0020
+
+            user32 = ctypes.windll.user32
+            user32.GetWindowLongW.restype = ctypes.c_long
+            user32.GetWindowLongW.argtypes = [wintypes.HWND, ctypes.c_int]
+            user32.SetWindowLongW.restype = ctypes.c_long
+            user32.SetWindowLongW.argtypes = [
+                wintypes.HWND,
+                ctypes.c_int,
+                ctypes.c_long,
+            ]
+
+            hwnd = int(self.winId())
+            style = user32.GetWindowLongW(hwnd, GWL_STYLE) & 0xFFFFFFFF
+            style |= WS_MAXIMIZEBOX | WS_THICKFRAME
+            # SetWindowLongW takes a signed 32-bit LONG
+            if style >= 0x80000000:
+                style -= 0x100000000
+            user32.SetWindowLongW(hwnd, GWL_STYLE, style)
+            user32.SetWindowPos(
+                hwnd,
+                0,
+                0,
+                0,
+                0,
+                0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED,
+            )
+        except Exception as exc:  # pragma: no cover - platform specific
+            logger.warning(f" could not enable native window snapping: {exc}")
+
+    # frameless window resizing
+    #
+    # A frameless window has no native resize border, so we hit-test the mouse
+    # against the window edges ourselves and delegate the actual resize to the
+    # OS via QWindow.startSystemResize(). Using the system resize means the
+    # drag behaves natively, including snapping.
+    def _resize_edges(self, global_pos) -> Qt.Edge | None:
+        if self.isMaximized() or self.isFullScreen():
+            return None
+        rect = self.frameGeometry()
+        margin = RESIZE_MARGIN
+        edges: Qt.Edge | None = None
+
+        def add(edge: Qt.Edge) -> None:
+            nonlocal edges
+            edges = edge if edges is None else edges | edge
+
+        if global_pos.x() <= rect.left() + margin:
+            add(Qt.Edge.LeftEdge)
+        elif global_pos.x() >= rect.right() - margin:
+            add(Qt.Edge.RightEdge)
+        if global_pos.y() <= rect.top() + margin:
+            add(Qt.Edge.TopEdge)
+        elif global_pos.y() >= rect.bottom() - margin:
+            add(Qt.Edge.BottomEdge)
+        return edges
+
+    @staticmethod
+    def _cursor_for_edges(edges: Qt.Edge | None) -> Qt.CursorShape | None:
+        left, right = Qt.Edge.LeftEdge, Qt.Edge.RightEdge
+        top, bottom = Qt.Edge.TopEdge, Qt.Edge.BottomEdge
+        if edges in (left | top, right | bottom):
+            return Qt.CursorShape.SizeFDiagCursor
+        if edges in (right | top, left | bottom):
+            return Qt.CursorShape.SizeBDiagCursor
+        if edges in (left, right):
+            return Qt.CursorShape.SizeHorCursor
+        if edges in (top, bottom):
+            return Qt.CursorShape.SizeVerCursor
+        return None
+
+    def _apply_resize_cursor(self, edges: Qt.Edge | None) -> None:
+        shape = self._cursor_for_edges(edges)
+        if shape == self._active_resize_cursor:
+            return
+        if self._active_resize_cursor is not None:
+            self._app_instance.restoreOverrideCursor()
+        if shape is not None:
+            self._app_instance.setOverrideCursor(QCursor(shape))
+        self._active_resize_cursor = shape
+
+    def eventFilter(self, obj, event):
+        if self.isActiveWindow() and not self.isMaximized():
+            event_type = event.type()
+            if (
+                event_type == QEvent.Type.MouseButtonPress
+                and event.button() == Qt.MouseButton.LeftButton
+            ):
+                edges = self._resize_edges(event.globalPosition().toPoint())
+                handle = self.windowHandle()
+                if edges is not None and handle is not None:
+                    if handle.startSystemResize(edges):
+                        return True
+            elif event_type == QEvent.Type.MouseMove and not (
+                QApplication.mouseButtons() & Qt.MouseButton.LeftButton
+            ):
+                self._apply_resize_cursor(
+                    self._resize_edges(event.globalPosition().toPoint())
+                )
+        return super().eventFilter(obj, event)
 
     def update_stacked_widget(self, view_index: int | None = None, *_):
         logger.info(" update view.")
@@ -1429,17 +1607,72 @@ class IPR(QMainWindow, Ui_MainWindow):
         cb.setText(out.strip(), mode=cb.Mode.Clipboard)
         self.iprStatusBar.showMessage("Status :: Copied elements to clipboard.", 3000)
 
-    def select_column(self, section: int):
-        rows = self.id_proxy.rowCount()
-        if not rows:
+    def _toggle_selection(self, indexes: list[QModelIndex]):
+        """Select every index, or clear them if all are already selected.
+
+        Giving an explicit un-highlight and letting rows/columns stay
+        highlighted independently.
+        """
+        if not indexes:
             return
-        if section != 0:
-            selection_model = self.tableIPRID.selectionModel()
-            for row in range(rows):
-                selection_model.select(
-                    self.id_proxy.index(row, section),
-                    QItemSelectionModel.SelectionFlag.Select,
-                )
+        selection_model = self.tableIPRID.selectionModel()
+        fully_selected = all(selection_model.isSelected(index) for index in indexes)
+        flag = (
+            QItemSelectionModel.SelectionFlag.Deselect
+            if fully_selected
+            else QItemSelectionModel.SelectionFlag.Select
+        )
+        for index in indexes:
+            selection_model.select(index, flag)
+
+    def toggle_column_at(self, pos):
+        """Right-click a column header to toggle highlighting that column."""
+        section = self.id_header.logicalIndexAt(pos)
+        # skip invalid hits and the icon-only action columns (no cell content)
+        if section < COL_RECV_AT:
+            return
+        rows = self.id_proxy.rowCount()
+        self._toggle_selection(
+            [self.id_proxy.index(row, section) for row in range(rows)]
+        )
+
+    def toggle_row_at(self, pos):
+        """Right-click a row header to toggle highlighting that whole row."""
+        row = self.tableIPRID.verticalHeader().logicalIndexAt(pos)
+        if row < 0:
+            return
+        columns = self.id_proxy.columnCount()
+        self._toggle_selection(
+            [self.id_proxy.index(row, col) for col in range(columns)]
+        )
+
+    def open_column_filter(self, section: int):
+        """Pop up the value checklist for a filterable header column."""
+        title = self.id_model.headerData(
+            section, Qt.Orientation.Horizontal, Qt.ItemDataRole.DisplayRole
+        )
+        values = self.id_model.distinct_values(section)
+        popup = ColumnFilterPopup(
+            str(title), values, self.id_proxy.column_filter(section), self
+        )
+        popup.applied.connect(
+            lambda labels, col=section, choices=values: self._apply_column_filter(
+                col, labels, choices
+            )
+        )
+        popup.cleared.connect(lambda col=section: self._apply_column_filter(col, None))
+        self.id_filter_popup = popup
+        popup.show_at(self.id_header.filter_anchor(section))
+
+    def _apply_column_filter(
+        self, section: int, labels: list[str] | None, choices: list[str] | None = None
+    ):
+        # all values checked is equivalent to no filter; keep the header glyph
+        # indicator in sync with what the proxy is actually filtering on.
+        if labels is not None and choices is not None and len(labels) == len(choices):
+            labels = None
+        self.id_proxy.set_column_filter(section, labels)
+        self.id_header.set_active_columns(self.id_proxy.active_filter_columns())
 
     def apply_sort(self, *_args):
         """Sort the proxy from the current toolbar control state."""
@@ -1460,8 +1693,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.apply_sort()
 
     def reset_view(self):
-        # clear the active filter and return the sort to its default
+        # clear the text filter and every per-column filter, then return the
+        # sort to its default
         self.lineIDTableFilter.clear()
+        self.id_proxy.clear_column_filters()
+        self.id_header.set_active_columns(self.id_proxy.active_filter_columns())
         self.reset_sort()
 
     def clear_table(self):
@@ -1492,7 +1728,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                     )
                     miner = self._miner_from_data(row)
                     self.id_model.append(miner)
-            self.tableIPRID.scrollToBottom()
         else:
             logger.error(f"import_table : failed to read file {file_name}.")
             self.iprStatusBar.showMessage("Status :: Failed to import table.", 5000)
@@ -1531,20 +1766,36 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprStatusBar.showMessage(f"Status :: Wrote table as .CSV to {p}.", 3000)
 
     def toggle_pool_config(self, enabled: bool = False):
-        self.menu_bar.actionShowPoolConfigurator.setChecked(enabled)
-        self.id_context_menu.contextActionConfiguratorShowHide.setChecked(enabled)
-        self.id_context_menu.contextActionConfiguratorGetPool.setEnabled(enabled)
-        self.id_context_menu.contextActionConfiguratorSetPools.setEnabled(enabled)
-        self.poolConfigurator.setVisible(enabled)
-        if self.menu_bar.actionShowPoolConfigurator.isChecked():
-            self.setGeometry(self.x(), self.y(), self.width(), self.maximumHeight())
-        else:
-            self.setGeometry(
-                self.x(),
-                self.y(),
-                self.width(),
-                self.height(),
-            )
+        # setChecked() below re-emits toggled and re-enters this slot; the guard
+        # keeps the one-off window resize from being applied more than once.
+        if self._toggling_pool:
+            return
+        self._toggling_pool = True
+        try:
+            self.menu_bar.actionShowPoolConfigurator.setChecked(enabled)
+            self.id_context_menu.contextActionConfiguratorShowHide.setChecked(enabled)
+            self.id_context_menu.contextActionConfiguratorGetPool.setEnabled(enabled)
+            self.id_context_menu.contextActionConfiguratorSetPools.setEnabled(enabled)
+            if enabled == (not self.poolConfigurator.isHidden()):
+                return  # already in the requested state; nothing to resize
+            # grow/shrink the window by exactly the configurator's own height so
+            # the rest of the layout keeps its size
+            delta = self.poolConfigurator.sizeHint().height()
+            self.poolConfigurator.setVisible(enabled)
+            # Only resize for a live user toggle. During start-up the window
+            # isn't shown yet and a restored geometry already accounts for the
+            # configurator, so growing again would double-count. When
+            # maximized/snapped, leave the size to the OS and let the layout
+            # absorb the configurator instead of fighting the state.
+            if self.isVisible() and not (self.isMaximized() or self.isFullScreen()):
+                if enabled:
+                    available = self.screen().availableGeometry().height()
+                    height = min(self.height() + delta, available)
+                else:
+                    height = max(self.height() - delta, self.minimumHeight())
+                self.resize(self.width(), height)
+        finally:
+            self._toggling_pool = False
 
     # listener
     def start_listen(self):
