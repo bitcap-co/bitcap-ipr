@@ -87,7 +87,6 @@ class Ui_MainWindow(object):
         self.pcwrapper = QFrame(self.poolConfigurator)
         self.pcwrapper.setObjectName(u"pcwrapper")
         self.pcwrapper.setMinimumSize(QSize(532, 171))
-        self.pcwrapper.setMaximumSize(QSize(1260, 185))
         self.pcwrapper.setFrameShape(QFrame.Shape.NoFrame)
         self.pcwrapper.setFrameShadow(QFrame.Shadow.Plain)
         self.verticalLayout_13 = QVBoxLayout(self.pcwrapper)
@@ -118,10 +117,6 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_4.addWidget(self.presetSet)
 
-        self.horizontalSpacer_2 = QSpacerItem(0, 20, QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_4.addItem(self.horizontalSpacer_2)
-
         self.presetButtons = QWidget(self.presetControl)
         self.presetButtons.setObjectName(u"presetButtons")
         self.presetButtons.setMaximumSize(QSize(300, 16777215))
@@ -150,6 +145,10 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_4.addWidget(self.presetButtons)
 
+        self.horizontalSpacer_2 = QSpacerItem(0, 20, QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_4.addItem(self.horizontalSpacer_2)
+
 
         self.verticalLayout_13.addWidget(self.presetControl)
 
@@ -166,6 +165,11 @@ class Ui_MainWindow(object):
 
         self.linePoolURL = QLineEdit(self.pool1Config)
         self.linePoolURL.setObjectName(u"linePoolURL")
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.linePoolURL.sizePolicy().hasHeightForWidth())
+        self.linePoolURL.setSizePolicy(sizePolicy2)
         self.linePoolURL.setMinimumSize(QSize(130, 25))
         self.linePoolURL.setMaximumSize(QSize(415, 25))
 
@@ -197,6 +201,10 @@ class Ui_MainWindow(object):
         self.linePoolPasswd.setEchoMode(QLineEdit.EchoMode.Password)
 
         self.horizontalLayout_22.addWidget(self.linePoolPasswd)
+
+        self.horizontalSpacer_4 = QSpacerItem(0, 20, QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_22.addItem(self.horizontalSpacer_4)
 
 
         self.verticalLayout_13.addWidget(self.pool1Config)
@@ -246,6 +254,10 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_29.addWidget(self.linePoolPasswd_2)
 
+        self.horizontalSpacer_5 = QSpacerItem(0, 20, QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_29.addItem(self.horizontalSpacer_5)
+
 
         self.verticalLayout_13.addWidget(self.pool2Config)
 
@@ -294,6 +306,10 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_19.addWidget(self.linePoolPasswd_3)
 
+        self.horizontalSpacer_6 = QSpacerItem(0, 20, QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_19.addItem(self.horizontalSpacer_6)
+
 
         self.verticalLayout_13.addWidget(self.pool3Config)
 
@@ -312,11 +328,11 @@ class Ui_MainWindow(object):
         self.vwrapper.setContentsMargins(9, 9, 9, 9)
         self.stackedWidget = QStackedWidget(self.centralwidget)
         self.stackedWidget.setObjectName(u"stackedWidget")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Ignored)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.stackedWidget.sizePolicy().hasHeightForWidth())
-        self.stackedWidget.setSizePolicy(sizePolicy2)
+        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Ignored)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.stackedWidget.sizePolicy().hasHeightForWidth())
+        self.stackedWidget.setSizePolicy(sizePolicy3)
         self.stackedWidget.setMinimumSize(QSize(530, 360))
         self.defaultView = QWidget()
         self.defaultView.setObjectName(u"defaultView")
@@ -324,11 +340,11 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.labelIPRLogo = QLabel(self.defaultView)
         self.labelIPRLogo.setObjectName(u"labelIPRLogo")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.labelIPRLogo.sizePolicy().hasHeightForWidth())
-        self.labelIPRLogo.setSizePolicy(sizePolicy3)
+        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        sizePolicy4.setHorizontalStretch(0)
+        sizePolicy4.setVerticalStretch(0)
+        sizePolicy4.setHeightForWidth(self.labelIPRLogo.sizePolicy().hasHeightForWidth())
+        self.labelIPRLogo.setSizePolicy(sizePolicy4)
         self.labelIPRLogo.setMinimumSize(QSize(256, 256))
         self.labelIPRLogo.setMaximumSize(QSize(256, 256))
         self.labelIPRLogo.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -345,22 +361,15 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.setSpacing(0)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.tableToolBar = QWidget(self.tableView)
-        self.tableToolBar.setObjectName(u"tableToolBar")
-        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        sizePolicy4.setHorizontalStretch(0)
-        sizePolicy4.setVerticalStretch(0)
-        sizePolicy4.setHeightForWidth(self.tableToolBar.sizePolicy().hasHeightForWidth())
-        self.tableToolBar.setSizePolicy(sizePolicy4)
-        self.horizontalLayout_7 = QHBoxLayout(self.tableToolBar)
-        self.horizontalLayout_7.setSpacing(6)
-        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
-        self.horizontalLayout_7.setContentsMargins(6, 6, 0, 6)
-        self.tableSortFilter = QWidget(self.tableToolBar)
+        self.tableSortFilter = QWidget(self.tableView)
         self.tableSortFilter.setObjectName(u"tableSortFilter")
+        sizePolicy.setHeightForWidth(self.tableSortFilter.sizePolicy().hasHeightForWidth())
+        self.tableSortFilter.setSizePolicy(sizePolicy)
+        self.tableSortFilter.setMinimumSize(QSize(525, 40))
+        self.tableSortFilter.setMaximumSize(QSize(915, 40))
         self.horizontalLayout_8 = QHBoxLayout(self.tableSortFilter)
         self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
-        self.horizontalLayout_8.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_8.setContentsMargins(6, 6, 6, 6)
         self.lineIDTableFilter = QLineEdit(self.tableSortFilter)
         self.lineIDTableFilter.setObjectName(u"lineIDTableFilter")
         sizePolicy.setHeightForWidth(self.lineIDTableFilter.sizePolicy().hasHeightForWidth())
@@ -386,8 +395,8 @@ class Ui_MainWindow(object):
 
         self.comboSortColumn = QComboBox(self.tableSortFilter)
         self.comboSortColumn.setObjectName(u"comboSortColumn")
-        sizePolicy3.setHeightForWidth(self.comboSortColumn.sizePolicy().hasHeightForWidth())
-        self.comboSortColumn.setSizePolicy(sizePolicy3)
+        sizePolicy4.setHeightForWidth(self.comboSortColumn.sizePolicy().hasHeightForWidth())
+        self.comboSortColumn.setSizePolicy(sizePolicy4)
         self.comboSortColumn.setMinimumSize(QSize(130, 25))
         self.comboSortColumn.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
@@ -409,15 +418,8 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_8.addWidget(self.btnResetView)
 
-        self.horizontalSpacer_3 = QSpacerItem(340, 20, QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
 
-        self.horizontalLayout_8.addItem(self.horizontalSpacer_3)
-
-
-        self.horizontalLayout_7.addWidget(self.tableSortFilter)
-
-
-        self.verticalLayout_2.addWidget(self.tableToolBar)
+        self.verticalLayout_2.addWidget(self.tableSortFilter)
 
         self.tableIPRID = QTableView(self.tableView)
         self.tableIPRID.setObjectName(u"tableIPRID")
@@ -466,12 +468,16 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 478, 821))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 728, 814))
         self.verticalLayout_5 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_5.setSpacing(15)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
         self.groupSystemTray = QGroupBox(self.scrollGeneral)
         self.groupSystemTray.setObjectName(u"groupSystemTray")
+        sizePolicy.setHeightForWidth(self.groupSystemTray.sizePolicy().hasHeightForWidth())
+        self.groupSystemTray.setSizePolicy(sizePolicy)
+        self.groupSystemTray.setMinimumSize(QSize(0, 95))
+        self.groupSystemTray.setMaximumSize(QSize(16777215, 95))
         self.gridLayout_2 = QGridLayout(self.groupSystemTray)
         self.gridLayout_2.setObjectName(u"gridLayout_2")
         self.label_2 = QLabel(self.groupSystemTray)
@@ -500,6 +506,10 @@ class Ui_MainWindow(object):
 
         self.groupUpdates = QGroupBox(self.scrollGeneral)
         self.groupUpdates.setObjectName(u"groupUpdates")
+        sizePolicy.setHeightForWidth(self.groupUpdates.sizePolicy().hasHeightForWidth())
+        self.groupUpdates.setSizePolicy(sizePolicy)
+        self.groupUpdates.setMinimumSize(QSize(0, 95))
+        self.groupUpdates.setMaximumSize(QSize(16777215, 95))
         self.verticalLayout_updates = QVBoxLayout(self.groupUpdates)
         self.verticalLayout_updates.setObjectName(u"verticalLayout_updates")
         self.checkCheckUpdatesOnStartup = QCheckBox(self.groupUpdates)
@@ -517,6 +527,10 @@ class Ui_MainWindow(object):
 
         self.groupInactiveTimer = QGroupBox(self.scrollGeneral)
         self.groupInactiveTimer.setObjectName(u"groupInactiveTimer")
+        sizePolicy.setHeightForWidth(self.groupInactiveTimer.sizePolicy().hasHeightForWidth())
+        self.groupInactiveTimer.setSizePolicy(sizePolicy)
+        self.groupInactiveTimer.setMinimumSize(QSize(0, 95))
+        self.groupInactiveTimer.setMaximumSize(QSize(16777215, 95))
         self.gridLayout_3 = QGridLayout(self.groupInactiveTimer)
         self.gridLayout_3.setObjectName(u"gridLayout_3")
         self.label_3 = QLabel(self.groupInactiveTimer)
@@ -724,12 +738,16 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 476, 1043))
+        self.scrollAPI.setGeometry(QRect(0, 0, 724, 976))
         self.verticalLayout_8 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_8.setSpacing(15)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
         self.groupAPISettings = QGroupBox(self.scrollAPI)
         self.groupAPISettings.setObjectName(u"groupAPISettings")
+        sizePolicy.setHeightForWidth(self.groupAPISettings.sizePolicy().hasHeightForWidth())
+        self.groupAPISettings.setSizePolicy(sizePolicy)
+        self.groupAPISettings.setMinimumSize(QSize(0, 64))
+        self.groupAPISettings.setMaximumSize(QSize(16777215, 64))
         self.gridLayout_7 = QGridLayout(self.groupAPISettings)
         self.gridLayout_7.setObjectName(u"gridLayout_7")
         self.label_9 = QLabel(self.groupAPISettings)
@@ -756,6 +774,10 @@ class Ui_MainWindow(object):
         self.verticalLayout_10.setObjectName(u"verticalLayout_10")
         self.groupAntminer = QGroupBox(self.groupAPIAuth)
         self.groupAntminer.setObjectName(u"groupAntminer")
+        sizePolicy.setHeightForWidth(self.groupAntminer.sizePolicy().hasHeightForWidth())
+        self.groupAntminer.setSizePolicy(sizePolicy)
+        self.groupAntminer.setMinimumSize(QSize(0, 64))
+        self.groupAntminer.setMaximumSize(QSize(16777215, 64))
         self.gridLayout_8 = QGridLayout(self.groupAntminer)
         self.gridLayout_8.setObjectName(u"gridLayout_8")
         self.label_10 = QLabel(self.groupAntminer)
@@ -776,6 +798,10 @@ class Ui_MainWindow(object):
 
         self.groupIceriver = QGroupBox(self.groupAPIAuth)
         self.groupIceriver.setObjectName(u"groupIceriver")
+        sizePolicy.setHeightForWidth(self.groupIceriver.sizePolicy().hasHeightForWidth())
+        self.groupIceriver.setSizePolicy(sizePolicy)
+        self.groupIceriver.setMinimumSize(QSize(0, 64))
+        self.groupIceriver.setMaximumSize(QSize(16777215, 64))
         self.gridLayout_9 = QGridLayout(self.groupIceriver)
         self.gridLayout_9.setObjectName(u"gridLayout_9")
         self.label_11 = QLabel(self.groupIceriver)
@@ -796,6 +822,10 @@ class Ui_MainWindow(object):
 
         self.groupWhatsminer = QGroupBox(self.groupAPIAuth)
         self.groupWhatsminer.setObjectName(u"groupWhatsminer")
+        sizePolicy.setHeightForWidth(self.groupWhatsminer.sizePolicy().hasHeightForWidth())
+        self.groupWhatsminer.setSizePolicy(sizePolicy)
+        self.groupWhatsminer.setMinimumSize(QSize(0, 64))
+        self.groupWhatsminer.setMaximumSize(QSize(16777215, 64))
         self.gridLayout_11 = QGridLayout(self.groupWhatsminer)
         self.gridLayout_11.setObjectName(u"gridLayout_11")
         self.label_12 = QLabel(self.groupWhatsminer)
@@ -816,6 +846,10 @@ class Ui_MainWindow(object):
 
         self.groupGoldshell = QGroupBox(self.groupAPIAuth)
         self.groupGoldshell.setObjectName(u"groupGoldshell")
+        sizePolicy.setHeightForWidth(self.groupGoldshell.sizePolicy().hasHeightForWidth())
+        self.groupGoldshell.setSizePolicy(sizePolicy)
+        self.groupGoldshell.setMinimumSize(QSize(0, 64))
+        self.groupGoldshell.setMaximumSize(QSize(16777215, 64))
         self.gridLayout_10 = QGridLayout(self.groupGoldshell)
         self.gridLayout_10.setObjectName(u"gridLayout_10")
         self.label_13 = QLabel(self.groupGoldshell)
@@ -837,6 +871,10 @@ class Ui_MainWindow(object):
         self.groupHammer = QGroupBox(self.groupAPIAuth)
         self.groupHammer.setObjectName(u"groupHammer")
         self.groupHammer.setEnabled(False)
+        sizePolicy.setHeightForWidth(self.groupHammer.sizePolicy().hasHeightForWidth())
+        self.groupHammer.setSizePolicy(sizePolicy)
+        self.groupHammer.setMinimumSize(QSize(0, 64))
+        self.groupHammer.setMaximumSize(QSize(16777215, 64))
         self.gridLayout_13 = QGridLayout(self.groupHammer)
         self.gridLayout_13.setObjectName(u"gridLayout_13")
         self.label_14 = QLabel(self.groupHammer)
@@ -857,6 +895,10 @@ class Ui_MainWindow(object):
 
         self.groupVolcminer = QGroupBox(self.groupAPIAuth)
         self.groupVolcminer.setObjectName(u"groupVolcminer")
+        sizePolicy.setHeightForWidth(self.groupVolcminer.sizePolicy().hasHeightForWidth())
+        self.groupVolcminer.setSizePolicy(sizePolicy)
+        self.groupVolcminer.setMinimumSize(QSize(0, 64))
+        self.groupVolcminer.setMaximumSize(QSize(16777215, 64))
         self.gridLayout_12 = QGridLayout(self.groupVolcminer)
         self.gridLayout_12.setObjectName(u"gridLayout_12")
         self.lineVolcminerPasswd = QLineEdit(self.groupVolcminer)
@@ -877,6 +919,10 @@ class Ui_MainWindow(object):
 
         self.groupElphapex = QGroupBox(self.groupAPIAuth)
         self.groupElphapex.setObjectName(u"groupElphapex")
+        sizePolicy.setHeightForWidth(self.groupElphapex.sizePolicy().hasHeightForWidth())
+        self.groupElphapex.setSizePolicy(sizePolicy)
+        self.groupElphapex.setMinimumSize(QSize(0, 64))
+        self.groupElphapex.setMaximumSize(QSize(16777215, 64))
         self.gridLayout_14 = QGridLayout(self.groupElphapex)
         self.gridLayout_14.setObjectName(u"gridLayout_14")
         self.label_16 = QLabel(self.groupElphapex)
@@ -897,6 +943,10 @@ class Ui_MainWindow(object):
 
         self.groupSealminer = QGroupBox(self.groupAPIAuth)
         self.groupSealminer.setObjectName(u"groupSealminer")
+        sizePolicy.setHeightForWidth(self.groupSealminer.sizePolicy().hasHeightForWidth())
+        self.groupSealminer.setSizePolicy(sizePolicy)
+        self.groupSealminer.setMinimumSize(QSize(0, 64))
+        self.groupSealminer.setMaximumSize(QSize(16777215, 64))
         self.gridLayout_15 = QGridLayout(self.groupSealminer)
         self.gridLayout_15.setObjectName(u"gridLayout_15")
         self.label_17 = QLabel(self.groupSealminer)
@@ -917,6 +967,10 @@ class Ui_MainWindow(object):
 
         self.groupAuradine = QGroupBox(self.groupAPIAuth)
         self.groupAuradine.setObjectName(u"groupAuradine")
+        sizePolicy.setHeightForWidth(self.groupAuradine.sizePolicy().hasHeightForWidth())
+        self.groupAuradine.setSizePolicy(sizePolicy)
+        self.groupAuradine.setMinimumSize(QSize(0, 64))
+        self.groupAuradine.setMaximumSize(QSize(16777215, 64))
         self.gridLayout_18 = QGridLayout(self.groupAuradine)
         self.gridLayout_18.setObjectName(u"gridLayout_18")
         self.label_28 = QLabel(self.groupAuradine)
@@ -938,6 +992,10 @@ class Ui_MainWindow(object):
         self.groupIPollo = QGroupBox(self.groupAPIAuth)
         self.groupIPollo.setObjectName(u"groupIPollo")
         self.groupIPollo.setEnabled(False)
+        sizePolicy.setHeightForWidth(self.groupIPollo.sizePolicy().hasHeightForWidth())
+        self.groupIPollo.setSizePolicy(sizePolicy)
+        self.groupIPollo.setMinimumSize(QSize(0, 64))
+        self.groupIPollo.setMaximumSize(QSize(16777215, 64))
         self.gridLayout_19 = QGridLayout(self.groupIPollo)
         self.gridLayout_19.setObjectName(u"gridLayout_19")
         self.label_29 = QLabel(self.groupIPollo)
@@ -962,6 +1020,8 @@ class Ui_MainWindow(object):
 
         self.groupAPIAuthFirmwares = QGroupBox(self.scrollAPI)
         self.groupAPIAuthFirmwares.setObjectName(u"groupAPIAuthFirmwares")
+        sizePolicy.setHeightForWidth(self.groupAPIAuthFirmwares.sizePolicy().hasHeightForWidth())
+        self.groupAPIAuthFirmwares.setSizePolicy(sizePolicy)
         self.verticalLayout_12 = QVBoxLayout(self.groupAPIAuthFirmwares)
         self.verticalLayout_12.setObjectName(u"verticalLayout_12")
         self.checkUseAntminerLogin = QCheckBox(self.groupAPIAuthFirmwares)
@@ -971,6 +1031,10 @@ class Ui_MainWindow(object):
 
         self.groupVnish = QGroupBox(self.groupAPIAuthFirmwares)
         self.groupVnish.setObjectName(u"groupVnish")
+        sizePolicy.setHeightForWidth(self.groupVnish.sizePolicy().hasHeightForWidth())
+        self.groupVnish.setSizePolicy(sizePolicy)
+        self.groupVnish.setMinimumSize(QSize(0, 64))
+        self.groupVnish.setMaximumSize(QSize(16777215, 64))
         self.gridLayout_16 = QGridLayout(self.groupVnish)
         self.gridLayout_16.setObjectName(u"gridLayout_16")
         self.lineVnishPasswd = QLineEdit(self.groupVnish)
@@ -1010,7 +1074,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollLogs = QWidget()
         self.scrollLogs.setObjectName(u"scrollLogs")
-        self.scrollLogs.setGeometry(QRect(0, 0, 478, 227))
+        self.scrollLogs.setGeometry(QRect(0, 0, 728, 596))
         self.verticalLayout_11 = QVBoxLayout(self.scrollLogs)
         self.verticalLayout_11.setSpacing(15)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
@@ -1089,6 +1153,10 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_11.addWidget(self.groupLogFile)
 
+        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.verticalLayout_11.addItem(self.verticalSpacer_2)
+
         self.scrollArea_2.setWidget(self.scrollLogs)
 
         self.verticalLayout_7.addWidget(self.scrollArea_2)
@@ -1159,6 +1227,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.iprStatusBar = QStatusBar(MainWindow)
         self.iprStatusBar.setObjectName(u"iprStatusBar")
+        self.iprStatusBar.setSizeGripEnabled(True)
         MainWindow.setStatusBar(self.iprStatusBar)
 
         self.retranslateUi(MainWindow)

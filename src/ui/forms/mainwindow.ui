@@ -157,12 +157,6 @@
               <height>171</height>
              </size>
             </property>
-            <property name="maximumSize">
-             <size>
-              <width>1260</width>
-              <height>185</height>
-             </size>
-            </property>
             <property name="frameShape">
              <enum>QFrame::Shape::NoFrame</enum>
             </property>
@@ -247,22 +241,6 @@
                  </widget>
                 </item>
                 <item>
-                 <spacer name="horizontalSpacer_2">
-                  <property name="orientation">
-                   <enum>Qt::Orientation::Horizontal</enum>
-                  </property>
-                  <property name="sizeType">
-                   <enum>QSizePolicy::Policy::MinimumExpanding</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>0</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
                  <widget class="QWidget" name="presetButtons" native="true">
                   <property name="maximumSize">
                    <size>
@@ -326,6 +304,22 @@ Uses last 5 of SN or MAC address.</string>
                   </layout>
                  </widget>
                 </item>
+                <item>
+                 <spacer name="horizontalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Policy::MinimumExpanding</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>0</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
                </layout>
               </widget>
              </item>
@@ -353,6 +347,12 @@ Uses last 5 of SN or MAC address.</string>
                 </item>
                 <item>
                  <widget class="QLineEdit" name="linePoolURL">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="minimumSize">
                    <size>
                     <width>130</width>
@@ -427,6 +427,22 @@ Uses last 5 of SN or MAC address.</string>
                    <enum>QLineEdit::EchoMode::Password</enum>
                   </property>
                  </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_4">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Policy::MinimumExpanding</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>0</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
                 </item>
                </layout>
               </widget>
@@ -530,6 +546,22 @@ Uses last 5 of SN or MAC address.</string>
                   </property>
                  </widget>
                 </item>
+                <item>
+                 <spacer name="horizontalSpacer_5">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Policy::MinimumExpanding</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>0</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
                </layout>
               </widget>
              </item>
@@ -632,6 +664,22 @@ Uses last 5 of SN or MAC address.</string>
                   </property>
                  </widget>
                 </item>
+                <item>
+                 <spacer name="horizontalSpacer_6">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Policy::MinimumExpanding</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>0</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
                </layout>
               </widget>
              </item>
@@ -733,17 +781,26 @@ Uses last 5 of SN or MAC address.</string>
            <number>0</number>
           </property>
           <item>
-           <widget class="QWidget" name="tableToolBar" native="true">
+           <widget class="QWidget" name="tableSortFilter" native="true">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <layout class="QHBoxLayout" name="horizontalLayout_7">
-             <property name="spacing">
-              <number>6</number>
-             </property>
+            <property name="minimumSize">
+             <size>
+              <width>525</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>915</width>
+              <height>40</height>
+             </size>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_8">
              <property name="leftMargin">
               <number>6</number>
              </property>
@@ -751,168 +808,134 @@ Uses last 5 of SN or MAC address.</string>
               <number>6</number>
              </property>
              <property name="rightMargin">
-              <number>0</number>
+              <number>6</number>
              </property>
              <property name="bottomMargin">
               <number>6</number>
              </property>
              <item>
-              <widget class="QWidget" name="tableSortFilter" native="true">
-               <layout class="QHBoxLayout" name="horizontalLayout_8">
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QLineEdit" name="lineIDTableFilter">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>250</width>
-                    <height>25</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>640</width>
-                    <height>25</height>
-                   </size>
-                  </property>
-                  <property name="focusPolicy">
-                   <enum>Qt::FocusPolicy::ClickFocus</enum>
-                  </property>
-                  <property name="placeholderText">
-                   <string>Filter miners…</string>
-                  </property>
-                  <property name="clearButtonEnabled">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLabel" name="labelSortBy">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>50</width>
-                    <height>25</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>50</width>
-                    <height>25</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>Sort by:</string>
-                  </property>
-                  <property name="StyleClass" stdset="0">
-                   <string>setText</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QComboBox" name="comboSortColumn">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>130</width>
-                    <height>25</height>
-                   </size>
-                  </property>
-                  <property name="focusPolicy">
-                   <enum>Qt::FocusPolicy::ClickFocus</enum>
-                  </property>
-                  <property name="toolTip">
-                   <string>Column to sort the table by</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="btnSortOrder">
-                  <property name="minimumSize">
-                   <size>
-                    <width>32</width>
-                    <height>25</height>
-                   </size>
-                  </property>
-                  <property name="toolTip">
-                   <string>Toggle ascending / descending sort order</string>
-                  </property>
-                  <property name="iconSize">
-                   <size>
-                    <width>14</width>
-                    <height>14</height>
-                   </size>
-                  </property>
-                  <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QToolButton" name="btnResetView">
-                  <property name="minimumSize">
-                   <size>
-                    <width>32</width>
-                    <height>25</height>
-                   </size>
-                  </property>
-                  <property name="toolTip">
-                   <string>Clear the filter and reset the sort order</string>
-                  </property>
-                  <property name="iconSize">
-                   <size>
-                    <width>14</width>
-                    <height>14</height>
-                   </size>
-                  </property>
-                  <property name="toolButtonStyle">
-                   <enum>Qt::ToolButtonStyle::ToolButtonIconOnly</enum>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_3">
-                  <property name="orientation">
-                   <enum>Qt::Orientation::Horizontal</enum>
-                  </property>
-                  <property name="sizeType">
-                   <enum>QSizePolicy::Policy::Preferred</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>340</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
+              <widget class="QLineEdit" name="lineIDTableFilter">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>250</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>640</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="focusPolicy">
+                <enum>Qt::FocusPolicy::ClickFocus</enum>
+               </property>
+               <property name="placeholderText">
+                <string>Filter miners…</string>
+               </property>
+               <property name="clearButtonEnabled">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="labelSortBy">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>50</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>50</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Sort by:</string>
+               </property>
+               <property name="StyleClass" stdset="0">
+                <string>setText</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="comboSortColumn">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>130</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="focusPolicy">
+                <enum>Qt::FocusPolicy::ClickFocus</enum>
+               </property>
+               <property name="toolTip">
+                <string>Column to sort the table by</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="btnSortOrder">
+               <property name="minimumSize">
+                <size>
+                 <width>32</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>Toggle ascending / descending sort order</string>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>14</width>
+                 <height>14</height>
+                </size>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="btnResetView">
+               <property name="minimumSize">
+                <size>
+                 <width>32</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>Clear the filter and reset the sort order</string>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>14</width>
+                 <height>14</height>
+                </size>
+               </property>
+               <property name="toolButtonStyle">
+                <enum>Qt::ToolButtonStyle::ToolButtonIconOnly</enum>
+               </property>
               </widget>
              </item>
             </layout>
@@ -1007,8 +1030,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>478</width>
-                   <height>821</height>
+                   <width>728</width>
+                   <height>814</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1017,6 +1040,24 @@ Uses last 5 of SN or MAC address.</string>
                   </property>
                   <item>
                    <widget class="QGroupBox" name="groupSystemTray">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>95</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>95</height>
+                     </size>
+                    </property>
                     <property name="title">
                      <string>System Tray</string>
                     </property>
@@ -1081,6 +1122,24 @@ Uses last 5 of SN or MAC address.</string>
                   </item>
                   <item>
                    <widget class="QGroupBox" name="groupUpdates">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>95</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>95</height>
+                     </size>
+                    </property>
                     <property name="title">
                      <string>Updates</string>
                     </property>
@@ -1110,6 +1169,24 @@ Uses last 5 of SN or MAC address.</string>
                   </item>
                   <item>
                    <widget class="QGroupBox" name="groupInactiveTimer">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>95</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>95</height>
+                     </size>
+                    </property>
                     <property name="title">
                      <string>Inactive Timer</string>
                     </property>
@@ -1607,8 +1684,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>476</width>
-                   <height>1043</height>
+                   <width>724</width>
+                   <height>976</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -1617,6 +1694,24 @@ Uses last 5 of SN or MAC address.</string>
                   </property>
                   <item>
                    <widget class="QGroupBox" name="groupAPISettings">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>64</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>64</height>
+                     </size>
+                    </property>
                     <property name="title">
                      <string>API Settings</string>
                     </property>
@@ -1670,6 +1765,24 @@ Uses last 5 of SN or MAC address.</string>
                     <layout class="QVBoxLayout" name="verticalLayout_10">
                      <item>
                       <widget class="QGroupBox" name="groupAntminer">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>64</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>16777215</width>
+                         <height>64</height>
+                        </size>
+                       </property>
                        <property name="title">
                         <string>Antminer</string>
                        </property>
@@ -1705,6 +1818,24 @@ Uses last 5 of SN or MAC address.</string>
                      </item>
                      <item>
                       <widget class="QGroupBox" name="groupIceriver">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>64</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>16777215</width>
+                         <height>64</height>
+                        </size>
+                       </property>
                        <property name="title">
                         <string>IceRiver</string>
                        </property>
@@ -1740,6 +1871,24 @@ Uses last 5 of SN or MAC address.</string>
                      </item>
                      <item>
                       <widget class="QGroupBox" name="groupWhatsminer">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>64</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>16777215</width>
+                         <height>64</height>
+                        </size>
+                       </property>
                        <property name="title">
                         <string>Whatsminer</string>
                        </property>
@@ -1775,6 +1924,24 @@ Uses last 5 of SN or MAC address.</string>
                      </item>
                      <item>
                       <widget class="QGroupBox" name="groupGoldshell">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>64</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>16777215</width>
+                         <height>64</height>
+                        </size>
+                       </property>
                        <property name="title">
                         <string>Goldshell</string>
                        </property>
@@ -1813,6 +1980,24 @@ Uses last 5 of SN or MAC address.</string>
                        <property name="enabled">
                         <bool>false</bool>
                        </property>
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>64</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>16777215</width>
+                         <height>64</height>
+                        </size>
+                       </property>
                        <property name="title">
                         <string>Hammer</string>
                        </property>
@@ -1848,6 +2033,24 @@ Uses last 5 of SN or MAC address.</string>
                      </item>
                      <item>
                       <widget class="QGroupBox" name="groupVolcminer">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>64</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>16777215</width>
+                         <height>64</height>
+                        </size>
+                       </property>
                        <property name="title">
                         <string>Volcminer</string>
                        </property>
@@ -1883,6 +2086,24 @@ Uses last 5 of SN or MAC address.</string>
                      </item>
                      <item>
                       <widget class="QGroupBox" name="groupElphapex">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>64</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>16777215</width>
+                         <height>64</height>
+                        </size>
+                       </property>
                        <property name="title">
                         <string>Elphapex</string>
                        </property>
@@ -1918,6 +2139,24 @@ Uses last 5 of SN or MAC address.</string>
                      </item>
                      <item>
                       <widget class="QGroupBox" name="groupSealminer">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>64</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>16777215</width>
+                         <height>64</height>
+                        </size>
+                       </property>
                        <property name="title">
                         <string>Sealminer</string>
                        </property>
@@ -1953,6 +2192,24 @@ Uses last 5 of SN or MAC address.</string>
                      </item>
                      <item>
                       <widget class="QGroupBox" name="groupAuradine">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>64</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>16777215</width>
+                         <height>64</height>
+                        </size>
+                       </property>
                        <property name="title">
                         <string>Auradine</string>
                        </property>
@@ -1990,6 +2247,24 @@ Uses last 5 of SN or MAC address.</string>
                       <widget class="QGroupBox" name="groupIPollo">
                        <property name="enabled">
                         <bool>false</bool>
+                       </property>
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>64</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>16777215</width>
+                         <height>64</height>
+                        </size>
                        </property>
                        <property name="title">
                         <string>iPollo</string>
@@ -2032,6 +2307,12 @@ Uses last 5 of SN or MAC address.</string>
                   </item>
                   <item>
                    <widget class="QGroupBox" name="groupAPIAuthFirmwares">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
                     <property name="title">
                      <string>Firmwares</string>
                     </property>
@@ -2048,6 +2329,24 @@ Uses last 5 of SN or MAC address.</string>
                      </item>
                      <item>
                       <widget class="QGroupBox" name="groupVnish">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>64</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>16777215</width>
+                         <height>64</height>
+                        </size>
+                       </property>
                        <property name="title">
                         <string>Vnish</string>
                        </property>
@@ -2120,8 +2419,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>478</width>
-                   <height>227</height>
+                   <width>728</width>
+                   <height>596</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -2320,6 +2619,19 @@ Uses last 5 of SN or MAC address.</string>
                     </layout>
                    </widget>
                   </item>
+                  <item>
+                   <spacer name="verticalSpacer_2">
+                    <property name="orientation">
+                     <enum>Qt::Orientation::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                  </layout>
                 </widget>
                </widget>
@@ -2453,7 +2765,11 @@ Uses last 5 of SN or MAC address.</string>
     </item>
    </layout>
   </widget>
-  <widget class="QStatusBar" name="iprStatusBar"/>
+  <widget class="QStatusBar" name="iprStatusBar">
+   <property name="sizeGripEnabled">
+    <bool>true</bool>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>
