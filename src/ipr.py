@@ -308,7 +308,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         # (a fresh header defaults to a larger minimum, which would clamp the
         # 15px action columns wider and upscale their icons)
         self.id_header.setMinimumSectionSize(15)
-        self.id_header.setDefaultSectionSize(105)
+        self.id_header.setDefaultSectionSize(150)
         # action-column icons (refresh / locate) painted by a delegate
         self.id_action_delegate = IPRActionDelegate(self.tableIPRID)
         self.tableIPRID.setItemDelegateForColumn(COL_REFRESH, self.id_action_delegate)
@@ -317,9 +317,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.tableIPRID.setColumnWidth(0, 15)
         self.tableIPRID.setColumnWidth(1, 15)
         self.tableIPRID.setColumnWidth(2, 180)
-        self.tableIPRID.setColumnWidth(4, 120)
-        self.tableIPRID.setColumnWidth(6, 130)
-        self.tableIPRID.setColumnWidth(7, 145)
+        self.tableIPRID.setColumnWidth(7, 180)
         self.tableIPRID.setColumnWidth(10, 385)
         self.tableIPRID.setColumnWidth(11, 300)
         self.tableIPRID.setColumnWidth(14, 180)
@@ -331,9 +329,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.id_header.set_filterable_columns(FILTERABLE_COLUMNS)
         # right-click a header to toggle highlighting its column (left-click is
         # reserved for the funnel filter and no longer highlights)
-        self.id_header.setContextMenuPolicy(
-            Qt.ContextMenuPolicy.CustomContextMenu
-        )
+        self.id_header.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.id_header.customContextMenuRequested.connect(self.toggle_column_at)
         self.id_header.filter_clicked.connect(self.open_column_filter)
         self.id_filter_popup: ColumnFilterPopup | None = None
