@@ -154,7 +154,13 @@
             <property name="minimumSize">
              <size>
               <width>532</width>
-              <height>171</height>
+              <height>170</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>225</height>
              </size>
             </property>
             <property name="frameShape">
