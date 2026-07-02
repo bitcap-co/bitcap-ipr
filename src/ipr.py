@@ -125,6 +125,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self._app_instance.installEventFilter(self)
         # applied once on first show (Windows only) to re-enable Aero Snap
         self._snapping_enabled = False
+        # re-entrancy guard for the pool configurator toggle (its setChecked
+        # calls re-emit toggled and re-enter the slot)
+        self._toggling_pool = False
         self.confirms: list[IPRConfirmation] = []
         self.aboutDialog: IPRAbout | None = None
         self.update_checker: UpdateChecker | None = None
@@ -1763,20 +1766,36 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprStatusBar.showMessage(f"Status :: Wrote table as .CSV to {p}.", 3000)
 
     def toggle_pool_config(self, enabled: bool = False):
-        self.menu_bar.actionShowPoolConfigurator.setChecked(enabled)
-        self.id_context_menu.contextActionConfiguratorShowHide.setChecked(enabled)
-        self.id_context_menu.contextActionConfiguratorGetPool.setEnabled(enabled)
-        self.id_context_menu.contextActionConfiguratorSetPools.setEnabled(enabled)
-        self.poolConfigurator.setVisible(enabled)
-        if self.menu_bar.actionShowPoolConfigurator.isChecked():
-            self.setGeometry(self.x(), self.y(), self.width(), self.maximumHeight())
-        else:
-            self.setGeometry(
-                self.x(),
-                self.y(),
-                self.width(),
-                self.height(),
-            )
+        # setChecked() below re-emits toggled and re-enters this slot; the guard
+        # keeps the one-off window resize from being applied more than once.
+        if self._toggling_pool:
+            return
+        self._toggling_pool = True
+        try:
+            self.menu_bar.actionShowPoolConfigurator.setChecked(enabled)
+            self.id_context_menu.contextActionConfiguratorShowHide.setChecked(enabled)
+            self.id_context_menu.contextActionConfiguratorGetPool.setEnabled(enabled)
+            self.id_context_menu.contextActionConfiguratorSetPools.setEnabled(enabled)
+            if enabled == (not self.poolConfigurator.isHidden()):
+                return  # already in the requested state; nothing to resize
+            # grow/shrink the window by exactly the configurator's own height so
+            # the rest of the layout keeps its size
+            delta = self.poolConfigurator.sizeHint().height()
+            self.poolConfigurator.setVisible(enabled)
+            # Only resize for a live user toggle. During start-up the window
+            # isn't shown yet and a restored geometry already accounts for the
+            # configurator, so growing again would double-count. When
+            # maximized/snapped, leave the size to the OS and let the layout
+            # absorb the configurator instead of fighting the state.
+            if self.isVisible() and not (self.isMaximized() or self.isFullScreen()):
+                if enabled:
+                    available = self.screen().availableGeometry().height()
+                    height = min(self.height() + delta, available)
+                else:
+                    height = max(self.height() - delta, self.minimumHeight())
+                self.resize(self.width(), height)
+        finally:
+            self._toggling_pool = False
 
     # listener
     def start_listen(self):
