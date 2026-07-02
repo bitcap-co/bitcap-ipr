@@ -27,5 +27,6 @@ Licensed under the GNU General Public License v3.0; see LICENSE
         <file>rc/time.png</file>
         <file>rc/refresh.png</file>
         <file>rc/clear.png</file>
+        <file>rc/funnel.png</file>
     </qresource>
 </RCC>
