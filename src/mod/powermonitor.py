@@ -50,6 +50,8 @@ class PowerMonitor(QObject):
         # signal. WM_POWERBROADCAST in particular is delivered to every
         # top-level window, so one real event fires the filter several times.
         self._suspended = False
+        # log an unattended (automatic) wake at most once per suspend period.
+        self._auto_wake_logged = False
         if CURR_PLATFORM.startswith("linux"):
             self._init_linux()
         elif CURR_PLATFORM == "win32":
@@ -66,8 +68,18 @@ class PowerMonitor(QObject):
         if self._suspended:
             return
         self._suspended = True
+        self._auto_wake_logged = False
         logger.info("PowerMonitor : suspend.")
         self.aboutToSuspend.emit()
+
+    def _note_automatic_wake(self) -> None:
+        # Only meaningful while still suspended; if a user-present resume already
+        # arrived (broadcasts from multiple windows interleave) there's nothing
+        # to note. Log at most once per suspend period.
+        if not self._suspended or self._auto_wake_logged:
+            return
+        self._auto_wake_logged = True
+        logger.info("PowerMonitor : automatic wake; staying suspended.")
 
     def _emit_resume(self) -> None:
         if not self._suspended:
@@ -156,9 +168,7 @@ class PowerMonitor(QObject):
                             # unattended wake: the system woke for a background
                             # task and intends to sleep again. Stay quiet so we
                             # don't re-open the socket and hold the host awake.
-                            logger.info(
-                                "PowerMonitor : automatic wake; staying suspended."
-                            )
+                            monitor._note_automatic_wake()
                 # never consume the event; let Qt keep processing it.
                 return False, 0
 
