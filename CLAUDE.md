@@ -1,8 +1,102 @@
 # CLAUDE.md
 
 ## Project Overview
-bitcap-ipr is a cross-platform standalone ASIC miner IP Reporter tool built with the Qt framework. Its able to fetch miner data from various supported ASIC miner types initiated from IP report
-messages/datagrams from the local network.
+BitCap IPReporter (bitcap-ipr) - a cross-platform IP reporter tool designed specifically for ASIC miners. It listens on a local network for miners via it's IP Report button and is able to retrieve additional miner data.
+
+## Repository Structure
+```
+bitcap-ipr/
+├── .github
+│   └── workflows                        # Release/Test CI workflows
+├── CLAUDE.md                            # Project guidance for Claude Code
+├── CONFIGURATION.md                     # App configuration docs 
+├── pyproject.toml                       # Project metadata
+├── README.md                            # Main landing page 
+├── resources                            # Static resources & app icons
+│   ├── app
+│   │   └── icons
+├── scripts                              # scripts for packet generation/analysis
+├── setup                                # App setup scripts (Inno setup)
+├── src
+│   ├── config.py                        # Configuration dataclass
+│   ├── ipr.py                           # Main window class
+│   ├── main.py                          # Entrypoint
+│   ├── mod                              # Python modules
+│   │   ├── apiv2                        # ASIC miner API library & client
+│   │   │   ├── base                     # Base client & API protocol handlers
+│   │   │   ├── client.py                # `ASICClient` Qt interface class
+│   │   │   ├── data                     # Collection of data classes/parsers for miners
+│   │   │   │   ├── miners               # Various data parsers for miners
+│   │   │   │   └── models.py            # Common data classes
+│   │   │   ├── http                     # HTTP clients
+│   │   │   ├── rpc                      # JSON-RPC clients; CGMiner
+│   │   │   └── settings
+│   │   │       └── __init__.py          # Global API settings
+│   │   ├── lm                           # IP Report listening library & `ListenerManager` class
+│   │   │   ├── iprd                     # Integration for IPR Daemon
+│   │   │   │   └── listener.py          # `IPRDListener` listener class for IPRD 
+│   │   │   ├── ipreport                 # `IPReport` dataclass & patterns
+│   │   │   ├── listenermanager.py       # `ListenerManager` Qt interface class; Record
+│   │   │   ├── listener.py              # `Listener` Qt UDP socket listener
+│   │   │   └── README.md
+│   │   └── updater                      # Self update checker/installer
+│   ├── tests                            # Test suite/unittests
+│   │   ├── payloads                     # Raw packet payloads for listener tests
+│   ├── ui                               # Forms, widgets, and generated UI classes
+│   │   ├── forms                        # Window .ui files
+│   │   ├── ipr.qrc                      # Qt resource directory
+│   │   ├── rc                           # Image assests
+│   │   ├── theme.qss                    # Widget CSS/theming
+│   │   └── widgets
+│   │       ├── ipr                      # Core widgets
+│   │       │   ├── idtable              # QTableView model/proxy
+│   └── utils.py                         # Utility functions & metadata
+```
+
+## Key Modules
+The core functionality of the IP reporter is resides in `src/mod`. These are the main modules within:
+ - `lm` - IP Reporting (`ListenerManager` interface, UDP/TCP listening, packet patterns/validation)
+ - `apiv2` - ASIC miner API library (`ASICClient` interface, HTTP/JSON-RPC/TCP clients, dataclasses)
+
+
+## Tech Stack
+ - Python 3.14.3 (pyenv)
+ - PySide6 for Offical Qt Python bindings
+ - Nuitka for build chain
+ - pydantic for data models/classes
+ - requests for facilitating HTTP method requests
+
+
+ ## Environment
+ Do not use system python3, always `.venv/bin/python` for running/testing this project.
+ Run tests from `src/`, not the root directory.
+ ```bash
+cd src && ../.venv/bin/python -m unittest discover tests/
+ ```
+Included PySide6 tools:
+  - `pyside6-uic` - use to generate Python classes from .ui forms
+  - `pyside6-rcc` - use to generate resources from `ipr.qrc` file
+
+## UI generation
+There are included tools in the PySide6 suite that can automatically generate UI classes and app resources into Python code.
+
+### UI class generation
+```bash
+cd src/ui/
+pyside6-uic forms/mainwindow.ui -o MainWindow.py  # generate new MainWindow.py from mainwindow.ui file.
+```
+
+### Generating app resources
+```bash
+cd src/ui/
+pyside6-rcc ipr.qrc -o resources.py  # generate app resources from ipr.qrc file.
+```
+
+## Testing
+To test suite, run from `src/` directory:
+```bash
+cd src/ && ../.venv/bin/python -m unittest discover tests/
+```
 
 ## Build & Run
 bitcap-ipr is built using Nuitka to produce compiled binaries for multiple systems (Windows, MacOS, Linux).
@@ -28,44 +122,3 @@ python3 src/main.py
 
 ## Releases
 bitcap-ipr artifacts/releases are automatically built on git tags with workflows
-
-## Testing
-To test listeners, run from `src/` directory:
-```bash
-cd src/
-python3 -m unittest discover tests/
-```
-
-## UI generation
-There are included tools in the PySide6 suite that can automatically generate UI classes and app resources into Python code.
-
-### UI class generation
-```bash
-cd src/ui/
-pyside6-uic forms/mainwindow.ui -o MainWindow.py  # generate new MainWindow.py from mainwindow.ui file.
-```
-
-### Generating app resources
-```bash
-cd src/ui/
-pyside6-rcc ipr.qrc -o resources.py  # generate app resources from ipr.qrc file.
-```
-
-## Structure
- - `resources/` -  App icons/static files
- - `scripts/` - helper scripts to produce/analyze specific datagrams/packets
- - `setup/` - setup utilites
- - `src/mod/` - local python modules
- - `src/tests/` - unit tests
- - `src/ui/` - forms, widgets and generated UI code.
-
-## Key components
- - `src/mod/lm` - ListenerManager module: faciliates IP report listening
- - `src/mod/apiv2` - ASIC miner API library
- - `src/ui/widgets` - custom Qt widgets
-
-## Tech stack
- - Python 3.14.3
- - PySide6 6.11.1
- - Nuitka for build toolchain
- - Pydantic for dataclasses
