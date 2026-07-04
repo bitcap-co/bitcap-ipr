@@ -8,6 +8,7 @@ Licensed under the GNU General Public License v3.0; see LICENSE
     <qresource>
         <file>rc/titlebar/macos/close.png</file>
         <file>rc/titlebar/macos/min.png</file>
+        <file>rc/titlebar/macos/max.png</file>
     </qresource>
     <qresource>
         <file>rc/img/BitCapIPR_BLK-02_Square.png</file>
