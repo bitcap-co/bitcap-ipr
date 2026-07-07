@@ -34,6 +34,7 @@ from mod.apiv2.errors import (
 )
 from mod.apiv2.http import (
     AntminerHTTPClient,
+    AntminerOldHTTPClient,
     AuradineHTTPClient,
     ElphapexHTTPClient,
     GoldshellHTTPClient,
@@ -90,6 +91,9 @@ class ASICClient(QObject):
     def create_antminer_client(self, ip: str, alt_pwd: str | None = None) -> None:
         self._set_active_client(AntminerHTTPClient(ip, alt_pwd=alt_pwd))
 
+    def create_old_antminer_client(self, ip: str, alt_pwd: str | None = None) -> None:
+        self._set_active_client(AntminerOldHTTPClient(ip, alt_pwd=alt_pwd))
+
     def create_elphapex_client(self, ip: str, alt_pwd: str | None = None) -> None:
         self._set_active_client(ElphapexHTTPClient(ip, alt_pwd=alt_pwd))
 
@@ -132,6 +136,8 @@ class ASICClient(QObject):
         match miner_type:
             case MinerType.ANTMINER:
                 self.create_antminer_client(ip, alt_pwd=alt_pwd)
+                # check is old antminer
+                self._upgrade_client(ip, alt_pwd=alt_pwd)
             case MinerType.ELPHAPEX:
                 self.create_elphapex_client(ip, alt_pwd=alt_pwd)
             case MinerType.GOLDSHELL:
@@ -145,7 +151,7 @@ class ASICClient(QObject):
             case MinerType.WHATSMINER:
                 self.create_whatsminer_client(ip, alt_pwd=alt_pwd)
                 # upgrade to v3
-                self._btminerV3_upgrade(ip, alt_pwd=alt_pwd)
+                self._upgrade_client(ip, alt_pwd=alt_pwd)
             case MinerType.LUX_OS:
                 self.create_luxos_client(ip, alt_pwd=alt_pwd)
             case MinerType.VNISH:
@@ -196,7 +202,9 @@ class ASICClient(QObject):
                 return MinerType.UNKNOWN
 
     def get_miner_data(self) -> dict[str, Any]:
-        if isinstance(self.client, AntminerHTTPClient):
+        if isinstance(self.client, AntminerHTTPClient) or isinstance(
+            self.client, AntminerOldHTTPClient
+        ):
             return self._parse_miner_data(AntminerParser())
         elif isinstance(self.client, VnishHTTPClient):
             return self._parse_miner_data(VnishParser())
@@ -333,18 +341,24 @@ class ASICClient(QObject):
                 pass
             return None
 
-    def _btminerV3_upgrade(self, ip: str, alt_pwd: str | None = None) -> None:
-        if self.client and isinstance(self.client, WhatsminerRPCClient):
-            try:
+    def _upgrade_client(self, ip: str, alt_pwd: str | None = None) -> None:
+        if not self.client:
+            return
+        try:
+            # antminer: check if old firmware (<= 2020)
+            if isinstance(self.client, AntminerHTTPClient):
+                sys_info = self.client.get_system_info()
+                if int(sys_info["system_filesystem_version"][-4:]) <= 2020:
+                    self._set_active_client(AntminerOldHTTPClient(ip, alt_pwd=alt_pwd))
+            # whatsminer: check if V3 firmware (> 202412)
+            if isinstance(self.client, WhatsminerRPCClient):
                 version_info = self.client.version()
                 if int(version_info["fw_ver"][:6]) > 202412:
-                    self.create_whatsminerV3_client(ip, alt_pwd=alt_pwd)
-            except (APIError, FailedConnectionError, OSError) as e:
-                logger.error(
-                    f"{self.client.__repr__()} : client error raised: {str(e)}"
-                )
-                self.close_client(ex=e)
-                pass
+                    self._set_active_client(WhatsminerTCPClient(ip, alt_pwd=alt_pwd))
+        except (APIError, FailedConnectionError, LookupError, OSError) as e:
+            logger.error(f"{self.client.__repr__()} : client error raised: {str(e)}")
+            self.close_client(ex=e)
+            pass
 
     def locate_miner(self) -> None:
         if not self.client:
