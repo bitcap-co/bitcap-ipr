@@ -376,7 +376,10 @@ class ASICClient(QObject):
             self.close_client(ex=e)
 
     def stop_locate(self) -> None:
-        self.client.blink(enabled=False)
+        try:
+            self.client.blink(enabled=False)
+        except APIError:
+            pass
         self.close_client()
 
     def get_miner_pool_conf(self) -> tuple[list[str], list[str], list[str]]:
