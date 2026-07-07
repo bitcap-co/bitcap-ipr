@@ -75,12 +75,12 @@ class AntminerParser(BaseParser):
 
     def parse_pools(self, obj: list[dict[str, Any]]) -> None:
         for pool in obj:
-            if pool["status"] == "Alive":
-                self.data.stratum_url = pool["url"]
-                if "." in pool["user"]:
-                    user, worker = pool["user"].split(".", 1)
+            if "Status" in pool and pool["Status"] == "Alive":
+                self.data.stratum_url = pool["URL"]
+                if "." in pool["User"]:
+                    user, worker = pool["User"].split(".", 1)
                     self.data.username = user
                     self.data.worker_name = worker
                 else:
-                    self.data.username = pool["user"]
+                    self.data.username = pool["User"]
                 break

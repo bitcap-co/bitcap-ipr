@@ -26,6 +26,7 @@ from mod.apiv2.errors import (
     AuthenticationError,
     FailedConnectionError,
 )
+from mod.apiv2.rpc.cgminer import Status
 
 logger = logging.getLogger(__name__)
 
@@ -54,9 +55,10 @@ class SystemInfo(BaseModel):
     system_mode: str
     system_kernel_version: str
     system_filesystem_version: str
-    firmware_type: str
+    firmware_type: str = ""
     serinum: str = ""
     algorithm: str | None = Field(None, alias="Algorithm")
+    cgminer_version: str | None = None
 
 
 class NetInfo(BaseModel):
@@ -74,16 +76,19 @@ class NetInfo(BaseModel):
 
 
 class MinerConf(BaseModel):
-    fan_ctrl: bool = Field(alias="bitmain-fan-ctrl")
-    fan_pwm: int = Field(alias="bitmain-fan-pwm")
+    fan_ctrl: bool | None = Field(None, alias="bitmain-fan-ctrl")
+    fan_pwm: int | None = Field(None, alias="bitmain-fan-pwm")
     freq_level: int | None = Field(
         None, validation_alias="bitmain-freq-level", serialization_alias="freq-level"
+    )
+    freq: int | None = Field(
+        None, validation_alias="bitmain-freq", serialization_alias="freq"
     )
     voltage: float | None = Field(None, alias="bitmain-voltage")
     hashrate_per: int | None = Field(None, alias="bitmain-hashrate-percent")
     user_ip_cat: bool | None = Field(None, alias="bitmain-user-ip-cat")
-    miner_mode: int = Field(
-        validation_alias="bitmain-work-mode", serialization_alias="miner-mode"
+    miner_mode: int | None = Field(
+        None, validation_alias="bitmain-work-mode", serialization_alias="miner-mode"
     )
     pools: list[MinerConfPool]
 
@@ -122,9 +127,9 @@ class MinerSummary(BaseModel):
 
 class PoolInfo(BaseModel):
     index: int
-    url: str
-    user: str
-    status: str
+    url: str = Field(validation_alias="url", serialization_alias="URL")
+    user: str = Field(validation_alias="user", serialization_alias="User")
+    status: str = Field(validation_alias="status", serialization_alias="Status")
     priority: int
     getworks: int
     accepted: int
@@ -341,3 +346,226 @@ class AntminerHTTPClient(BaseHTTPClient):
 
         new_conf = conf.model_dump(mode="json", by_alias=True, exclude_none=True)
         return self.set_miner_conf(conf=new_conf)
+
+
+class OldBlinkStatus(BaseModel):
+    blink: bool = Field(alias="isBlinking")
+
+
+class Pool(BaseModel):
+    url: str = Field(alias="URL")
+    status: str = Field(alias="Status")
+    user: str = Field(alias="User")
+    diff: str = Field(alias="Diff")
+    pool: int = Field(alias="POOL")
+    priority: int = Field(alias="Priority")
+    quota: int = Field(alias="Quota")
+    getworks: int = Field(alias="Getworks")
+    accepted: int = Field(alias="Accepted")
+    rejected: int = Field(alias="Rejected")
+    stale: int = Field(alias="Stale")
+    diffa: float | None = Field(None, alias="Difficulty Accepted")
+    diffr: float | None = Field(None, alias="Difficulty Rejected")
+    stratum_diff: float | None = Field(None, alias="Stratum Difficulty")
+    stratum_active: bool = Field(alias="Stratum Active")
+
+
+class Response(BaseModel):
+    id: int
+    status: list[Status] = Field(alias="STATUS")
+    summary: list[dict[str, Any]] | None = Field(None, alias="SUMMARY")
+    pools: list[Pool] | None = Field(None, alias="POOLS")
+
+    def error(self) -> str | None:
+        for status in self.status:
+            match status.status:
+                case "E" | "F":
+                    return f"received API error ({status.code}) {status.msg} - {status.description}"
+                case _:
+                    return None
+
+
+class AntminerOldHTTPClient(BaseHTTPClient):
+    def __init__(self, ip: str, port: int = 80, alt_pwd: str | None = None) -> None:
+        super().__init__(ip, port)
+
+        self.command_path = Template("cgi-bin/${command}.cgi")
+
+        self.username: str = "root"
+        if alt_pwd:
+            settings.set_auth_alt("antminer", alt_pwd)
+        self.passwds = settings.get_auth_list("antminer")
+
+    def authenticate(self) -> None:
+        for pwd in self.passwds:
+            if not pwd:
+                continue
+            try:
+                self.session.auth = HTTPDigestAuth(self.username, pwd)
+                resp = self.session.get(
+                    self.base_url, timeout=settings.get("http_request_timeout", 5.0)
+                )
+                resp.raise_for_status()
+            except (
+                requests.HTTPError,
+                requests.ConnectionError,
+                requests.Timeout,
+            ) as ex:
+                if isinstance(ex, (requests.ConnectionError, requests.Timeout)):
+                    raise FailedConnectionError("Failed to connect or timeout occurred")
+                elif isinstance(ex, requests.HTTPError):
+                    continue
+            else:
+                if resp.status_code == 200:
+                    self.authed = True
+                    self.pwd = pwd
+                    self.digest = self.session.auth
+                    break
+        if not self.authed:
+            raise AuthenticationError("Failed to authenticate")
+
+    def _validate_response(self, data: dict) -> Response:
+        try:
+            resobj = Response.model_validate(obj=data, by_alias=True)
+        except ValidationError as e:
+            logger.error(
+                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
+            )
+            raise APIInvalidResponse
+        else:
+            err = resobj.error()
+            if err:
+                logger.error(f"{self.__repr__()} : {str(APIError(err))}")
+                raise APIError("Command failed!")
+            return resobj
+
+    def get_hostname(self) -> str:
+        resp = self.get_system_info()
+        return resp["hostname"]
+
+    def get_mac_addr(self) -> str:
+        resp = self.get_system_info()
+        return resp["macaddr"]
+
+    def get_api_version(self) -> str:
+        resp = self.get_system_info()
+        return resp["cgminer_version"]
+
+    def get_system_info(self) -> dict:
+        resp = self.send_command("GET", command="get_system_info")
+        try:
+            resobj = SystemInfo.model_validate(obj=resp, by_alias=True)
+        except ValidationError as e:
+            logger.error(
+                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
+            )
+            raise APIInvalidResponse
+        else:
+            return resobj.model_dump(by_alias=True, exclude_none=True)
+
+    def get_network_info(self) -> dict:
+        resp = self.send_command("GET", command="get_network_info")
+        try:
+            resobj = NetInfo.model_validate(obj=resp)
+        except ValidationError as e:
+            logger.error(
+                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
+            )
+            raise APIInvalidResponse
+        else:
+            return resobj.model_dump()
+
+    def log(self) -> dict:
+        return self.send_command("GET", command="get_kernel_log")
+
+    def summary(self) -> dict:
+        resp = self.send_command("GET", command="miner_summary")
+        valid = self._validate_response(resp)
+        if valid.summary is None or len(valid.summary) != 1:
+            raise APIInvalidResponse(reason="Malformed")
+        else:
+            return valid.summary[0]
+
+    def get_miner_conf(self) -> dict:
+        resp = self.send_command("GET", command="get_miner_conf")
+        try:
+            resobj = MinerConf.model_validate(obj=resp, by_alias=True)
+        except ValidationError as e:
+            logger.error(
+                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
+            )
+            raise APIInvalidResponse
+        else:
+            return resobj.model_dump(exclude_none=True, by_alias=True)
+
+    def set_miner_conf(self, conf: dict) -> dict:
+        return self.send_command("POST", command="set_miner_conf", data=conf)
+
+    def pools(self) -> list[dict]:
+        resp = self.send_command("GET", command="miner_pools")
+        valid = self._validate_response(resp)
+        if valid.pools is None:
+            raise APIInvalidResponse(reason="Malformed")
+        else:
+            ta = TypeAdapter(list[Pool])
+            pools = ta.validate_python(valid.pools, by_alias=True)
+            return ta.dump_python(pools, by_alias=True)
+
+    def get_pool_conf(self) -> list[dict]:
+        pools = self.pools()
+        pool_conf = []
+        for pool in pools:
+            pool_conf.append(
+                MinerConfPool(url=pool["URL"], user=pool["User"]).model_dump(
+                    by_alias=True
+                )
+            )
+        return pool_conf
+
+    def get_miner_status(self) -> dict:
+        return super().get_miner_status()
+
+    def get_blink_status(self) -> dict:
+        resp = self.send_command(
+            "GET", command="blink", data={"action": "onPageLoaded"}
+        )
+        try:
+            resobj = OldBlinkStatus.model_validate(obj=resp)
+        except ValidationError as e:
+            logger.error(
+                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
+            )
+            raise APIInvalidResponse
+        else:
+            return resobj.model_dump()
+
+    def blink(self, enabled: bool) -> dict:
+        data = {"action": "startBlink" if enabled else "stopBlink"}
+        return self.send_command("POST", command="blink", data=data)
+
+    def update_pool_conf(
+        self, urls: list[str], users: list[str], passwds: list[str]
+    ) -> dict:
+        if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
+            raise APIError("Invalid length of arguments")
+
+        resp = self.get_miner_conf()
+        conf = MinerConf.model_construct(**resp)
+
+        data: dict[str, Any] = {}
+        for i in range(0, len(urls)):
+            data[f"_ant_pool{i + 1}url"] = urls[i]
+            data[f"_ant_pool{i + 1}user"] = users[i]
+            data[f"_ant_pool{i + 1}pw"] = passwds[i]
+
+        data["_ant_nobeeper"] = "false"
+        data["_ant_notempcontrol"] = "false"
+        if conf.fan_ctrl:
+            data["_ant_fan_customize_switch"] = "true"
+            data["_ant_fan_customize_value"] = conf.fan_pwm
+        else:
+            data["_ant_fan_customize_switch"] = "false"
+            data["_ant_fan_customize_value"] = ""
+        data["_ant_freq"] = conf.freq
+
+        return self.set_miner_conf(conf=data)

@@ -3,7 +3,7 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-from .antminer import AntminerHTTPClient
+from .antminer import AntminerHTTPClient, AntminerOldHTTPClient
 from .auradine import AuradineHTTPClient
 from .elphapex import ElphapexHTTPClient
 from .goldshell import GoldshellHTTPClient
