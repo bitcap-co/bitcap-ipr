@@ -8,6 +8,7 @@ platformdirs==4.10.0
 pycryptodome==3.23.0
 pydantic==2.13.4
 pydantic_core==2.46.4
+pyobjc-framework-Cocoa; sys_platform == "darwin"
 PySide6==6.11.1
 PySide6_Addons==6.11.1
 PySide6_Essentials==6.11.1
