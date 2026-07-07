@@ -659,7 +659,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         return super().eventFilter(obj, event)
 
     def update_stacked_widget(self, view_index: int | None = None, *_):
-        logger.info(" update view.")
         if not view_index:
             if self.menu_bar.actionShowPoolConfigurator.isChecked():
                 self.poolConfigurator.setVisible(True)
@@ -985,12 +984,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.error(
                 f"update_settings: failed to validate config model.\n{exc.__repr__()}"
             )
-            self.iprStatusBar.showMessage(
-                "Status :: Failed to update configuration!", 5000
-            )
+            self.notify("Status :: Failed to update configuration!", 5000)
             return
 
-        self.iprStatusBar.showMessage("Status :: Updated settings to config.", 1000)
+        self.notify("Status :: Updated settings to config.", 1000)
 
     def write_settings(self):
         self.update_settings()
@@ -1016,9 +1013,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.update_inactive_timer()
             self.update_miner_locate_duration()
             self.update_stacked_widget()
-            self.iprStatusBar.showMessage(
-                "Status :: Successfully restored to default settings.", 5000
-            )
+            self.notify("Status :: Successfully restored to default settings.", 5000)
 
     def update_current_preset_to_config(self) -> list[dict[str, str]]:
         presets = TypeAdapter(list[PoolPreset])
@@ -1122,7 +1117,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             preset.passwd2 = self.linePoolPasswd_2.text()
             preset.passwd3 = self.linePoolPasswd_3.text()
         self.config.write()
-        self.iprStatusBar.showMessage("Status :: successfully wrote pool preset.", 3000)
+        self.notify("Status :: successfully wrote pool preset.", 3000)
 
     def clear_pool_preset(self):
         for child in self.pcwrapper.children():
@@ -1331,14 +1326,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.update_checker.finished.connect(
             lambda: self.menu_bar.actionCheckForUpdates.setEnabled(True)
         )
-        self.iprStatusBar.showMessage("Status :: Checking for updates...", 3000)
+        self.notify("Status :: Checking for updates...", 3000)
         self.update_checker.start()
 
     def on_update_available(self, release: dict):
         self.iprStatusBar.clearMessage()
         is_prerelease = release.get("prerelease", False)
         kind = "pre-release" if is_prerelease else "version"
-        self.iprStatusBar.showMessage(
+        self.notify(
             f"Status :: {'Pre-release' if is_prerelease else 'Update'} available!",
             3000,
         )
@@ -1374,7 +1369,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.downloader.completed.connect(self.on_download_complete)
         self.downloader.error.connect(self.on_download_error)
         self.download_dialog.cancelled.connect(self.downloader.cancel)
-        self.iprStatusBar.showMessage("Status :: Downloading update...", 3000)
+        self.notify("Status :: Downloading update...", 3000)
         self.downloader.start()
         self.download_dialog.show()
 
@@ -1385,7 +1380,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def on_download_complete(self, path: str):
         self._close_download_dialog()
-        self.iprStatusBar.showMessage("Status :: Update downloaded.", 3000)
+        self.notify("Status :: Update downloaded.", 3000)
         dialog = IPRMessage(
             self,
             "Download Complete",
@@ -1399,7 +1394,7 @@ class IPR(QMainWindow, Ui_MainWindow):
     def on_download_error(self, error: str):
         self._close_download_dialog()
         logger.error(f" failed to download update: {error}")
-        self.iprStatusBar.showMessage("Status :: Download failed.", 5000)
+        self.notify("Status :: Download failed.", 5000)
         IPRMessage(
             self,
             "Download Failed",
@@ -1445,7 +1440,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.installer = DebInstaller(path, self)
         self.installer.completed.connect(self.on_install_complete)
         self.installer.error.connect(self.on_install_error)
-        self.iprStatusBar.showMessage("Status :: Installing update...", 3000)
+        self.notify("Status :: Installing update...", 3000)
         self.installer.start()
         self.install_dialog.show()
 
@@ -1456,7 +1451,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def on_install_complete(self, version: str):
         self._close_install_dialog()
-        self.iprStatusBar.showMessage("Status :: Update installed.", 3000)
+        self.notify("Status :: Update installed.", 3000)
         installed = f" (version {version})" if version else ""
         dialog = IPRMessage(
             self,
@@ -1472,7 +1467,7 @@ class IPR(QMainWindow, Ui_MainWindow):
     def on_install_error(self, error: str):
         self._close_install_dialog()
         logger.error(f" failed to install update: {error}")
-        self.iprStatusBar.showMessage("Status :: Install failed.", 5000)
+        self.notify("Status :: Install failed.", 5000)
         IPRMessage(
             self,
             "Install Failed",
@@ -1496,7 +1491,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def on_up_to_date(self, current: str) -> None:
         self.iprStatusBar.clearMessage()
-        self.iprStatusBar.showMessage("Status :: Up to date.", 3000)
+        self.notify("Status :: Up to date.", 3000)
         if not self._update_check_silent:
             IPRMessage(
                 self,
@@ -1506,7 +1501,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def on_update_error(self, error: str) -> None:
         self.iprStatusBar.clearMessage()
-        self.iprStatusBar.showMessage("Status :: Failed to check for updates.", 5000)
+        self.notify("Status :: Failed to check for updates.", 5000)
         logger.error(f" failed to check for updates: {error}")
         if not self._update_check_silent:
             IPRMessage(
@@ -1558,7 +1553,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         selected_text = [x.data() for x in selected]
         logger.info(f"{action} : running action for {selected_text}...")
         status_msg = f"Status :: Running action: {action} for [{','.join(selected_text[0:3])}...]..."
-        self.iprStatusBar.showMessage(status_msg, 3000)
+        self.notify(status_msg, 3000)
         return selected
 
     def open_selected_ips(self):
@@ -1605,7 +1600,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         cb = QApplication.clipboard()
         cb.clear(mode=cb.Mode.Clipboard)
         cb.setText(out.strip(), mode=cb.Mode.Clipboard)
-        self.iprStatusBar.showMessage("Status :: Copied elements to clipboard.", 3000)
+        self.notify("Status :: Copied elements to clipboard.", 3000)
 
     def _toggle_selection(self, indexes: list[QModelIndex]):
         """Select every index, or clear them if all are already selected.
@@ -1730,7 +1725,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                     self.id_model.append(miner)
         else:
             logger.error(f"import_table : failed to read file {file_name}.")
-            self.iprStatusBar.showMessage("Status :: Failed to import table.", 5000)
+            self.notify("Status :: Failed to import table.", 5000)
             return
 
     def export_table(self):
@@ -1763,7 +1758,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             return
         outfile = QTextStream(file)
         outfile << out << "\n"
-        self.iprStatusBar.showMessage(f"Status :: Wrote table as .CSV to {p}.", 3000)
+        self.notify(f"Status :: Wrote table as .CSV to {p}.", 3000)
 
     def toggle_pool_config(self, enabled: bool = False):
         # setChecked() below re-emits toggled and re-enters this slot; the guard
@@ -1979,7 +1974,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.warning(
                 f"process_result: received miner type {miner_data['type']} outside of enabled filter. Ignoring..."
             )
-            return self.iprStatusBar.showMessage(
+            return self.notify(
                 f"Status :: Got miner type: {str(miner_data['type']).capitalize()} outside of listener configuration.",
                 8000,
             )
@@ -1996,7 +1991,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         miner_data["ip_report"] = result.model_dump()
         # let user know that we got an error and may not have complete data
         if self.asic.client_error():
-            self.iprStatusBar.showMessage(
+            self.notify(
                 f"Status :: Failed to get complete miner data {result.src_ip}: {str(self.asic.client_error())}",
                 5000,
             )
@@ -2004,7 +1999,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.asic.close_client()
 
         logger.debug(f"process_result: got miner data: {miner_data}.")
-        self.iprStatusBar.showMessage(
+        self.notify(
             f"Status :: Got {miner_data['type']}: IP:{miner_data['ip']}, MAC:{miner_data['mac']}",
             5000,
         )
@@ -2187,7 +2182,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 logger.error(
                     f"locate_miner : {miner_type.value} is currently not supported."
                 )
-                return self.iprStatusBar.showMessage(
+                return self.notify(
                     f"Status :: Failed to locate miner: {miner_type.value.capitalize()} is currently not supported.",
                     5000,
                 )
@@ -2196,16 +2191,14 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
         except UnknownClientError as ex:
             logger.error(f"locate_miner : {str(ex)}")
-            return self.iprStatusBar.showMessage(
-                f"Status :: Failed action: {str(ex)}", 5000
-            )
+            return self.notify(f"Status :: Failed action: {str(ex)}", 5000)
         self.asic.locate_miner()
         if self.asic.client_error():
-            return self.iprStatusBar.showMessage(
+            return self.notify(
                 f"Status :: Failed to locate miner: {str(self.asic.client_error())}",
                 5000,
             )
-        self.iprStatusBar.showMessage(
+        self.notify(
             f"Status :: Locating miner: {ip_addr}...",
             self.miner_locate_duration,
         )
@@ -2218,12 +2211,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
         except UnknownClientError as ex:
             logger.error(f"refresh_miner : {str(ex)}")
-            return self.iprStatusBar.showMessage(
-                f"Status :: Failed action: {str(ex)}", 5000
-            )
+            return self.notify(f"Status :: Failed action: {str(ex)}", 5000)
         miner_data = self.asic.get_miner_data()
         if self.asic.client_error():
-            return self.iprStatusBar.showMessage(
+            return self.notify(
                 f"Status :: Failed to get complete miner data {ip_addr}: {str(self.asic.client_error())}",
                 5000,
             )
@@ -2234,9 +2225,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             miner_data["mac"].lower() if miner_data["mac"] != "N/A" else "N/A"
         )
         self.populate_table_row(miner_data, row)
-        self.iprStatusBar.showMessage(
-            f"Status :: Successfully refreshed {ip_addr} miner data.", 3000
-        )
+        self.notify(f"Status :: Successfully refreshed {ip_addr} miner data.", 3000)
 
     def get_miner_pool(self):
         if not self.id_proxy.rowCount():
@@ -2247,9 +2236,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             if x.column() == 3
         ]
         if not selected_ips:
-            return self.iprStatusBar.showMessage(
-                "Status :: Failed action: no selected IPs.", 5000
-            )
+            return self.notify("Status :: Failed action: no selected IPs.", 5000)
         index = selected_ips[0]
         source_row = self.id_proxy.mapToSource(index).row()
         ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(source_row)
@@ -2258,12 +2245,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
         except UnknownClientError as ex:
             logger.error(f"get_miner_pool : {str(ex)}")
-            return self.iprStatusBar.showMessage(
-                f"Status :: Failed action: {str(ex)}", 5000
-            )
+            return self.notify(f"Status :: Failed action: {str(ex)}", 5000)
         urls, users, passwds = self.asic.get_miner_pool_conf()
         if self.asic.client_error():
-            return self.iprStatusBar.showMessage(
+            return self.notify(
                 f"Status :: Failed to get pool config: {str(self.asic.client_error())}",
                 5000,
             )
@@ -2279,7 +2264,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.linePoolUser_3.setText(users[2])
         self.linePoolPasswd_3.setText(passwds[2])
         self.write_pool_preset()
-        self.iprStatusBar.showMessage(
+        self.notify(
             f"Status :: Updated {self.comboPoolPreset.currentText()} preset from {ip_addr}.",
             3000,
         )
@@ -2295,9 +2280,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             | QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents
         )
         if selected_ips is None:
-            return self.iprStatusBar.showMessage(
-                "Status :: Failed action: no selected IPs.", 5000
-            )
+            return self.notify("Status :: Failed action: no selected IPs.", 5000)
         for index in selected_ips:
             source_row = self.id_proxy.mapToSource(index).row()
             ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(source_row)
@@ -2356,10 +2339,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             f"status for action 'update_miner_pools': passed - {passed}, failed - {failed}"
         )
         if len(failed) > 0:
-            return self.iprStatusBar.showMessage(
-                f"Status :: Failed to update pools for {failed}.", 5000
-            )
-        self.iprStatusBar.showMessage("Status :: Successfully updated pools.", 3000)
+            return self.notify(f"Status :: Failed to update pools for {failed}.", 5000)
+        self.notify("Status :: Successfully updated pools.", 3000)
 
     # exit
     def close_to_tray_or_exit(self):
@@ -2387,7 +2368,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             c.close()
             c.deleteLater()
         self.confirms = []
-        self.iprStatusBar.showMessage("Status :: Killed all confirmations.", 3000)
+        self.notify("Status :: Killed all confirmations.", 3000)
 
     def _stop_update_threads(self):
         # stop any in-flight update check/download so their QThreads do not
