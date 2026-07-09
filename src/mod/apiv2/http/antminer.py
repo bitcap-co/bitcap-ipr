@@ -290,7 +290,7 @@ class AntminerHTTPClient(BaseHTTPClient):
             raise APIInvalidResponse
         else:
             ta = TypeAdapter(list[PoolInfo])
-            return ta.dump_python(resobj.pools)
+            return ta.dump_python(resobj.pools, by_alias=True)
 
     def get_pool_conf(self) -> list[dict]:
         resp = self.get_miner_conf()
