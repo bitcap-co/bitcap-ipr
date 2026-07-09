@@ -1830,6 +1830,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         if not self.checkEnableIPRDBackend.isChecked():
             self.lm.start(self.listenerConfig)
             self._last_iprd_error = ""
+            self._iprd_listening = False
             self.set_listen_state(ListenState.LISTENING)
         else:
             try:
