@@ -349,7 +349,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.tableIPRID.setColumnWidth(1, 15)
         self.tableIPRID.setColumnWidth(2, 180)
         self.tableIPRID.setColumnWidth(7, 180)
-        self.tableIPRID.setColumnWidth(10, 385)
+        self.tableIPRID.setColumnWidth(10, 400)
         self.tableIPRID.setColumnWidth(11, 300)
         self.tableIPRID.setColumnWidth(14, 180)
         self.tableIPRID.doubleClicked.connect(self.double_click_item)
