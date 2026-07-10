@@ -8,8 +8,9 @@
 Paints a funnel icon on columns flagged ``filterable`` and tints it to the
 theme accent when a value filter is active. Clicking the funnel emits
 ``filter_clicked`` so the window can pop up the value checklist; clicking
-anywhere else on the header falls through to the base class (preserving the
-existing column-select click).
+anywhere else on the header falls through to the base class, preserving the
+native left-click column-select and left-drag multi-column select. Only the
+funnel-hotspot press is swallowed so it doesn't also select the column.
 """
 
 from PySide6.QtCore import QPoint, QRect, Qt, Signal
@@ -33,6 +34,12 @@ class FilterHeaderView(QHeaderView):
         super().__init__(Qt.Orientation.Horizontal, parent)
         self._filterable: set[int] = set()
         self._active: set[int] = set()
+        # logical index recorded when a left-press lands on a funnel hotspot,
+        # so the matching release opens the filter popup (see mousePressEvent).
+        self._press_logical: int | None = None
+        # Clickable so QTableView's native "select whole column on header press"
+        # and left-drag multi-column select work. Only the funnel-hotspot press
+        # is swallowed (mousePressEvent) so it doesn't also select the column.
         self.setSectionsClickable(True)
         # pre-tint the white funnel icon once for the idle / active-filter states
         base = QPixmap(":theme/icons/rc/funnel.png")
@@ -87,16 +94,34 @@ class FilterHeaderView(QHeaderView):
         painter.drawPixmap(self._glyph_rect(rect), icon)
         painter.restore()
 
-    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
-        point = event.position().toPoint()
+    def _filter_hotspot_at(self, point: QPoint) -> int | None:
+        """Logical index of the funnel hotspot under ``point``, else ``None``."""
         logical = self.logicalIndexAt(point)
-        if logical in self._filterable:
-            # pad the glyph box left/top/bottom for an easier target; the right
-            # edge stays inset so the section-resize grip remains reachable.
-            hotspot = self._glyph_rect(self._section_rect(logical)).adjusted(
-                -3, -4, 0, 4
-            )
-            if hotspot.contains(point):
-                self.filter_clicked.emit(logical)
+        if logical not in self._filterable:
+            return None
+        # pad the glyph box left/top/bottom for an easier target; the right
+        # edge stays inset so the section-resize grip remains reachable.
+        hotspot = self._glyph_rect(self._section_rect(logical)).adjusted(-3, -4, 0, 4)
+        return logical if hotspot.contains(point) else None
+
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        point = event.position().toPoint()
+        if event.button() == Qt.MouseButton.LeftButton:
+            logical = self._filter_hotspot_at(point)
+            if logical is not None:
+                # swallow the press so native column selection doesn't start;
+                # the funnel popup opens on the matching release.
+                self._press_logical = logical
                 return
+        self._press_logical = None
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        pressed = self._press_logical
+        self._press_logical = None
+        if pressed is not None:
+            point = event.position().toPoint()
+            if self._filter_hotspot_at(point) == pressed:
+                self.filter_clicked.emit(pressed)
+            return
         super().mouseReleaseEvent(event)
