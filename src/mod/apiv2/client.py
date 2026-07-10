@@ -348,8 +348,13 @@ class ASICClient(QObject):
             # antminer: check if old firmware (<= 2020)
             if isinstance(self.client, AntminerHTTPClient):
                 sys_info = self.client.get_system_info()
-                if int(sys_info["system_filesystem_version"][-4:]) <= 2020:
-                    self._set_active_client(AntminerOldHTTPClient(ip, alt_pwd=alt_pwd))
+                try:
+                    if int(sys_info["system_filesystem_version"][-4:]) <= 2020:
+                        self._set_active_client(
+                            AntminerOldHTTPClient(ip, alt_pwd=alt_pwd)
+                        )
+                except ValueError:
+                    return
             # whatsminer: check if V3 firmware (> 202412)
             if isinstance(self.client, WhatsminerRPCClient):
                 version_info = self.client.version()
