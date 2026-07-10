@@ -33,10 +33,7 @@ class FilterHeaderView(QHeaderView):
         super().__init__(Qt.Orientation.Horizontal, parent)
         self._filterable: set[int] = set()
         self._active: set[int] = set()
-        # Non-clickable so QTableView's built-in "select whole column on header
-        # press" doesn't fire. The funnel is handled in mouseReleaseEvent and
-        # column highlighting is on right-click, so no click signals are needed.
-        self.setSectionsClickable(False)
+        self.setSectionsClickable(True)
         # pre-tint the white funnel icon once for the idle / active-filter states
         base = QPixmap(":theme/icons/rc/funnel.png")
         self._idle_icon = self._tint(base, _COLOR_IDLE)
@@ -73,9 +70,7 @@ class FilterHeaderView(QHeaderView):
         tinted.fill(Qt.GlobalColor.transparent)
         painter = QPainter(tinted)
         painter.drawPixmap(0, 0, pixmap)
-        painter.setCompositionMode(
-            QPainter.CompositionMode.CompositionMode_SourceIn
-        )
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
         painter.fillRect(tinted.rect(), color)
         painter.end()
         return tinted
