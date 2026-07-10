@@ -15,8 +15,8 @@ searching only hides rows (checked-but-hidden values stay in the result), and
 "(Select All)" then acts on whatever is currently visible.
 """
 
-from PySide6.QtCore import QEvent, QPoint, Qt, Signal
-from PySide6.QtGui import QKeyEvent
+from PySide6.QtCore import QEvent, QPoint, QRect, Qt, Signal
+from PySide6.QtGui import QGuiApplication, QKeyEvent
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -114,10 +114,40 @@ class ColumnFilterPopup(QFrame):
 
     def show_at(self, global_pos: QPoint) -> None:
         self.adjustSize()
-        self.move(global_pos)
+        self.move(self._clamp_to_bounds(global_pos))
         self.show()
         if self._search.isVisible():
             self._search.setFocus()
+
+    def _clamp_to_bounds(self, global_pos: QPoint) -> QPoint:
+        """Keep the popup inside the parent window (and the screen).
+
+        The funnel anchors the popup at the section's bottom-left, so for
+        trailing columns (FW VERSION, PLATFORM) it would otherwise spill out
+        past the right edge. Shift it back in-bounds when that happens.
+        """
+        size = self.sizeHint()
+        x, y = global_pos.x(), global_pos.y()
+
+        rect: QRect | None = None
+        parent = self.parentWidget()
+        if parent is not None:
+            win = parent.window()
+            rect = QRect(win.mapToGlobal(QPoint(0, 0)), win.size())
+        screen = QGuiApplication.screenAt(global_pos)
+        if screen is not None:
+            avail = screen.availableGeometry()
+            rect = avail if rect is None else rect.intersected(avail)
+        if rect is None:
+            return global_pos
+
+        if x + size.width() > rect.right():
+            x = rect.right() - size.width()
+        if y + size.height() > rect.bottom():
+            y = rect.bottom() - size.height()
+        x = max(x, rect.left())
+        y = max(y, rect.top())
+        return QPoint(x, y)
 
     def _checked_labels(self) -> list[str]:
         # every checked value (raw label, not the "(count)" display text),
