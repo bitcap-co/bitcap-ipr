@@ -544,6 +544,11 @@ class IPR(QMainWindow, Ui_MainWindow):
             title_bar = getattr(self, "title_bar", None)
             if title_bar is not None:
                 title_bar.sync_maximize_button()
+        elif event.type() == QEvent.Type.ActivationChange and not self.isActiveWindow():
+            # the resize cursor is an app-wide override set only while active
+            # (see eventFilter); clear it on deactivation so a stale resize
+            # cursor doesn't linger over the unfocused window.
+            self._apply_resize_cursor(None)
 
     def showEvent(self, event):
         super().showEvent(event)
