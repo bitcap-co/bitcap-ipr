@@ -50,6 +50,9 @@ class GoldshellParser(BaseParser):
         self.parse_subtype(obj)
         self.parse_firmware(obj)
 
+    def parse_summary(self, obj: Any) -> None:
+        return super().parse_summary(obj)
+
     def parse_pools(self, obj: list[dict[str, Any]]) -> None:
         for pool in obj:
             if pool["active"]:
