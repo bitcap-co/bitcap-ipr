@@ -248,7 +248,7 @@ class ElphapexHTTPClient(BaseHTTPClient):
             )
             raise APIInvalidResponse
         else:
-            return resobj.model_dump()
+            return resobj.model_dump(by_alias=True)
 
     def get_miner_conf(self) -> dict:
         resp = self.send_command("GET", command="get_miner_conf")
