@@ -235,10 +235,12 @@ class ASICClient(QObject):
             return parser.get_data()
         try:
             system_info = self.client.get_system_info()
+            summary = self.client.summary()
             if isinstance(parser, AntminerParser):
                 system_log = self.client.log()
                 parser.parse_platform(system_log)
                 parser.parse_system_info(system_info)
+                parser.parse_summary(summary)
             elif (
                 isinstance(parser, IceriverParser)
                 or isinstance(parser, VolcminerParser)
@@ -249,10 +251,11 @@ class ASICClient(QObject):
                 or isinstance(parser, AuradineParser)
             ):
                 parser.parse_all(system_info)
+                parser.parse_summary(summary)
             elif isinstance(parser, SRBMinerParser):
                 parser.parse_all(system_info)
                 # uptime is not part of the generic parse_all() sequence.
-                parser.parse_uptime(system_info)
+                parser.parse_summary(system_info)
             elif isinstance(parser, GoldshellParser):
                 parser.parse_system_info(system_info)
                 settings = self.client.get_miner_conf()
@@ -265,10 +268,12 @@ class ASICClient(QObject):
                 parser.parse_subtype(devs)
                 version_info = self.client.version()
                 parser.parse_version_info(version_info)
+                parser.parse_summary(summary)
             elif isinstance(parser, LuxminerParser):
                 parser.parse_system_info(system_info)
                 version_info = self.client.version()
                 parser.parse_version_info(version_info)
+                parser.parse_summary(summary)
             try:
                 pools = self.client.pools()
             except (
