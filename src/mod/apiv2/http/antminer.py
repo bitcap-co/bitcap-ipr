@@ -114,7 +114,7 @@ class MinerStatus(BaseModel):
 
 
 class MinerSummary(BaseModel):
-    elapsed: int
+    elapsed: int = Field(validation_alias="elapsed", serialization_alias="Elapsed")
     rate_5s: float
     rate_30m: float
     rate_avg: float
@@ -249,7 +249,7 @@ class AntminerHTTPClient(BaseHTTPClient):
             )
             raise APIInvalidResponse
         else:
-            return resobj.model_dump()
+            return resobj.summary[0].model_dump(by_alias=True)
 
     def get_miner_conf(self) -> dict:
         resp = self.send_command("GET", command="get_miner_conf")
