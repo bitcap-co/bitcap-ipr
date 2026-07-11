@@ -66,6 +66,10 @@ class BaseParser(ABC):
         pass
 
     @abstractmethod
+    def parse_summary(self, obj: Any) -> None:
+        pass
+
+    @abstractmethod
     def parse_pools(self, obj: list[dict]) -> None:
         pass
 
