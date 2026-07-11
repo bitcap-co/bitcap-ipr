@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field, RootModel, TypeAdapter, ValidationError
 
 from mod.apiv2 import settings
 from mod.apiv2.base import BaseRPCClient, BaseTCPClient
+from mod.apiv2.data.models import BlinkStatus, MinerConfPool
 from mod.apiv2.errors import (
     APIError,
     APIInvalidResponse,
@@ -82,16 +83,6 @@ class VersionInfo(BaseModel):
     platform: str
     chip: str
     miner_type: str | None = None
-
-
-class BlinkStatus(BaseModel):
-    blink: bool
-
-
-class MinerConfPool(BaseModel):
-    url: str = ""
-    user: str = ""
-    passwd: str = Field(default="", alias="pass")
 
 
 def _crypt(word: str, salt: str) -> str:
