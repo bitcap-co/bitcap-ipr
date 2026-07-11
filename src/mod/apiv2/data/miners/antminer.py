@@ -31,7 +31,7 @@ class AntminerParser(BaseParser):
         return super().parse_api_version(obj)
 
     def parse_uptime(self, obj: Any) -> None:
-        return super().parse_uptime(obj)
+        self.data.uptime = obj["Elapsed"]
 
     def parse_hostname(self, obj: dict[str, Any]) -> None:
         self.data.hostname = obj["hostname"]
@@ -72,6 +72,9 @@ class AntminerParser(BaseParser):
         self.parse_subtype(obj)
         self.parse_algorithm(obj)
         self.parse_firmware(obj)
+
+    def parse_summary(self, obj: Any) -> None:
+        self.parse_uptime(obj)
 
     def parse_pools(self, obj: list[dict[str, Any]]) -> None:
         for pool in obj:

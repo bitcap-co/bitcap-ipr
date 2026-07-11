@@ -19,7 +19,10 @@ class WhatsminerParser(BaseParser):
         self.data.api_version = obj["api_ver"]
 
     def parse_uptime(self, obj: Any) -> None:
-        return super().parse_uptime(obj)
+        try:
+            self.data.uptime = int(obj["Elapsed"])
+        except ValueError:
+            return
 
     def parse_hostname(self, obj: dict[str, Any]) -> None:
         self.data.hostname = obj["hostname"]
@@ -51,6 +54,9 @@ class WhatsminerParser(BaseParser):
         self.parse_mac(obj)
         self.parse_serial(obj)
 
+    def parse_summary(self, obj: Any) -> None:
+        self.parse_uptime(obj)
+
     def parse_pools(self, obj: list[dict[str, Any]]) -> None:
         for pool in obj:
             if pool["Status"] == "Alive":
@@ -80,7 +86,7 @@ class WhatsminerV3Parser(BaseParser):
         self.data.api_version = obj["system"]["api"]
 
     def parse_uptime(self, obj: Any) -> None:
-        return super().parse_uptime(obj)
+        self.data.uptime = obj["summary"]["elapsed"]
 
     def parse_hostname(self, obj: Any) -> None:
         self.data.hostname = obj["network"]["hostname"]
@@ -114,6 +120,9 @@ class WhatsminerV3Parser(BaseParser):
         self.parse_firmware(obj)
         self.parse_serial(obj)
         self.parse_subtype(obj)
+
+    def parse_summary(self, obj: Any) -> None:
+        self.parse_uptime(obj)
 
     def parse_pools(self, obj: list[dict[str, Any]]) -> None:
         for pool in obj:

@@ -18,7 +18,7 @@ class LuxminerParser(BaseParser):
         self.data.api_version = obj["API"]
 
     def parse_uptime(self, obj: Any) -> None:
-        return super().parse_uptime(obj)
+        self.data.uptime = obj["Elapsed"]
 
     def parse_hostname(self, obj: Any) -> None:
         self.data.hostname = obj["Hostname"]
@@ -51,7 +51,11 @@ class LuxminerParser(BaseParser):
         self.parse_subtype(obj)
         self.parse_platform(obj)
 
+    def parse_summary(self, obj: Any) -> None:
+        self.parse_uptime(obj)
+
     def parse_pools(self, obj: list[dict[str, Any]]) -> None:
+
         for pool in obj:
             if pool["Status"] == "Alive":
                 self.data.stratum_url = pool["URL"]

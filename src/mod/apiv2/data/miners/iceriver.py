@@ -18,7 +18,10 @@ class IceriverParser(BaseParser):
         return super().parse_api_version(obj)
 
     def parse_uptime(self, obj: Any) -> None:
-        return super().parse_uptime(obj)
+        uptime_str = obj["runtime"]
+        days, hours, mins, secs = map(int, uptime_str.split(":"))
+        uptime = days * 86400 + hours * 3600 + mins * 60 + secs
+        self.data.uptime = uptime
 
     def parse_hostname(self, obj: dict[str, Any]) -> None:
         self.data.hostname = obj["host"]
@@ -71,6 +74,9 @@ class IceriverParser(BaseParser):
 
     def parse_system_info(self, obj: dict[str, Any]) -> None:
         return super().parse_system_info(obj)
+
+    def parse_summary(self, obj: Any) -> None:
+        self.parse_uptime(obj)
 
     def parse_pools(self, obj: list[dict[str, Any]]) -> None:
         for pool in obj:

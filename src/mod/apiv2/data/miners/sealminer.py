@@ -19,7 +19,7 @@ class SealminerParser(BaseParser):
         return super().parse_api_version(obj)
 
     def parse_uptime(self, obj: Any) -> None:
-        return super().parse_uptime(obj)
+        self.data.uptime = obj["summary"]["elapsed"]
 
     def parse_hostname(self, obj: dict[str, Any]) -> None:
         return super().parse_hostname(obj)
@@ -47,6 +47,9 @@ class SealminerParser(BaseParser):
 
     def parse_system_info(self, obj: dict[str, Any]) -> None:
         return super().parse_system_info(obj)
+
+    def parse_summary(self, obj: Any) -> None:
+        self.parse_uptime(obj)
 
     def parse_pools(self, obj: list[dict[str, Any]]) -> None:
         for pool in obj:

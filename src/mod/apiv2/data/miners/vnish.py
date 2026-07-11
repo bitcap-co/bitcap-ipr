@@ -24,7 +24,7 @@ class VnishParser(BaseParser):
         return super().parse_api_version(obj)
 
     def parse_uptime(self, obj: Any) -> None:
-        return super().parse_uptime(obj)
+        self.data.uptime = obj["miner"]["miner_status"]["miner_state_time"]
 
     def parse_hostname(self, obj: Any) -> None:
         self.data.hostname = obj["system"]["network_status"]["hostname"]
@@ -67,6 +67,9 @@ class VnishParser(BaseParser):
 
     def parse_system_info(self, obj: Any) -> None:
         return super().parse_system_info(obj)
+
+    def parse_summary(self, obj: Any) -> None:
+        self.parse_uptime(obj)
 
     def parse_pools(self, obj: list[dict[str, Any]]) -> None:
         for pool in obj:

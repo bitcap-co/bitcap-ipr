@@ -79,6 +79,9 @@ class SRBMinerParser(BaseParser):
     def parse_system_info(self, obj: Any) -> None:
         return super().parse_system_info(obj)
 
+    def parse_summary(self, obj: Any) -> None:
+        self.parse_uptime(obj)
+
     def parse_pools(self, obj: list[dict[str, Any]]) -> None:
         for pool in obj:
             if not pool.get("url"):
