@@ -237,21 +237,10 @@ class ASICClient(QObject):
             system_info = self.client.get_system_info()
             summary = self.client.summary()
             if isinstance(parser, AntminerParser):
+                parser.parse_summary(summary)
                 system_log = self.client.log()
                 parser.parse_platform(system_log)
                 parser.parse_system_info(system_info)
-                parser.parse_summary(summary)
-            elif (
-                isinstance(parser, IceriverParser)
-                or isinstance(parser, VolcminerParser)
-                or isinstance(parser, SealminerParser)
-                or isinstance(parser, WhatsminerV3Parser)
-                or isinstance(parser, ElphapexParser)
-                or isinstance(parser, VnishParser)
-                or isinstance(parser, AuradineParser)
-            ):
-                parser.parse_all(system_info)
-                parser.parse_summary(summary)
             elif isinstance(parser, SRBMinerParser):
                 parser.parse_all(system_info)
                 # uptime is not part of the generic parse_all() sequence.
@@ -263,17 +252,20 @@ class ASICClient(QObject):
                 algo_info = self.client.get_algo()
                 parser.parse_algorithm(algo_info)
             elif isinstance(parser, WhatsminerParser):
+                parser.parse_summary(summary)
                 parser.parse_system_info(system_info)
                 devs = self.client.devdetails()
                 parser.parse_subtype(devs)
                 version_info = self.client.version()
                 parser.parse_version_info(version_info)
-                parser.parse_summary(summary)
             elif isinstance(parser, LuxminerParser):
+                parser.parse_summary(summary)
                 parser.parse_system_info(system_info)
                 version_info = self.client.version()
                 parser.parse_version_info(version_info)
+            else:
                 parser.parse_summary(summary)
+                parser.parse_all(system_info)
             try:
                 pools = self.client.pools()
             except (
