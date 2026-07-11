@@ -283,8 +283,11 @@ class WhatsminerRPCClient(BaseRPCClient):
 
     def summary(self) -> dict:
         resp = self.send_command("summary")
-        _ = self._validate_msg(resp)
-        return resp["Msg"]
+        valid = self._validate_response(resp)
+        if valid.summary is None or len(valid.summary) != 1:
+            raise APIInvalidResponse(reason="malformed")
+        else:
+            return valid.summary[0]
 
     def stats(self) -> list[dict]:
         return super().stats()
