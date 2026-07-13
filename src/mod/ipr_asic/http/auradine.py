@@ -245,7 +245,7 @@ class AuradineHTTPClient(BaseHTTPClient):
     def __init__(
         self,
         ip: str,
-        port: int = 80,
+        port: int = 8080,
         alt_pwd: str | None = None,
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
