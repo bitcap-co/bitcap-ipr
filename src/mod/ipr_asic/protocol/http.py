@@ -151,6 +151,83 @@ class BaseHTTPClient(BaseClient):
         )
         raise APIError("Unknown error")
 
+    @abstractmethod
+    async def get_hostname(self) -> str:
+        """Get miner hostname from network configuration."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_mac_addr(self) -> str:
+        """Get miner MAC address."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_api_version(self) -> str:
+        """Get miner API version."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_system_info(self) -> dict:
+        """Get miner system information."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_network_info(self) -> dict:
+        """Get miner network information."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def log(self, *args, **kwargs) -> dict:
+        """Get miner log."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def summary(self) -> dict:
+        """Get miner status information."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_miner_conf(self) -> dict:
+        """Get current miner configuration."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def set_miner_conf(self, *args, **kwargs) -> dict:
+        """Set miner configuration."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def pools(self) -> list[dict]:
+        """Get miner pool status information."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_pool_conf(self) -> list[dict]:
+        """Get current miner pool configuration."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_miner_status(self) -> dict:
+        """Get current miner status"""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_blink_status(self) -> dict:
+        """Get miner LED blink status."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def blink(self, enabled: bool, *args, **kwargs) -> dict:
+        """Blink miner LEDS for locating."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def update_pool_conf(
+        self, urls: list[str], users: list[str], passwds: list[str]
+    ) -> dict:
+        """Update the current miner pool configuration."""
+        raise NotImplementedError
+
     def _close(self, ex: Exception | None = None) -> None:
         if ex:
             self._ex = ex

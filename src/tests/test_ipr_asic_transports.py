@@ -23,7 +23,12 @@ from mod.ipr_asic.protocol import BaseHTTPClient, BaseRPCClient, BaseTCPClient
 
 
 class _HTTPClient(BaseHTTPClient):
-    """Minimal concrete HTTP client for transport testing."""
+    """Minimal concrete HTTP client for transport testing.
+
+    Only the transport plumbing (send_command/_do_http) is under test here, so
+    the abstract op surface is filled with trivial stubs to make the class
+    concrete.
+    """
 
     def __init__(self, ip, transport):
         super().__init__(ip, transport=transport)
@@ -32,6 +37,51 @@ class _HTTPClient(BaseHTTPClient):
 
     async def authenticate(self) -> None:
         self.authed = True
+
+    async def get_hostname(self) -> str:
+        return ""
+
+    async def get_mac_addr(self) -> str:
+        return ""
+
+    async def get_api_version(self) -> str:
+        return ""
+
+    async def get_system_info(self) -> dict:
+        return {}
+
+    async def get_network_info(self) -> dict:
+        return {}
+
+    async def log(self, *args, **kwargs) -> dict:
+        return {}
+
+    async def summary(self) -> dict:
+        return {}
+
+    async def get_miner_conf(self) -> dict:
+        return {}
+
+    async def set_miner_conf(self, *args, **kwargs) -> dict:
+        return {}
+
+    async def pools(self) -> list[dict]:
+        return []
+
+    async def get_pool_conf(self) -> list[dict]:
+        return []
+
+    async def get_miner_status(self) -> dict:
+        return {}
+
+    async def get_blink_status(self) -> dict:
+        return {}
+
+    async def blink(self, enabled: bool, *args, **kwargs) -> dict:
+        return {}
+
+    async def update_pool_conf(self, urls, users, passwds) -> dict:
+        return {}
 
 
 class _RPCClient(BaseRPCClient):
