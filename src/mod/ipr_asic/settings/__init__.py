@@ -16,6 +16,15 @@ class AuthPassword(BaseModel):
 
 class AuthConfig(BaseModel):
     antminer: AuthPassword = AuthPassword(alt="", default="root")
+    iceriver: AuthPassword = AuthPassword(alt="", default="12345678")
+    goldshell: AuthPassword = AuthPassword(alt="", default="123456789")
+    sealminer: AuthPassword = AuthPassword(alt="", default="seal")
+    elphapex: AuthPassword = AuthPassword(alt="", default="root")
+    volcminer: AuthPassword = AuthPassword(alt="", default="ltc@dog")
+    vnish: AuthPassword = AuthPassword(alt="", default="admin")
+    whatsminer: AuthPassword = AuthPassword(alt="", default="admin")
+    whatsminer_v3: AuthPassword = AuthPassword(alt="", default="super")
+    auradine: AuthPassword = AuthPassword(alt="", default="admin")
 
 
 _auth_config = AuthConfig()
@@ -53,8 +62,13 @@ class Settings(BaseModel):
     discover_get_retries: int = Field(default=1)
     discover_get_timeout: int = Field(default=3)
     get_data_retries: int = Field(default=1)
+    # HTTP request timeout (seconds) used by BaseHTTPClient
     api_function_timeout: int = Field(default=5)
-    led_locate_duration_ms: int = Field(default=10000)
+    # async JSON-RPC / TCP transport timeouts (seconds)
+    rpc_blocking_timeout: float = Field(default=10.0)
+    tcp_blocking_timeout: float = Field(default=10.0)
+    # LED locate blink duration (ms); read externally by the app (ipr.py)
+    locate_duration_ms: int = Field(default=10000)
 
 
 _settings = Settings()

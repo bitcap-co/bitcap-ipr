@@ -36,9 +36,11 @@ class BaseHTTPClient(BaseClient):
         params: dict[str, str] | None = None,
         payload: dict[str, Any] | None = None,
         data: dict[str, Any] | None = None,
-        timeout: int = settings.get("api_function_timeout", 5),
+        timeout: float | None = None,
         verify: bool = True,
     ) -> httpx.Response:
+        if timeout is None:
+            timeout = settings.get("api_function_timeout", 5)
         async with httpx.AsyncClient(verify=verify, timeout=timeout) as c:
             if self.token:
                 c.headers.update({"Authorization": "Bearer " + self.token})

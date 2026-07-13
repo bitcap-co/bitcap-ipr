@@ -26,7 +26,7 @@ from mod.ipr_asic.protocol import BaseHTTPClient
 logger = logging.getLogger(__name__)
 
 
-class ActionResponse(BaseModel):
+class AntminerActionResponse(BaseModel):
     stats: str
     status: str | None = None
     code: str
@@ -172,25 +172,25 @@ class AntminerHTTPClient(BaseHTTPClient):
         for pwd in self.passwds:
             if not pwd:
                 continue
+            digest = httpx.DigestAuth(self.username, pwd)
             try:
                 async with httpx.AsyncClient(
-                    auth=httpx.DigestAuth(self.username, pwd),
+                    auth=digest,
                     timeout=settings.get("api_function_timeout", 5),
                 ) as client:
                     resp = await client.get(url=self.base_url)
                     resp.raise_for_status()
-            except (httpx.HTTPError, httpx.ConnectError, httpx.TimeoutException) as ex:
-                if isinstance(ex, (httpx.ConnectError, httpx.TimeoutException)):
-                    raise FailedConnectionError("Failed to connect or timeout occurred")
-                elif isinstance(ex, httpx.HTTPError):
-                    continue
+            except (httpx.ConnectError, httpx.TimeoutException):
+                raise FailedConnectionError("Failed to connect or timeout occurred")
+            except httpx.HTTPError:
+                continue
             else:
                 if resp.status_code == 200:
                     self.authed = True
-                    self.digest = client.auth
+                    self.digest = digest
                     self.pwd = pwd
                     break
-        if not self.digest:
+        if not self.authed:
             raise AuthenticationError("Failed to authenticate")
 
     async def get_system_info(self) -> dict:
