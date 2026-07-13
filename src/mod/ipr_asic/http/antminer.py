@@ -158,8 +158,14 @@ class Pools(BaseModel):
 
 
 class AntminerHTTPClient(BaseHTTPClient):
-    def __init__(self, ip: str, port: int = 80, alt_pwd: str | None = None) -> None:
-        super().__init__(ip, port)
+    def __init__(
+        self,
+        ip: str,
+        port: int = 80,
+        alt_pwd: str | None = None,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
+        super().__init__(ip, port, transport=transport)
 
         self.command_path = Template("cgi-bin/${command}.cgi")
 
@@ -174,10 +180,7 @@ class AntminerHTTPClient(BaseHTTPClient):
                 continue
             digest = httpx.DigestAuth(self.username, pwd)
             try:
-                async with httpx.AsyncClient(
-                    auth=digest,
-                    timeout=settings.get("api_function_timeout", 5),
-                ) as client:
+                async with self._new_client(auth=digest) as client:
                     resp = await client.get(url=self.base_url)
                     resp.raise_for_status()
             except (httpx.ConnectError, httpx.TimeoutException):

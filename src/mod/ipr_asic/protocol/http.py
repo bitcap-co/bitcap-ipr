@@ -1,3 +1,8 @@
+# Copyright (C) 2024-2026 Matthew Wertman <matt@bitcap.co>
+#
+# This file is part of bitcap-ipr
+# Licensed under the GNU General Public License v3.0; see LICENSE
+
 import json
 import logging
 from abc import abstractmethod
@@ -15,7 +20,15 @@ logger = logging.getLogger(__name__)
 
 
 class BaseHTTPClient(BaseClient):
-    def __init__(self, ip: str, port: int = 80, alt_pwd: str | None = None) -> None:
+    """Base client for async HTTP APIs (httpx) for handling requests/commands."""
+
+    def __init__(
+        self,
+        ip: str,
+        port: int = 80,
+        alt_pwd: str | None = None,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
         super().__init__(ip, port)
         self.base_url = f"http://{self.ip}:{self.port}/"
         self.command_path: Template | None = None
@@ -23,6 +36,21 @@ class BaseHTTPClient(BaseClient):
         self.digest: Auth | DigestAuth | BasicAuth | None = None
         self.token: str | None = None
         self.cookies: str | None = None
+
+        # optional injectable transport (e.g. httpx.MockTransport in tests)
+        self._transport = transport
+
+    def _new_client(self, **kwargs: Any) -> httpx.AsyncClient:
+        """Build an AsyncClient, injecting the shared transport/timeout.
+
+        When a transport is injected (tests), it takes precedence over any
+        ``verify`` option (httpx ignores verify when a transport is supplied).
+        """
+        kwargs.setdefault("timeout", settings.get("api_function_timeout", 5))
+        if self._transport is not None:
+            kwargs["transport"] = self._transport
+            kwargs.pop("verify", None)
+        return httpx.AsyncClient(**kwargs)
 
     @abstractmethod
     async def authenticate(self) -> None:
@@ -41,7 +69,7 @@ class BaseHTTPClient(BaseClient):
     ) -> httpx.Response:
         if timeout is None:
             timeout = settings.get("api_function_timeout", 5)
-        async with httpx.AsyncClient(verify=verify, timeout=timeout) as c:
+        async with self._new_client(verify=verify, timeout=timeout) as c:
             if self.token:
                 c.headers.update({"Authorization": "Bearer " + self.token})
             if self.digest:
@@ -97,15 +125,15 @@ class BaseHTTPClient(BaseClient):
                 data=data,
             )
             resp.raise_for_status()
-        except httpx.RequestError as ex:
+        except httpx.HTTPError as ex:
             if isinstance(ex, (httpx.ConnectTimeout, httpx.ReadTimeout)):
                 logger.error(
                     f"{self.__repr__()} : request {method} {self.base_url + path} timed out! {str(ex)}"
                 )
                 return {}
-            elif isinstance(ex, httpx.HTTPError):
+            elif isinstance(ex, httpx.HTTPStatusError):
                 logger.error(
-                    f"{self.__repr__()} : request {method} {self.base_url + path} failed: {ex.response.status_code} {ex.response.reason}"
+                    f"{self.__repr__()} : request {method} {self.base_url + path} failed: {ex.response.status_code} {ex.response.reason_phrase}"
                 )
             else:
                 logger.error(
