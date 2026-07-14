@@ -15,6 +15,7 @@ from mod.ipr_asic.errors import (
     FailedConnectionError,
 )
 from mod.ipr_asic.protocol import BaseHTTPClient
+from mod.ipr_asic.rpc.cgminer import Status, Version
 
 logger = logging.getLogger(__name__)
 
