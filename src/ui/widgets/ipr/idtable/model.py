@@ -16,7 +16,7 @@ from PySide6.QtCore import (
 )
 from PySide6.QtNetwork import QHostAddress
 
-from mod.apiv2.data import MinerData
+from mod.ipr_asic.data import MinerData
 
 # action columns (icon-only, no underlying MinerData field)
 COL_REFRESH = 0

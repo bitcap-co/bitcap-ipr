@@ -3,6 +3,7 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
+import asyncio
 import logging
 import os
 import shlex
@@ -20,7 +21,6 @@ from pydantic import TypeAdapter, ValidationError
 from PySide6.QtCore import (
     QDateTime,
     QEvent,
-    QEventLoop,
     QFile,
     QIODevice,
     QItemSelectionModel,
@@ -50,15 +50,16 @@ from PySide6.QtWidgets import (
     QSystemTrayIcon,
     QWidget,
 )
+from qasync import asyncSlot
 
 import ui.resources  # noqa F401
 from config import IPRConfig, IPRDPreset, PoolPreset
 from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
-from mod.apiv2 import ASICClient
-from mod.apiv2 import settings as api_settings
-from mod.apiv2.data import MinerData, MinerFirmware, MinerType
-from mod.apiv2.errors import UnknownClientError
+from mod.ipr_asic import ASICClient
+from mod.ipr_asic import settings as api_settings
+from mod.ipr_asic.data import MinerData, MinerFirmware, MinerType
+from mod.ipr_asic.errors import UnknownClientError
 from mod.lm import IPRDListener, IPReport, ListenerManager
 from mod.powermonitor import PowerMonitor
 from mod.updater import (
@@ -203,6 +204,8 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         logger.info(" init mod api.")
         self.asic = ASICClient(self)
+        # tracks the in-flight locate coroutine to prevent concurrent locates
+        self._locate_task: asyncio.Task | None = None
         logger.info(" init miner locate duration for 10000ms.")
         self.miner_locate_duration: int = api_settings.get("locate_duration_ms")
 
@@ -1982,7 +1985,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info(" app activated; retrying iprd listen.")
         self.start_listen()
 
-    def process_result(self, result: IPReport):
+    @asyncSlot(IPReport)
+    async def process_result(self, result: IPReport):
         # reset inactive timer
         if self.inactive.isActive():
             self.inactive.start()
@@ -1990,7 +1994,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             f"process_result : got {result.src_ip}, {result.src_mac}, {result.miner_sn}, {result.miner_type} from listener."
         )
         # identify miner type from src ip
-        miner_type = self.asic.identify(ip=result.src_ip, miner_hint=result.port_type)
+        miner_type = await self.asic.identify(
+            ip=result.src_ip, miner_hint=result.port_type
+        )
+        error: Exception | None = None
         if miner_type == MinerType.UNKNOWN:
             miner_data = MinerData(
                 recv_at=int(result.updated_at),
@@ -2001,15 +2008,15 @@ class IPR(QMainWindow, Ui_MainWindow):
         else:
             # get miner data from src ip
             alt_pwd = self.get_client_auth(miner_type=miner_type.value)
-            try:
-                self.asic.create_client(
-                    miner_type=miner_type, ip=result.src_ip, alt_pwd=alt_pwd
-                )
-            except UnknownClientError as ex:
-                # ignore error to at least get result
-                logger.warning(f"process_result : {str(ex)}")
-                pass
-            miner_data = self.asic.get_miner_data()
+            res = await self.asic.get_miner_data(
+                miner_type, result.src_ip, alt_pwd=alt_pwd
+            )
+            miner_data = res.data
+            # an unsupported backend is non-fatal; still surface partial data
+            if isinstance(res.error, UnknownClientError):
+                logger.warning(f"process_result : {str(res.error)}")
+            else:
+                error = res.error
 
         # in the event of an unsupported miner, return miner type hint from IP Report
         if miner_data["type"] == "N/A":
@@ -2040,13 +2047,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         # append IPReport data
         miner_data["ip_report"] = result.model_dump()
         # let user know that we got an error and may not have complete data
-        if self.asic.client_error():
+        if error:
             self.notify(
-                f"Status :: Failed to get complete miner data {result.src_ip}: {str(self.asic.client_error())}",
+                f"Status :: Failed to get complete miner data {result.src_ip}: {str(error)}",
                 5000,
             )
             return self.show_confirmation(miner_data)
-        self.asic.close_client()
 
         logger.debug(f"process_result: got miner data: {miner_data}.")
         self.notify(
@@ -2214,15 +2220,15 @@ class IPR(QMainWindow, Ui_MainWindow):
         # col/row come from IPRActionDelegate.action_clicked (source row)
         match col:
             case _ if col == COL_REFRESH:
-                self.refresh_miner(row)
+                asyncio.ensure_future(self.refresh_miner(row))
             case _ if col == COL_LOCATE:
-                self.locate_miner(row)
+                asyncio.ensure_future(self.locate_miner(row))
             case _:
                 return
 
-    def locate_miner(self, row: int):
+    async def locate_miner(self, row: int):
         ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(row)
-        if self.asic.locate_timer and self.asic.locate_timer.isActive():
+        if self._locate_task and not self._locate_task.done():
             return logger.warning(
                 "locate_miner : already locating a miner. Ignoring..."
             )
@@ -2237,38 +2243,40 @@ class IPR(QMainWindow, Ui_MainWindow):
                     5000,
                 )
         alt_pwd = self.get_client_auth(miner_type.value)
-        try:
-            self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
-        except UnknownClientError as ex:
-            logger.error(f"locate_miner : {str(ex)}")
-            return self.notify(f"Status :: Failed action: {str(ex)}", 5000)
-        self.asic.locate_miner()
-        if self.asic.client_error():
-            return self.notify(
-                f"Status :: Failed to locate miner: {str(self.asic.client_error())}",
-                5000,
-            )
         self.notify(
             f"Status :: Locating miner: {ip_addr}...",
             self.miner_locate_duration,
         )
+        self._locate_task = asyncio.ensure_future(
+            self.asic.locate_miner(miner_type, ip_addr, alt_pwd=alt_pwd)
+        )
+        try:
+            res = await self._locate_task
+        except asyncio.CancelledError:
+            return
+        if isinstance(res.error, UnknownClientError):
+            logger.error(f"locate_miner : {str(res.error)}")
+            return self.notify(f"Status :: Failed action: {str(res.error)}", 5000)
+        if res.error:
+            return self.notify(
+                f"Status :: Failed to locate miner: {str(res.error)}",
+                5000,
+            )
 
-    def refresh_miner(self, row: int):
+    async def refresh_miner(self, row: int):
         ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(row)
         logger.info(f" refresh miner {ip_addr}.")
         alt_pwd = self.get_client_auth(miner_type.value)
-        try:
-            self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
-        except UnknownClientError as ex:
-            logger.error(f"refresh_miner : {str(ex)}")
-            return self.notify(f"Status :: Failed action: {str(ex)}", 5000)
-        miner_data = self.asic.get_miner_data()
-        if self.asic.client_error():
+        res = await self.asic.get_miner_data(miner_type, ip_addr, alt_pwd=alt_pwd)
+        if isinstance(res.error, UnknownClientError):
+            logger.error(f"refresh_miner : {str(res.error)}")
+            return self.notify(f"Status :: Failed action: {str(res.error)}", 5000)
+        if res.error:
             return self.notify(
-                f"Status :: Failed to get complete miner data {ip_addr}: {str(self.asic.client_error())}",
+                f"Status :: Failed to get complete miner data {ip_addr}: {str(res.error)}",
                 5000,
             )
-        self.asic.close_client()
+        miner_data = res.data
         miner_data["recv_at"] = int(time.time())
         miner_data["ip"] = ip_addr
         miner_data["mac"] = (
@@ -2277,7 +2285,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.populate_table_row(miner_data, row)
         self.notify(f"Status :: Successfully refreshed {ip_addr} miner data.", 3000)
 
-    def get_miner_pool(self):
+    @asyncSlot()
+    async def get_miner_pool(self):
         if not self.id_proxy.rowCount():
             return
         selected_ips = [
@@ -2291,18 +2300,16 @@ class IPR(QMainWindow, Ui_MainWindow):
         source_row = self.id_proxy.mapToSource(index).row()
         ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(source_row)
         alt_pwd = self.get_client_auth(miner_type.value)
-        try:
-            self.asic.create_client(miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd)
-        except UnknownClientError as ex:
-            logger.error(f"get_miner_pool : {str(ex)}")
-            return self.notify(f"Status :: Failed action: {str(ex)}", 5000)
-        urls, users, passwds = self.asic.get_miner_pool_conf()
-        if self.asic.client_error():
+        res = await self.asic.get_miner_pool_conf(miner_type, ip_addr, alt_pwd=alt_pwd)
+        if isinstance(res.error, UnknownClientError):
+            logger.error(f"get_miner_pool : {str(res.error)}")
+            return self.notify(f"Status :: Failed action: {str(res.error)}", 5000)
+        if res.error:
             return self.notify(
-                f"Status :: Failed to get pool config: {str(self.asic.client_error())}",
+                f"Status :: Failed to get pool config: {str(res.error)}",
                 5000,
             )
-        self.asic.close_client()
+        urls, users, passwds = res.data.urls, res.data.users, res.data.passwds
 
         self.linePoolURL.setText(urls[0])
         self.linePoolUser.setText(users[0])
@@ -2319,18 +2326,18 @@ class IPR(QMainWindow, Ui_MainWindow):
             3000,
         )
 
-    def update_miner_pools(self):
+    @asyncSlot()
+    async def update_miner_pools(self):
         passed: list[str] = []
         failed: list[str] = []
         selected_ips = self.get_selected_indexes_for_action(
             "update_miner_pools", section=3
         )
-        self._app_instance.processEvents(
-            QEventLoop.ProcessEventsFlag.AllEvents
-            | QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents
-        )
         if selected_ips is None:
             return self.notify("Status :: Failed action: no selected IPs.", 5000)
+
+        ips: list[str] = []
+        tasks = []
         for index in selected_ips:
             source_row = self.id_proxy.mapToSource(index).row()
             ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(source_row)
@@ -2369,20 +2376,23 @@ class IPR(QMainWindow, Ui_MainWindow):
             ]
 
             alt_pwd = self.get_client_auth(miner_type.value)
-            try:
-                self.asic.create_client(
-                    miner_type=miner_type, ip=ip_addr, alt_pwd=alt_pwd
+            ips.append(ip_addr)
+            tasks.append(
+                self.asic.update_miner_pools(
+                    miner_type, ip_addr, urls, users, passwds, alt_pwd=alt_pwd
                 )
-            except UnknownClientError as ex:
-                logger.error(f"update_miner_pools : {str(ex)}")
+            )
+
+        # run all pool updates concurrently (keeps the UI responsive without
+        # the previous manual processEvents() pump)
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for ip_addr, res in zip(ips, results):
+            if isinstance(res, Exception) or res.error is not None:
+                err = res if isinstance(res, Exception) else res.error
+                logger.error(f"update_miner_pools : {ip_addr} : {str(err)}")
                 failed.append(ip_addr)
-                continue
-            self.asic.update_miner_pools(urls, users, passwds)
-            if self.asic.client_error():
-                failed.append(ip_addr)
-                continue
-            self.asic.close_client()
-            passed.append(ip_addr)
+            else:
+                passed.append(ip_addr)
 
         # action status
         logger.info(
