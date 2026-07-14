@@ -116,16 +116,17 @@ def create_privileged_cmd(token_data: TokenData, command: dict) -> str:
 
 
 def parse_priviledge_data(token_data: TokenData, data: dict) -> dict:
-    enc_data = data["enc"]
-    aeskey = hashlib.sha256(token_data.key.encode()).hexdigest()
-    aeskey = binascii.unhexlify(aeskey.encode())
-    aes = AES.new(aeskey, AES.MODE_ECB)
-    ret_msg = json.loads(
-        aes.decrypt(base64.decodebytes(bytes(enc_data, encoding="utf-8")))
-        .rstrip(b"\0")
-        .decode("utf-8")
-    )
-    return ret_msg
+    if "enc" in data:
+        enc_data = data["enc"]
+        aeskey = hashlib.sha256(token_data.key.encode()).hexdigest()
+        aeskey = binascii.unhexlify(aeskey.encode())
+        aes = AES.new(aeskey, AES.MODE_ECB)
+        return json.loads(
+            aes.decrypt(base64.decodebytes(bytes(enc_data, encoding="utf-8")))
+            .rstrip(b"\0")
+            .decode("utf-8")
+        )
+    return data
 
 
 class WhatsminerRPCClient(BaseRPCClient):
