@@ -30,7 +30,7 @@ from mod.ipr_asic.rpc.cgminer import Status
 logger = logging.getLogger(__name__)
 
 
-class AntminerActionResponse(BaseModel):
+class ActionResponse(BaseModel):
     stats: str
     status: str | None = None
     code: str
@@ -39,6 +39,138 @@ class AntminerActionResponse(BaseModel):
     def error(self) -> str | None:
         if self.status != "success" and self.stats != "success" or self.msg == "FAIL!":
             return f"received API Error ({self.code}): {self.stats} - {self.msg}"
+
+
+class StatusResponse(BaseModel):
+    status: str = Field(alias="STATUS")
+    when: int
+    msg: str = Field(alias="Msg")
+    api_version: str
+
+
+class InfoResponse(BaseModel):
+    miner_version: str
+    compile_time: str = Field(alias="CompileTime")
+    type: str
+
+
+class MinerPool(BaseModel):
+    index: int
+    url: str = Field(validation_alias="url", serialization_alias="URL")
+    user: str = Field(validation_alias="user", serialization_alias="User")
+    status: str = Field(validation_alias="status", serialization_alias="Status")
+    priority: int
+    getworks: int
+    accepted: int
+    rejected: int
+    discarded: int
+    stale: int
+    diff: str
+    diff1: int
+    diffa: int
+    diffr: int
+    diffs: int
+    lsdiff: int
+    lstime: str
+
+
+class Pools(BaseModel):
+    status: StatusResponse = Field(alias="STATUS")
+    info: InfoResponse = Field(alias="INFO")
+    pools: list[MinerPool] = Field(alias="POOLS")
+
+
+class MinerStatus(BaseModel):
+    type: str
+    status: str
+    code: int
+    msg: str
+
+
+class MinerSummary(BaseModel):
+    elapsed: int = Field(validation_alias="elapsed", serialization_alias="Elapsed")
+    rate_5s: float
+    rate_30m: float
+    rate_avg: float
+    rate_ideal: float
+    rate_unit: str
+    hw_all: int
+    bestshare: int
+    status: list[MinerStatus]
+
+
+class Summary(BaseModel):
+    status: StatusResponse = Field(alias="STATUS")
+    info: InfoResponse = Field(alias="INFO")
+    summary: list[MinerSummary] = Field(alias="SUMMARY")
+
+    @field_validator("summary", mode="before")
+    @classmethod
+    def ensure_summary_length(cls, v: list) -> list:
+        if len(v) != 1:
+            raise ValueError
+        return v
+
+
+class MinerChain(BaseModel):
+    index: int
+    freq_avg: int
+    rate_ideal: float
+    rate_real: float
+    asic_num: int
+    asic: str
+    temp_pic: list[int]
+    temp_pcb: list[int]
+    temp_chip: list[int]
+    hw: int
+    hwp: float | None = None
+    eeprom_loaded: bool
+    sn: str
+    eeprom_level: int | None = None
+    eeprom_vol: int | None = None
+    eeprom_freq: int | None = None
+    eeprom_bin: int | None = None
+    eeprom_ft: str | None = None
+    tpl: list[list[int]] | None = None
+
+
+class MinerStat(BaseModel):
+    elapsed: int
+    rate_5s: float
+    rate_30m: float
+    rate_avg: float
+    rate_ideal: float
+    rate_sale: int | None = None
+    rate_unit: str
+    chain_num: int
+    fan_num: int
+    fan: list[int]
+    hwp_total: float
+    miner_mode: int | None = Field(None, alias="miner-mode")
+    freq_level: int | None = Field(None, alias="freq-level")
+    watt: int | None = None
+    jt: float | None = None
+    ambient_temp: float | None = None
+    chain: list[MinerChain]
+
+
+class Stats(BaseModel):
+    status: StatusResponse = Field(alias="STATUS")
+    info: InfoResponse = Field(alias="INFO")
+    stats: list[MinerStat] = Field(alias="STATS")
+
+
+class Warning(BaseModel):
+    status: StatusResponse = Field(alias="STATUS")
+    info: InfoResponse = Field(alias="INFO")
+    error_message: str
+
+
+class MinerType(BaseModel):
+    miner_type: str
+    subtype: str
+    fw_version: str
+    product_type: str | None = None
 
 
 class SystemInfo(BaseModel):
@@ -74,7 +206,29 @@ class NetInfo(BaseModel):
     conf_dnsservers: str
 
 
-class MinerConf(BaseModel):
+class MinerNetworkConfig(BaseModel):
+    ip_address: str = Field(
+        "", validation_alias="conf_ipaddress", serialization_alias="ipAddress"
+    )
+    ip_dns: str = Field(
+        "", validation_alias="conf_dnsservers", serialization_alias="ipDns"
+    )
+    ip_gateway: str = Field(
+        "", validation_alias="conf_gateway", serialization_alias="ipGateway"
+    )
+    ip_host: str = Field(
+        "", validation_alias="conf_hostname", serialization_alias="ipHost"
+    )
+    ip_pro: int = Field(
+        1, gt=0, le=2, validation_alias="conf_nettype", serialization_alias="ipPro"
+    )
+    ip_sub: str = Field(
+        "", validation_alias="conf_netmask", serialization_alias="ipSub"
+    )
+
+
+class MinerConfig(BaseModel):
+    algo: str | None = Field(None, exclude=True)
     fan_ctrl: bool | None = Field(None, alias="bitmain-fan-ctrl")
     fan_pwm: int | None = Field(None, alias="bitmain-fan-pwm")
     freq_level: int | None = Field(
@@ -83,82 +237,19 @@ class MinerConf(BaseModel):
     freq: int | None = Field(
         None, validation_alias="bitmain-freq", serialization_alias="freq"
     )
-    voltage: float | None = Field(None, alias="bitmain-voltage")
-    hashrate_per: int | None = Field(None, alias="bitmain-hashrate-percent")
-    user_ip_cat: bool | None = Field(None, alias="bitmain-user-ip-cat")
-    miner_mode: int | None = Field(
-        None, validation_alias="bitmain-work-mode", serialization_alias="miner-mode"
+    voltage: str | None = Field(None, alias="bitmain-voltage")
+    hashrate_per: str | None = Field(None, alias="bitmain-hashrate-percent")
+    user_ip_cat: str | None = Field(None, alias="bitmain-user-ip-cat")
+    miner_mode: str = Field(
+        validation_alias="bitmain-work-mode", serialization_alias="miner-mode"
     )
     pools: list[MinerConfPool]
 
 
-class APIInfoResponse(BaseModel):
-    miner_version: str
-    compile_time: str = Field(alias="CompileTime")
-    type: str
-
-
-class APIStatusResponse(BaseModel):
-    status: str = Field(alias="STATUS")
-    when: int
-    msg: str = Field(alias="Msg")
-    api_version: str
-
-
-class MinerStatus(BaseModel):
-    type: str
-    status: str
-    code: int
-    msg: str
-
-
-class MinerSummary(BaseModel):
-    elapsed: int = Field(validation_alias="elapsed", serialization_alias="Elapsed")
-    rate_5s: float
-    rate_30m: float
-    rate_avg: float
-    rate_ideal: float
-    rate_unit: str
-    hw_all: int
-    bestshare: int
-    status: list[MinerStatus]
-
-
-class PoolInfo(BaseModel):
-    index: int
-    url: str = Field(validation_alias="url", serialization_alias="URL")
-    user: str = Field(validation_alias="user", serialization_alias="User")
-    status: str = Field(validation_alias="status", serialization_alias="Status")
-    priority: int
-    getworks: int
-    accepted: int
-    rejected: int
-    discarded: int
-    stale: int
-    diff: str
-    diffa: int
-    diffr: int
-    lsdiff: int
-    lstime: str
-
-
-class Summary(BaseModel):
-    status: APIStatusResponse = Field(alias="STATUS")
-    info: APIInfoResponse = Field(alias="INFO")
-    summary: list[MinerSummary] = Field(alias="SUMMARY")
-
-    @field_validator("summary", mode="before")
-    @classmethod
-    def ensure_summary_length(cls, v: list) -> list:
-        if len(v) != 1:
-            raise ValueError
-        return v
-
-
-class Pools(BaseModel):
-    status: APIStatusResponse = Field(alias="STATUS")
-    info: APIInfoResponse = Field(alias="INFO")
-    pools: list[PoolInfo] = Field(alias="POOLS")
+class MinerConfigPasswd(BaseModel):
+    curr_passwd: str = Field("", serialization_alias="curPwd")
+    new_passwd: str = Field("", serialization_alias="newPwd")
+    confirm_passwd: str = Field("", serialization_alias="confirmPwd")
 
 
 class AntminerHTTPClient(BaseHTTPClient):
@@ -253,19 +344,19 @@ class AntminerHTTPClient(BaseHTTPClient):
     async def get_miner_conf(self) -> dict:
         resp = await self.send_command("GET", command="get_miner_conf")
         try:
-            resobj = MinerConf.model_validate(obj=resp, by_alias=True)
+            resobj = MinerConfig.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
             logger.error(
                 f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
             )
             raise APIInvalidResponse
         else:
-            return resobj.model_dump(exclude_none=True, by_alias=True)
+            return resobj.model_dump(exclude_none=True)
 
     async def set_miner_conf(self, conf: dict[str, Any]) -> dict:
         resp = await self.send_command("POST", command="set_miner_conf", payload=conf)
         try:
-            resobj = AntminerActionResponse.model_validate(obj=resp)
+            resobj = ActionResponse.model_validate(obj=resp)
         except ValidationError as e:
             logger.error(
                 f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
@@ -288,7 +379,7 @@ class AntminerHTTPClient(BaseHTTPClient):
             )
             raise APIInvalidResponse
         else:
-            ta = TypeAdapter(list[PoolInfo])
+            ta = TypeAdapter(list[MinerPool])
             return ta.dump_python(resobj.pools, by_alias=True)
 
     async def get_pool_conf(self) -> list[dict]:
@@ -324,7 +415,7 @@ class AntminerHTTPClient(BaseHTTPClient):
             raise APIError("Invalid length of arguments")
 
         resp = await self.get_miner_conf()
-        conf = MinerConf.model_construct(**resp)
+        conf = MinerConfig.model_construct(**resp)
         ta = TypeAdapter(list[MinerConfPool])
         pool_conf: list[dict[str, str]] = ta.dump_python(conf.pools, by_alias=True)
 
@@ -488,7 +579,7 @@ class AntminerOldHTTPClient(BaseHTTPClient):
     async def get_miner_conf(self) -> dict:
         resp = await self.send_command("GET", command="get_miner_conf")
         try:
-            resobj = MinerConf.model_validate(obj=resp, by_alias=True)
+            resobj = MinerConfig.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
             logger.error(
                 f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
@@ -549,7 +640,7 @@ class AntminerOldHTTPClient(BaseHTTPClient):
             raise APIError("Invalid length of arguments")
 
         resp = await self.get_miner_conf()
-        conf = MinerConf.model_construct(**resp)
+        conf = MinerConfig.model_construct(**resp)
 
         data: dict[str, Any] = {}
         for i in range(0, len(urls)):
