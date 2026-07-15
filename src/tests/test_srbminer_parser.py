@@ -7,9 +7,9 @@ import json
 import unittest
 from pathlib import Path
 
-from mod.apiv2.data import MinerAlgorithm, MinerType
-from mod.apiv2.data.miners.srbminer import SRBMinerParser, _format_gpu_model
-from mod.apiv2.http.srbminer import SRBMinerInfo
+from mod.ipr_asic.data import MinerAlgorithm, MinerType
+from mod.ipr_asic.data.miners.srbminer import SRBMinerParser, _format_gpu_model
+from mod.ipr_asic.http.srbminer import SRBMinerInfo
 
 
 def read_payload(filename: str) -> dict:
@@ -56,7 +56,9 @@ class TestSRBMinerParser(unittest.TestCase):
 
     def test_algorithm(self):
         # pearlhash resolves to the MinerAlgorithm added for GPU rigs
-        self.assertEqual(self.parser.get_data()["algorithm"], str(MinerAlgorithm.PEARLHASH))
+        self.assertEqual(
+            self.parser.get_data()["algorithm"], str(MinerAlgorithm.PEARLHASH)
+        )
 
     def test_pools(self):
         pools = [
