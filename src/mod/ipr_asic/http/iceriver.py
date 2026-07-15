@@ -6,7 +6,7 @@
 import json
 import logging
 from string import Template
-from typing import Any
+from typing import Any, Literal
 
 import httpx
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
@@ -291,6 +291,33 @@ class IceriverHTTPClient(BaseHTTPClient):
                 logger.error(f"{self.__repr__()} : {err}")
                 raise APIError("Command failed!")
             return resobj.model_dump()
+
+    async def set_miner_mode(self, mode: Literal["normal", "sleep"] = "normal") -> dict:
+        resp = await self.get_miner_conf()
+        conf = MinerConf.model_construct(**resp)
+        data: dict[str, Any] = {"post": 3}
+        data["fanratio"] = f"{conf.ratio}"
+        data["fanmode"] = mode
+        ta = TypeAdapter(list[MinerConfPool])
+        pools = ta.validate_python(resp["pools"], by_name=True)
+        for i, pool in enumerate(pools):
+            idx = i + 1
+            data[f"pool{idx}address"] = pool.addr
+            data[f"pool{idx}miner"] = pool.user
+            data[f"pool{idx}pwd"] = pool.passwd
+        return await self.set_miner_conf(conf=data)
+
+    async def start(self) -> dict:
+        return await self.set_miner_mode(mode="normal")
+
+    async def stop(self) -> dict:
+        return await self.set_miner_mode(mode="sleep")
+
+    async def restart(self) -> dict:
+        return await self.reboot()
+
+    async def reboot(self) -> dict:
+        return await self.send_command("POST", command="userpanel", data={"post": 3})
 
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]

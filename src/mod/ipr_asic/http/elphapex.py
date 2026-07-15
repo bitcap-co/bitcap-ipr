@@ -261,7 +261,7 @@ class ElphapexHTTPClient(BaseHTTPClient):
             )
             raise APIInvalidResponse
         else:
-            return resobj.model_dump(exclude_none=True, by_alias=True)
+            return resobj.model_dump(exclude_none=True)
 
     async def set_miner_conf(self, conf: dict) -> dict:
         resp = await self.send_command("POST", command="set_miner_conf", payload=conf)
@@ -318,6 +318,21 @@ class ElphapexHTTPClient(BaseHTTPClient):
         blink = BlinkStatus(blink=enabled)
         payload = blink.model_dump(mode="json")
         return await self.send_command("POST", command="blink", payload=payload)
+
+    async def set_miner_mode(self, *args, **kwargs) -> dict:
+        return await super().set_miner_mode(*args, **kwargs)
+
+    async def start(self) -> dict:
+        return await super().start()
+
+    async def stop(self) -> dict:
+        return await super().stop()
+
+    async def restart(self) -> dict:
+        return await self.reboot()
+
+    async def reboot(self) -> dict:
+        return await self.send_command("POST", command="reboot")
 
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]

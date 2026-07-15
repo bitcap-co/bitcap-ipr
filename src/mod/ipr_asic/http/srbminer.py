@@ -123,6 +123,21 @@ class SRBMinerHTTPClient(BaseHTTPClient):
         # GPU rigs have no locate LED to toggle.
         raise APIError("Locate is not supported for HiveOS GPU rigs")
 
+    async def set_miner_mode(self, *args, **kwargs) -> dict:
+        return await super().set_miner_mode(*args, **kwargs)
+
+    async def start(self) -> dict:
+        raise APIError("Start is not supported for HiveOS GPU rigs")
+
+    async def stop(self) -> dict:
+        raise APIError("Stop is not supported for HiveOS GPU rigs")
+
+    async def restart(self) -> dict:
+        raise APIError("Restart is not supported for HiveOS GPU rigs")
+
+    async def reboot(self) -> dict:
+        raise APIError("Reboot is not supported for HiveOS GPU rigs")
+
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
     ) -> dict:

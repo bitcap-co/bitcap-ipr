@@ -517,6 +517,21 @@ class VnishHTTPClient(BaseHTTPClient):
     async def blink(self, enabled: bool, *args, **kwargs) -> dict:
         return await self.send_command("POST", command="find-miner")
 
+    async def set_miner_mode(self, *args, **kwargs) -> dict:
+        return await super().set_miner_mode(*args, **kwargs)
+
+    async def start(self) -> dict:
+        return await self.send_command("POST", command="mining/start")
+
+    async def stop(self) -> dict:
+        return await self.send_command("POST", command="mining/stop")
+
+    async def restart(self) -> dict:
+        return await self.send_command("POST", command="mining/restart")
+
+    async def reboot(self) -> dict:
+        return await self.send_command("POST", command="system/reboot")
+
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
     ) -> dict:

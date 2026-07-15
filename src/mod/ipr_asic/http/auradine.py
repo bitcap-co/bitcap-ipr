@@ -1,7 +1,7 @@
 import json
 import logging
 from string import Template
-from typing import Any
+from typing import Any, Literal
 
 import httpx
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
@@ -444,6 +444,24 @@ class AuradineHTTPClient(BaseHTTPClient):
         resp = await self.send_command("POST", command="led", payload=led.model_dump())
         _ = self._validate_response(resp)
         return resp
+
+    async def set_miner_mode(self, mode: Literal["on", "off"] = "on") -> dict:
+        conf = {"sleep": mode}
+        return await self.set_miner_conf(conf)
+
+    async def start(self) -> dict:
+        return await self.set_miner_mode(mode="on")
+
+    async def stop(self) -> dict:
+        return await self.set_miner_mode(mode="off")
+
+    async def restart(self) -> dict:
+        return await super().restart()
+
+    async def reboot(self) -> dict:
+        return await self.send_command(
+            "POST", command="restart", payload={"command": "restart"}
+        )
 
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]

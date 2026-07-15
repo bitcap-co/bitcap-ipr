@@ -27,8 +27,12 @@ logger = logging.getLogger(__name__)
 
 
 class ActionResponse(BaseModel):
-    status: int
+    status: int | None = None
     result: int
+
+    def error(self) -> str | None:
+        if self.result != 0:
+            return f"received API error ({self.result}): non-zero result."
 
 
 class LoginResponse(BaseModel):
@@ -308,6 +312,35 @@ class SealminerHTTPClient(BaseHTTPClient):
     async def blink(self, enabled: bool, *args, **kwargs) -> dict:
         data = '{"key":"led","value":"%s"}' % ("on" if enabled else "off")
         return await self.send_command("POST", command="led_conf", data=data)
+
+    async def set_miner_mode(self, mode: int = 1) -> dict:
+        data = '{"params_data":%s}' % (mode)
+        resp = await self.send_command("POST", command="mining_setting", data=data)
+        try:
+            resobj = ActionResponse.model_validate(obj=resp)
+        except ValidationError as e:
+            logger.error(
+                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
+            )
+            raise APIInvalidResponse
+        else:
+            err = resobj.error()
+            if err:
+                logger.error(f"{self.__repr__()} : {err}")
+                raise APIError("Command failed!")
+            return resobj.model_dump()
+
+    async def start(self) -> dict:
+        return await self.set_miner_mode(mode=1)
+
+    async def stop(self) -> dict:
+        return await self.set_miner_mode(mode=0)
+
+    async def restart(self) -> dict:
+        return await self.start()
+
+    async def reboot(self) -> dict:
+        return await self.send_command("POST", command="reboot")
 
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]

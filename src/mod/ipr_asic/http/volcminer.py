@@ -432,6 +432,21 @@ class VolcminerHTTPClient(BaseHTTPClient):
         data = {"_bb_type": "rgOn" if enabled else "rgOff"}
         return await self.send_command("POST", command="post_led_onoff", data=data)
 
+    async def set_miner_mode(self, *args, **kwargs) -> dict:
+        return await super().set_miner_mode(*args, **kwargs)
+
+    async def start(self) -> dict:
+        return await super().start()
+
+    async def stop(self) -> dict:
+        return await super().stop()
+
+    async def restart(self) -> dict:
+        return await super().restart()
+
+    async def reboot(self) -> dict:
+        return await self.send_command("POST", command="reboot")
+
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
     ) -> dict:
