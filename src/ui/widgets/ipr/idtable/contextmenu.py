@@ -27,6 +27,17 @@ class IPRTableContextMenu(QMenu):
         self.contextActionClearTable = self.addAction("Clear Table")
         self.contextActionClearTable.setToolTip("Clear the current data in table.")
 
+        self.addSeparator()
+        self.contextActionRefreshMiners = self.addAction("Refresh Miners")
+        self.contextActionRefreshMiners.setToolTip(
+            "Refresh data for the selected miners, or all miners when none are selected."
+        )
+        self.contextActionLocateMiners = self.addAction("Locate Miners")
+        self.contextActionLocateMiners.setToolTip(
+            "Blink the fault light on the selected miners, or all miners when none are selected."
+        )
+        self.addSeparator()
+
         self.menuTable = self.addMenu("Table Actions")
         self.menuTable.setToolTipsVisible(True)
         self.menuConf = self.addMenu("Configurator")

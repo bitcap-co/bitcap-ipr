@@ -15,7 +15,7 @@ from datetime import datetime
 from enum import Enum, auto
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from pydantic import TypeAdapter, ValidationError
 from PySide6.QtCore import (
@@ -56,7 +56,7 @@ import ui.resources  # noqa F401
 from config import IPRConfig, IPRDPreset, PoolPreset
 from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
-from mod.ipr_asic import ASICClient
+from mod.ipr_asic import ASICClient, MinerResult
 from mod.ipr_asic import settings as api_settings
 from mod.ipr_asic.data import MinerData, MinerFirmware, MinerType
 from mod.ipr_asic.errors import UnknownClientError
@@ -406,6 +406,12 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.copy_selected
         )
         self.id_context_menu.contextActionClearTable.triggered.connect(self.clear_table)
+        self.id_context_menu.contextActionRefreshMiners.triggered.connect(
+            self.bulk_refresh_miners
+        )
+        self.id_context_menu.contextActionLocateMiners.triggered.connect(
+            self.bulk_locate_miners
+        )
         self.id_context_menu.contextActionTableImport.triggered.connect(
             self.import_table
         )
@@ -1578,6 +1584,39 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.notify(status_msg, 3000)
         return selected
 
+    def get_action_target_rows(self, action: str) -> list[int]:
+        """Resolve the source rows a bulk action should operate on.
+
+        Uses the current IP-column selection, or falls back to every
+        currently visible (filtered) row when nothing is selected. Returns
+        an empty list when the table has no rows. This is the seam the
+        future Global Action Center toolbar will call.
+        """
+        rows = self.id_proxy.rowCount()
+        if not rows:
+            return []
+        selected = [
+            x
+            for x in self.tableIPRID.selectionModel().selectedIndexes()
+            if x.column() == 3
+        ]
+        if selected:
+            source_rows = [self.id_proxy.mapToSource(x).row() for x in selected]
+        else:
+            source_rows = [
+                self.id_proxy.mapToSource(self.id_proxy.index(r, 3)).row()
+                for r in range(rows)
+            ]
+        scope = "selected" if selected else "all"
+        logger.info(
+            f"{action} : running action for {len(source_rows)} ({scope}) miners..."
+        )
+        self.notify(
+            f"Status :: Running action: {action} for {len(source_rows)} ({scope}) miners...",
+            3000,
+        )
+        return source_rows
+
     def open_selected_ips(self):
         if not self.id_proxy.rowCount():
             return
@@ -2226,42 +2265,109 @@ class IPR(QMainWindow, Ui_MainWindow):
             case _:
                 return
 
-    async def locate_miner(self, row: int):
-        ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(row)
-        if self._locate_task and not self._locate_task.done():
-            return logger.warning(
-                "locate_miner : already locating a miner. Ignoring..."
-            )
-        logger.info(f" locate miner {ip_addr}.")
-        match miner_type:
-            case MinerType.VOLCMINER | MinerType.HIVEGPU:
+    async def _run_bulk_action(
+        self,
+        action: str,
+        rows: list[int],
+        coro_factory: Callable[[int, str, MinerType, MinerFirmware, str | None], Any],
+        *,
+        on_success: Callable[[int, str, MinerResult], None] | None = None,
+    ) -> None:
+        """Fan a per-miner async operation out over ``rows`` concurrently.
+
+        ``coro_factory(row, ip, miner_type, fw_type, alt_pwd)`` returns the
+        coroutine to run for a row, or ``None`` to skip that row. Results are
+        gathered, classified into passed/failed with the same rule as
+        ``update_miner_pools``, and summarised via ``notify``. ``on_success``
+        (if given) runs for each miner whose result carried no error.
+        """
+        ips: list[str] = []
+        task_rows: list[int] = []
+        tasks = []
+        for row in rows:
+            ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(row)
+            alt_pwd = self.get_client_auth(miner_type.value)
+            coro = coro_factory(row, ip_addr, miner_type, fw_type, alt_pwd)
+            if coro is None:
+                continue
+            ips.append(ip_addr)
+            task_rows.append(row)
+            tasks.append(coro)
+        if not tasks:
+            return
+
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        passed: list[str] = []
+        failed: list[str] = []
+        for row, ip_addr, res in zip(task_rows, ips, results):
+            if isinstance(res, Exception) or res.error is not None:
+                err = res if isinstance(res, Exception) else res.error
+                logger.error(f"{action} : {ip_addr} : {str(err)}")
+                failed.append(ip_addr)
+            else:
+                if on_success is not None:
+                    on_success(row, ip_addr, res)
+                passed.append(ip_addr)
+
+        logger.info(
+            f"status for action '{action}': passed - {passed}, failed - {failed}"
+        )
+        if failed:
+            return self.notify(f"Status :: {action} failed for {failed}.", 5000)
+        self.notify(f"Status :: {action} succeeded for {len(passed)} miners.", 3000)
+
+    async def _locate_rows(self, rows: list[int]) -> None:
+        """Blink the fault light on every miner in ``rows`` concurrently.
+
+        Unsupported miners (Volcminer/HiveGPU) are skipped. The cancel-safe
+        blink-off is handled inside ``ASICClient.locate_miner``'s ``finally``,
+        so cancelling this batch turns every LED back off.
+        """
+
+        def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
+            if miner_type in (MinerType.VOLCMINER, MinerType.HIVEGPU):
                 logger.error(
-                    f"locate_miner : {miner_type.value} is currently not supported."
+                    f"locate : {miner_type.value} is currently not supported."
                 )
-                return self.notify(
-                    f"Status :: Failed to locate miner: {miner_type.value.capitalize()} is currently not supported.",
+                self.notify(
+                    f"Status :: Skipping {ip_addr}: {miner_type.value.capitalize()} locate is not supported.",
                     5000,
                 )
-        alt_pwd = self.get_client_auth(miner_type.value)
-        self.notify(
-            f"Status :: Locating miner: {ip_addr}...",
-            self.miner_locate_duration,
-        )
-        self._locate_task = asyncio.ensure_future(
-            self.asic.locate_miner(miner_type, ip_addr, alt_pwd=alt_pwd)
-        )
+                return None
+            return self.asic.locate_miner(miner_type, ip_addr, alt_pwd=alt_pwd)
+
+        await self._run_bulk_action("Locate", rows, make_coro)
+
+    async def _start_locate(self, rows: list[int]) -> None:
+        """Launch a locate batch, cancelling any locate already in flight.
+
+        A single cancellable ``self._locate_task`` backs both the per-row
+        glyph and the bulk action (cancel-and-replace guard).
+        """
+        if not rows:
+            return
+        if self._locate_task and not self._locate_task.done():
+            self._locate_task.cancel()
+            try:
+                await self._locate_task
+            except asyncio.CancelledError:
+                pass
+        self._locate_task = asyncio.ensure_future(self._locate_rows(rows))
         try:
-            res = await self._locate_task
+            await self._locate_task
         except asyncio.CancelledError:
             return
-        if isinstance(res.error, UnknownClientError):
-            logger.error(f"locate_miner : {str(res.error)}")
-            return self.notify(f"Status :: Failed action: {str(res.error)}", 5000)
-        if res.error:
-            return self.notify(
-                f"Status :: Failed to locate miner: {str(res.error)}",
-                5000,
-            )
+
+    async def locate_miner(self, row: int):
+        # single-row locate is the N=1 case of the shared locate engine
+        await self._start_locate([row])
+
+    @asyncSlot()
+    async def bulk_locate_miners(self):
+        rows = self.get_action_target_rows("Locate")
+        if not rows:
+            return self.notify("Status :: Failed action: no miners to locate.", 5000)
+        await self._start_locate(rows)
 
     async def refresh_miner(self, row: int):
         ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(row)
@@ -2284,6 +2390,28 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         self.populate_table_row(miner_data, row)
         self.notify(f"Status :: Successfully refreshed {ip_addr} miner data.", 3000)
+
+    @asyncSlot()
+    async def bulk_refresh_miners(self):
+        rows = self.get_action_target_rows("Refresh")
+        if not rows:
+            return self.notify("Status :: Failed action: no miners to refresh.", 5000)
+
+        def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
+            return self.asic.get_miner_data(miner_type, ip_addr, alt_pwd=alt_pwd)
+
+        def on_success(row, ip_addr, res):
+            miner_data = res.data
+            miner_data["recv_at"] = int(time.time())
+            miner_data["ip"] = ip_addr
+            miner_data["mac"] = (
+                miner_data["mac"].lower() if miner_data["mac"] != "N/A" else "N/A"
+            )
+            self.populate_table_row(miner_data, row)
+
+        await self._run_bulk_action(
+            "Refresh", rows, make_coro, on_success=on_success
+        )
 
     @asyncSlot()
     async def get_miner_pool(self):
