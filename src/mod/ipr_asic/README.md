@@ -12,30 +12,36 @@
   - Support for HiveOS/GPU miners
 
 #### Goals
- - Simplistic Qt-compatiable interface to identify/use various backends 
- - Standarized `MinerData` model to retrieve identifing information & current status/stats
- - Asyncronous clients to execute tasks in parellel (bulk actions)
+ - [x] Simplistic Qt-compatiable interface to identify/use various backends 
+ * [ ] Standarized `MinerData` model to retrieve identifing information & current status/stats
+ >- [ ] Standardized Model
+ >- [ ] CGminer/RPC API runtime status/stats
+ - [x] Asyncronous clients to execute tasks in parellel (bulk actions)
  - Client support:
-    >- Alternative authentacation
-    Try set alternative password first for authentication with API, falling back to hardcoded default password on fail
-    >- Miner control
-    - Locate by blinking LEDs for set duration
-    - Start/Stop, Restart, Reboot methods
-    - Update firmware
-    >- Miner configuration
-    - Set/Update pool configuration
-    - Set password authentication
-    - Set Fan & Power modes
-    - Ability to set power/tune presets if supported (i.e. Vnish firmware)
+    * Backends
+    >- [ ] cgminer/RPC API in parellel to retrieve runtime stats/status
+    * Alternative authentacation
+    >- [x] Try set alternative password first for authentication with API, falling back to hardcoded default password on fail
+
+    * Miner control
+    >- [x] Locate by blinking LEDs for set duration
+    >- [ ] Start/Stop, Restart, Reboot methods
+    >- [ ] Update firmware
+
+    * Miner configuration
+    >- [x] Set/Update pool configuration
+    >- [ ] Set password authentication
+    >- [ ] Set Fan & Power modes
+    >- [ ] Ability to set power/tune presets if supported (i.e. Vnish firmware)
  - Miner/Firmware support:
-   - Antminer (Stock)
-   - Iceriver (Stock)
-   - Whatsminer (Stock) V2 & V3 API
-   - Goldshell (Stock)
-   - Sealminer (Stock)
-   - Volcminer (Stock)
-   - Elphapex (Stock)
-   - Auradine (Stock)
-   - Vnish firmware
-   - LuxOS firmware
+   - [x] Antminer (Stock) New Gen, 2020
+   - [x] Iceriver (Stock)
+   - [x] Whatsminer (Stock) V2,V3
+   - [x] Goldshell (Stock)
+   - [x] Sealminer (Stock)
+   - [x] Volcminer (Stock)
+   - [x] Elphapex (Stock)
+   - [x] Auradine (Stock)
+   - [x] Vnish firmware
+   - [x] LuxOS firmware
    - ...
