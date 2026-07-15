@@ -3,8 +3,11 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
+import hashlib
 import json
 import logging
+import random
+import time
 from string import Template
 
 import httpx
@@ -143,6 +146,14 @@ class MinerStatus(BaseModel):
     pools: list[Pool]
 
 
+def gen_php_session_id() -> str:
+    random.seed(time.time_ns())
+    ran_id = bytearray(random.randbytes(10))
+
+    h = hashlib.new("sha1", data=ran_id)
+    return h.hexdigest()[:26]
+
+
 class SealminerHTTPClient(BaseHTTPClient):
     def __init__(
         self,
@@ -161,16 +172,17 @@ class SealminerHTTPClient(BaseHTTPClient):
         self.command_path = Template("cgi-bin/${command}.php")
 
     async def authenticate(self) -> None:
+        php_session = gen_php_session_id()
+        headers = {"Cookie": "userLanguage=en; PHPSESSID=" + php_session}
         for pwd in self.passwds:
             if not pwd:
                 continue
             data = {"username": self.username, "origin_pwd": pwd}
             try:
-                async with self._new_client() as client:
-                    resp = await client.post(
-                        self.base_url + "cgi-bin/login.php", data=data
-                    )
-                    resp.raise_for_status()
+                resp = await self._do_http(
+                    method="POST", headers=headers, path="cgi-bin/login.php", data=data
+                )
+                resp.raise_for_status()
             except (httpx.ConnectError, httpx.TimeoutException):
                 raise FailedConnectionError("Failed to connect or timeout occurred")
             except httpx.HTTPError:
@@ -185,6 +197,9 @@ class SealminerHTTPClient(BaseHTTPClient):
                     else:
                         if login_response.state != 0:
                             continue
+                        self.cookies = (
+                            "username=seal; userLanguage=en; PHPSESSID=" + php_session
+                        )
                         self.authed = True
                         self.pwd = pwd
                         break
