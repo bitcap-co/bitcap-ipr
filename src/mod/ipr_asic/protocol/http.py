@@ -222,6 +222,31 @@ class BaseHTTPClient(BaseClient):
         raise NotImplementedError
 
     @abstractmethod
+    async def set_miner_mode(self, *args, **kwargs) -> dict:
+        """Set mining mode."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def start(self) -> dict:
+        """Start mining."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def stop(self) -> dict:
+        """Stop mining."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def restart(self) -> dict:
+        """Restart mining."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def reboot(self) -> dict:
+        """Reboot miner."""
+        raise NotImplementedError
+
+    @abstractmethod
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
     ) -> dict:
