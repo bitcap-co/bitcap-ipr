@@ -408,6 +408,30 @@ class AntminerHTTPClient(BaseHTTPClient):
         payload = blink.model_dump(mode="json")
         return await self.send_command("POST", command="blink", payload=payload)
 
+    async def set_miner_mode(self, mode: int = 0) -> dict:
+        resp = await self.get_miner_conf()
+        conf = MinerConfig.model_construct(**resp)
+        conf.miner_mode = f"{mode}"
+        ta = TypeAdapter(list[MinerConfPool])
+        pools = ta.validate_python(resp["pools"], by_name=True)
+        conf.pools = pools
+
+        return await self.set_miner_conf(
+            conf=conf.model_dump(mode="json", by_alias=True, exclude_none=True)
+        )
+
+    async def start(self) -> dict:
+        return await self.set_miner_mode(mode=0)
+
+    async def stop(self) -> dict:
+        return await self.set_miner_mode(mode=1)
+
+    async def restart(self) -> dict:
+        return await self.reboot()
+
+    async def reboot(self) -> dict:
+        return await self.send_command("POST", command="reboot")
+
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
     ) -> dict:
