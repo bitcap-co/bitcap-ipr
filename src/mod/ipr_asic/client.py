@@ -62,6 +62,7 @@ _CLIENT_ERRORS = (
     APIError,
     OSError,
     LookupError,
+    NotImplementedError,
 )
 
 
