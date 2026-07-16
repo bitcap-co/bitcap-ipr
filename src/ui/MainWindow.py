@@ -422,6 +422,53 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_2.addWidget(self.tableSortFilter)
 
+        self.tableActionCenter = QWidget(self.tableView)
+        self.tableActionCenter.setObjectName(u"tableActionCenter")
+        sizePolicy.setHeightForWidth(self.tableActionCenter.sizePolicy().hasHeightForWidth())
+        self.tableActionCenter.setSizePolicy(sizePolicy)
+        self.tableActionCenter.setMinimumSize(QSize(525, 35))
+        self.tableActionCenter.setMaximumSize(QSize(16777215, 35))
+        self.horizontalLayout_7 = QHBoxLayout(self.tableActionCenter)
+        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
+        self.horizontalLayout_7.setContentsMargins(6, 6, 6, 6)
+        self.label_30 = QLabel(self.tableActionCenter)
+        self.label_30.setObjectName(u"label_30")
+        sizePolicy4.setHeightForWidth(self.label_30.sizePolicy().hasHeightForWidth())
+        self.label_30.setSizePolicy(sizePolicy4)
+        font = QFont()
+        font.setPointSize(10)
+        self.label_30.setFont(font)
+
+        self.horizontalLayout_7.addWidget(self.label_30)
+
+        self.btnBulkLocate = QToolButton(self.tableActionCenter)
+        self.btnBulkLocate.setObjectName(u"btnBulkLocate")
+        self.btnBulkLocate.setMinimumSize(QSize(32, 25))
+        self.btnBulkLocate.setIconSize(QSize(15, 15))
+
+        self.horizontalLayout_7.addWidget(self.btnBulkLocate)
+
+        self.btnBulkRefresh = QToolButton(self.tableActionCenter)
+        self.btnBulkRefresh.setObjectName(u"btnBulkRefresh")
+        self.btnBulkRefresh.setMinimumSize(QSize(32, 25))
+        self.btnBulkRefresh.setIconSize(QSize(15, 15))
+
+        self.horizontalLayout_7.addWidget(self.btnBulkRefresh)
+
+        self.btnBulkConfig = QToolButton(self.tableActionCenter)
+        self.btnBulkConfig.setObjectName(u"btnBulkConfig")
+        self.btnBulkConfig.setMinimumSize(QSize(32, 25))
+        self.btnBulkConfig.setIconSize(QSize(15, 15))
+
+        self.horizontalLayout_7.addWidget(self.btnBulkConfig)
+
+        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_7.addItem(self.horizontalSpacer_3)
+
+
+        self.verticalLayout_2.addWidget(self.tableActionCenter)
+
         self.tableIPRID = QTableView(self.tableView)
         self.tableIPRID.setObjectName(u"tableIPRID")
         sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
@@ -446,10 +493,10 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
         self.label = QLabel(self.settingsView)
         self.label.setObjectName(u"label")
-        font = QFont()
-        font.setPointSize(14)
-        font.setBold(True)
-        self.label.setFont(font)
+        font1 = QFont()
+        font1.setPointSize(14)
+        font1.setBold(True)
+        self.label.setFont(font1)
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_3.addWidget(self.label)
@@ -469,7 +516,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 728, 814))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 457, 818))
         self.verticalLayout_5 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_5.setSpacing(15)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
@@ -739,7 +786,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 724, 976))
+        self.scrollAPI.setGeometry(QRect(0, 0, 255, 986))
         self.verticalLayout_8 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_8.setSpacing(15)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
@@ -1075,7 +1122,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollLogs = QWidget()
         self.scrollLogs.setObjectName(u"scrollLogs")
-        self.scrollLogs.setGeometry(QRect(0, 0, 728, 596))
+        self.scrollLogs.setGeometry(QRect(0, 0, 725, 261))
         self.verticalLayout_11 = QVBoxLayout(self.scrollLogs)
         self.verticalLayout_11.setSpacing(15)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
@@ -1091,9 +1138,7 @@ class Ui_MainWindow(object):
 
         self.label_5 = QLabel(self.groupLogSettings)
         self.label_5.setObjectName(u"label_5")
-        font1 = QFont()
-        font1.setPointSize(10)
-        self.label_5.setFont(font1)
+        self.label_5.setFont(font)
 
         self.gridLayout_5.addWidget(self.label_5, 1, 0, 1, 1)
 
@@ -1132,13 +1177,13 @@ class Ui_MainWindow(object):
 
         self.label_7 = QLabel(self.groupLogFile)
         self.label_7.setObjectName(u"label_7")
-        self.label_7.setFont(font1)
+        self.label_7.setFont(font)
 
         self.gridLayout_6.addWidget(self.label_7, 0, 0, 1, 1)
 
         self.label_8 = QLabel(self.groupLogFile)
         self.label_8.setObjectName(u"label_8")
-        self.label_8.setFont(font1)
+        self.label_8.setFont(font)
 
         self.gridLayout_6.addWidget(self.label_8, 1, 0, 1, 1)
 
@@ -1204,7 +1249,7 @@ class Ui_MainWindow(object):
         self.listenerControls.setContentsMargins(9, 9, 9, 10)
         self.pushIPRListenStart = QPushButton(self.centralwidget)
         self.pushIPRListenStart.setObjectName(u"pushIPRListenStart")
-        self.pushIPRListenStart.setFont(font)
+        self.pushIPRListenStart.setFont(font1)
 
         self.listenerControls.addWidget(self.pushIPRListenStart)
 
@@ -1215,7 +1260,7 @@ class Ui_MainWindow(object):
         self.pushIPRListenStop = QPushButton(self.centralwidget)
         self.pushIPRListenStop.setObjectName(u"pushIPRListenStop")
         self.pushIPRListenStop.setEnabled(False)
-        self.pushIPRListenStop.setFont(font)
+        self.pushIPRListenStop.setFont(font1)
 
         self.listenerControls.addWidget(self.pushIPRListenStop)
 
@@ -1234,7 +1279,7 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
 
         self.stackedWidget.setCurrentIndex(0)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(2)
         self.comboLogLevel.setCurrentIndex(1)
         self.pushIPRListenStart.setDefault(True)
 
@@ -1284,6 +1329,23 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.btnResetView.setToolTip(QCoreApplication.translate("MainWindow", u"Clear the filter and reset the sort order", None))
 #endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.tableActionCenter.setToolTip(QCoreApplication.translate("MainWindow", u"Execute bulk actions for selected miners/all visible miners.", None))
+#endif // QT_CONFIG(tooltip)
+        self.label_30.setText(QCoreApplication.translate("MainWindow", u"Action Center:", None))
+        self.label_30.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.btnBulkLocate.setToolTip(QCoreApplication.translate("MainWindow", u"Blink miner LEDs for selected/all visible miners.", None))
+#endif // QT_CONFIG(tooltip)
+        self.btnBulkLocate.setText("")
+#if QT_CONFIG(tooltip)
+        self.btnBulkRefresh.setToolTip(QCoreApplication.translate("MainWindow", u"Refresh data for selected/all visible miners", None))
+#endif // QT_CONFIG(tooltip)
+        self.btnBulkRefresh.setText("")
+#if QT_CONFIG(tooltip)
+        self.btnBulkConfig.setToolTip(QCoreApplication.translate("MainWindow", u"Set a configuration for selected/all visible miners.", None))
+#endif // QT_CONFIG(tooltip)
+        self.btnBulkConfig.setText("")
         self.label.setText(QCoreApplication.translate("MainWindow", u"Configuration", None))
         self.label.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.groupSystemTray.setTitle(QCoreApplication.translate("MainWindow", u"System Tray", None))
