@@ -114,6 +114,17 @@ QToolButton {
   border: none;
   background: none;
   color: #FFFFFF;
+  outline: none;
+}
+
+QToolButton:disabled {
+  color: #828282;
+  padding: 2px;
+}
+
+QToolButton[popupMode="0"] {
+  /* Only for DelayedPopup */
+  padding-right: 2px;
 }
 
 QCheckBox {
