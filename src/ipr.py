@@ -85,6 +85,7 @@ from ui.widgets import (
     IPRTableContextMenu,
     IPRTableModel,
     IPRTitlebar,
+    MinerControlPopup,
 )
 from utils import (
     CURR_PLATFORM,
@@ -399,6 +400,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.btnBulkRefresh.clicked.connect(self.bulk_refresh_miners)
         self.btnBulkLocate.setIcon(QIcon(":theme/icons/rc/flash.png"))
         self.btnBulkLocate.clicked.connect(self.bulk_locate_miners)
+        self.btnBulkControl.setIcon(QIcon(":theme/icons/rc/wrench.png"))
+        self.btnBulkControl.clicked.connect(self.open_bulk_control)
         # edit disabled
         edit_icon = QIcon()
         edit_icon.addPixmap(
@@ -2273,12 +2276,81 @@ class IPR(QMainWindow, Ui_MainWindow):
     def handle_widget_action(self, col: int, row: int) -> None:
         # col/row come from IPRActionDelegate.action_clicked (source row)
         match col:
-            case _ if col == COL_REFRESH:
-                asyncio.ensure_future(self.refresh_miner(row))
-            case _ if col == COL_LOCATE:
-                asyncio.ensure_future(self.locate_miner(row))
+            case _ if col == COL_ACTION:
+                self.open_miner_control(row)
             case _:
                 return
+
+    def open_miner_control(self, row: int) -> None:
+        # single-use control popup anchored under the clicked action cell
+        popup = MinerControlPopup(self)
+        popup.action_selected.connect(
+            lambda key, r=row: self._dispatch_miner_control(r, key)
+        )
+        self.id_control_popup = popup
+        proxy_index = self.id_proxy.mapFromSource(self.id_model.index(row, COL_ACTION))
+        rect = self.tableIPRID.visualRect(proxy_index)
+        anchor = self.tableIPRID.viewport().mapToGlobal(rect.bottomLeft())
+        popup.show_at(anchor)
+
+    def _dispatch_miner_control(self, row: int, key: str) -> None:
+        match key:
+            case "refresh":
+                asyncio.ensure_future(self.refresh_miner(row))
+            case "locate":
+                asyncio.ensure_future(self.locate_miner(row))
+            case "start" | "stop" | "restart" | "reboot":
+                self._control_miner(row, key)
+            case _:
+                logger.warning(f"_dispatch_miner_control : unknown action '{key}'.")
+
+    def _control_miner(self, row: int, key: str) -> None:
+        # Placeholder: the start/stop/restart/reboot facade ops
+        # (self.asic.<key>_miner(...)) are not implemented yet. When they land,
+        # this should mirror refresh_miner: retrieve_miner_from_table(row) +
+        # get_client_auth(...) -> await the facade call -> notify the result.
+        ip_addr, _, _ = self.retrieve_miner_from_table(row)
+        logger.info(
+            f"_control_miner : '{key}' requested for {ip_addr} (not yet implemented)."
+        )
+        self.notify(
+            f"Status :: {key.capitalize()} miner is not yet available.",
+            5000,
+        )
+
+    def open_bulk_control(self) -> None:
+        # same control popup as the per-row glyph, anchored under the toolbar
+        # button; actions apply to the selection (or all visible rows)
+        popup = MinerControlPopup(self)
+        popup.action_selected.connect(self._dispatch_bulk_control)
+        self.id_control_popup = popup
+        btn = self.btnBulkControl
+        anchor = btn.mapToGlobal(btn.rect().bottomLeft())
+        popup.show_at(anchor)
+
+    def _dispatch_bulk_control(self, key: str) -> None:
+        match key:
+            case "refresh":
+                self.bulk_refresh_miners()
+            case "locate":
+                self.bulk_locate_miners()
+            case "start" | "stop" | "restart" | "reboot":
+                self._bulk_control_miners(key)
+            case _:
+                logger.warning(f"_dispatch_bulk_control : unknown action '{key}'.")
+
+    def _bulk_control_miners(self, key: str) -> None:
+        # Placeholder: bulk start/stop/restart/reboot await the facade ops
+        # (self.asic.<key>_miner(...)). When they land, resolve targets via
+        # get_action_target_rows(...) and fan out with _run_bulk_action,
+        # mirroring bulk_refresh_miners.
+        logger.info(
+            f"_bulk_control_miners : bulk '{key}' requested (not yet implemented)."
+        )
+        self.notify(
+            f"Status :: Bulk {key} miner is not yet available.",
+            5000,
+        )
 
     async def _run_bulk_action(
         self,
