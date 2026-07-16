@@ -202,7 +202,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self._reconnect_delay_ms = 0
         self._last_iprd_error = ""
 
-        logger.info(" init mod api.")
+        logger.info(" init mod ipr_asic.")
         self.asic = ASICClient(self)
         # tracks the in-flight locate coroutine to prevent concurrent locates
         self._locate_task: asyncio.Task | None = None
@@ -396,6 +396,24 @@ class IPR(QMainWindow, Ui_MainWindow):
         }
         # default sort: oldest -> newest by RECV AT (new arrivals at the bottom)
         self.reset_sort()
+
+        # action center
+        self.btnBulkRefresh.setIcon(QIcon(":theme/icons/rc/refresh.png"))
+        self.btnBulkRefresh.clicked.connect(self.bulk_refresh_miners)
+        self.btnBulkLocate.setIcon(QIcon(":theme/icons/rc/flash.png"))
+        self.btnBulkLocate.clicked.connect(self.bulk_locate_miners)
+        # edit disabled
+        edit_icon = QIcon()
+        edit_icon.addPixmap(
+            QPixmap(":theme/icons/rc/edit.png"), QIcon.Mode.Normal, QIcon.State.On
+        )
+        edit_icon.addPixmap(
+            QPixmap(":theme/icons/rc/edit_disabled"),
+            QIcon.Mode.Disabled,
+            QIcon.State.Off,
+        )
+        self.btnBulkConfig.setIcon(edit_icon)
+        self.btnBulkConfig.setEnabled(False)
 
         # id table context menu
         self.id_context_menu = IPRTableContextMenu(self)
@@ -2326,9 +2344,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
             if miner_type in (MinerType.VOLCMINER, MinerType.HIVEGPU):
-                logger.error(
-                    f"locate : {miner_type.value} is currently not supported."
-                )
+                logger.error(f"locate : {miner_type.value} is currently not supported.")
                 self.notify(
                     f"Status :: Skipping {ip_addr}: {miner_type.value.capitalize()} locate is not supported.",
                     5000,
@@ -2409,9 +2425,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
             self.populate_table_row(miner_data, row)
 
-        await self._run_bulk_action(
-            "Refresh", rows, make_coro, on_success=on_success
-        )
+        await self._run_bulk_action("Refresh", rows, make_coro, on_success=on_success)
 
     @asyncSlot()
     async def get_miner_pool(self):
