@@ -42,6 +42,7 @@
 # nuitka-project: --product-version=0.0.0.0
 
 
+import asyncio
 import logging
 import logging.handlers
 import os
@@ -57,6 +58,7 @@ from PySide6.QtWidgets import (
     QApplication,
     QMessageBox,
 )
+from qasync import QEventLoop
 
 from config import IPRConfig
 from ipr import IPR
@@ -97,6 +99,13 @@ class Main:
         self.app.setStyle("Fusion")
         self.app.aboutToQuit.connect(self._close_app)
         self.ipc_server: QLocalServer | None = None
+
+        # run the asyncio loop as the Qt event loop (qasync) so the async
+        # ipr_asic clients can be awaited directly from Qt slots.
+        self.event_loop = QEventLoop(self.app)
+        asyncio.set_event_loop(self.event_loop)
+        self._app_close_event = asyncio.Event()
+        self.app.aboutToQuit.connect(self._app_close_event.set)
 
         self.config_path = get_config_file_path()
         self.config = IPRConfig()
@@ -196,7 +205,8 @@ class Main:
         self.main_window.show()
 
         sys.excepthook = self._exc_hook
-        sys.exit(self.app.exec())
+        with self.event_loop:
+            self.event_loop.run_until_complete(self._app_close_event.wait())
 
     def _handle_ipc_connection(self):
         conn = self.ipc_server.nextPendingConnection()
