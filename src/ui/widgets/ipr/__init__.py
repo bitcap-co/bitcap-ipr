@@ -13,6 +13,7 @@ from .idtable import (
     IPRFilterProxyModel,
     IPRTableContextMenu,
     IPRTableModel,
+    MinerControlPopup,
 )
 from .menubar import IPRMenubar
 from .message import IPRMessage

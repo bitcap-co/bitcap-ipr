@@ -18,5 +18,6 @@ from .ipr import (
     IPRTableContextMenu,
     IPRTableModel,
     IPRTitlebar,
+    MinerControlPopup,
 )
 from .svglabel import SvgLabel
