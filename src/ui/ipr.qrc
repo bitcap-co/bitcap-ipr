@@ -29,5 +29,7 @@ Licensed under the GNU General Public License v3.0; see LICENSE
         <file>rc/refresh.png</file>
         <file>rc/clear.png</file>
         <file>rc/funnel.png</file>
+        <file>rc/edit.png</file>
+        <file>rc/edit_disabled.png</file>
     </qresource>
 </RCC>
