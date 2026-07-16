@@ -8,9 +8,8 @@ from .delegate import IPRActionDelegate
 from .filterpopup import ColumnFilterPopup
 from .header import FilterHeaderView
 from .model import (
-    COL_LOCATE,
+    COL_ACTION,
     COL_RECV_AT,
-    COL_REFRESH,
     FILTERABLE_COLUMNS,
     IPRTableModel,
 )

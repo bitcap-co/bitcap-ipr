@@ -71,9 +71,8 @@ from mod.updater import (
 )
 from ui import Ui_MainWindow
 from ui.widgets import (
-    COL_LOCATE,
+    COL_ACTION,
     COL_RECV_AT,
-    COL_REFRESH,
     FILTERABLE_COLUMNS,
     ColumnFilterPopup,
     FilterHeaderView,
@@ -345,16 +344,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.id_header.setDefaultSectionSize(150)
         # action-column icons (refresh / locate) painted by a delegate
         self.id_action_delegate = IPRActionDelegate(self.tableIPRID)
-        self.tableIPRID.setItemDelegateForColumn(COL_REFRESH, self.id_action_delegate)
-        self.tableIPRID.setItemDelegateForColumn(COL_LOCATE, self.id_action_delegate)
+        self.tableIPRID.setItemDelegateForColumn(COL_ACTION, self.id_action_delegate)
         self.id_action_delegate.action_clicked.connect(self.handle_widget_action)
         self.tableIPRID.setColumnWidth(0, 15)
-        self.tableIPRID.setColumnWidth(1, 15)
-        self.tableIPRID.setColumnWidth(2, 180)
-        self.tableIPRID.setColumnWidth(7, 180)
-        self.tableIPRID.setColumnWidth(10, 400)
-        self.tableIPRID.setColumnWidth(11, 300)
-        self.tableIPRID.setColumnWidth(14, 180)
+        self.tableIPRID.setColumnWidth(1, 180)
+        self.tableIPRID.setColumnWidth(6, 180)
+        self.tableIPRID.setColumnWidth(9, 400)
+        self.tableIPRID.setColumnWidth(10, 300)
+        self.tableIPRID.setColumnWidth(13, 180)
         self.tableIPRID.doubleClicked.connect(self.double_click_item)
         # sorting is driven by the toolbar controls, not header clicks, so a
         # header click is free to select the column without sorting it
@@ -1576,11 +1573,11 @@ class IPR(QMainWindow, Ui_MainWindow):
     def double_click_item(self, model_index: QModelIndex):
         # model_index is a proxy index
         match model_index.column():
-            case 3:  # ip column
+            case 2:  # ip column
                 source_row = self.id_proxy.mapToSource(model_index).row()
                 miner = self.id_model.miner_at(source_row)
                 self.open_dashboard(model_index.data(), miner.type)
-            case 7:  # serial column
+            case 6:  # serial column
                 self.tableIPRID.edit(model_index)
             case _:
                 return
@@ -1616,13 +1613,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         selected = [
             x
             for x in self.tableIPRID.selectionModel().selectedIndexes()
-            if x.column() == 3
+            if x.column() == 2
         ]
         if selected:
             source_rows = [self.id_proxy.mapToSource(x).row() for x in selected]
         else:
             source_rows = [
-                self.id_proxy.mapToSource(self.id_proxy.index(r, 3)).row()
+                self.id_proxy.mapToSource(self.id_proxy.index(r, 2)).row()
                 for r in range(rows)
             ]
         scope = "selected" if selected else "all"
@@ -1641,7 +1638,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         selected_ips = [
             x
             for x in self.tableIPRID.selectionModel().selectedIndexes()
-            if x.column() == 3
+            if x.column() == 2
         ]
         for index in selected_ips:
             source_row = self.id_proxy.mapToSource(index).row()
@@ -1665,9 +1662,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                     sep = ","
                 cell = selected_indexes_in_row[index]
                 match cell.column():
-                    case 0 | 1:  # ignore widget actions
+                    case 0:  # ignore action column
                         continue
-                    case 3:  # ip
+                    case 2:  # ip
                         source_row = self.id_proxy.mapToSource(cell).row()
                         miner = self.id_model.miner_at(source_row)
                         out += f"{self.dashboard_url(cell.data(), miner.type)}{sep}"
@@ -1815,8 +1812,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             return
         out = "RECV_AT,IP,MAC,TYPE,SUBTYPE,SERIAL,ALGORITHM,HOSTNAME,STRATUM_URL,USERNAME,WORKER_NAME,FIRMWARE,FW_VERSION,PLATFORM\n"
         for i in range(rows):
-            # skip the two action columns; write data columns in display order
-            for j in range(2, cols):
+            # skip the action column; write data columns in display order
+            for j in range(1, cols):
                 out += str(self.id_proxy.index(i, j).data())
                 out += ","
             out += "\n"
@@ -2434,7 +2431,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         selected_ips = [
             x
             for x in self.tableIPRID.selectionModel().selectedIndexes()
-            if x.column() == 3
+            if x.column() == 2
         ]
         if not selected_ips:
             return self.notify("Status :: Failed action: no selected IPs.", 5000)
@@ -2473,7 +2470,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         passed: list[str] = []
         failed: list[str] = []
         selected_ips = self.get_selected_indexes_for_action(
-            "update_miner_pools", section=3
+            "update_miner_pools", section=2
         )
         if selected_ips is None:
             return self.notify("Status :: Failed action: no selected IPs.", 5000)

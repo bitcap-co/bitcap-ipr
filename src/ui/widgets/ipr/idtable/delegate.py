@@ -20,16 +20,14 @@ from PySide6.QtWidgets import (
     QToolTip,
 )
 
-from .model import COL_LOCATE, COL_REFRESH
+from .model import COL_ACTION
 
 _ICONS = {
-    COL_REFRESH: ":theme/icons/rc/refresh.png",
-    COL_LOCATE: ":theme/icons/rc/flash.png",
+    COL_ACTION: ":theme/icons/rc/wrench.png",
 }
 
 _TOOLTIPS = {
-    COL_REFRESH: "Refresh miner data",
-    COL_LOCATE: "Locate miner (flash LEDs)",
+    COL_ACTION: "Control miner",
 }
 
 # cap the action icons at their native size so they don't upscale to fill a
@@ -38,7 +36,7 @@ _ICON_MAX = QSize(15, 15)
 
 
 class IPRActionDelegate(QStyledItemDelegate):
-    # emitted with the action column (COL_REFRESH/COL_LOCATE) and source row
+    # emitted with the action column (COL_ACTION) and source row
     action_clicked = Signal(int, int)
 
     def __init__(self, parent=None) -> None:
