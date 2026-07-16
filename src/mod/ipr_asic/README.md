@@ -1,4 +1,4 @@
-## ipr_asic
+## ipr_asic (WIP)
 `ipr_asic` aims to be a simplistic ASIC/GPU miner API library for interacting with various miners. Developed along-side with bitcap-ipr!
 
 #### Key Features
@@ -25,7 +25,7 @@
 
     * Miner control
     >- [x] Locate by blinking LEDs for set duration
-    >- [ ] Start/Stop, Restart, Reboot methods
+    >- [x] Start/Stop, Restart, Reboot methods
     >- [ ] Update firmware
 
     * Miner configuration
@@ -33,6 +33,7 @@
     >- [ ] Set password authentication
     >- [ ] Set Fan & Power modes
     >- [ ] Ability to set power/tune presets if supported (i.e. Vnish firmware)
+
  - Miner/Firmware support:
    - [x] Antminer (Stock) New Gen, 2020
    - [x] Iceriver (Stock)
@@ -44,4 +45,4 @@
    - [x] Auradine (Stock)
    - [x] Vnish firmware
    - [x] LuxOS firmware
-   - ...
+   - [ ] HiveOS (GPU)
