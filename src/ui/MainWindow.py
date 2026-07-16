@@ -455,6 +455,12 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_7.addWidget(self.btnBulkRefresh)
 
+        self.btnBulkControl = QToolButton(self.tableActionCenter)
+        self.btnBulkControl.setObjectName(u"btnBulkControl")
+        self.btnBulkControl.setMinimumSize(QSize(32, 25))
+
+        self.horizontalLayout_7.addWidget(self.btnBulkControl)
+
         self.btnBulkConfig = QToolButton(self.tableActionCenter)
         self.btnBulkConfig.setObjectName(u"btnBulkConfig")
         self.btnBulkConfig.setMinimumSize(QSize(32, 25))
@@ -1342,6 +1348,10 @@ class Ui_MainWindow(object):
         self.btnBulkRefresh.setToolTip(QCoreApplication.translate("MainWindow", u"Refresh data for selected/all visible miners", None))
 #endif // QT_CONFIG(tooltip)
         self.btnBulkRefresh.setText("")
+#if QT_CONFIG(tooltip)
+        self.btnBulkControl.setToolTip(QCoreApplication.translate("MainWindow", u"Control selected/all visible miners.", None))
+#endif // QT_CONFIG(tooltip)
+        self.btnBulkControl.setText("")
 #if QT_CONFIG(tooltip)
         self.btnBulkConfig.setToolTip(QCoreApplication.translate("MainWindow", u"Set a configuration for selected/all visible miners.", None))
 #endif // QT_CONFIG(tooltip)

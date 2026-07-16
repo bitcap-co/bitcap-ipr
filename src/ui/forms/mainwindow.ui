@@ -1049,6 +1049,22 @@ Uses last 5 of SN or MAC address.</string>
               </widget>
              </item>
              <item>
+              <widget class="QToolButton" name="btnBulkControl">
+               <property name="minimumSize">
+                <size>
+                 <width>32</width>
+                 <height>25</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>Control selected/all visible miners.</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QToolButton" name="btnBulkConfig">
                <property name="minimumSize">
                 <size>
