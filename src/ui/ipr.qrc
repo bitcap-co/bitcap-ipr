@@ -31,5 +31,10 @@ Licensed under the GNU General Public License v3.0; see LICENSE
         <file>rc/funnel.png</file>
         <file>rc/edit.png</file>
         <file>rc/edit_disabled.png</file>
+        <file>rc/wrench.png</file>
+        <file>rc/start.png</file>
+        <file>rc/pause.png</file>
+        <file>rc/restart.png</file>
+        <file>rc/reboot.png</file>
     </qresource>
 </RCC>
