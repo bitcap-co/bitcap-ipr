@@ -1345,7 +1345,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             action.setIcon(QIcon(":theme/icons/rc/view.png"))
 
     def about(self):
-        raise Exception
         if not self.aboutDialog or not self.aboutDialog.isVisible():
             self.aboutDialog = IPRAbout(
                 self,
