@@ -36,12 +36,35 @@ class IPRTableContextMenu(QMenu):
         self.contextActionLocateMiners.setToolTip(
             "Blink the fault light on the selected miners, or all miners when none are selected."
         )
+
+        self.menuConf = self.addMenu("Configurator")
+        self.menuConf.setToolTipsVisible(True)
+        self.contextActionConfiguratorShowHide = self.menuConf.addAction(
+            "Show/Hide Configurator"
+        )
+        self.contextActionConfiguratorShowHide.setCheckable(True)
+        self.contextActionConfiguratorShowHide.setToolTip(
+            "Toggle visibility of the Configurator."
+        )
+        self.contextActionConfigutorGetPool = self.menuConf.addAction(
+            "Get Pool Configuration From Selected Miner"
+        )
+        self.contextActionConfigutorGetPool.setEnabled(False)
+        self.contextActionConfigutorGetPool.setToolTip(
+            "Retreive current pool configuration from the selected miner\n and store in selected preset."
+        )
+        # self.contextActionConfiguratorSetPools = self.menuConf.addAction(
+        #     "Update Pool Config From Current Preset"
+        # )
+        # self.contextActionConfiguratorSetPools.setEnabled(False)
+        # self.contextActionConfiguratorSetPools.setToolTip(
+        #     "Update miner pool config from the currently selected preset."
+        # )
+
         self.addSeparator()
 
         self.menuTable = self.addMenu("Table Actions")
         self.menuTable.setToolTipsVisible(True)
-        self.menuConf = self.addMenu("Configurator")
-        self.menuConf.setToolTipsVisible(True)
 
         self.contextActionTableImport = self.menuTable.addAction("Import Table..")
         self.contextActionTableImport.setToolTip("Import existing .CSV file.")
@@ -56,26 +79,4 @@ class IPRTableContextMenu(QMenu):
         self.contextActionTableResetView = self.menuTable.addAction("Reset View")
         self.contextActionTableResetView.setToolTip(
             "Clear filter and reset sort order."
-        )
-
-        self.contextActionConfiguratorShowHide = self.menuConf.addAction(
-            "Show/Hide Pool Configurator"
-        )
-        self.contextActionConfiguratorShowHide.setCheckable(True)
-        self.contextActionConfiguratorShowHide.setToolTip(
-            "Toggle visibility of the Pool Configurator."
-        )
-        self.contextActionConfiguratorGetPool = self.menuConf.addAction(
-            "Get Pool Config From Selected Miner"
-        )
-        self.contextActionConfiguratorGetPool.setEnabled(False)
-        self.contextActionConfiguratorGetPool.setToolTip(
-            "Retreive current pool config from the selected miner\n and store in selected preset."
-        )
-        self.contextActionConfiguratorSetPools = self.menuConf.addAction(
-            "Update Pool Config From Current Preset"
-        )
-        self.contextActionConfiguratorSetPools.setEnabled(False)
-        self.contextActionConfiguratorSetPools.setToolTip(
-            "Update miner pool config from the currently selected preset."
         )

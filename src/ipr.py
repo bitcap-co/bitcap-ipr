@@ -127,9 +127,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self._app_instance.installEventFilter(self)
         # applied once on first show (Windows only) to re-enable Aero Snap
         self._snapping_enabled = False
-        # re-entrancy guard for the pool configurator toggle (its setChecked
+        # re-entrancy guard for the configurator toggle (its setChecked
         # calls re-emit toggled and re-enter the slot)
-        self._toggling_pool = False
+        self._toggling_configurator = False
         self.confirms: list[IPRConfirmation] = []
         self.aboutDialog: IPRAbout | None = None
         self.update_checker: UpdateChecker | None = None
@@ -242,11 +242,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionClearTable.triggered.connect(self.clear_table)
         self.menu_bar.actionImport.triggered.connect(self.import_table)
         self.menu_bar.actionExport.triggered.connect(self.export_table)
-        self.menu_bar.actionShowPoolConfigurator.toggled.connect(
-            self.toggle_pool_settings
+        self.menu_bar.actionShowConfigurator.toggled.connect(
+            self.toggle_configurator_settings
         )
-        self.menu_bar.actionGetMinerPoolConfig.triggered.connect(self.get_miner_pool)
-        self.menu_bar.actionSetPoolFromPreset.triggered.connect(self.update_miner_pools)
+        self.menu_bar.actionConfiguratorGetPoolConfig.triggered.connect(
+            self.get_miner_pool
+        )
+        # self.menu_bar.actionSetPoolFromPreset.triggered.connect(self.update_miner_pools)
         self.menu_bar.actionSettings.triggered.connect(
             lambda: self.update_stacked_widget(view_index=2)
         )
@@ -304,7 +306,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd_preset.create_requested.connect(self.add_new_iprd_preset)
         self.iprd_preset.remove_requested.connect(self.remove_iprd_preset)
 
-        self.poolConfigurator.hide()
+        # configurator
+        self.configurator.hide()
+        self.btnConfiguratorCancel.clicked.connect(self.toggle_configurator_settings)
+        self.btnConfiguratorApply.clicked.connect(self.apply_configuration)
         self.actionTogglePoolPasswd = self.create_passwd_toggle_action(
             self.linePoolPasswd
         )
@@ -413,7 +418,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             QIcon.State.Off,
         )
         self.btnBulkConfig.setIcon(edit_icon)
-        self.btnBulkConfig.setEnabled(False)
+        self.btnBulkConfig.setEnabled(True)
+        self.btnBulkConfig.clicked.connect(
+            lambda: self.toggle_configurator_settings(True)
+        )
 
         # id table context menu
         self.id_context_menu = IPRTableContextMenu(self)
@@ -443,14 +451,14 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.reset_view
         )
         self.id_context_menu.contextActionConfiguratorShowHide.toggled.connect(
-            self.toggle_pool_config
+            self.toggle_configurator
         )
-        self.id_context_menu.contextActionConfiguratorGetPool.triggered.connect(
+        self.id_context_menu.contextActionConfigutorGetPool.triggered.connect(
             self.get_miner_pool
         )
-        self.id_context_menu.contextActionConfiguratorSetPools.triggered.connect(
-            self.update_miner_pools
-        )
+        # self.id_context_menu.contextActionConfiguratorSetPools.triggered.connect(
+        #     self.update_miner_pools
+        # )
         self.tableIPRID.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tableIPRID.customContextMenuRequested.connect(self.show_table_context)
 
@@ -522,8 +530,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         if self.menu_bar.actionEnableIDTable.isChecked():
             self.toggle_table_settings(True)
 
-        if self.menu_bar.actionShowPoolConfigurator.isChecked():
-            self.toggle_pool_settings(True)
+        if self.menu_bar.actionShowConfigurator.isChecked():
+            self.toggle_configurator_settings(True)
 
         if self.menu_bar.actionAutoStartOnLaunch.isChecked():
             self.start_listen()
@@ -706,8 +714,8 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def update_stacked_widget(self, view_index: int | None = None, *_):
         if not view_index:
-            if self.menu_bar.actionShowPoolConfigurator.isChecked():
-                self.poolConfigurator.setVisible(True)
+            if self.menu_bar.actionShowConfigurator.isChecked():
+                self.configurator.setVisible(True)
             if self.menu_bar.actionEnableIDTable.isChecked():
                 self.stackedWidget.setCurrentIndex(1)
             else:
@@ -715,9 +723,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         elif view_index < self.stackedWidget.count():
             if self.is_minimized_to_tray():
                 self.toggle_visibility()
-            if self.menu_bar.actionShowPoolConfigurator.isChecked():
+            if self.menu_bar.actionShowConfigurator.isChecked():
                 if view_index == 2:
-                    self.poolConfigurator.setVisible(False)
+                    self.configurator.setVisible(False)
             self.stackedWidget.setCurrentIndex(view_index)
 
     # status bar
@@ -928,8 +936,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionEnableLiveCapture.setChecked(
             self.config.table.table_live_capture
         )
-        self.menu_bar.actionShowPoolConfigurator.setChecked(
-            self.config.instance.views.show_pool_conf
+        self.menu_bar.actionShowConfigurator.setChecked(
+            self.config.instance.views.show_configurator
         )
 
     def update_settings(self):
@@ -954,7 +962,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             },
             "views": {
                 "showIDTable": self.menu_bar.actionEnableIDTable.isChecked(),
-                "showPoolConfigurator": self.menu_bar.actionShowPoolConfigurator.isChecked(),
+                "showConfigurator": self.menu_bar.actionShowConfigurator.isChecked(),
             },
         }
         settings["general"] = {
@@ -1049,7 +1057,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         if ok == QMessageBox.StandardButton.Ok:
             logger.info(" reset settings.")
             self.config.write_default()
-            self.toggle_pool_config()
+            self.toggle_configurator()
             # reset pool presets
             self.clear_pool_preset()
             self.comboPoolPreset.clear()
@@ -1166,7 +1174,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.notify("Status :: successfully wrote pool preset.", 3000)
 
     def clear_pool_preset(self):
-        for child in self.pcwrapper.children():
+        for child in self.poolConfigurator.children():
             if isinstance(child, QWidget):
                 for line in child.children():
                     if isinstance(line, QLineEdit):
@@ -1299,13 +1307,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionImport.setEnabled(enabled)
         self.menu_bar.actionExport.setEnabled(enabled)
         if not enabled:
-            self.menu_bar.actionShowPoolConfigurator.setChecked(enabled)
-        self.menu_bar.actionShowPoolConfigurator.setEnabled(enabled)
+            self.menu_bar.actionShowConfigurator.setChecked(enabled)
+        self.menu_bar.actionShowConfigurator.setEnabled(enabled)
 
-    def toggle_pool_settings(self, enabled: bool):
-        self.menu_bar.actionGetMinerPoolConfig.setEnabled(enabled)
-        self.menu_bar.actionSetPoolFromPreset.setEnabled(enabled)
-        self.toggle_pool_config(enabled)
+    def toggle_configurator_settings(self, enabled: bool):
+        self.menu_bar.actionConfiguratorGetPoolConfig.setEnabled(enabled)
+        # self.menu_bar.actionSetPoolFromPreset.setEnabled(enabled)
+        self.toggle_configurator(enabled)
 
     def toggle_all_listeners(self, enabled: bool):
         for button in self.listenerConfig.buttons():
@@ -1337,6 +1345,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             action.setIcon(QIcon(":theme/icons/rc/view.png"))
 
     def about(self):
+        raise Exception
         if not self.aboutDialog or not self.aboutDialog.isVisible():
             self.aboutDialog = IPRAbout(
                 self,
@@ -1839,23 +1848,23 @@ class IPR(QMainWindow, Ui_MainWindow):
         outfile << out << "\n"
         self.notify(f"Status :: Wrote table as .CSV to {p}.", 3000)
 
-    def toggle_pool_config(self, enabled: bool = False):
+    def toggle_configurator(self, enabled: bool = False):
         # setChecked() below re-emits toggled and re-enters this slot; the guard
         # keeps the one-off window resize from being applied more than once.
-        if self._toggling_pool:
+        if self._toggling_configurator:
             return
-        self._toggling_pool = True
+        self._toggling_configurator = True
         try:
-            self.menu_bar.actionShowPoolConfigurator.setChecked(enabled)
+            self.menu_bar.actionShowConfigurator.setChecked(enabled)
             self.id_context_menu.contextActionConfiguratorShowHide.setChecked(enabled)
-            self.id_context_menu.contextActionConfiguratorGetPool.setEnabled(enabled)
-            self.id_context_menu.contextActionConfiguratorSetPools.setEnabled(enabled)
-            if enabled == (not self.poolConfigurator.isHidden()):
+            # self.id_context_menu.contextActionConfiguratorGetPool.setEnabled(enabled)
+            # self.id_context_menu.contextActionConfiguratorSetPools.setEnabled(enabled)
+            if enabled == (not self.configurator.isHidden()):
                 return  # already in the requested state; nothing to resize
             # grow/shrink the window by exactly the configurator's own height so
             # the rest of the layout keeps its size
-            delta = self.poolConfigurator.sizeHint().height()
-            self.poolConfigurator.setVisible(enabled)
+            delta = self.configurator.sizeHint().height()
+            self.configurator.setVisible(enabled)
             # Only resize for a live user toggle. During start-up the window
             # isn't shown yet and a restored geometry already accounts for the
             # configurator, so growing again would double-count. When
@@ -1869,7 +1878,14 @@ class IPR(QMainWindow, Ui_MainWindow):
                     height = max(self.height() - delta, self.minimumHeight())
                 self.resize(self.width(), height)
         finally:
-            self._toggling_pool = False
+            self._toggling_configurator = False
+
+    def apply_configuration(self) -> None:
+        match self.tabConfigurator.currentIndex():
+            case 0:
+                self.update_miner_pools()
+            case _:
+                return
 
     # listener
     def start_listen(self):

@@ -135,7 +135,7 @@ class IDTableInstanceSettings(BaseModel):
 
 class InstanceViews(BaseModel):
     show_table: Annotated[bool, Field(alias="showIDTable")] = False
-    show_pool_conf: Annotated[bool, Field(alias="showPoolConfigurator")] = False
+    show_configurator: Annotated[bool, Field(alias="showConfigurator")] = False
 
 
 class InstanceOptions(BaseModel):
