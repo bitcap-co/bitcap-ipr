@@ -43,9 +43,7 @@ class Ui_MainWindow(object):
         self.topBar.setMinimumSize(QSize(550, 58))
         self.topBar.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
         self.verticalLayout_15 = QVBoxLayout(self.topBar)
-        self.verticalLayout_15.setSpacing(0)
         self.verticalLayout_15.setObjectName(u"verticalLayout_15")
-        self.verticalLayout_15.setContentsMargins(0, 0, 0, 0)
         self.titleBarWidget = QWidget(self.topBar)
         self.titleBarWidget.setObjectName(u"titleBarWidget")
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
@@ -73,28 +71,24 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_15.addWidget(self.menuBarWidget)
 
-        self.poolConfigurator = QWidget(self.topBar)
-        self.poolConfigurator.setObjectName(u"poolConfigurator")
+        self.configurator = QWidget(self.topBar)
+        self.configurator.setObjectName(u"configurator")
+        sizePolicy.setHeightForWidth(self.configurator.sizePolicy().hasHeightForWidth())
+        self.configurator.setSizePolicy(sizePolicy)
+        self.verticalLayout_13 = QVBoxLayout(self.configurator)
+        self.verticalLayout_13.setObjectName(u"verticalLayout_13")
+        self.tabConfigurator = QTabWidget(self.configurator)
+        self.tabConfigurator.setObjectName(u"tabConfigurator")
         sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.poolConfigurator.sizePolicy().hasHeightForWidth())
-        self.poolConfigurator.setSizePolicy(sizePolicy1)
-        self.verticalLayout_14 = QVBoxLayout(self.poolConfigurator)
-        self.verticalLayout_14.setSpacing(10)
-        self.verticalLayout_14.setObjectName(u"verticalLayout_14")
-        self.verticalLayout_14.setContentsMargins(-1, 0, -1, -1)
-        self.pcwrapper = QFrame(self.poolConfigurator)
-        self.pcwrapper.setObjectName(u"pcwrapper")
-        self.pcwrapper.setMinimumSize(QSize(532, 170))
-        self.pcwrapper.setMaximumSize(QSize(16777215, 225))
-        self.pcwrapper.setFrameShape(QFrame.Shape.NoFrame)
-        self.pcwrapper.setFrameShadow(QFrame.Shadow.Plain)
-        self.verticalLayout_13 = QVBoxLayout(self.pcwrapper)
-        self.verticalLayout_13.setSpacing(10)
-        self.verticalLayout_13.setObjectName(u"verticalLayout_13")
-        self.verticalLayout_13.setContentsMargins(-1, 15, -1, -1)
-        self.presetControl = QWidget(self.pcwrapper)
+        sizePolicy1.setHeightForWidth(self.tabConfigurator.sizePolicy().hasHeightForWidth())
+        self.tabConfigurator.setSizePolicy(sizePolicy1)
+        self.poolConfigurator = QWidget()
+        self.poolConfigurator.setObjectName(u"poolConfigurator")
+        self.verticalLayout_17 = QVBoxLayout(self.poolConfigurator)
+        self.verticalLayout_17.setObjectName(u"verticalLayout_17")
+        self.presetControl = QWidget(self.poolConfigurator)
         self.presetControl.setObjectName(u"presetControl")
         self.presetControl.setMinimumSize(QSize(0, 50))
         self.horizontalLayout_4 = QHBoxLayout(self.presetControl)
@@ -151,9 +145,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addItem(self.horizontalSpacer_2)
 
 
-        self.verticalLayout_13.addWidget(self.presetControl)
+        self.verticalLayout_17.addWidget(self.presetControl)
 
-        self.pool1Config = QWidget(self.pcwrapper)
+        self.pool1Config = QWidget(self.poolConfigurator)
         self.pool1Config.setObjectName(u"pool1Config")
         self.pool1Config.setMinimumSize(QSize(0, 50))
         self.horizontalLayout_22 = QHBoxLayout(self.pool1Config)
@@ -208,9 +202,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_22.addItem(self.horizontalSpacer_4)
 
 
-        self.verticalLayout_13.addWidget(self.pool1Config)
+        self.verticalLayout_17.addWidget(self.pool1Config)
 
-        self.pool2Config = QWidget(self.pcwrapper)
+        self.pool2Config = QWidget(self.poolConfigurator)
         self.pool2Config.setObjectName(u"pool2Config")
         self.pool2Config.setMinimumSize(QSize(0, 50))
         self.horizontalLayout_29 = QHBoxLayout(self.pool2Config)
@@ -260,9 +254,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_29.addItem(self.horizontalSpacer_5)
 
 
-        self.verticalLayout_13.addWidget(self.pool2Config)
+        self.verticalLayout_17.addWidget(self.pool2Config)
 
-        self.pool3Config = QWidget(self.pcwrapper)
+        self.pool3Config = QWidget(self.poolConfigurator)
         self.pool3Config.setObjectName(u"pool3Config")
         self.pool3Config.setMinimumSize(QSize(0, 50))
         self.horizontalLayout_19 = QHBoxLayout(self.pool3Config)
@@ -312,13 +306,35 @@ class Ui_MainWindow(object):
         self.horizontalLayout_19.addItem(self.horizontalSpacer_6)
 
 
-        self.verticalLayout_13.addWidget(self.pool3Config)
+        self.verticalLayout_17.addWidget(self.pool3Config)
+
+        self.tabConfigurator.addTab(self.poolConfigurator, "")
+        self.passwdConfigurator = QWidget()
+        self.passwdConfigurator.setObjectName(u"passwdConfigurator")
+        self.tabConfigurator.addTab(self.passwdConfigurator, "")
+
+        self.verticalLayout_13.addWidget(self.tabConfigurator)
+
+        self.configControl = QWidget(self.configurator)
+        self.configControl.setObjectName(u"configControl")
+        self.gridLayout_20 = QGridLayout(self.configControl)
+        self.gridLayout_20.setObjectName(u"gridLayout_20")
+        self.gridLayout_20.setContentsMargins(0, 0, 0, 0)
+        self.btnConfiguratorCancel = QPushButton(self.configControl)
+        self.btnConfiguratorCancel.setObjectName(u"btnConfiguratorCancel")
+
+        self.gridLayout_20.addWidget(self.btnConfiguratorCancel, 0, 3, 1, 1)
+
+        self.btnConfiguratorApply = QPushButton(self.configControl)
+        self.btnConfiguratorApply.setObjectName(u"btnConfiguratorApply")
+
+        self.gridLayout_20.addWidget(self.btnConfiguratorApply, 0, 4, 1, 1)
 
 
-        self.verticalLayout_14.addWidget(self.pcwrapper)
+        self.verticalLayout_13.addWidget(self.configControl)
 
 
-        self.verticalLayout_15.addWidget(self.poolConfigurator)
+        self.verticalLayout_15.addWidget(self.configurator)
 
 
         self.verticalLayout.addWidget(self.topBar)
@@ -522,7 +538,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 457, 818))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 1281, 818))
         self.verticalLayout_5 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_5.setSpacing(15)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
@@ -633,17 +649,29 @@ class Ui_MainWindow(object):
         self.gridLayout_4.setHorizontalSpacing(70)
         self.gridLayout_4.setVerticalSpacing(15)
         self.gridLayout_4.setContentsMargins(9, 15, 9, 9)
+        self.checkListenGoldshell = QCheckBox(self.groupListeners)
+        self.checkListenGoldshell.setObjectName(u"checkListenGoldshell")
+        self.checkListenGoldshell.setMaximumSize(QSize(100, 30))
+
+        self.gridLayout_4.addWidget(self.checkListenGoldshell, 4, 1, 1, 1)
+
         self.checkListenIceRiver = QCheckBox(self.groupListeners)
         self.checkListenIceRiver.setObjectName(u"checkListenIceRiver")
         self.checkListenIceRiver.setMaximumSize(QSize(100, 30))
 
         self.gridLayout_4.addWidget(self.checkListenIceRiver, 2, 1, 1, 1)
 
-        self.checkListenAntminer = QCheckBox(self.groupListeners)
-        self.checkListenAntminer.setObjectName(u"checkListenAntminer")
-        self.checkListenAntminer.setMaximumSize(QSize(100, 30))
+        self.checkListenWhatsminer = QCheckBox(self.groupListeners)
+        self.checkListenWhatsminer.setObjectName(u"checkListenWhatsminer")
+        self.checkListenWhatsminer.setMaximumSize(QSize(100, 30))
 
-        self.gridLayout_4.addWidget(self.checkListenAntminer, 2, 0, 1, 1)
+        self.gridLayout_4.addWidget(self.checkListenWhatsminer, 2, 2, 1, 1)
+
+        self.checkListenVolcminer = QCheckBox(self.groupListeners)
+        self.checkListenVolcminer.setObjectName(u"checkListenVolcminer")
+        self.checkListenVolcminer.setMaximumSize(QSize(100, 30))
+
+        self.gridLayout_4.addWidget(self.checkListenVolcminer, 3, 2, 1, 1)
 
         self.checkListenAuradine = QCheckBox(self.groupListeners)
         self.checkListenAuradine.setObjectName(u"checkListenAuradine")
@@ -651,11 +679,11 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.checkListenAuradine, 4, 2, 1, 1)
 
-        self.checkListenVolcminer = QCheckBox(self.groupListeners)
-        self.checkListenVolcminer.setObjectName(u"checkListenVolcminer")
-        self.checkListenVolcminer.setMaximumSize(QSize(100, 30))
+        self.checkListenSealminer = QCheckBox(self.groupListeners)
+        self.checkListenSealminer.setObjectName(u"checkListenSealminer")
+        self.checkListenSealminer.setMaximumSize(QSize(100, 30))
 
-        self.gridLayout_4.addWidget(self.checkListenVolcminer, 3, 2, 1, 1)
+        self.gridLayout_4.addWidget(self.checkListenSealminer, 3, 0, 1, 1)
 
         self.checkListenElphapex = QCheckBox(self.groupListeners)
         self.checkListenElphapex.setObjectName(u"checkListenElphapex")
@@ -668,41 +696,29 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.checkListenElphapex, 4, 0, 1, 1)
 
-        self.checkListenWhatsminer = QCheckBox(self.groupListeners)
-        self.checkListenWhatsminer.setObjectName(u"checkListenWhatsminer")
-        self.checkListenWhatsminer.setMaximumSize(QSize(100, 30))
-
-        self.gridLayout_4.addWidget(self.checkListenWhatsminer, 2, 2, 1, 1)
-
         self.checkListenHammer = QCheckBox(self.groupListeners)
         self.checkListenHammer.setObjectName(u"checkListenHammer")
         self.checkListenHammer.setMaximumSize(QSize(100, 30))
 
         self.gridLayout_4.addWidget(self.checkListenHammer, 3, 1, 1, 1)
 
-        self.checkListenSealminer = QCheckBox(self.groupListeners)
-        self.checkListenSealminer.setObjectName(u"checkListenSealminer")
-        self.checkListenSealminer.setMaximumSize(QSize(100, 30))
+        self.checkListenAntminer = QCheckBox(self.groupListeners)
+        self.checkListenAntminer.setObjectName(u"checkListenAntminer")
+        self.checkListenAntminer.setMaximumSize(QSize(100, 30))
 
-        self.gridLayout_4.addWidget(self.checkListenSealminer, 3, 0, 1, 1)
-
-        self.checkListenGoldshell = QCheckBox(self.groupListeners)
-        self.checkListenGoldshell.setObjectName(u"checkListenGoldshell")
-        self.checkListenGoldshell.setMaximumSize(QSize(100, 30))
-
-        self.gridLayout_4.addWidget(self.checkListenGoldshell, 4, 1, 1, 1)
-
-        self.checkListenIPollo = QCheckBox(self.groupListeners)
-        self.checkListenIPollo.setObjectName(u"checkListenIPollo")
-        self.checkListenIPollo.setMaximumSize(QSize(100, 30))
-
-        self.gridLayout_4.addWidget(self.checkListenIPollo, 5, 0, 1, 1)
+        self.gridLayout_4.addWidget(self.checkListenAntminer, 2, 0, 1, 1)
 
         self.checkListenHiveGPU = QCheckBox(self.groupListeners)
         self.checkListenHiveGPU.setObjectName(u"checkListenHiveGPU")
         self.checkListenHiveGPU.setMaximumSize(QSize(100, 30))
 
         self.gridLayout_4.addWidget(self.checkListenHiveGPU, 5, 1, 1, 1)
+
+        self.checkListenIPollo = QCheckBox(self.groupListeners)
+        self.checkListenIPollo.setObjectName(u"checkListenIPollo")
+        self.checkListenIPollo.setMaximumSize(QSize(100, 30))
+
+        self.gridLayout_4.addWidget(self.checkListenIPollo, 5, 0, 1, 1)
 
 
         self.verticalLayout_6.addWidget(self.groupListeners)
@@ -1128,7 +1144,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollLogs = QWidget()
         self.scrollLogs.setObjectName(u"scrollLogs")
-        self.scrollLogs.setGeometry(QRect(0, 0, 725, 261))
+        self.scrollLogs.setGeometry(QRect(0, 0, 368, 242))
         self.verticalLayout_11 = QVBoxLayout(self.scrollLogs)
         self.verticalLayout_11.setSpacing(15)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
@@ -1284,8 +1300,9 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
+        self.tabConfigurator.setCurrentIndex(0)
         self.stackedWidget.setCurrentIndex(0)
-        self.tabWidget.setCurrentIndex(2)
+        self.tabWidget.setCurrentIndex(0)
         self.comboLogLevel.setCurrentIndex(1)
         self.pushIPRListenStart.setDefault(True)
 
@@ -1322,6 +1339,10 @@ class Ui_MainWindow(object):
         self.label_22.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.label_23.setText(QCoreApplication.translate("MainWindow", u"Password:", None))
         self.label_23.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+        self.tabConfigurator.setTabText(self.tabConfigurator.indexOf(self.poolConfigurator), QCoreApplication.translate("MainWindow", u"Pool", None))
+        self.tabConfigurator.setTabText(self.tabConfigurator.indexOf(self.passwdConfigurator), QCoreApplication.translate("MainWindow", u"Password", None))
+        self.btnConfiguratorCancel.setText(QCoreApplication.translate("MainWindow", u"Cancel", None))
+        self.btnConfiguratorApply.setText(QCoreApplication.translate("MainWindow", u"Apply", None))
         self.labelIPRLogo.setText("")
         self.lineIDTableFilter.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Filter miners\u2026", None))
         self.labelSortBy.setText(QCoreApplication.translate("MainWindow", u"Sort by:", None))
@@ -1398,49 +1419,49 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.groupListeners.setTitle(QCoreApplication.translate("MainWindow", u"Listeners", None))
 #if QT_CONFIG(tooltip)
+        self.checkListenGoldshell.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Goldshells", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenGoldshell.setText(QCoreApplication.translate("MainWindow", u"Goldshell", None))
+#if QT_CONFIG(tooltip)
         self.checkListenIceRiver.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Icerivers", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenIceRiver.setText(QCoreApplication.translate("MainWindow", u"IceRiver", None))
-#if QT_CONFIG(tooltip)
-        self.checkListenAntminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Antminers", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkListenAntminer.setText(QCoreApplication.translate("MainWindow", u"Antminer", None))
-#if QT_CONFIG(tooltip)
-        self.checkListenAuradine.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Auradine miners", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkListenAuradine.setText(QCoreApplication.translate("MainWindow", u"Auradine", None))
-#if QT_CONFIG(tooltip)
-        self.checkListenVolcminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Volcminers", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkListenVolcminer.setText(QCoreApplication.translate("MainWindow", u"Volcminer", None))
-#if QT_CONFIG(tooltip)
-        self.checkListenElphapex.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Elphapex miners", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkListenElphapex.setText(QCoreApplication.translate("MainWindow", u"Elphapex", None))
 #if QT_CONFIG(tooltip)
         self.checkListenWhatsminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Whatsminers", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenWhatsminer.setText(QCoreApplication.translate("MainWindow", u"Whatsminer", None))
 #if QT_CONFIG(tooltip)
-        self.checkListenHammer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Hammer miners", None))
+        self.checkListenVolcminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Volcminers", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkListenHammer.setText(QCoreApplication.translate("MainWindow", u"Hammer", None))
+        self.checkListenVolcminer.setText(QCoreApplication.translate("MainWindow", u"Volcminer", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenAuradine.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Auradine miners", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenAuradine.setText(QCoreApplication.translate("MainWindow", u"Auradine", None))
 #if QT_CONFIG(tooltip)
         self.checkListenSealminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Sealminers", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenSealminer.setText(QCoreApplication.translate("MainWindow", u"Sealminer", None))
 #if QT_CONFIG(tooltip)
-        self.checkListenGoldshell.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Goldshells", None))
+        self.checkListenElphapex.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Elphapex miners", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkListenGoldshell.setText(QCoreApplication.translate("MainWindow", u"Goldshell", None))
+        self.checkListenElphapex.setText(QCoreApplication.translate("MainWindow", u"Elphapex", None))
 #if QT_CONFIG(tooltip)
-        self.checkListenIPollo.setToolTip(QCoreApplication.translate("MainWindow", u"Enable Listening for iPollo miners", None))
+        self.checkListenHammer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Hammer miners", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkListenIPollo.setText(QCoreApplication.translate("MainWindow", u"iPollo", None))
+        self.checkListenHammer.setText(QCoreApplication.translate("MainWindow", u"Hammer", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenAntminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Antminers", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenAntminer.setText(QCoreApplication.translate("MainWindow", u"Antminer", None))
 #if QT_CONFIG(tooltip)
         self.checkListenHiveGPU.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for HiveOS GPU rigs (IPR Daemon only)", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenHiveGPU.setText(QCoreApplication.translate("MainWindow", u"HiveGPU", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenIPollo.setToolTip(QCoreApplication.translate("MainWindow", u"Enable Listening for iPollo miners", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenIPollo.setText(QCoreApplication.translate("MainWindow", u"iPollo", None))
         self.groupIPRD.setTitle(QCoreApplication.translate("MainWindow", u"IPR Daemon", None))
 #if QT_CONFIG(tooltip)
         self.checkEnableIPRDBackend.setToolTip(QCoreApplication.translate("MainWindow", u"Use the IPR Daemon backend instead of the built-in listener", None))
