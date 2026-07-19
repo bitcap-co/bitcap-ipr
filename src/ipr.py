@@ -2326,9 +2326,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
             if miner_type in (MinerType.VOLCMINER, MinerType.HIVEGPU):
-                logger.error(
-                    f"locate : {miner_type.value} is currently not supported."
-                )
+                logger.error(f"locate : {miner_type.value} is currently not supported.")
                 self.notify(
                     f"Status :: Skipping {ip_addr}: {miner_type.value.capitalize()} locate is not supported.",
                     5000,
@@ -2409,9 +2407,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
             self.populate_table_row(miner_data, row)
 
-        await self._run_bulk_action(
-            "Refresh", rows, make_coro, on_success=on_success
-        )
+        await self._run_bulk_action("Refresh", rows, make_coro, on_success=on_success)
 
     @asyncSlot()
     async def get_miner_pool(self):

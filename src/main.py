@@ -104,8 +104,8 @@ class Main:
         # ipr_asic clients can be awaited directly from Qt slots.
         self.event_loop = QEventLoop(self.app)
         asyncio.set_event_loop(self.event_loop)
-        self._app_close_event = asyncio.Event()
-        self.app.aboutToQuit.connect(self._app_close_event.set)
+        self._handling_exception = False
+        self.exit_code = 0
 
         self.config_path = get_config_file_path()
         self.config = IPRConfig()
@@ -206,7 +206,7 @@ class Main:
 
         sys.excepthook = self._exc_hook
         with self.event_loop:
-            self.event_loop.run_until_complete(self._app_close_event.wait())
+            self.exit_code = self.event_loop.run_forever()
 
     def _handle_ipc_connection(self):
         conn = self.ipc_server.nextPendingConnection()
@@ -229,6 +229,14 @@ class Main:
             logger.root.removeHandler(handler)
 
     def _exc_hook(self, exc_type, exc_value, exc_tb):
+        # Prevent an error raised during fatal-error cleanup from recursively
+        # entering this hook after Qt has started deleting child objects.
+        if self._handling_exception:
+            sys.__excepthook__(exc_type, exc_value, exc_tb)
+            self.app.exit(1)
+            return
+        self._handling_exception = True
+
         tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
         logger.critical("exception_hook : exception caught!")
         logger.critical(f"exception_hook : {tb}")
@@ -239,18 +247,21 @@ class Main:
         ):
             logger.info("exception_hook: export current table.")
             self.main_window.export_table()
-        # graceful exit
-        self.main_window.quit()
-        input = QMessageBox.critical(
+
+        # Keep the window and its actions alive until all error handling that
+        # reads them has completed. Closing it first can delete its C++ objects.
+        response = QMessageBox.critical(
             None,
             "BitCap IPR - Critical Error",
-            f"Application has encounter an error!\nSee output log at {self.log_path.resolve()}.",
+            f"Application has encountered an error!\nSee output log at {self.log_path.resolve()}.",
             buttons=QMessageBox.StandardButton.Open | QMessageBox.StandardButton.Ok,
         )
-        if input == QMessageBox.StandardButton.Open:
+        if response == QMessageBox.StandardButton.Open:
             QDesktopServices.openUrl(QUrl.fromLocalFile(self.log_path.resolve()))
+
+        self.main_window.quit()
         self.app.exit(1)
 
 
 if __name__ == "__main__":
-    Main(sys.argv)
+    sys.exit(Main(sys.argv).exit_code)
