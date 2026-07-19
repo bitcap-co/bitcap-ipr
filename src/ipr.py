@@ -2315,22 +2315,25 @@ class IPR(QMainWindow, Ui_MainWindow):
             case "locate":
                 asyncio.ensure_future(self.locate_miner(row))
             case "start" | "stop" | "restart" | "reboot":
-                self._control_miner(row, key)
+                asyncio.ensure_future(self._control_miner(row, key))
             case _:
                 logger.warning(f"_dispatch_miner_control : unknown action '{key}'.")
 
-    def _control_miner(self, row: int, key: str) -> None:
-        # Placeholder: the start/stop/restart/reboot facade ops
-        # (self.asic.<key>_miner(...)) are not implemented yet. When they land,
-        # this should mirror refresh_miner: retrieve_miner_from_table(row) +
-        # get_client_auth(...) -> await the facade call -> notify the result.
-        ip_addr, _, _ = self.retrieve_miner_from_table(row)
-        logger.info(
-            f"_control_miner : '{key}' requested for {ip_addr} (not yet implemented)."
-        )
+    async def _control_miner(self, row: int, key: str) -> None:
+        ip_addr, miner_type, _ = self.retrieve_miner_from_table(row)
+        logger.info(f"_control_miner : '{key}' requested for {ip_addr}.")
+        alt_pwd = self.get_client_auth(miner_type.value)
+        operation = getattr(self.asic, f"{key}_miner")
+        res = await operation(miner_type, ip_addr, alt_pwd=alt_pwd)
+        if res.error:
+            logger.error(f"_control_miner : {key} failed for {ip_addr}: {res.error}")
+            return self.notify(
+                f"Status :: Failed to {key} {ip_addr}: {str(res.error)}",
+                5000,
+            )
         self.notify(
-            f"Status :: {key.capitalize()} miner is not yet available.",
-            5000,
+            f"Status :: Successfully completed {key} for {ip_addr}.",
+            3000,
         )
 
     def open_bulk_control(self) -> None:
@@ -2350,22 +2353,25 @@ class IPR(QMainWindow, Ui_MainWindow):
             case "locate":
                 self.bulk_locate_miners()
             case "start" | "stop" | "restart" | "reboot":
-                self._bulk_control_miners(key)
+                asyncio.ensure_future(self._bulk_control_miners(key))
             case _:
                 logger.warning(f"_dispatch_bulk_control : unknown action '{key}'.")
 
-    def _bulk_control_miners(self, key: str) -> None:
-        # Placeholder: bulk start/stop/restart/reboot await the facade ops
-        # (self.asic.<key>_miner(...)). When they land, resolve targets via
-        # get_action_target_rows(...) and fan out with _run_bulk_action,
-        # mirroring bulk_refresh_miners.
-        logger.info(
-            f"_bulk_control_miners : bulk '{key}' requested (not yet implemented)."
-        )
-        self.notify(
-            f"Status :: Bulk {key} miner is not yet available.",
-            5000,
-        )
+    async def _bulk_control_miners(self, key: str) -> None:
+        action = key.capitalize()
+        rows = self.get_action_target_rows(action)
+        if not rows:
+            return self.notify(
+                f"Status :: Failed action: no miners to {key}.",
+                5000,
+            )
+
+        operation = getattr(self.asic, f"{key}_miner")
+
+        def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
+            return operation(miner_type, ip_addr, alt_pwd=alt_pwd)
+
+        await self._run_bulk_action(action, rows, make_coro)
 
     async def _run_bulk_action(
         self,
