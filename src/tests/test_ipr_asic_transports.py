@@ -80,6 +80,21 @@ class _HTTPClient(BaseHTTPClient):
     async def blink(self, enabled: bool, *args, **kwargs) -> dict:
         return {}
 
+    async def set_miner_mode(self, *args, **kwargs) -> dict:
+        return {}
+
+    async def start(self) -> dict:
+        return {}
+
+    async def stop(self) -> dict:
+        return {}
+
+    async def restart(self) -> dict:
+        return {}
+
+    async def reboot(self) -> dict:
+        return {}
+
     async def update_pool_conf(self, urls, users, passwds) -> dict:
         return {}
 
@@ -146,9 +161,7 @@ class TestRPCLoadApiData(unittest.TestCase):
         # whatsminer API v2.0.4 returns error_code as a list of colon-pairs
         # (invalid JSON); the heuristic rewrites the [ ] to { }.
         raw = b'{"error_code":["0":"data"]}'
-        self.assertEqual(
-            self.client._load_api_data(raw), {"error_code": {"0": "data"}}
-        )
+        self.assertEqual(self.client._load_api_data(raw), {"error_code": {"0": "data"}})
 
     def test_fixes_bmminer_missing_comma_between_objects(self):
         # "}{" between two objects in an array becomes "},{"
