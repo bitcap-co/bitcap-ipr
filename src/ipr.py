@@ -248,7 +248,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionConfiguratorGetPoolConfig.triggered.connect(
             self.get_miner_pool
         )
-        # self.menu_bar.actionSetPoolFromPreset.triggered.connect(self.update_miner_pools)
+        self.menu_bar.actionConfiguratorSetPoolFromPreset.triggered.connect(
+            self.update_miner_pools
+        )
         self.menu_bar.actionSettings.triggered.connect(
             lambda: self.update_stacked_widget(view_index=2)
         )
@@ -456,9 +458,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.id_context_menu.contextActionConfigutorGetPool.triggered.connect(
             self.get_miner_pool
         )
-        # self.id_context_menu.contextActionConfiguratorSetPools.triggered.connect(
-        #     self.update_miner_pools
-        # )
+        self.id_context_menu.contextActionConfiguratorSetPools.triggered.connect(
+            self.update_miner_pools
+        )
         self.tableIPRID.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tableIPRID.customContextMenuRequested.connect(self.show_table_context)
 
@@ -524,8 +526,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         self.update_stacked_widget()
         self._show_base_status()
-        self.update_pool_preset_names()
-        self.update_iprd_preset_names()
+        self.update_preset_names()
 
         if self.menu_bar.actionEnableIDTable.isChecked():
             self.toggle_table_settings(True)
@@ -1312,7 +1313,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def toggle_configurator_settings(self, enabled: bool):
         self.menu_bar.actionConfiguratorGetPoolConfig.setEnabled(enabled)
-        # self.menu_bar.actionSetPoolFromPreset.setEnabled(enabled)
+        self.menu_bar.actionConfiguratorSetPoolFromPreset.setEnabled(enabled)
         self.toggle_configurator(enabled)
 
     def toggle_all_listeners(self, enabled: bool):
@@ -1856,8 +1857,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         try:
             self.menu_bar.actionShowConfigurator.setChecked(enabled)
             self.id_context_menu.contextActionConfiguratorShowHide.setChecked(enabled)
-            # self.id_context_menu.contextActionConfiguratorGetPool.setEnabled(enabled)
-            # self.id_context_menu.contextActionConfiguratorSetPools.setEnabled(enabled)
+            self.id_context_menu.contextActionConfigutorGetPool.setEnabled(enabled)
+            self.id_context_menu.contextActionConfiguratorSetPools.setEnabled(enabled)
             if enabled == (not self.configurator.isHidden()):
                 return  # already in the requested state; nothing to resize
             # grow/shrink the window by exactly the configurator's own height so

@@ -53,13 +53,13 @@ class IPRTableContextMenu(QMenu):
         self.contextActionConfigutorGetPool.setToolTip(
             "Retreive current pool configuration from the selected miner\n and store in selected preset."
         )
-        # self.contextActionConfiguratorSetPools = self.menuConf.addAction(
-        #     "Update Pool Config From Current Preset"
-        # )
-        # self.contextActionConfiguratorSetPools.setEnabled(False)
-        # self.contextActionConfiguratorSetPools.setToolTip(
-        #     "Update miner pool config from the currently selected preset."
-        # )
+        self.contextActionConfiguratorSetPools = self.menuConf.addAction(
+            "Update Pool Config From Current Preset"
+        )
+        self.contextActionConfiguratorSetPools.setEnabled(False)
+        self.contextActionConfiguratorSetPools.setToolTip(
+            "Update miner pool config from the currently selected preset."
+        )
 
         self.addSeparator()
 
