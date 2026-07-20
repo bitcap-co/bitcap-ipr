@@ -309,29 +309,26 @@ class Ui_MainWindow(object):
         self.verticalLayout_17.addWidget(self.pool3Config)
 
         self.tabConfigurator.addTab(self.poolConfigurator, "")
-        self.passwdConfigurator = QWidget()
-        self.passwdConfigurator.setObjectName(u"passwdConfigurator")
-        self.tabConfigurator.addTab(self.passwdConfigurator, "")
 
         self.verticalLayout_13.addWidget(self.tabConfigurator)
 
-        self.configControl = QWidget(self.configurator)
-        self.configControl.setObjectName(u"configControl")
-        self.gridLayout_20 = QGridLayout(self.configControl)
+        self.configuratorControls = QWidget(self.configurator)
+        self.configuratorControls.setObjectName(u"configuratorControls")
+        self.gridLayout_20 = QGridLayout(self.configuratorControls)
         self.gridLayout_20.setObjectName(u"gridLayout_20")
         self.gridLayout_20.setContentsMargins(0, 0, 0, 0)
-        self.btnConfiguratorCancel = QPushButton(self.configControl)
+        self.btnConfiguratorCancel = QPushButton(self.configuratorControls)
         self.btnConfiguratorCancel.setObjectName(u"btnConfiguratorCancel")
 
         self.gridLayout_20.addWidget(self.btnConfiguratorCancel, 0, 3, 1, 1)
 
-        self.btnConfiguratorApply = QPushButton(self.configControl)
+        self.btnConfiguratorApply = QPushButton(self.configuratorControls)
         self.btnConfiguratorApply.setObjectName(u"btnConfiguratorApply")
 
         self.gridLayout_20.addWidget(self.btnConfiguratorApply, 0, 4, 1, 1)
 
 
-        self.verticalLayout_13.addWidget(self.configControl)
+        self.verticalLayout_13.addWidget(self.configuratorControls)
 
 
         self.verticalLayout_15.addWidget(self.configurator)
@@ -523,8 +520,8 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addWidget(self.label)
 
-        self.tabWidget = QTabWidget(self.settingsView)
-        self.tabWidget.setObjectName(u"tabWidget")
+        self.tabSettings = QTabWidget(self.settingsView)
+        self.tabSettings.setObjectName(u"tabSettings")
         self.tabGeneral = QWidget()
         self.tabGeneral.setObjectName(u"tabGeneral")
         self.verticalLayout_4 = QVBoxLayout(self.tabGeneral)
@@ -538,7 +535,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 1281, 818))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 681, 818))
         self.verticalLayout_5 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_5.setSpacing(15)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
@@ -798,7 +795,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_4.addWidget(self.scrollArea)
 
-        self.tabWidget.addTab(self.tabGeneral, "")
+        self.tabSettings.addTab(self.tabGeneral, "")
         self.tabAPI = QWidget()
         self.tabAPI.setObjectName(u"tabAPI")
         self.verticalLayout_9 = QVBoxLayout(self.tabAPI)
@@ -808,7 +805,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 255, 986))
+        self.scrollAPI.setGeometry(QRect(0, 0, 476, 986))
         self.verticalLayout_8 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_8.setSpacing(15)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
@@ -1130,7 +1127,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_9.addWidget(self.scrollArea_3)
 
-        self.tabWidget.addTab(self.tabAPI, "")
+        self.tabSettings.addTab(self.tabAPI, "")
         self.tabLog = QWidget()
         self.tabLog.setObjectName(u"tabLog")
         self.verticalLayout_7 = QVBoxLayout(self.tabLog)
@@ -1144,7 +1141,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollLogs = QWidget()
         self.scrollLogs.setObjectName(u"scrollLogs")
-        self.scrollLogs.setGeometry(QRect(0, 0, 368, 242))
+        self.scrollLogs.setGeometry(QRect(0, 0, 478, 242))
         self.verticalLayout_11 = QVBoxLayout(self.scrollLogs)
         self.verticalLayout_11.setSpacing(15)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
@@ -1229,34 +1226,34 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_7.addWidget(self.scrollArea_2)
 
-        self.tabWidget.addTab(self.tabLog, "")
+        self.tabSettings.addTab(self.tabLog, "")
 
-        self.verticalLayout_3.addWidget(self.tabWidget)
+        self.verticalLayout_3.addWidget(self.tabSettings)
 
-        self.gridLayout = QGridLayout()
-        self.gridLayout.setObjectName(u"gridLayout")
+        self.settingsControls = QGridLayout()
+        self.settingsControls.setObjectName(u"settingsControls")
         self.pushIPRCancelConfig = QPushButton(self.settingsView)
         self.pushIPRCancelConfig.setObjectName(u"pushIPRCancelConfig")
         font2 = QFont()
         font2.setBold(True)
         self.pushIPRCancelConfig.setFont(font2)
 
-        self.gridLayout.addWidget(self.pushIPRCancelConfig, 3, 0, 1, 1)
+        self.settingsControls.addWidget(self.pushIPRCancelConfig, 3, 0, 1, 1)
 
         self.pushIPRSaveConfig = QPushButton(self.settingsView)
         self.pushIPRSaveConfig.setObjectName(u"pushIPRSaveConfig")
         self.pushIPRSaveConfig.setFont(font2)
 
-        self.gridLayout.addWidget(self.pushIPRSaveConfig, 3, 1, 1, 1)
+        self.settingsControls.addWidget(self.pushIPRSaveConfig, 3, 1, 1, 1)
 
         self.pushIPRResetConfig = QPushButton(self.settingsView)
         self.pushIPRResetConfig.setObjectName(u"pushIPRResetConfig")
         self.pushIPRResetConfig.setFont(font2)
 
-        self.gridLayout.addWidget(self.pushIPRResetConfig, 2, 0, 1, 2)
+        self.settingsControls.addWidget(self.pushIPRResetConfig, 2, 0, 1, 2)
 
 
-        self.verticalLayout_3.addLayout(self.gridLayout)
+        self.verticalLayout_3.addLayout(self.settingsControls)
 
         self.stackedWidget.addWidget(self.settingsView)
 
@@ -1302,7 +1299,7 @@ class Ui_MainWindow(object):
 
         self.tabConfigurator.setCurrentIndex(0)
         self.stackedWidget.setCurrentIndex(0)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabSettings.setCurrentIndex(0)
         self.comboLogLevel.setCurrentIndex(1)
         self.pushIPRListenStart.setDefault(True)
 
@@ -1340,8 +1337,13 @@ class Ui_MainWindow(object):
         self.label_23.setText(QCoreApplication.translate("MainWindow", u"Password:", None))
         self.label_23.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.tabConfigurator.setTabText(self.tabConfigurator.indexOf(self.poolConfigurator), QCoreApplication.translate("MainWindow", u"Pool", None))
-        self.tabConfigurator.setTabText(self.tabConfigurator.indexOf(self.passwdConfigurator), QCoreApplication.translate("MainWindow", u"Password", None))
+#if QT_CONFIG(tooltip)
+        self.btnConfiguratorCancel.setToolTip(QCoreApplication.translate("MainWindow", u"Cancel configuration", None))
+#endif // QT_CONFIG(tooltip)
         self.btnConfiguratorCancel.setText(QCoreApplication.translate("MainWindow", u"Cancel", None))
+#if QT_CONFIG(tooltip)
+        self.btnConfiguratorApply.setToolTip(QCoreApplication.translate("MainWindow", u"Apply current configuration", None))
+#endif // QT_CONFIG(tooltip)
         self.btnConfiguratorApply.setText(QCoreApplication.translate("MainWindow", u"Apply", None))
         self.labelIPRLogo.setText("")
         self.lineIDTableFilter.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Filter miners\u2026", None))
@@ -1484,9 +1486,9 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.spinIPRDMaxRetries.setToolTip(QCoreApplication.translate("MainWindow", u"Number of reconnect attempts before giving up", None))
 #endif // QT_CONFIG(tooltip)
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
+        self.tabSettings.setTabText(self.tabSettings.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
 #if QT_CONFIG(tooltip)
-        self.tabWidget.setTabToolTip(self.tabWidget.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))
+        self.tabSettings.setTabToolTip(self.tabSettings.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))
 #endif // QT_CONFIG(tooltip)
         self.groupAPISettings.setTitle(QCoreApplication.translate("MainWindow", u"API Settings", None))
         self.label_9.setText(QCoreApplication.translate("MainWindow", u"Locate Duration:", None))
@@ -1570,9 +1572,9 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.label_18.setText(QCoreApplication.translate("MainWindow", u"Set Alternative Password:", None))
         self.label_18.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabAPI), QCoreApplication.translate("MainWindow", u"API", None))
+        self.tabSettings.setTabText(self.tabSettings.indexOf(self.tabAPI), QCoreApplication.translate("MainWindow", u"API", None))
 #if QT_CONFIG(tooltip)
-        self.tabWidget.setTabToolTip(self.tabWidget.indexOf(self.tabAPI), QCoreApplication.translate("MainWindow", u"API Settings/Miner Auth", None))
+        self.tabSettings.setTabToolTip(self.tabSettings.indexOf(self.tabAPI), QCoreApplication.translate("MainWindow", u"API Settings/Miner Auth", None))
 #endif // QT_CONFIG(tooltip)
         self.groupLogSettings.setTitle(QCoreApplication.translate("MainWindow", u"Log Settings", None))
         self.checkFlushOnClose.setText(QCoreApplication.translate("MainWindow", u"Flush on Close", None))
@@ -1600,9 +1602,9 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.comboOnMaxLogSize.setToolTip(QCoreApplication.translate("MainWindow", u"Choose behavior for when log file reaches set max size", None))
 #endif // QT_CONFIG(tooltip)
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabLog), QCoreApplication.translate("MainWindow", u"Log", None))
+        self.tabSettings.setTabText(self.tabSettings.indexOf(self.tabLog), QCoreApplication.translate("MainWindow", u"Log", None))
 #if QT_CONFIG(tooltip)
-        self.tabWidget.setTabToolTip(self.tabWidget.indexOf(self.tabLog), QCoreApplication.translate("MainWindow", u"Log Settings", None))
+        self.tabSettings.setTabToolTip(self.tabSettings.indexOf(self.tabLog), QCoreApplication.translate("MainWindow", u"Log Settings", None))
 #endif // QT_CONFIG(tooltip)
         self.pushIPRCancelConfig.setText(QCoreApplication.translate("MainWindow", u"Cancel", None))
         self.pushIPRSaveConfig.setText(QCoreApplication.translate("MainWindow", u"Save", None))
