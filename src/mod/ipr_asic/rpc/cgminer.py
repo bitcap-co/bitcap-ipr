@@ -150,7 +150,7 @@ class CGMinerRPCClient(BaseRPCClient):
 
     async def get_system_info(self) -> dict:
         # generic CGMiner exposes no consolidated system-info command
-        raise NotImplementedError
+        return await super().get_system_info()
 
     async def get_pool_conf(self) -> list[dict]:
         pools = await self.pools()
@@ -164,12 +164,27 @@ class CGMinerRPCClient(BaseRPCClient):
         return pool_conf
 
     async def get_blink_status(self) -> dict:
-        raise NotImplementedError
+        return await super().get_blink_status()
 
     async def blink(self, enabled: bool, *args, **kwargs) -> dict:
-        raise NotImplementedError
+        return await super().blink(enabled, *args, **kwargs)
+
+    async def set_miner_mode(self, *args, **kwargs) -> dict:
+        return await super().set_miner_mode(*args, **kwargs)
+
+    async def start(self) -> dict:
+        return await super().start()
+
+    async def stop(self) -> dict:
+        return await super().stop()
+
+    async def restart(self) -> dict:
+        return await super().restart()
+
+    async def reboot(self) -> dict:
+        return await super().reboot()
 
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
     ) -> dict:
-        raise NotImplementedError
+        return await super().update_pool_conf(urls, users, passwds)
