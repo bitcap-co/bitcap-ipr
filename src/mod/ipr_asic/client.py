@@ -379,6 +379,56 @@ class ASICClient(QObject):
         finally:
             client._close()
 
+    async def _control_miner(
+        self,
+        action: str,
+        miner_type: MinerType,
+        ip: str,
+        alt_pwd: str | None = None,
+    ) -> MinerResult:
+        """Run a control action using an operation-scoped miner client."""
+        try:
+            client = await self._make_client(miner_type, ip, alt_pwd)
+        except UnknownClientError as e:
+            return MinerResult(error=e)
+        try:
+            operation = getattr(client, action, None)
+            if operation is None:
+                raise NotImplementedError(
+                    f"{action.capitalize()} is not supported for {miner_type.value}"
+                )
+            data = await operation()
+            return MinerResult(data=data)
+        except _CLIENT_ERRORS as e:
+            logger.error(f"{client.__repr__()} : client error raised: {str(e)}")
+            return MinerResult(error=e)
+        finally:
+            client._close()
+
+    async def start_miner(
+        self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
+    ) -> MinerResult:
+        """Start mining on a single miner."""
+        return await self._control_miner("start", miner_type, ip, alt_pwd)
+
+    async def stop_miner(
+        self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
+    ) -> MinerResult:
+        """Stop mining on a single miner."""
+        return await self._control_miner("stop", miner_type, ip, alt_pwd)
+
+    async def restart_miner(
+        self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
+    ) -> MinerResult:
+        """Restart mining on a single miner."""
+        return await self._control_miner("restart", miner_type, ip, alt_pwd)
+
+    async def reboot_miner(
+        self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
+    ) -> MinerResult:
+        """Reboot a single miner."""
+        return await self._control_miner("reboot", miner_type, ip, alt_pwd)
+
     async def locate_miner(
         self,
         miner_type: MinerType,

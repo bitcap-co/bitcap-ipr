@@ -6,6 +6,7 @@
 import asyncio
 import json
 import re
+from abc import abstractmethod
 from typing import Self
 
 from mod.ipr_asic import settings
@@ -104,10 +105,90 @@ class BaseRPCClient(BaseClient):
     async def send_privileged_command(self, *args, **kwargs) -> dict:
         return await self.send_command(*args, **kwargs)
 
+    @abstractmethod
+    async def version(self) -> dict:
+        """Get miner version information."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def summary(self) -> dict:
+        """Get miner status information."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def stats(self) -> list[dict]:
+        """Get miner statistics."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def devs(self) -> list[dict]:
+        """Get miner device information."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def devdetails(self) -> list[dict]:
+        """Get miner device details."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def pools(self) -> list[dict]:
+        """Get miner pool status information."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_system_info(self) -> dict:
+        """Get miner system information."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_pool_conf(self) -> list[dict]:
+        """Get current miner pool configuration."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_blink_status(self) -> dict:
+        """Get miner LED blink status."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def blink(self, enabled: bool, *args, **kwargs) -> dict:
+        """Blink miner LEDS for locating."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def set_miner_mode(self, *args, **kwargs) -> dict:
+        """Set mining mode."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def start(self) -> dict:
+        """Start mining."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def stop(self) -> dict:
+        """Stop mining."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def restart(self) -> dict:
+        """Restart mining."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def reboot(self) -> dict:
+        """Reboot miner."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def update_pool_conf(
+        self, urls: list[str], users: list[str], passwds: list[str]
+    ) -> dict:
+        """Update the current miner pool configuration."""
+        raise NotImplementedError
+
     @staticmethod
-    async def _recv_all(
-        reader: asyncio.StreamReader, buf_size: int
-    ) -> bytes | None:
+    async def _recv_all(reader: asyncio.StreamReader, buf_size: int) -> bytes | None:
         data = bytes()
         while len(data) < buf_size:
             packet = await reader.read(buf_size - len(data))

@@ -4,9 +4,8 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 from .ipr import (
-    COL_LOCATE,
+    COL_ACTION,
     COL_RECV_AT,
-    COL_REFRESH,
     FILTERABLE_COLUMNS,
     ColumnFilterPopup,
     FilterHeaderView,
@@ -19,5 +18,6 @@ from .ipr import (
     IPRTableContextMenu,
     IPRTableModel,
     IPRTitlebar,
+    MinerControlPopup,
 )
 from .svglabel import SvgLabel

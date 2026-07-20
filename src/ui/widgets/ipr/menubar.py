@@ -28,8 +28,8 @@ class IPRMenubar(QMenuBar):
         self.menuOptions.setToolTipsVisible(True)
         self.menuTable = self.addMenu("ID Table")
         self.menuTable.setToolTipsVisible(True)
-        self.menuPools = self.addMenu("Pools")
-        self.menuPools.setToolTipsVisible(True)
+        self.menuConfigurator = self.addMenu("Configuration")
+        self.menuConfigurator.setToolTipsVisible(True)
         self.menuSettings = self.addMenu("Settings")
         self.menuSettings.setToolTipsVisible(True)
         self.menuQuit = self.addMenu("Quit")
@@ -130,24 +130,24 @@ class IPRMenubar(QMenuBar):
         self.actionExport.setToolTip("Export current table as .CSV file.")
 
         # pools
-        self.actionShowPoolConfigurator = self.menuPools.addAction(
-            "Show Pool Configurator"
+        self.actionShowConfigurator = self.menuConfigurator.addAction(
+            "Show Configurator"
         )
-        self.actionShowPoolConfigurator.setEnabled(False)
-        self.actionShowPoolConfigurator.setCheckable(True)
-        self.actionShowPoolConfigurator.setToolTip(
-            "Get, store, and apply pool configurations."
+        self.actionShowConfigurator.setEnabled(False)
+        self.actionShowConfigurator.setCheckable(True)
+        self.actionShowConfigurator.setToolTip("Edit miner configuration")
+        self.actionConfiguratorGetPoolConfig = self.menuConfigurator.addAction(
+            "Get Miner Pool Configuration"
         )
-        self.actionGetMinerPoolConfig = self.menuPools.addAction(
-            "Get Miner Pool Config"
+        self.actionConfiguratorGetPoolConfig.setEnabled(False)
+        self.actionConfiguratorGetPoolConfig.setToolTip(
+            "Retrieve miner pool configuration."
         )
-        self.actionGetMinerPoolConfig.setEnabled(False)
-        self.actionGetMinerPoolConfig.setToolTip("Retrieve miner pool configuration.")
-        self.actionSetPoolFromPreset = self.menuPools.addAction(
+        self.actionConfiguratorSetPoolFromPreset = self.menuConfigurator.addAction(
             "Set Pool From Current Preset"
         )
-        self.actionSetPoolFromPreset.setEnabled(False)
-        self.actionSetPoolFromPreset.setToolTip(
+        self.actionConfiguratorSetPoolFromPreset.setEnabled(False)
+        self.actionConfiguratorSetPoolFromPreset.setToolTip(
             "Set pool from current preset to selected miners."
         )
 

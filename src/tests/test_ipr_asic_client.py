@@ -35,6 +35,7 @@ class _FakeClient:
         self._behaviours = behaviours
         self.closed = False
         self.blinks: list[bool] = []
+        self.controls: list[str] = []
         self._ex = None
 
     def error(self):
@@ -58,6 +59,25 @@ class _FakeClient:
     async def blink(self, enabled: bool, *a, **k):
         self.blinks.append(enabled)
         return {}
+
+    async def _control(self, action: str):
+        self.controls.append(action)
+        error = self._behaviours.get(f"{action}_error")
+        if error is not None:
+            raise error
+        return {"action": action}
+
+    async def start(self):
+        return await self._control("start")
+
+    async def stop(self):
+        return await self._control("stop")
+
+    async def restart(self):
+        return await self._control("restart")
+
+    async def reboot(self):
+        return await self._control("reboot")
 
 
 class TestIdentify(unittest.IsolatedAsyncioTestCase):
@@ -129,9 +149,7 @@ class TestGetMinerData(unittest.IsolatedAsyncioTestCase):
 class TestPoolConf(unittest.IsolatedAsyncioTestCase):
     async def test_get_pool_conf_padded_to_three(self):
         asic = ASICClient()
-        client = _FakeClient(
-            pool_conf=[{"url": "u1", "user": "acct", "pass": "x"}]
-        )
+        client = _FakeClient(pool_conf=[{"url": "u1", "user": "acct", "pass": "x"}])
 
         async def fake_make(miner_type, ip, alt_pwd=None):
             return client
@@ -171,6 +189,64 @@ class TestPoolConf(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(client.closed)
 
 
+class TestMinerControl(unittest.IsolatedAsyncioTestCase):
+    async def test_control_methods_dispatch_and_close_client(self):
+        asic = ASICClient()
+
+        for action in ("start", "stop", "restart", "reboot"):
+            with self.subTest(action=action):
+                client = _FakeClient()
+
+                async def fake_make(miner_type, ip, alt_pwd=None):
+                    return client
+
+                asic._make_client = fake_make
+                operation = getattr(asic, f"{action}_miner")
+                result = await operation(MinerType.ANTMINER, "10.0.0.1")
+
+                self.assertTrue(result.ok)
+                self.assertEqual(result.data, {"action": action})
+                self.assertEqual(client.controls, [action])
+                self.assertTrue(client.closed)
+
+    async def test_control_error_is_returned_and_client_is_closed(self):
+        asic = ASICClient()
+        error = APIError("control failed")
+        client = _FakeClient(reboot_error=error)
+
+        async def fake_make(miner_type, ip, alt_pwd=None):
+            return client
+
+        asic._make_client = fake_make
+        result = await asic.reboot_miner(MinerType.ANTMINER, "10.0.0.1")
+
+        self.assertFalse(result.ok)
+        self.assertIs(result.error, error)
+        self.assertTrue(client.closed)
+
+    async def test_unsupported_control_returns_error_and_closes_client(self):
+        asic = ASICClient()
+        client = _FakeClient()
+        client.start = None
+
+        async def fake_make(miner_type, ip, alt_pwd=None):
+            return client
+
+        asic._make_client = fake_make
+        result = await asic.start_miner(MinerType.LUX_OS, "10.0.0.1")
+
+        self.assertFalse(result.ok)
+        self.assertIsInstance(result.error, NotImplementedError)
+        self.assertTrue(client.closed)
+
+    async def test_unknown_client_returns_error_result(self):
+        asic = ASICClient()
+        result = await asic.start_miner(MinerType.IPOLLO, "10.0.0.1")
+
+        self.assertFalse(result.ok)
+        self.assertIsInstance(result.error, UnknownClientError)
+
+
 class TestLocate(unittest.IsolatedAsyncioTestCase):
     async def test_locate_blinks_on_then_off(self):
         asic = ASICClient()
@@ -180,9 +256,7 @@ class TestLocate(unittest.IsolatedAsyncioTestCase):
             return client
 
         asic._make_client = fake_make
-        result = await asic.locate_miner(
-            MinerType.ANTMINER, "10.0.0.1", duration_ms=1
-        )
+        result = await asic.locate_miner(MinerType.ANTMINER, "10.0.0.1", duration_ms=1)
         self.assertTrue(result.ok)
         self.assertEqual(client.blinks, [True, False])
         self.assertTrue(client.closed)

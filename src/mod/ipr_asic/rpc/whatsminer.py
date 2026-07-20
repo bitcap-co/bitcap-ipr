@@ -10,7 +10,7 @@ import hashlib
 import json
 import logging
 import re
-from typing import Any
+from typing import Any, Literal
 
 from Crypto.Cipher import AES
 from passlib.hash import md5_crypt
@@ -343,6 +343,21 @@ class WhatsminerRPCClient(BaseRPCClient):
                 "set_led", color=color, period=period, duration=duration, start=start
             )
 
+    async def set_miner_mode(self, *args, **kwargs) -> dict:
+        return await super().set_miner_mode(*args, **kwargs)
+
+    async def start(self) -> dict:
+        return await super().start()
+
+    async def stop(self) -> dict:
+        return await super().stop()
+
+    async def restart(self) -> dict:
+        return await self.send_privileged_command("restart_btminer")
+
+    async def reboot(self) -> dict:
+        return await self.send_privileged_command("reboot")
+
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
     ) -> dict:
@@ -659,6 +674,21 @@ class WhatsminerTCPClient(BaseTCPClient):
                 },
             ]
             return await self.send_command("set.system.led", param_data)
+
+    async def set_miner_mode(self, mode: Literal["start", "stop", "restart"]) -> dict:
+        return await self.send_command("set.miner.service", mode)
+
+    async def start(self) -> dict:
+        return await self.set_miner_mode("start")
+
+    async def stop(self) -> dict:
+        return await self.set_miner_mode("stop")
+
+    async def restart(self) -> dict:
+        return await self.set_miner_mode("restart")
+
+    async def reboot(self) -> dict:
+        return await self.send_command("set.system.reboot")
 
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]

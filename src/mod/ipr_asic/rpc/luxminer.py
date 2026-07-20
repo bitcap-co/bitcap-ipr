@@ -4,6 +4,7 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 import logging
+from typing import Literal
 
 from pydantic import BaseModel, Field, ValidationError
 
@@ -165,6 +166,23 @@ class LuxminerRPCClient(CGMinerRPCClient):
         if auto:
             return await self.send_privileged_command("ledset", led, "auto")
         return await self.send_privileged_command("ledset", led, "blink")
+
+    async def set_miner_mode(self, mode: Literal["sleep", "wakeup"] = "wakeup") -> dict:
+        resp = await self.send_privileged_command("curtail", mode)
+        resobj = self._validate_response(resp)
+        return resobj.model_dump()
+
+    async def start(self) -> dict:
+        return await self.set_miner_mode("wakeup")
+
+    async def stop(self) -> dict:
+        return await self.set_miner_mode("sleep")
+
+    async def restart(self) -> dict:
+        return await self.send_privileged_command("resetminer")
+
+    async def reboot(self) -> dict:
+        return await self.send_privileged_command("rebootdevice")
 
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]

@@ -43,9 +43,7 @@ class Ui_MainWindow(object):
         self.topBar.setMinimumSize(QSize(550, 58))
         self.topBar.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
         self.verticalLayout_15 = QVBoxLayout(self.topBar)
-        self.verticalLayout_15.setSpacing(0)
         self.verticalLayout_15.setObjectName(u"verticalLayout_15")
-        self.verticalLayout_15.setContentsMargins(0, 0, 0, 0)
         self.titleBarWidget = QWidget(self.topBar)
         self.titleBarWidget.setObjectName(u"titleBarWidget")
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
@@ -73,28 +71,24 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_15.addWidget(self.menuBarWidget)
 
-        self.poolConfigurator = QWidget(self.topBar)
-        self.poolConfigurator.setObjectName(u"poolConfigurator")
+        self.configurator = QWidget(self.topBar)
+        self.configurator.setObjectName(u"configurator")
+        sizePolicy.setHeightForWidth(self.configurator.sizePolicy().hasHeightForWidth())
+        self.configurator.setSizePolicy(sizePolicy)
+        self.verticalLayout_13 = QVBoxLayout(self.configurator)
+        self.verticalLayout_13.setObjectName(u"verticalLayout_13")
+        self.tabConfigurator = QTabWidget(self.configurator)
+        self.tabConfigurator.setObjectName(u"tabConfigurator")
         sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.poolConfigurator.sizePolicy().hasHeightForWidth())
-        self.poolConfigurator.setSizePolicy(sizePolicy1)
-        self.verticalLayout_14 = QVBoxLayout(self.poolConfigurator)
-        self.verticalLayout_14.setSpacing(10)
-        self.verticalLayout_14.setObjectName(u"verticalLayout_14")
-        self.verticalLayout_14.setContentsMargins(-1, 0, -1, -1)
-        self.pcwrapper = QFrame(self.poolConfigurator)
-        self.pcwrapper.setObjectName(u"pcwrapper")
-        self.pcwrapper.setMinimumSize(QSize(532, 170))
-        self.pcwrapper.setMaximumSize(QSize(16777215, 225))
-        self.pcwrapper.setFrameShape(QFrame.Shape.NoFrame)
-        self.pcwrapper.setFrameShadow(QFrame.Shadow.Plain)
-        self.verticalLayout_13 = QVBoxLayout(self.pcwrapper)
-        self.verticalLayout_13.setSpacing(10)
-        self.verticalLayout_13.setObjectName(u"verticalLayout_13")
-        self.verticalLayout_13.setContentsMargins(-1, 15, -1, -1)
-        self.presetControl = QWidget(self.pcwrapper)
+        sizePolicy1.setHeightForWidth(self.tabConfigurator.sizePolicy().hasHeightForWidth())
+        self.tabConfigurator.setSizePolicy(sizePolicy1)
+        self.poolConfigurator = QWidget()
+        self.poolConfigurator.setObjectName(u"poolConfigurator")
+        self.verticalLayout_17 = QVBoxLayout(self.poolConfigurator)
+        self.verticalLayout_17.setObjectName(u"verticalLayout_17")
+        self.presetControl = QWidget(self.poolConfigurator)
         self.presetControl.setObjectName(u"presetControl")
         self.presetControl.setMinimumSize(QSize(0, 50))
         self.horizontalLayout_4 = QHBoxLayout(self.presetControl)
@@ -151,9 +145,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addItem(self.horizontalSpacer_2)
 
 
-        self.verticalLayout_13.addWidget(self.presetControl)
+        self.verticalLayout_17.addWidget(self.presetControl)
 
-        self.pool1Config = QWidget(self.pcwrapper)
+        self.pool1Config = QWidget(self.poolConfigurator)
         self.pool1Config.setObjectName(u"pool1Config")
         self.pool1Config.setMinimumSize(QSize(0, 50))
         self.horizontalLayout_22 = QHBoxLayout(self.pool1Config)
@@ -208,9 +202,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_22.addItem(self.horizontalSpacer_4)
 
 
-        self.verticalLayout_13.addWidget(self.pool1Config)
+        self.verticalLayout_17.addWidget(self.pool1Config)
 
-        self.pool2Config = QWidget(self.pcwrapper)
+        self.pool2Config = QWidget(self.poolConfigurator)
         self.pool2Config.setObjectName(u"pool2Config")
         self.pool2Config.setMinimumSize(QSize(0, 50))
         self.horizontalLayout_29 = QHBoxLayout(self.pool2Config)
@@ -260,9 +254,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_29.addItem(self.horizontalSpacer_5)
 
 
-        self.verticalLayout_13.addWidget(self.pool2Config)
+        self.verticalLayout_17.addWidget(self.pool2Config)
 
-        self.pool3Config = QWidget(self.pcwrapper)
+        self.pool3Config = QWidget(self.poolConfigurator)
         self.pool3Config.setObjectName(u"pool3Config")
         self.pool3Config.setMinimumSize(QSize(0, 50))
         self.horizontalLayout_19 = QHBoxLayout(self.pool3Config)
@@ -312,13 +306,32 @@ class Ui_MainWindow(object):
         self.horizontalLayout_19.addItem(self.horizontalSpacer_6)
 
 
-        self.verticalLayout_13.addWidget(self.pool3Config)
+        self.verticalLayout_17.addWidget(self.pool3Config)
+
+        self.tabConfigurator.addTab(self.poolConfigurator, "")
+
+        self.verticalLayout_13.addWidget(self.tabConfigurator)
+
+        self.configuratorControls = QWidget(self.configurator)
+        self.configuratorControls.setObjectName(u"configuratorControls")
+        self.gridLayout_20 = QGridLayout(self.configuratorControls)
+        self.gridLayout_20.setObjectName(u"gridLayout_20")
+        self.gridLayout_20.setContentsMargins(0, 0, 0, 0)
+        self.btnConfiguratorCancel = QPushButton(self.configuratorControls)
+        self.btnConfiguratorCancel.setObjectName(u"btnConfiguratorCancel")
+
+        self.gridLayout_20.addWidget(self.btnConfiguratorCancel, 0, 3, 1, 1)
+
+        self.btnConfiguratorApply = QPushButton(self.configuratorControls)
+        self.btnConfiguratorApply.setObjectName(u"btnConfiguratorApply")
+
+        self.gridLayout_20.addWidget(self.btnConfiguratorApply, 0, 4, 1, 1)
 
 
-        self.verticalLayout_14.addWidget(self.pcwrapper)
+        self.verticalLayout_13.addWidget(self.configuratorControls)
 
 
-        self.verticalLayout_15.addWidget(self.poolConfigurator)
+        self.verticalLayout_15.addWidget(self.configurator)
 
 
         self.verticalLayout.addWidget(self.topBar)
@@ -422,6 +435,59 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_2.addWidget(self.tableSortFilter)
 
+        self.tableActionCenter = QWidget(self.tableView)
+        self.tableActionCenter.setObjectName(u"tableActionCenter")
+        sizePolicy.setHeightForWidth(self.tableActionCenter.sizePolicy().hasHeightForWidth())
+        self.tableActionCenter.setSizePolicy(sizePolicy)
+        self.tableActionCenter.setMinimumSize(QSize(525, 35))
+        self.tableActionCenter.setMaximumSize(QSize(16777215, 35))
+        self.horizontalLayout_7 = QHBoxLayout(self.tableActionCenter)
+        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
+        self.horizontalLayout_7.setContentsMargins(6, 6, 6, 6)
+        self.label_30 = QLabel(self.tableActionCenter)
+        self.label_30.setObjectName(u"label_30")
+        sizePolicy4.setHeightForWidth(self.label_30.sizePolicy().hasHeightForWidth())
+        self.label_30.setSizePolicy(sizePolicy4)
+        font = QFont()
+        font.setPointSize(10)
+        self.label_30.setFont(font)
+
+        self.horizontalLayout_7.addWidget(self.label_30)
+
+        self.btnBulkLocate = QToolButton(self.tableActionCenter)
+        self.btnBulkLocate.setObjectName(u"btnBulkLocate")
+        self.btnBulkLocate.setMinimumSize(QSize(32, 25))
+        self.btnBulkLocate.setIconSize(QSize(15, 15))
+
+        self.horizontalLayout_7.addWidget(self.btnBulkLocate)
+
+        self.btnBulkRefresh = QToolButton(self.tableActionCenter)
+        self.btnBulkRefresh.setObjectName(u"btnBulkRefresh")
+        self.btnBulkRefresh.setMinimumSize(QSize(32, 25))
+        self.btnBulkRefresh.setIconSize(QSize(15, 15))
+
+        self.horizontalLayout_7.addWidget(self.btnBulkRefresh)
+
+        self.btnBulkControl = QToolButton(self.tableActionCenter)
+        self.btnBulkControl.setObjectName(u"btnBulkControl")
+        self.btnBulkControl.setMinimumSize(QSize(32, 25))
+
+        self.horizontalLayout_7.addWidget(self.btnBulkControl)
+
+        self.btnBulkConfig = QToolButton(self.tableActionCenter)
+        self.btnBulkConfig.setObjectName(u"btnBulkConfig")
+        self.btnBulkConfig.setMinimumSize(QSize(32, 25))
+        self.btnBulkConfig.setIconSize(QSize(15, 15))
+
+        self.horizontalLayout_7.addWidget(self.btnBulkConfig)
+
+        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_7.addItem(self.horizontalSpacer_3)
+
+
+        self.verticalLayout_2.addWidget(self.tableActionCenter)
+
         self.tableIPRID = QTableView(self.tableView)
         self.tableIPRID.setObjectName(u"tableIPRID")
         sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
@@ -446,16 +512,16 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
         self.label = QLabel(self.settingsView)
         self.label.setObjectName(u"label")
-        font = QFont()
-        font.setPointSize(14)
-        font.setBold(True)
-        self.label.setFont(font)
+        font1 = QFont()
+        font1.setPointSize(14)
+        font1.setBold(True)
+        self.label.setFont(font1)
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.verticalLayout_3.addWidget(self.label)
 
-        self.tabWidget = QTabWidget(self.settingsView)
-        self.tabWidget.setObjectName(u"tabWidget")
+        self.tabSettings = QTabWidget(self.settingsView)
+        self.tabSettings.setObjectName(u"tabSettings")
         self.tabGeneral = QWidget()
         self.tabGeneral.setObjectName(u"tabGeneral")
         self.verticalLayout_4 = QVBoxLayout(self.tabGeneral)
@@ -469,7 +535,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 728, 814))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 681, 818))
         self.verticalLayout_5 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_5.setSpacing(15)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
@@ -580,17 +646,29 @@ class Ui_MainWindow(object):
         self.gridLayout_4.setHorizontalSpacing(70)
         self.gridLayout_4.setVerticalSpacing(15)
         self.gridLayout_4.setContentsMargins(9, 15, 9, 9)
+        self.checkListenGoldshell = QCheckBox(self.groupListeners)
+        self.checkListenGoldshell.setObjectName(u"checkListenGoldshell")
+        self.checkListenGoldshell.setMaximumSize(QSize(100, 30))
+
+        self.gridLayout_4.addWidget(self.checkListenGoldshell, 4, 1, 1, 1)
+
         self.checkListenIceRiver = QCheckBox(self.groupListeners)
         self.checkListenIceRiver.setObjectName(u"checkListenIceRiver")
         self.checkListenIceRiver.setMaximumSize(QSize(100, 30))
 
         self.gridLayout_4.addWidget(self.checkListenIceRiver, 2, 1, 1, 1)
 
-        self.checkListenAntminer = QCheckBox(self.groupListeners)
-        self.checkListenAntminer.setObjectName(u"checkListenAntminer")
-        self.checkListenAntminer.setMaximumSize(QSize(100, 30))
+        self.checkListenWhatsminer = QCheckBox(self.groupListeners)
+        self.checkListenWhatsminer.setObjectName(u"checkListenWhatsminer")
+        self.checkListenWhatsminer.setMaximumSize(QSize(100, 30))
 
-        self.gridLayout_4.addWidget(self.checkListenAntminer, 2, 0, 1, 1)
+        self.gridLayout_4.addWidget(self.checkListenWhatsminer, 2, 2, 1, 1)
+
+        self.checkListenVolcminer = QCheckBox(self.groupListeners)
+        self.checkListenVolcminer.setObjectName(u"checkListenVolcminer")
+        self.checkListenVolcminer.setMaximumSize(QSize(100, 30))
+
+        self.gridLayout_4.addWidget(self.checkListenVolcminer, 3, 2, 1, 1)
 
         self.checkListenAuradine = QCheckBox(self.groupListeners)
         self.checkListenAuradine.setObjectName(u"checkListenAuradine")
@@ -598,11 +676,11 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.checkListenAuradine, 4, 2, 1, 1)
 
-        self.checkListenVolcminer = QCheckBox(self.groupListeners)
-        self.checkListenVolcminer.setObjectName(u"checkListenVolcminer")
-        self.checkListenVolcminer.setMaximumSize(QSize(100, 30))
+        self.checkListenSealminer = QCheckBox(self.groupListeners)
+        self.checkListenSealminer.setObjectName(u"checkListenSealminer")
+        self.checkListenSealminer.setMaximumSize(QSize(100, 30))
 
-        self.gridLayout_4.addWidget(self.checkListenVolcminer, 3, 2, 1, 1)
+        self.gridLayout_4.addWidget(self.checkListenSealminer, 3, 0, 1, 1)
 
         self.checkListenElphapex = QCheckBox(self.groupListeners)
         self.checkListenElphapex.setObjectName(u"checkListenElphapex")
@@ -615,41 +693,29 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.checkListenElphapex, 4, 0, 1, 1)
 
-        self.checkListenWhatsminer = QCheckBox(self.groupListeners)
-        self.checkListenWhatsminer.setObjectName(u"checkListenWhatsminer")
-        self.checkListenWhatsminer.setMaximumSize(QSize(100, 30))
-
-        self.gridLayout_4.addWidget(self.checkListenWhatsminer, 2, 2, 1, 1)
-
         self.checkListenHammer = QCheckBox(self.groupListeners)
         self.checkListenHammer.setObjectName(u"checkListenHammer")
         self.checkListenHammer.setMaximumSize(QSize(100, 30))
 
         self.gridLayout_4.addWidget(self.checkListenHammer, 3, 1, 1, 1)
 
-        self.checkListenSealminer = QCheckBox(self.groupListeners)
-        self.checkListenSealminer.setObjectName(u"checkListenSealminer")
-        self.checkListenSealminer.setMaximumSize(QSize(100, 30))
+        self.checkListenAntminer = QCheckBox(self.groupListeners)
+        self.checkListenAntminer.setObjectName(u"checkListenAntminer")
+        self.checkListenAntminer.setMaximumSize(QSize(100, 30))
 
-        self.gridLayout_4.addWidget(self.checkListenSealminer, 3, 0, 1, 1)
-
-        self.checkListenGoldshell = QCheckBox(self.groupListeners)
-        self.checkListenGoldshell.setObjectName(u"checkListenGoldshell")
-        self.checkListenGoldshell.setMaximumSize(QSize(100, 30))
-
-        self.gridLayout_4.addWidget(self.checkListenGoldshell, 4, 1, 1, 1)
-
-        self.checkListenIPollo = QCheckBox(self.groupListeners)
-        self.checkListenIPollo.setObjectName(u"checkListenIPollo")
-        self.checkListenIPollo.setMaximumSize(QSize(100, 30))
-
-        self.gridLayout_4.addWidget(self.checkListenIPollo, 5, 0, 1, 1)
+        self.gridLayout_4.addWidget(self.checkListenAntminer, 2, 0, 1, 1)
 
         self.checkListenHiveGPU = QCheckBox(self.groupListeners)
         self.checkListenHiveGPU.setObjectName(u"checkListenHiveGPU")
         self.checkListenHiveGPU.setMaximumSize(QSize(100, 30))
 
         self.gridLayout_4.addWidget(self.checkListenHiveGPU, 5, 1, 1, 1)
+
+        self.checkListenIPollo = QCheckBox(self.groupListeners)
+        self.checkListenIPollo.setObjectName(u"checkListenIPollo")
+        self.checkListenIPollo.setMaximumSize(QSize(100, 30))
+
+        self.gridLayout_4.addWidget(self.checkListenIPollo, 5, 0, 1, 1)
 
 
         self.verticalLayout_6.addWidget(self.groupListeners)
@@ -729,7 +795,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_4.addWidget(self.scrollArea)
 
-        self.tabWidget.addTab(self.tabGeneral, "")
+        self.tabSettings.addTab(self.tabGeneral, "")
         self.tabAPI = QWidget()
         self.tabAPI.setObjectName(u"tabAPI")
         self.verticalLayout_9 = QVBoxLayout(self.tabAPI)
@@ -739,7 +805,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 724, 976))
+        self.scrollAPI.setGeometry(QRect(0, 0, 476, 986))
         self.verticalLayout_8 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_8.setSpacing(15)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
@@ -1061,7 +1127,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_9.addWidget(self.scrollArea_3)
 
-        self.tabWidget.addTab(self.tabAPI, "")
+        self.tabSettings.addTab(self.tabAPI, "")
         self.tabLog = QWidget()
         self.tabLog.setObjectName(u"tabLog")
         self.verticalLayout_7 = QVBoxLayout(self.tabLog)
@@ -1075,7 +1141,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollLogs = QWidget()
         self.scrollLogs.setObjectName(u"scrollLogs")
-        self.scrollLogs.setGeometry(QRect(0, 0, 728, 596))
+        self.scrollLogs.setGeometry(QRect(0, 0, 478, 242))
         self.verticalLayout_11 = QVBoxLayout(self.scrollLogs)
         self.verticalLayout_11.setSpacing(15)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
@@ -1091,9 +1157,7 @@ class Ui_MainWindow(object):
 
         self.label_5 = QLabel(self.groupLogSettings)
         self.label_5.setObjectName(u"label_5")
-        font1 = QFont()
-        font1.setPointSize(10)
-        self.label_5.setFont(font1)
+        self.label_5.setFont(font)
 
         self.gridLayout_5.addWidget(self.label_5, 1, 0, 1, 1)
 
@@ -1132,13 +1196,13 @@ class Ui_MainWindow(object):
 
         self.label_7 = QLabel(self.groupLogFile)
         self.label_7.setObjectName(u"label_7")
-        self.label_7.setFont(font1)
+        self.label_7.setFont(font)
 
         self.gridLayout_6.addWidget(self.label_7, 0, 0, 1, 1)
 
         self.label_8 = QLabel(self.groupLogFile)
         self.label_8.setObjectName(u"label_8")
-        self.label_8.setFont(font1)
+        self.label_8.setFont(font)
 
         self.gridLayout_6.addWidget(self.label_8, 1, 0, 1, 1)
 
@@ -1162,34 +1226,34 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_7.addWidget(self.scrollArea_2)
 
-        self.tabWidget.addTab(self.tabLog, "")
+        self.tabSettings.addTab(self.tabLog, "")
 
-        self.verticalLayout_3.addWidget(self.tabWidget)
+        self.verticalLayout_3.addWidget(self.tabSettings)
 
-        self.gridLayout = QGridLayout()
-        self.gridLayout.setObjectName(u"gridLayout")
+        self.settingsControls = QGridLayout()
+        self.settingsControls.setObjectName(u"settingsControls")
         self.pushIPRCancelConfig = QPushButton(self.settingsView)
         self.pushIPRCancelConfig.setObjectName(u"pushIPRCancelConfig")
         font2 = QFont()
         font2.setBold(True)
         self.pushIPRCancelConfig.setFont(font2)
 
-        self.gridLayout.addWidget(self.pushIPRCancelConfig, 3, 0, 1, 1)
+        self.settingsControls.addWidget(self.pushIPRCancelConfig, 3, 0, 1, 1)
 
         self.pushIPRSaveConfig = QPushButton(self.settingsView)
         self.pushIPRSaveConfig.setObjectName(u"pushIPRSaveConfig")
         self.pushIPRSaveConfig.setFont(font2)
 
-        self.gridLayout.addWidget(self.pushIPRSaveConfig, 3, 1, 1, 1)
+        self.settingsControls.addWidget(self.pushIPRSaveConfig, 3, 1, 1, 1)
 
         self.pushIPRResetConfig = QPushButton(self.settingsView)
         self.pushIPRResetConfig.setObjectName(u"pushIPRResetConfig")
         self.pushIPRResetConfig.setFont(font2)
 
-        self.gridLayout.addWidget(self.pushIPRResetConfig, 2, 0, 1, 2)
+        self.settingsControls.addWidget(self.pushIPRResetConfig, 2, 0, 1, 2)
 
 
-        self.verticalLayout_3.addLayout(self.gridLayout)
+        self.verticalLayout_3.addLayout(self.settingsControls)
 
         self.stackedWidget.addWidget(self.settingsView)
 
@@ -1204,7 +1268,7 @@ class Ui_MainWindow(object):
         self.listenerControls.setContentsMargins(9, 9, 9, 10)
         self.pushIPRListenStart = QPushButton(self.centralwidget)
         self.pushIPRListenStart.setObjectName(u"pushIPRListenStart")
-        self.pushIPRListenStart.setFont(font)
+        self.pushIPRListenStart.setFont(font1)
 
         self.listenerControls.addWidget(self.pushIPRListenStart)
 
@@ -1215,7 +1279,7 @@ class Ui_MainWindow(object):
         self.pushIPRListenStop = QPushButton(self.centralwidget)
         self.pushIPRListenStop.setObjectName(u"pushIPRListenStop")
         self.pushIPRListenStop.setEnabled(False)
-        self.pushIPRListenStop.setFont(font)
+        self.pushIPRListenStop.setFont(font1)
 
         self.listenerControls.addWidget(self.pushIPRListenStop)
 
@@ -1233,8 +1297,9 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
+        self.tabConfigurator.setCurrentIndex(0)
         self.stackedWidget.setCurrentIndex(0)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabSettings.setCurrentIndex(0)
         self.comboLogLevel.setCurrentIndex(1)
         self.pushIPRListenStart.setDefault(True)
 
@@ -1271,6 +1336,15 @@ class Ui_MainWindow(object):
         self.label_22.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.label_23.setText(QCoreApplication.translate("MainWindow", u"Password:", None))
         self.label_23.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+        self.tabConfigurator.setTabText(self.tabConfigurator.indexOf(self.poolConfigurator), QCoreApplication.translate("MainWindow", u"Pool", None))
+#if QT_CONFIG(tooltip)
+        self.btnConfiguratorCancel.setToolTip(QCoreApplication.translate("MainWindow", u"Cancel configuration", None))
+#endif // QT_CONFIG(tooltip)
+        self.btnConfiguratorCancel.setText(QCoreApplication.translate("MainWindow", u"Cancel", None))
+#if QT_CONFIG(tooltip)
+        self.btnConfiguratorApply.setToolTip(QCoreApplication.translate("MainWindow", u"Apply current configuration", None))
+#endif // QT_CONFIG(tooltip)
+        self.btnConfiguratorApply.setText(QCoreApplication.translate("MainWindow", u"Apply", None))
         self.labelIPRLogo.setText("")
         self.lineIDTableFilter.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Filter miners\u2026", None))
         self.labelSortBy.setText(QCoreApplication.translate("MainWindow", u"Sort by:", None))
@@ -1284,6 +1358,27 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.btnResetView.setToolTip(QCoreApplication.translate("MainWindow", u"Clear the filter and reset the sort order", None))
 #endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.tableActionCenter.setToolTip(QCoreApplication.translate("MainWindow", u"Execute bulk actions for selected miners/all visible miners.", None))
+#endif // QT_CONFIG(tooltip)
+        self.label_30.setText(QCoreApplication.translate("MainWindow", u"Action Center:", None))
+        self.label_30.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.btnBulkLocate.setToolTip(QCoreApplication.translate("MainWindow", u"Blink miner LEDs for selected/all visible miners.", None))
+#endif // QT_CONFIG(tooltip)
+        self.btnBulkLocate.setText("")
+#if QT_CONFIG(tooltip)
+        self.btnBulkRefresh.setToolTip(QCoreApplication.translate("MainWindow", u"Refresh data for selected/all visible miners", None))
+#endif // QT_CONFIG(tooltip)
+        self.btnBulkRefresh.setText("")
+#if QT_CONFIG(tooltip)
+        self.btnBulkControl.setToolTip(QCoreApplication.translate("MainWindow", u"Control selected/all visible miners.", None))
+#endif // QT_CONFIG(tooltip)
+        self.btnBulkControl.setText("")
+#if QT_CONFIG(tooltip)
+        self.btnBulkConfig.setToolTip(QCoreApplication.translate("MainWindow", u"Set a configuration for selected/all visible miners.", None))
+#endif // QT_CONFIG(tooltip)
+        self.btnBulkConfig.setText("")
         self.label.setText(QCoreApplication.translate("MainWindow", u"Configuration", None))
         self.label.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.groupSystemTray.setTitle(QCoreApplication.translate("MainWindow", u"System Tray", None))
@@ -1326,49 +1421,49 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.groupListeners.setTitle(QCoreApplication.translate("MainWindow", u"Listeners", None))
 #if QT_CONFIG(tooltip)
+        self.checkListenGoldshell.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Goldshells", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenGoldshell.setText(QCoreApplication.translate("MainWindow", u"Goldshell", None))
+#if QT_CONFIG(tooltip)
         self.checkListenIceRiver.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Icerivers", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenIceRiver.setText(QCoreApplication.translate("MainWindow", u"IceRiver", None))
-#if QT_CONFIG(tooltip)
-        self.checkListenAntminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Antminers", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkListenAntminer.setText(QCoreApplication.translate("MainWindow", u"Antminer", None))
-#if QT_CONFIG(tooltip)
-        self.checkListenAuradine.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Auradine miners", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkListenAuradine.setText(QCoreApplication.translate("MainWindow", u"Auradine", None))
-#if QT_CONFIG(tooltip)
-        self.checkListenVolcminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Volcminers", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkListenVolcminer.setText(QCoreApplication.translate("MainWindow", u"Volcminer", None))
-#if QT_CONFIG(tooltip)
-        self.checkListenElphapex.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Elphapex miners", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkListenElphapex.setText(QCoreApplication.translate("MainWindow", u"Elphapex", None))
 #if QT_CONFIG(tooltip)
         self.checkListenWhatsminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Whatsminers", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenWhatsminer.setText(QCoreApplication.translate("MainWindow", u"Whatsminer", None))
 #if QT_CONFIG(tooltip)
-        self.checkListenHammer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Hammer miners", None))
+        self.checkListenVolcminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Volcminers", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkListenHammer.setText(QCoreApplication.translate("MainWindow", u"Hammer", None))
+        self.checkListenVolcminer.setText(QCoreApplication.translate("MainWindow", u"Volcminer", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenAuradine.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Auradine miners", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenAuradine.setText(QCoreApplication.translate("MainWindow", u"Auradine", None))
 #if QT_CONFIG(tooltip)
         self.checkListenSealminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Sealminers", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenSealminer.setText(QCoreApplication.translate("MainWindow", u"Sealminer", None))
 #if QT_CONFIG(tooltip)
-        self.checkListenGoldshell.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Goldshells", None))
+        self.checkListenElphapex.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Elphapex miners", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkListenGoldshell.setText(QCoreApplication.translate("MainWindow", u"Goldshell", None))
+        self.checkListenElphapex.setText(QCoreApplication.translate("MainWindow", u"Elphapex", None))
 #if QT_CONFIG(tooltip)
-        self.checkListenIPollo.setToolTip(QCoreApplication.translate("MainWindow", u"Enable Listening for iPollo miners", None))
+        self.checkListenHammer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Hammer miners", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkListenIPollo.setText(QCoreApplication.translate("MainWindow", u"iPollo", None))
+        self.checkListenHammer.setText(QCoreApplication.translate("MainWindow", u"Hammer", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenAntminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Antminers", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenAntminer.setText(QCoreApplication.translate("MainWindow", u"Antminer", None))
 #if QT_CONFIG(tooltip)
         self.checkListenHiveGPU.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for HiveOS GPU rigs (IPR Daemon only)", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenHiveGPU.setText(QCoreApplication.translate("MainWindow", u"HiveGPU", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenIPollo.setToolTip(QCoreApplication.translate("MainWindow", u"Enable Listening for iPollo miners", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenIPollo.setText(QCoreApplication.translate("MainWindow", u"iPollo", None))
         self.groupIPRD.setTitle(QCoreApplication.translate("MainWindow", u"IPR Daemon", None))
 #if QT_CONFIG(tooltip)
         self.checkEnableIPRDBackend.setToolTip(QCoreApplication.translate("MainWindow", u"Use the IPR Daemon backend instead of the built-in listener", None))
@@ -1391,9 +1486,9 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.spinIPRDMaxRetries.setToolTip(QCoreApplication.translate("MainWindow", u"Number of reconnect attempts before giving up", None))
 #endif // QT_CONFIG(tooltip)
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
+        self.tabSettings.setTabText(self.tabSettings.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
 #if QT_CONFIG(tooltip)
-        self.tabWidget.setTabToolTip(self.tabWidget.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))
+        self.tabSettings.setTabToolTip(self.tabSettings.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))
 #endif // QT_CONFIG(tooltip)
         self.groupAPISettings.setTitle(QCoreApplication.translate("MainWindow", u"API Settings", None))
         self.label_9.setText(QCoreApplication.translate("MainWindow", u"Locate Duration:", None))
@@ -1477,9 +1572,9 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.label_18.setText(QCoreApplication.translate("MainWindow", u"Set Alternative Password:", None))
         self.label_18.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabAPI), QCoreApplication.translate("MainWindow", u"API", None))
+        self.tabSettings.setTabText(self.tabSettings.indexOf(self.tabAPI), QCoreApplication.translate("MainWindow", u"API", None))
 #if QT_CONFIG(tooltip)
-        self.tabWidget.setTabToolTip(self.tabWidget.indexOf(self.tabAPI), QCoreApplication.translate("MainWindow", u"API Settings/Miner Auth", None))
+        self.tabSettings.setTabToolTip(self.tabSettings.indexOf(self.tabAPI), QCoreApplication.translate("MainWindow", u"API Settings/Miner Auth", None))
 #endif // QT_CONFIG(tooltip)
         self.groupLogSettings.setTitle(QCoreApplication.translate("MainWindow", u"Log Settings", None))
         self.checkFlushOnClose.setText(QCoreApplication.translate("MainWindow", u"Flush on Close", None))
@@ -1507,9 +1602,9 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.comboOnMaxLogSize.setToolTip(QCoreApplication.translate("MainWindow", u"Choose behavior for when log file reaches set max size", None))
 #endif // QT_CONFIG(tooltip)
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabLog), QCoreApplication.translate("MainWindow", u"Log", None))
+        self.tabSettings.setTabText(self.tabSettings.indexOf(self.tabLog), QCoreApplication.translate("MainWindow", u"Log", None))
 #if QT_CONFIG(tooltip)
-        self.tabWidget.setTabToolTip(self.tabWidget.indexOf(self.tabLog), QCoreApplication.translate("MainWindow", u"Log Settings", None))
+        self.tabSettings.setTabToolTip(self.tabSettings.indexOf(self.tabLog), QCoreApplication.translate("MainWindow", u"Log Settings", None))
 #endif // QT_CONFIG(tooltip)
         self.pushIPRCancelConfig.setText(QCoreApplication.translate("MainWindow", u"Cancel", None))
         self.pushIPRSaveConfig.setText(QCoreApplication.translate("MainWindow", u"Save", None))

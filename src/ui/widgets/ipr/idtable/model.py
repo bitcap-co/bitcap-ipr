@@ -19,10 +19,9 @@ from PySide6.QtNetwork import QHostAddress
 from mod.ipr_asic.data import MinerData
 
 # action columns (icon-only, no underlying MinerData field)
-COL_REFRESH = 0
-COL_LOCATE = 1
+COL_ACTION = 0
 # first data column / default sort column
-COL_RECV_AT = 2
+COL_RECV_AT = 1
 
 # custom role used by the proxy for type-aware sorting (epoch int, ip int, ...)
 IPR_SORT_ROLE = Qt.ItemDataRole.UserRole + 1
@@ -50,7 +49,7 @@ def _ip_sort_key(m: MinerData) -> int:
     return QHostAddress(m.ip).toIPv4Address()
 
 
-# index in this list == column index - 2 (action columns occupy 0 and 1)
+# index in this list == column index - 1 (the action column occupies 0)
 COLUMNS: list[Column] = [
     Column(header="RECV AT", field="recv_at", sort_key=lambda m: m.recv_at or 0),
     Column(
@@ -79,8 +78,8 @@ COLUMNS: list[Column] = [
 ]
 
 # full header row including the two action columns
-HEADERS = ["", ""] + [c.header for c in COLUMNS]
-ACTION_COLUMN_COUNT = 2
+HEADERS = [""] + [c.header for c in COLUMNS]
+ACTION_COLUMN_COUNT = 1
 COLUMN_COUNT = len(HEADERS)
 
 # view column indices that expose a header filter dropdown

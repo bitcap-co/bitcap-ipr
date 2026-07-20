@@ -4,13 +4,13 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 from .contextmenu import IPRTableContextMenu
+from .controlpopup import MinerControlPopup
 from .delegate import IPRActionDelegate
 from .filterpopup import ColumnFilterPopup
 from .header import FilterHeaderView
 from .model import (
-    COL_LOCATE,
+    COL_ACTION,
     COL_RECV_AT,
-    COL_REFRESH,
     FILTERABLE_COLUMNS,
     IPRTableModel,
 )

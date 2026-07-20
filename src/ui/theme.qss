@@ -114,6 +114,17 @@ QToolButton {
   border: none;
   background: none;
   color: #FFFFFF;
+  outline: none;
+}
+
+QToolButton:disabled {
+  color: #828282;
+  padding: 2px;
+}
+
+QToolButton[popupMode="0"] {
+  /* Only for DelayedPopup */
+  padding-right: 2px;
 }
 
 QCheckBox {
@@ -598,4 +609,28 @@ QFrame#columnFilterPopup QListWidget::indicator:indeterminate {
 QFrame#columnFilterPopup QPushButton {
   padding: 3px 10px;
   min-width: 60px;
+}
+
+/* ID table single-miner control popup ------------------------------------ */
+QFrame#minerControlPopup {
+  background-color: #383e46;
+  border: 1px solid #60798B;
+}
+
+QFrame#minerControlPopup QPushButton {
+  color: #FFFFFF;
+  background-color: transparent;
+  border: none;
+  padding: 5px 16px 5px 10px;
+  text-align: left;
+}
+
+QFrame#minerControlPopup QPushButton:hover {
+  background-color: #5c9dff;
+  color: #FFFFFF;
+}
+
+QFrame#minerControlPopup QPushButton:pressed {
+  background-color: #3183ff;
+  color: #FFFFFF;
 }

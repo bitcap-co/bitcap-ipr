@@ -71,9 +71,8 @@ from mod.updater import (
 )
 from ui import Ui_MainWindow
 from ui.widgets import (
-    COL_LOCATE,
+    COL_ACTION,
     COL_RECV_AT,
-    COL_REFRESH,
     FILTERABLE_COLUMNS,
     ColumnFilterPopup,
     FilterHeaderView,
@@ -86,6 +85,7 @@ from ui.widgets import (
     IPRTableContextMenu,
     IPRTableModel,
     IPRTitlebar,
+    MinerControlPopup,
 )
 from utils import (
     CURR_PLATFORM,
@@ -127,9 +127,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self._app_instance.installEventFilter(self)
         # applied once on first show (Windows only) to re-enable Aero Snap
         self._snapping_enabled = False
-        # re-entrancy guard for the pool configurator toggle (its setChecked
+        # re-entrancy guard for the configurator toggle (its setChecked
         # calls re-emit toggled and re-enter the slot)
-        self._toggling_pool = False
+        self._toggling_configurator = False
         self.confirms: list[IPRConfirmation] = []
         self.aboutDialog: IPRAbout | None = None
         self.update_checker: UpdateChecker | None = None
@@ -202,7 +202,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self._reconnect_delay_ms = 0
         self._last_iprd_error = ""
 
-        logger.info(" init mod api.")
+        logger.info(" init mod ipr_asic.")
         self.asic = ASICClient(self)
         # tracks the in-flight locate coroutine to prevent concurrent locates
         self._locate_task: asyncio.Task | None = None
@@ -242,11 +242,15 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionClearTable.triggered.connect(self.clear_table)
         self.menu_bar.actionImport.triggered.connect(self.import_table)
         self.menu_bar.actionExport.triggered.connect(self.export_table)
-        self.menu_bar.actionShowPoolConfigurator.toggled.connect(
-            self.toggle_pool_settings
+        self.menu_bar.actionShowConfigurator.toggled.connect(
+            self.toggle_configurator_settings
         )
-        self.menu_bar.actionGetMinerPoolConfig.triggered.connect(self.get_miner_pool)
-        self.menu_bar.actionSetPoolFromPreset.triggered.connect(self.update_miner_pools)
+        self.menu_bar.actionConfiguratorGetPoolConfig.triggered.connect(
+            self.get_miner_pool
+        )
+        self.menu_bar.actionConfiguratorSetPoolFromPreset.triggered.connect(
+            self.update_miner_pools
+        )
         self.menu_bar.actionSettings.triggered.connect(
             lambda: self.update_stacked_widget(view_index=2)
         )
@@ -304,7 +308,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd_preset.create_requested.connect(self.add_new_iprd_preset)
         self.iprd_preset.remove_requested.connect(self.remove_iprd_preset)
 
-        self.poolConfigurator.hide()
+        # configurator
+        self.configurator.hide()
+        self.btnConfiguratorCancel.clicked.connect(self.toggle_configurator_settings)
+        self.btnConfiguratorApply.clicked.connect(self.apply_configuration)
         self.actionTogglePoolPasswd = self.create_passwd_toggle_action(
             self.linePoolPasswd
         )
@@ -345,16 +352,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.id_header.setDefaultSectionSize(150)
         # action-column icons (refresh / locate) painted by a delegate
         self.id_action_delegate = IPRActionDelegate(self.tableIPRID)
-        self.tableIPRID.setItemDelegateForColumn(COL_REFRESH, self.id_action_delegate)
-        self.tableIPRID.setItemDelegateForColumn(COL_LOCATE, self.id_action_delegate)
+        self.tableIPRID.setItemDelegateForColumn(COL_ACTION, self.id_action_delegate)
         self.id_action_delegate.action_clicked.connect(self.handle_widget_action)
         self.tableIPRID.setColumnWidth(0, 15)
-        self.tableIPRID.setColumnWidth(1, 15)
-        self.tableIPRID.setColumnWidth(2, 180)
-        self.tableIPRID.setColumnWidth(7, 180)
-        self.tableIPRID.setColumnWidth(10, 400)
-        self.tableIPRID.setColumnWidth(11, 300)
-        self.tableIPRID.setColumnWidth(14, 180)
+        self.tableIPRID.setColumnWidth(1, 180)
+        self.tableIPRID.setColumnWidth(6, 180)
+        self.tableIPRID.setColumnWidth(9, 400)
+        self.tableIPRID.setColumnWidth(10, 300)
+        self.tableIPRID.setColumnWidth(13, 180)
         self.tableIPRID.doubleClicked.connect(self.double_click_item)
         # sorting is driven by the toolbar controls, not header clicks, so a
         # header click is free to select the column without sorting it
@@ -397,6 +402,18 @@ class IPR(QMainWindow, Ui_MainWindow):
         # default sort: oldest -> newest by RECV AT (new arrivals at the bottom)
         self.reset_sort()
 
+        # action center
+        self.btnBulkRefresh.setIcon(QIcon(":theme/icons/rc/refresh.png"))
+        self.btnBulkRefresh.clicked.connect(self.bulk_refresh_miners)
+        self.btnBulkLocate.setIcon(QIcon(":theme/icons/rc/flash.png"))
+        self.btnBulkLocate.clicked.connect(self.bulk_locate_miners)
+        self.btnBulkControl.setIcon(QIcon(":theme/icons/rc/wrench.png"))
+        self.btnBulkControl.clicked.connect(self.open_bulk_control)
+        self.btnBulkConfig.setIcon(QIcon(":theme/icons/rc/edit.png"))
+        self.btnBulkConfig.clicked.connect(
+            lambda: self.toggle_configurator_settings(True)
+        )
+
         # id table context menu
         self.id_context_menu = IPRTableContextMenu(self)
         self.id_context_menu.contextActionOpenSelectedIPs.triggered.connect(
@@ -425,9 +442,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.reset_view
         )
         self.id_context_menu.contextActionConfiguratorShowHide.toggled.connect(
-            self.toggle_pool_config
+            self.toggle_configurator
         )
-        self.id_context_menu.contextActionConfiguratorGetPool.triggered.connect(
+        self.id_context_menu.contextActionConfigutorGetPool.triggered.connect(
             self.get_miner_pool
         )
         self.id_context_menu.contextActionConfiguratorSetPools.triggered.connect(
@@ -498,14 +515,13 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         self.update_stacked_widget()
         self._show_base_status()
-        self.update_pool_preset_names()
-        self.update_iprd_preset_names()
+        self.update_preset_names()
 
         if self.menu_bar.actionEnableIDTable.isChecked():
             self.toggle_table_settings(True)
 
-        if self.menu_bar.actionShowPoolConfigurator.isChecked():
-            self.toggle_pool_settings(True)
+        if self.menu_bar.actionShowConfigurator.isChecked():
+            self.toggle_configurator_settings(True)
 
         if self.menu_bar.actionAutoStartOnLaunch.isChecked():
             self.start_listen()
@@ -688,8 +704,8 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def update_stacked_widget(self, view_index: int | None = None, *_):
         if not view_index:
-            if self.menu_bar.actionShowPoolConfigurator.isChecked():
-                self.poolConfigurator.setVisible(True)
+            if self.menu_bar.actionShowConfigurator.isChecked():
+                self.configurator.setVisible(True)
             if self.menu_bar.actionEnableIDTable.isChecked():
                 self.stackedWidget.setCurrentIndex(1)
             else:
@@ -697,9 +713,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         elif view_index < self.stackedWidget.count():
             if self.is_minimized_to_tray():
                 self.toggle_visibility()
-            if self.menu_bar.actionShowPoolConfigurator.isChecked():
+            if self.menu_bar.actionShowConfigurator.isChecked():
                 if view_index == 2:
-                    self.poolConfigurator.setVisible(False)
+                    self.configurator.setVisible(False)
             self.stackedWidget.setCurrentIndex(view_index)
 
     # status bar
@@ -765,17 +781,18 @@ class IPR(QMainWindow, Ui_MainWindow):
         if not message:
             self._show_base_status()
 
-    def update_pool_preset_names(self):
+    def update_preset_names(self):
+        # pool presets
         for idx in range(0, len(self.config.pool_config.pool_presets)):
             self.comboPoolPreset.insertItem(
                 idx, self.config.pool_config.pool_presets[idx].preset_name
             )
         self.comboPoolPreset.setCurrentIndex(self.config.pool_config.selected_preset)
-
-    def update_iprd_preset_names(self):
-        presets = self.config.listener.iprd.socket_presets
-        for idx in range(0, len(presets)):
-            self.comboIPRDPreset.insertItem(idx, presets[idx].preset_name)
+        # iprd presets
+        for idx in range(0, len(self.config.listener.iprd.socket_presets)):
+            self.comboIPRDPreset.insertItem(
+                idx, self.config.listener.iprd.socket_presets[idx].preset_name
+            )
         self.comboIPRDPreset.setCurrentIndex(self.config.listener.iprd.selected_preset)
 
     # system tray
@@ -910,8 +927,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionEnableLiveCapture.setChecked(
             self.config.table.table_live_capture
         )
-        self.menu_bar.actionShowPoolConfigurator.setChecked(
-            self.config.instance.views.show_pool_conf
+        self.menu_bar.actionShowConfigurator.setChecked(
+            self.config.instance.views.show_configurator
         )
 
     def update_settings(self):
@@ -936,7 +953,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             },
             "views": {
                 "showIDTable": self.menu_bar.actionEnableIDTable.isChecked(),
-                "showPoolConfigurator": self.menu_bar.actionShowPoolConfigurator.isChecked(),
+                "showConfigurator": self.menu_bar.actionShowConfigurator.isChecked(),
             },
         }
         settings["general"] = {
@@ -1031,7 +1048,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         if ok == QMessageBox.StandardButton.Ok:
             logger.info(" reset settings.")
             self.config.write_default()
-            self.toggle_pool_config()
+            self.toggle_configurator()
             # reset pool presets
             self.clear_pool_preset()
             self.comboPoolPreset.clear()
@@ -1148,7 +1165,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.notify("Status :: successfully wrote pool preset.", 3000)
 
     def clear_pool_preset(self):
-        for child in self.pcwrapper.children():
+        for child in self.poolConfigurator.children():
             if isinstance(child, QWidget):
                 for line in child.children():
                     if isinstance(line, QLineEdit):
@@ -1281,13 +1298,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionImport.setEnabled(enabled)
         self.menu_bar.actionExport.setEnabled(enabled)
         if not enabled:
-            self.menu_bar.actionShowPoolConfigurator.setChecked(enabled)
-        self.menu_bar.actionShowPoolConfigurator.setEnabled(enabled)
+            self.menu_bar.actionShowConfigurator.setChecked(enabled)
+        self.menu_bar.actionShowConfigurator.setEnabled(enabled)
 
-    def toggle_pool_settings(self, enabled: bool):
-        self.menu_bar.actionGetMinerPoolConfig.setEnabled(enabled)
-        self.menu_bar.actionSetPoolFromPreset.setEnabled(enabled)
-        self.toggle_pool_config(enabled)
+    def toggle_configurator_settings(self, enabled: bool):
+        self.menu_bar.actionConfiguratorGetPoolConfig.setEnabled(enabled)
+        self.menu_bar.actionConfiguratorSetPoolFromPreset.setEnabled(enabled)
+        self.toggle_configurator(enabled)
 
     def toggle_all_listeners(self, enabled: bool):
         for button in self.listenerConfig.buttons():
@@ -1558,11 +1575,11 @@ class IPR(QMainWindow, Ui_MainWindow):
     def double_click_item(self, model_index: QModelIndex):
         # model_index is a proxy index
         match model_index.column():
-            case 3:  # ip column
+            case 2:  # ip column
                 source_row = self.id_proxy.mapToSource(model_index).row()
                 miner = self.id_model.miner_at(source_row)
                 self.open_dashboard(model_index.data(), miner.type)
-            case 7:  # serial column
+            case 6:  # serial column
                 self.tableIPRID.edit(model_index)
             case _:
                 return
@@ -1598,13 +1615,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         selected = [
             x
             for x in self.tableIPRID.selectionModel().selectedIndexes()
-            if x.column() == 3
+            if x.column() == 2
         ]
         if selected:
             source_rows = [self.id_proxy.mapToSource(x).row() for x in selected]
         else:
             source_rows = [
-                self.id_proxy.mapToSource(self.id_proxy.index(r, 3)).row()
+                self.id_proxy.mapToSource(self.id_proxy.index(r, 2)).row()
                 for r in range(rows)
             ]
         scope = "selected" if selected else "all"
@@ -1623,7 +1640,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         selected_ips = [
             x
             for x in self.tableIPRID.selectionModel().selectedIndexes()
-            if x.column() == 3
+            if x.column() == 2
         ]
         for index in selected_ips:
             source_row = self.id_proxy.mapToSource(index).row()
@@ -1647,9 +1664,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                     sep = ","
                 cell = selected_indexes_in_row[index]
                 match cell.column():
-                    case 0 | 1:  # ignore widget actions
+                    case 0:  # ignore action column
                         continue
-                    case 3:  # ip
+                    case 2:  # ip
                         source_row = self.id_proxy.mapToSource(cell).row()
                         miner = self.id_model.miner_at(source_row)
                         out += f"{self.dashboard_url(cell.data(), miner.type)}{sep}"
@@ -1797,8 +1814,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             return
         out = "RECV_AT,IP,MAC,TYPE,SUBTYPE,SERIAL,ALGORITHM,HOSTNAME,STRATUM_URL,USERNAME,WORKER_NAME,FIRMWARE,FW_VERSION,PLATFORM\n"
         for i in range(rows):
-            # skip the two action columns; write data columns in display order
-            for j in range(2, cols):
+            # skip the action column; write data columns in display order
+            for j in range(1, cols):
                 out += str(self.id_proxy.index(i, j).data())
                 out += ","
             out += "\n"
@@ -1821,23 +1838,23 @@ class IPR(QMainWindow, Ui_MainWindow):
         outfile << out << "\n"
         self.notify(f"Status :: Wrote table as .CSV to {p}.", 3000)
 
-    def toggle_pool_config(self, enabled: bool = False):
+    def toggle_configurator(self, enabled: bool = False):
         # setChecked() below re-emits toggled and re-enters this slot; the guard
         # keeps the one-off window resize from being applied more than once.
-        if self._toggling_pool:
+        if self._toggling_configurator:
             return
-        self._toggling_pool = True
+        self._toggling_configurator = True
         try:
-            self.menu_bar.actionShowPoolConfigurator.setChecked(enabled)
+            self.menu_bar.actionShowConfigurator.setChecked(enabled)
             self.id_context_menu.contextActionConfiguratorShowHide.setChecked(enabled)
-            self.id_context_menu.contextActionConfiguratorGetPool.setEnabled(enabled)
+            self.id_context_menu.contextActionConfigutorGetPool.setEnabled(enabled)
             self.id_context_menu.contextActionConfiguratorSetPools.setEnabled(enabled)
-            if enabled == (not self.poolConfigurator.isHidden()):
+            if enabled == (not self.configurator.isHidden()):
                 return  # already in the requested state; nothing to resize
             # grow/shrink the window by exactly the configurator's own height so
             # the rest of the layout keeps its size
-            delta = self.poolConfigurator.sizeHint().height()
-            self.poolConfigurator.setVisible(enabled)
+            delta = self.configurator.sizeHint().height()
+            self.configurator.setVisible(enabled)
             # Only resize for a live user toggle. During start-up the window
             # isn't shown yet and a restored geometry already accounts for the
             # configurator, so growing again would double-count. When
@@ -1851,7 +1868,14 @@ class IPR(QMainWindow, Ui_MainWindow):
                     height = max(self.height() - delta, self.minimumHeight())
                 self.resize(self.width(), height)
         finally:
-            self._toggling_pool = False
+            self._toggling_configurator = False
+
+    def apply_configuration(self) -> None:
+        match self.tabConfigurator.currentIndex():
+            case 0:
+                self.update_miner_pools()
+            case _:
+                return
 
     # listener
     def start_listen(self):
@@ -2258,12 +2282,87 @@ class IPR(QMainWindow, Ui_MainWindow):
     def handle_widget_action(self, col: int, row: int) -> None:
         # col/row come from IPRActionDelegate.action_clicked (source row)
         match col:
-            case _ if col == COL_REFRESH:
-                asyncio.ensure_future(self.refresh_miner(row))
-            case _ if col == COL_LOCATE:
-                asyncio.ensure_future(self.locate_miner(row))
+            case _ if col == COL_ACTION:
+                self.open_miner_control(row)
             case _:
                 return
+
+    def open_miner_control(self, row: int) -> None:
+        # single-use control popup anchored under the clicked action cell
+        popup = MinerControlPopup(self)
+        popup.action_selected.connect(
+            lambda key, r=row: self._dispatch_miner_control(r, key)
+        )
+        self.id_control_popup = popup
+        proxy_index = self.id_proxy.mapFromSource(self.id_model.index(row, COL_ACTION))
+        rect = self.tableIPRID.visualRect(proxy_index)
+        anchor = self.tableIPRID.viewport().mapToGlobal(rect.bottomLeft())
+        popup.show_at(anchor)
+
+    def _dispatch_miner_control(self, row: int, key: str) -> None:
+        match key:
+            case "refresh":
+                asyncio.ensure_future(self.refresh_miner(row))
+            case "locate":
+                asyncio.ensure_future(self.locate_miner(row))
+            case "start" | "stop" | "restart" | "reboot":
+                asyncio.ensure_future(self._control_miner(row, key))
+            case _:
+                logger.warning(f"_dispatch_miner_control : unknown action '{key}'.")
+
+    async def _control_miner(self, row: int, key: str) -> None:
+        ip_addr, miner_type, _ = self.retrieve_miner_from_table(row)
+        logger.info(f"_control_miner : '{key}' requested for {ip_addr}.")
+        alt_pwd = self.get_client_auth(miner_type.value)
+        operation = getattr(self.asic, f"{key}_miner")
+        res = await operation(miner_type, ip_addr, alt_pwd=alt_pwd)
+        if res.error:
+            logger.error(f"_control_miner : {key} failed for {ip_addr}: {res.error}")
+            return self.notify(
+                f"Status :: Failed to {key} {ip_addr}: {str(res.error)}",
+                5000,
+            )
+        self.notify(
+            f"Status :: Successfully completed {key} for {ip_addr}.",
+            3000,
+        )
+
+    def open_bulk_control(self) -> None:
+        # same control popup as the per-row glyph, anchored under the toolbar
+        # button; actions apply to the selection (or all visible rows)
+        popup = MinerControlPopup(self)
+        popup.action_selected.connect(self._dispatch_bulk_control)
+        self.id_control_popup = popup
+        btn = self.btnBulkControl
+        anchor = btn.mapToGlobal(btn.rect().bottomLeft())
+        popup.show_at(anchor)
+
+    def _dispatch_bulk_control(self, key: str) -> None:
+        match key:
+            case "refresh":
+                self.bulk_refresh_miners()
+            case "locate":
+                self.bulk_locate_miners()
+            case "start" | "stop" | "restart" | "reboot":
+                asyncio.ensure_future(self._bulk_control_miners(key))
+            case _:
+                logger.warning(f"_dispatch_bulk_control : unknown action '{key}'.")
+
+    async def _bulk_control_miners(self, key: str) -> None:
+        action = key.capitalize()
+        rows = self.get_action_target_rows(action)
+        if not rows:
+            return self.notify(
+                f"Status :: Failed action: no miners to {key}.",
+                5000,
+            )
+
+        operation = getattr(self.asic, f"{key}_miner")
+
+        def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
+            return operation(miner_type, ip_addr, alt_pwd=alt_pwd)
+
+        await self._run_bulk_action(action, rows, make_coro)
 
     async def _run_bulk_action(
         self,
@@ -2416,7 +2515,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         selected_ips = [
             x
             for x in self.tableIPRID.selectionModel().selectedIndexes()
-            if x.column() == 3
+            if x.column() == 2
         ]
         if not selected_ips:
             return self.notify("Status :: Failed action: no selected IPs.", 5000)
@@ -2455,7 +2554,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         passed: list[str] = []
         failed: list[str] = []
         selected_ips = self.get_selected_indexes_for_action(
-            "update_miner_pools", section=3
+            "update_miner_pools", section=2
         )
         if selected_ips is None:
             return self.notify("Status :: Failed action: no selected IPs.", 5000)

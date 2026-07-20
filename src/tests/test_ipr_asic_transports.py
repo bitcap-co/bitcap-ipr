@@ -100,7 +100,55 @@ class _HTTPClient(BaseHTTPClient):
 
 
 class _RPCClient(BaseRPCClient):
-    pass
+    async def version(self) -> dict:
+        return {}
+
+    async def summary(self) -> dict:
+        return {}
+
+    async def stats(self) -> list[dict]:
+        return []
+
+    async def devs(self) -> list[dict]:
+        return []
+
+    async def devdetails(self) -> list[dict]:
+        return []
+
+    async def pools(self) -> list[dict]:
+        return []
+
+    async def get_system_info(self) -> dict:
+        return {}
+
+    async def get_pool_conf(self) -> list[dict]:
+        return []
+
+    async def get_blink_status(self) -> dict:
+        return {}
+
+    async def blink(self, enabled: bool, *args, **kwargs) -> dict:
+        return {}
+
+    async def set_miner_mode(self, *args, **kwargs) -> dict:
+        return {}
+
+    async def start(self) -> dict:
+        return {}
+
+    async def stop(self) -> dict:
+        return {}
+
+    async def restart(self) -> dict:
+        return {}
+
+    async def reboot(self) -> dict:
+        return {}
+
+    async def update_pool_conf(
+        self, urls: list[str], users: list[str], passwds: list[str]
+    ) -> dict:
+        return {}
 
 
 class _TCPClient(BaseTCPClient):
