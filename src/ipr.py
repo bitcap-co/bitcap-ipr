@@ -409,18 +409,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.btnBulkLocate.clicked.connect(self.bulk_locate_miners)
         self.btnBulkControl.setIcon(QIcon(":theme/icons/rc/wrench.png"))
         self.btnBulkControl.clicked.connect(self.open_bulk_control)
-        # edit disabled
-        edit_icon = QIcon()
-        edit_icon.addPixmap(
-            QPixmap(":theme/icons/rc/edit.png"), QIcon.Mode.Normal, QIcon.State.On
-        )
-        edit_icon.addPixmap(
-            QPixmap(":theme/icons/rc/edit_disabled"),
-            QIcon.Mode.Disabled,
-            QIcon.State.Off,
-        )
-        self.btnBulkConfig.setIcon(edit_icon)
-        self.btnBulkConfig.setEnabled(True)
+        self.btnBulkConfig.setIcon(QIcon(":theme/icons/rc/edit.png"))
         self.btnBulkConfig.clicked.connect(
             lambda: self.toggle_configurator_settings(True)
         )
@@ -792,17 +781,18 @@ class IPR(QMainWindow, Ui_MainWindow):
         if not message:
             self._show_base_status()
 
-    def update_pool_preset_names(self):
+    def update_preset_names(self):
+        # pool presets
         for idx in range(0, len(self.config.pool_config.pool_presets)):
             self.comboPoolPreset.insertItem(
                 idx, self.config.pool_config.pool_presets[idx].preset_name
             )
         self.comboPoolPreset.setCurrentIndex(self.config.pool_config.selected_preset)
-
-    def update_iprd_preset_names(self):
-        presets = self.config.listener.iprd.socket_presets
-        for idx in range(0, len(presets)):
-            self.comboIPRDPreset.insertItem(idx, presets[idx].preset_name)
+        # iprd presets
+        for idx in range(0, len(self.config.listener.iprd.socket_presets)):
+            self.comboIPRDPreset.insertItem(
+                idx, self.config.listener.iprd.socket_presets[idx].preset_name
+            )
         self.comboIPRDPreset.setCurrentIndex(self.config.listener.iprd.selected_preset)
 
     # system tray
