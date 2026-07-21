@@ -16,7 +16,7 @@ from PySide6.QtTest import QSignalSpy, QTest
 
 from mod.lm import IPReport, Listener
 
-app = QCoreApplication(sys.argv)
+app = QCoreApplication.instance() or QCoreApplication(sys.argv)
 
 
 def read_payload(filename: str) -> str:
