@@ -36,6 +36,7 @@ class IPRDPreset(BaseModel):
 
 class IPRD(BaseModel):
     enable_iprd: Annotated[bool, Field(alias="enableIPRD")] = False
+    auto_discover: Annotated[bool, Field(alias="autoDiscover")] = False
     socket_addr: Annotated[str, Field(alias="socketAddress")] = ""
     auto_reconnect: Annotated[bool, Field(alias="autoReconnect")] = False
     max_reconnect_attempts: Annotated[
