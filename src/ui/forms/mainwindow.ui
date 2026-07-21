@@ -1198,8 +1198,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>681</width>
-                   <height>818</height>
+                   <width>478</width>
+                   <height>849</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -1668,17 +1668,7 @@ Uses last 5 of SN or MAC address.</string>
                         <property name="verticalSpacing">
                          <number>9</number>
                         </property>
-                        <item row="0" column="0">
-                         <widget class="QCheckBox" name="checkEnableIPRDBackend">
-                          <property name="toolTip">
-                           <string>Use the IPR Daemon backend instead of the built-in listener</string>
-                          </property>
-                          <property name="text">
-                           <string>Enable IPR Daemon backend</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="1" column="0">
+                        <item row="2" column="0">
                          <widget class="QLabel" name="labelIPRDPreset">
                           <property name="text">
                            <string>Instance:</string>
@@ -1688,7 +1678,79 @@ Uses last 5 of SN or MAC address.</string>
                           </property>
                          </widget>
                         </item>
-                        <item row="1" column="1">
+                        <item row="4" column="0">
+                         <widget class="QCheckBox" name="checkIPRDAutoReconnect">
+                          <property name="toolTip">
+                           <string>Automatically try to reconnect when the IPR Daemon connection drops</string>
+                          </property>
+                          <property name="text">
+                           <string>Auto-reconnect</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="3" column="1">
+                         <widget class="QLineEdit" name="lineIPRDSocketAddress">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
+                          <property name="minimumSize">
+                           <size>
+                            <width>180</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                          <property name="maximumSize">
+                           <size>
+                            <width>250</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Socket address pointing to IPRD instance in the format of &lt;HOST&gt;:&lt;PORT&gt;</string>
+                          </property>
+                          <property name="placeholderText">
+                           <string>HOST:PORT</string>
+                          </property>
+                          <property name="clearButtonEnabled">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="5" column="1">
+                         <widget class="QSpinBox" name="spinIPRDMaxRetries">
+                          <property name="minimumSize">
+                           <size>
+                            <width>180</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                          <property name="maximumSize">
+                           <size>
+                            <width>250</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                          <property name="contextMenuPolicy">
+                           <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
+                          </property>
+                          <property name="toolTip">
+                           <string>Number of reconnect attempts before giving up</string>
+                          </property>
+                          <property name="minimum">
+                           <number>1</number>
+                          </property>
+                          <property name="maximum">
+                           <number>10</number>
+                          </property>
+                          <property name="value">
+                           <number>3</number>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="2" column="1">
                          <widget class="QWidget" name="iprdPresetSet" native="true">
                           <property name="sizePolicy">
                            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -1727,7 +1789,7 @@ Uses last 5 of SN or MAC address.</string>
                           </layout>
                          </widget>
                         </item>
-                        <item row="2" column="0">
+                        <item row="3" column="0">
                          <widget class="QLabel" name="label_6">
                           <property name="text">
                            <string>Socket Address:</string>
@@ -1737,51 +1799,17 @@ Uses last 5 of SN or MAC address.</string>
                           </property>
                          </widget>
                         </item>
-                        <item row="2" column="1">
-                         <widget class="QLineEdit" name="lineIPRDSocketAddress">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                          <property name="minimumSize">
-                           <size>
-                            <width>180</width>
-                            <height>25</height>
-                           </size>
-                          </property>
-                          <property name="maximumSize">
-                           <size>
-                            <width>250</width>
-                            <height>25</height>
-                           </size>
-                          </property>
+                        <item row="0" column="0">
+                         <widget class="QCheckBox" name="checkEnableIPRDBackend">
                           <property name="toolTip">
-                           <string>Socket address pointing to IPRD instance in the format of &lt;HOST&gt;:&lt;PORT&gt;</string>
-                          </property>
-                          <property name="placeholderText">
-                           <string>HOST:PORT</string>
-                          </property>
-                          <property name="clearButtonEnabled">
-                           <bool>true</bool>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="3" column="0">
-                         <widget class="QCheckBox" name="checkIPRDAutoReconnect">
-                          <property name="toolTip">
-                           <string>Automatically try to reconnect when the IPR Daemon connection drops</string>
+                           <string>Use the IPR Daemon backend instead of the built-in listener</string>
                           </property>
                           <property name="text">
-                           <string>Auto-reconnect</string>
-                          </property>
-                          <property name="checked">
-                           <bool>true</bool>
+                           <string>Enable IPR Daemon backend</string>
                           </property>
                          </widget>
                         </item>
-                        <item row="4" column="0">
+                        <item row="5" column="0">
                          <widget class="QLabel" name="labelIPRDMaxRetries">
                           <property name="text">
                            <string>Max Retries:</string>
@@ -1791,34 +1819,13 @@ Uses last 5 of SN or MAC address.</string>
                           </property>
                          </widget>
                         </item>
-                        <item row="4" column="1">
-                         <widget class="QSpinBox" name="spinIPRDMaxRetries">
-                          <property name="minimumSize">
-                           <size>
-                            <width>180</width>
-                            <height>25</height>
-                           </size>
-                          </property>
-                          <property name="maximumSize">
-                           <size>
-                            <width>250</width>
-                            <height>25</height>
-                           </size>
-                          </property>
-                          <property name="contextMenuPolicy">
-                           <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
-                          </property>
+                        <item row="1" column="0">
+                         <widget class="QCheckBox" name="checkEnableIPRDAutoDiscover">
                           <property name="toolTip">
-                           <string>Number of reconnect attempts before giving up</string>
+                           <string>Listen for active IPR Daemon instances on the network</string>
                           </property>
-                          <property name="minimum">
-                           <number>1</number>
-                          </property>
-                          <property name="maximum">
-                           <number>10</number>
-                          </property>
-                          <property name="value">
-                           <number>3</number>
+                          <property name="text">
+                           <string>Auto-Discover</string>
                           </property>
                          </widget>
                         </item>

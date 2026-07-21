@@ -4,3 +4,6 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 from .listener import IPRDListener
+from .service import IPRDService, IPRDServiceListener
+
+__all__ = ["IPRDListener", "IPRDService", "IPRDServiceListener"]
