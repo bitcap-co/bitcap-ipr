@@ -105,6 +105,7 @@ logger = logging.getLogger(__name__)
 
 # px band along the frameless window border that triggers an edge/corner resize
 RESIZE_MARGIN = 6
+IPRD_DISCOVERY_TIMEOUT_MS = 10_000
 
 
 class ListenState(Enum):
@@ -192,6 +193,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd_discovery.service_removed.connect(self.on_iprd_service_removed)
         self.iprd_discovery.error.connect(self.on_iprd_discovery_error)
         self._discovered_iprd_service_name: str | None = None
+        self.iprd_discovery_timeout = QTimer(self)
+        self.iprd_discovery_timeout.setSingleShot(True)
+        self.iprd_discovery_timeout.setInterval(IPRD_DISCOVERY_TIMEOUT_MS)
+        self.iprd_discovery_timeout.timeout.connect(self.on_iprd_discovery_timeout)
 
         # pause/resume iprd reconnect around OS sleep so we don't wake the host.
         self.power = PowerMonitor(self)
@@ -1231,6 +1236,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         if auto_discover:
             self.iprd_discovery.start()
         else:
+            self.iprd_discovery_timeout.stop()
             self.iprd_discovery.stop()
             self._discovered_iprd_service_name = None
 
@@ -1947,7 +1953,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 service = self._selected_iprd_service()
                 if service is None:
                     self._last_iprd_error = ""
-                    self.set_listen_state(ListenState.DISCOVERING)
+                    self._wait_for_iprd_service()
                 else:
                     self._connect_to_iprd_service(service)
             else:
@@ -1985,6 +1991,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         # _maybe_reconnect_iprd). Any other stop clears that intent.
         if not from_giveup:
             self._iprd_listening = False
+        self.iprd_discovery_timeout.stop()
         self.inactive.stop()
         if self.checkEnableSysTray.isChecked():
             self.actionSysStartListen.setEnabled(True)
@@ -2047,7 +2054,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         self._discovered_iprd_service_name = services[0].name
         return services[0]
 
+    def _wait_for_iprd_service(self) -> None:
+        self.iprd_discovery_timeout.start()
+        self.set_listen_state(ListenState.DISCOVERING)
+
     def _start_iprd_connection(self, addr: str, port: int) -> None:
+        self.iprd_discovery_timeout.stop()
         self.iprd.auto_reconnect = self.checkIPRDAutoReconnect.isChecked()
         self.iprd.max_reconnect_attempts = self.spinIPRDMaxRetries.value()
         self.iprd.set_socket_addr(addr, port)
@@ -2090,7 +2102,17 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.lineIPRDSocketAddress.clear()
         if self._iprd_listening:
             self.iprd.stop()
-            self.set_listen_state(ListenState.DISCOVERING)
+            self._wait_for_iprd_service()
+
+    def on_iprd_discovery_timeout(self) -> None:
+        if (
+            not self._iprd_listening
+            or self._listen_state is not ListenState.DISCOVERING
+        ):
+            return
+        logger.warning("IPRD discovery timed out without finding a service.")
+        self.stop_listen()
+        self.notify("Status :: IPRD discovery timed out. Stopped listening.")
 
     def on_iprd_discovery_error(self, error_str: str) -> None:
         logger.error(f"IPRD discovery error: {error_str}")
