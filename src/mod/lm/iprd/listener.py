@@ -157,13 +157,14 @@ class IPRDListener(QObject):
         self.emit_result(packet)
 
     def set_socket_addr(self, addr: str, port: int) -> None:
-        self.port = port
-        if QHostAddress(addr).toIPv4Address() == 0:
+        parsed = QHostAddress(addr)
+        if parsed.isNull():
             logger.error(
-                f"{self.__repr__()} : failed to initialize socket address! Invalid IPv4 address"
+                f"{self.__repr__()} : failed to initialize socket address! Invalid IP address"
             )
-            return self.error.emit("Invalid IPv4 address.")
-        self.addr.setAddress(addr)
+            return self.error.emit("Invalid IP address.")
+        self.port = port
+        self.addr = parsed
 
     def start(self) -> None:
         if self.addr.isNull():
@@ -193,7 +194,8 @@ class IPRDListener(QObject):
         except ValueError:
             pass
         miner_type = port_type.name.lower()
-        addr: int = QHostAddress(result.src_ip).toIPv4Address()
+        addr_result = QHostAddress(result.src_ip).toIPv4Address()
+        addr = addr_result[0] if isinstance(addr_result, tuple) else addr_result
         ip_report = IPReport(
             created_at=float(result.timestamp),
             updated_at=time.time(),
