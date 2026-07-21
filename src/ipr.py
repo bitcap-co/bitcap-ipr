@@ -2170,7 +2170,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         if not self._iprd_listening or self.iprd.active:
             return
         # don't interrupt an attempt already in flight.
-        if self._listen_state in (ListenState.CONNECTING, ListenState.RECONNECTING):
+        if self._listen_state in (
+            ListenState.CONNECTING,
+            ListenState.RECONNECTING,
+            ListenState.DISCOVERING,
+        ):
             return
         logger.info(" app activated; retrying iprd listen.")
         self.start_listen()
