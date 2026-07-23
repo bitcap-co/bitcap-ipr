@@ -96,6 +96,7 @@ class IPRMenubar(QMenuBar):
         )
         self.actionEnableLiveCapture = self.menuTable.addAction("Enable Live Capture")
         self.actionEnableLiveCapture.setCheckable(True)
+        self.actionEnableLiveCapture.setEnabled(False)
         self.actionEnableLiveCapture.setToolTip(
             "Always inserts received IP reports to a new row, reflecting history of live capture."
         )
