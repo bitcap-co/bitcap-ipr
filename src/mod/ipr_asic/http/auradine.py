@@ -264,14 +264,12 @@ class AuradineHTTPClient(BaseHTTPClient):
         try:
             resobj = Response.model_validate(obj=data, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             err = resobj.error()
             if err:
-                logger.error(f"{self.__repr__()} : {str(APIError(err))}")
+                logger.error(f"{self.__repr__()} : {APIError(err)!s}")
                 raise APIError("Command failed!")
             return resobj
 
@@ -418,10 +416,8 @@ class AuradineHTTPClient(BaseHTTPClient):
             raise APIInvalidResponse(reason="malformed")
         else:
             blink = BlinkStatus(
-                blink=True
-                if valid.led[0].code == 3
+                blink=valid.led[0].code == 3
                 or (valid.led[0].led1 == 4 and valid.led[0].led2 == 4)
-                else False
             )
             return blink.model_dump()
 
@@ -470,7 +466,7 @@ class AuradineHTTPClient(BaseHTTPClient):
             raise APIError("Invalid length of arguments")
 
         pool_conf: list[dict[str, str]] = []
-        for i in range(0, len(urls)):
+        for i in range(len(urls)):
             if not len(urls[i]) and not len(users[i]):
                 continue
             pool_conf.append(

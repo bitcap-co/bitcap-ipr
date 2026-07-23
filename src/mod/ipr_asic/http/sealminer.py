@@ -300,7 +300,7 @@ class SealminerHTTPClient(BaseHTTPClient):
 
     async def get_blink_status(self) -> dict:
         resp = await self.get_system_info()
-        blink = BlinkStatus(blink=True if resp["led"] == "on" else False)
+        blink = BlinkStatus(blink=resp["led"] == "on")
         return blink.model_dump()
 
     async def get_miner_status(self) -> dict:

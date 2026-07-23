@@ -126,10 +126,10 @@ class PowerMonitor(QObject):
     # -- Windows (WM_POWERBROADCAST) ---------------------------------------
     def _init_win32(self) -> None:
         try:
-            from PySide6.QtCore import QAbstractNativeEventFilter, QCoreApplication
-
             import ctypes
             from ctypes import wintypes
+
+            from PySide6.QtCore import QAbstractNativeEventFilter, QCoreApplication
         except ImportError as e:
             logger.warning(f"PowerMonitor : win32 backend unavailable: {e}")
             return

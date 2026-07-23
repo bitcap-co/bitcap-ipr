@@ -29,7 +29,7 @@ class BaseClient(ABC):
         return object.__new__(cls)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}[{str(self.ip)}]"
+        return f"{self.__class__.__name__}[{self.ip!s}]"
 
     def error(self) -> Exception | None:
         return self._ex

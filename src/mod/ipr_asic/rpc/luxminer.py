@@ -99,7 +99,7 @@ class LuxminerRPCClient(CGMinerRPCClient):
     async def authenticate(self) -> str | None:
         try:
             data = await self.send_command("session")
-            if not data["SESSION"][0]["SessionID"] == "":
+            if data["SESSION"][0]["SessionID"] != "":
                 self.session_token = data["SESSION"][0]["SessionID"]
                 return self.session_token
         except APIError:
@@ -136,14 +136,12 @@ class LuxminerRPCClient(CGMinerRPCClient):
         try:
             resobj = ConfigResposnse.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             err = resobj.error()
             if err:
-                logger.error(f"{self.__repr__()} : {str(APIError(err))}")
+                logger.error(f"{self.__repr__()} : {APIError(err)!s}")
                 raise APIError("Command failed!")
             return resp["CONFIG"][0]
 
@@ -152,7 +150,7 @@ class LuxminerRPCClient(CGMinerRPCClient):
 
     async def get_blink_status(self) -> dict:
         resp = await self.get_system_info()
-        blink = BlinkStatus(blink=True if resp["RedLed"] == "blink" else False)
+        blink = BlinkStatus(blink=resp["RedLed"] == "blink")
         return blink.model_dump()
 
     async def blink(
@@ -190,7 +188,7 @@ class LuxminerRPCClient(CGMinerRPCClient):
         if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
             raise APIError("Invalid length of arguments")
 
-        for i in range(0, len(urls)):
+        for i in range(len(urls)):
             if not len(urls[i]) and not len(users[i]):
                 continue
             pool: list[str] = [urls[i], users[i], passwds[i]]

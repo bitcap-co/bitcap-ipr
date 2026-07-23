@@ -70,9 +70,7 @@ class BaseTCPClient(BaseClient):
         try:
             resp = json.loads(data)
         except json.JSONDecodeError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resp
@@ -83,14 +81,14 @@ class BaseTCPClient(BaseClient):
             packed_len = await reader.readexactly(4)
         except asyncio.IncompleteReadError:
             logger.error(
-                f"{self.__repr__()} : {str(APIError('Failed to get response length'))}"
+                f"{self.__repr__()} : {APIError('Failed to get response length')!s}"
             )
             raise APIError("Invalid response length")
 
         msg_len = struct.unpack("<I", packed_len)[0]
         if msg_len > 8192:
             logger.error(
-                f"{self.__repr__()} : {str(APIError(f'Invalid response length {msg_len}'))}"
+                f"{self.__repr__()} : {APIError(f'Invalid response length {msg_len}')!s}"
             )
             raise APIError("Invalid response length")
 

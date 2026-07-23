@@ -155,7 +155,7 @@ class WhatsminerRPCClient(BaseRPCClient):
                 data = parse_priviledge_data(token_data, data)
             except json.JSONDecodeError as e:
                 logger.error(
-                    f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
+                    f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}"
                 )
                 raise APIInvalidResponse
             else:
@@ -163,7 +163,7 @@ class WhatsminerRPCClient(BaseRPCClient):
                     resobj = Status.model_validate(obj=data, by_alias=True)
                 except ValidationError as e:
                     logger.error(
-                        f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
+                        f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}"
                     )
                     raise APIInvalidResponse
                 else:
@@ -173,7 +173,7 @@ class WhatsminerRPCClient(BaseRPCClient):
                             self.token = None
                             continue
                         elif resobj.code != 131:
-                            logger.error(f"{self.__repr__()} : {str(APIError(err))}")
+                            logger.error(f"{self.__repr__()} : {APIError(err)!s}")
                             raise APIError("Command failed!")
             return resobj.model_dump(by_alias=True, exclude_none=True)
         if not self.token:
@@ -192,11 +192,12 @@ class WhatsminerRPCClient(BaseRPCClient):
 
         Final assembly: enc|base64(aes256("token,sign|set_led|auto", $aeskey))
         """
-        if self.token:
-            if self.token.timestamp > datetime.datetime.now() - datetime.timedelta(
-                minutes=30
-            ):
-                return self.token
+        if (
+            self.token
+            and self.token.timestamp
+            > datetime.datetime.now() - datetime.timedelta(minutes=30)
+        ):
+            return self.token
 
         data = await self.send_command("get_token")
         try:
@@ -219,14 +220,12 @@ class WhatsminerRPCClient(BaseRPCClient):
         try:
             resobj = BTMinerResponse.model_validate(obj=data, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             err = resobj.error()
             if err:
-                logger.error(f"{self.__repr__()} : {str(APIError(err))}")
+                logger.error(f"{self.__repr__()} : {APIError(err)!s}")
                 raise APIError("Command failed!")
             return resobj
 
@@ -234,14 +233,12 @@ class WhatsminerRPCClient(BaseRPCClient):
         try:
             resobj = Status.model_validate(obj=data, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             err = resobj.error()
             if err:
-                logger.error(f"{self.__repr__()} : {str(APIError(err))}")
+                logger.error(f"{self.__repr__()} : {APIError(err)!s}")
                 raise APIError("Command failed!")
             return resobj
 
@@ -251,9 +248,7 @@ class WhatsminerRPCClient(BaseRPCClient):
         try:
             version = VersionInfo.model_validate(obj=resobj.msg)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return version.model_dump()
@@ -315,14 +310,10 @@ class WhatsminerRPCClient(BaseRPCClient):
         try:
             resobj = SystemInfo.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            blink = BlinkStatus(
-                blink=True if resobj.ledstat and resobj.ledstat != "auto" else False
-            )
+            blink = BlinkStatus(blink=bool(resobj.ledstat) and resobj.ledstat != "auto")
             return blink.model_dump()
 
     async def blink(
@@ -555,14 +546,12 @@ class WhatsminerTCPClient(BaseTCPClient):
         try:
             resobj = BTMinerV3Response.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             err = resobj.error()
             if err:
-                logger.error(f"{self.__repr__()} : {str(APIError(err))}")
+                logger.error(f"{self.__repr__()} : {APIError(err)!s}")
                 raise APIError("Command failed!")
             return resp["msg"]
 
@@ -607,17 +596,8 @@ class WhatsminerTCPClient(BaseTCPClient):
         else:
             return resobj.model_dump()
 
-    async def log(self, *args, **kwargs) -> dict:
-        raise NotImplementedError
-
     async def summary(self) -> dict:
         return await self.send_command("get.miner.status", "summary")
-
-    async def get_miner_conf(self) -> dict:
-        raise NotImplementedError
-
-    async def set_miner_conf(self, *args, **kwargs) -> dict:
-        raise NotImplementedError
 
     async def pools(self) -> list[dict]:
         resp = await self.send_command("get.miner.status", "pools")
@@ -641,9 +621,7 @@ class WhatsminerTCPClient(BaseTCPClient):
 
     async def get_blink_status(self) -> dict:
         resp = await self.get_system_info()
-        blink = BlinkStatus(
-            blink=True if resp["system"]["ledstatus"] == "auto" else False
-        )
+        blink = BlinkStatus(blink=resp["system"]["ledstatus"] == "auto")
         return blink.model_dump()
 
     async def blink(

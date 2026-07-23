@@ -189,7 +189,7 @@ class BaseRPCClient(BaseClient):
 
     @staticmethod
     async def _recv_all(reader: asyncio.StreamReader, buf_size: int) -> bytes | None:
-        data = bytes()
+        data = b""
         while len(data) < buf_size:
             packet = await reader.read(buf_size - len(data))
             if not packet:

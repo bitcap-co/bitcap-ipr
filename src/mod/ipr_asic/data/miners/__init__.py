@@ -14,3 +14,18 @@ from .srbminer import SRBMinerParser
 from .vnish import VnishParser
 from .volcminer import VolcminerParser
 from .whatsminer import WhatsminerParser, WhatsminerV3Parser
+
+__all__ = [
+    "AntminerParser",
+    "AuradineParser",
+    "ElphapexParser",
+    "GoldshellParser",
+    "IceriverParser",
+    "LuxminerParser",
+    "SRBMinerParser",
+    "SealminerParser",
+    "VnishParser",
+    "VolcminerParser",
+    "WhatsminerParser",
+    "WhatsminerV3Parser",
+]

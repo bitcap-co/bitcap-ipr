@@ -12,3 +12,16 @@ from .sealminer import SealminerHTTPClient
 from .srbminer import SRBMinerHTTPClient
 from .vnish import VnishHTTPClient
 from .volcminer import VolcminerHTTPClient
+
+__all__ = [
+    "AntminerHTTPClient",
+    "AntminerOldHTTPClient",
+    "AuradineHTTPClient",
+    "ElphapexHTTPClient",
+    "GoldshellHTTPClient",
+    "IceriverHTTPClient",
+    "SRBMinerHTTPClient",
+    "SealminerHTTPClient",
+    "VnishHTTPClient",
+    "VolcminerHTTPClient",
+]

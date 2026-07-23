@@ -227,7 +227,7 @@ def main():
             payload = pkt[Raw].load
             decompressed = None
             zlib_offset = -1
-            for i in range(0, min(20, len(payload) - 1)):
+            for i in range(min(20, len(payload) - 1)):
                 if payload[i] == 0x78 and payload[i + 1] in (0x01, 0x9C, 0xDA, 0x5E):
                     try:
                         decompressed = zlib.decompress(payload[i:])

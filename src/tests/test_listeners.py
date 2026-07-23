@@ -9,7 +9,7 @@ import sys
 import unittest
 import zlib
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from PySide6.QtCore import QCoreApplication, QMetaMethod
 from PySide6.QtTest import QSignalSpy, QTest
@@ -87,7 +87,7 @@ class TestListeners(unittest.TestCase):
         self,
         port: int,
         payload: str,
-        expected_result: Dict[str, Any],
+        expected_result: dict[str, Any],
         compressed: bool = False,
     ):
         listener = ListenerSpy(port)

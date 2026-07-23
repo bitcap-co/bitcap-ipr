@@ -210,9 +210,7 @@ class ElphapexHTTPClient(BaseHTTPClient):
         try:
             resobj = SystemInfo.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump()
@@ -222,9 +220,7 @@ class ElphapexHTTPClient(BaseHTTPClient):
         try:
             resobj = NetInfo.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump()
@@ -244,9 +240,7 @@ class ElphapexHTTPClient(BaseHTTPClient):
         try:
             resobj = Summary.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump(by_alias=True)
@@ -256,9 +250,7 @@ class ElphapexHTTPClient(BaseHTTPClient):
         try:
             resobj = MinerConf.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump(exclude_none=True)
@@ -268,9 +260,7 @@ class ElphapexHTTPClient(BaseHTTPClient):
         try:
             resobj = ActionResponse.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             err = resobj.error()
@@ -284,9 +274,7 @@ class ElphapexHTTPClient(BaseHTTPClient):
         try:
             resobj = Pools.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             ta = TypeAdapter(list[PoolInfo])
@@ -307,9 +295,7 @@ class ElphapexHTTPClient(BaseHTTPClient):
         try:
             resobj = BlinkStatus.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump()
@@ -345,7 +331,7 @@ class ElphapexHTTPClient(BaseHTTPClient):
         ta = TypeAdapter(list[MinerConfPool])
         pool_conf: list[dict[str, str]] = ta.dump_python(conf.pools, by_alias=True)
 
-        for i in range(0, len(urls)):
+        for i in range(len(urls)):
             if (
                 not any(pool_conf[i].values())
                 and not len(urls[i])

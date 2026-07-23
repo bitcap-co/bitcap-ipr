@@ -4,7 +4,8 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 from collections import Counter
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 from PySide6.QtCore import (

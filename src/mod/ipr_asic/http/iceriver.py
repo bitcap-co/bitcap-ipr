@@ -202,9 +202,7 @@ class IceriverHTTPClient(BaseHTTPClient):
         try:
             resobj = NetInfo.model_validate(obj=resp["data"])
         except (ValidationError, KeyError) as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump()
@@ -217,9 +215,7 @@ class IceriverHTTPClient(BaseHTTPClient):
         try:
             resobj = UserPanel.model_validate(obj=resp["data"], by_alias=True)
         except (ValidationError, KeyError) as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump()
@@ -231,9 +227,7 @@ class IceriverHTTPClient(BaseHTTPClient):
         try:
             resobj = MinerConf.model_validate(obj=resp["data"], by_alias=True)
         except (ValidationError, KeyError) as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump(by_alias=True)
@@ -243,9 +237,7 @@ class IceriverHTTPClient(BaseHTTPClient):
         try:
             resobj = ActionResponse.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             err = resobj.error_()
@@ -281,9 +273,7 @@ class IceriverHTTPClient(BaseHTTPClient):
         try:
             resobj = ActionResponse.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             err = resobj.error_()
@@ -337,7 +327,7 @@ class IceriverHTTPClient(BaseHTTPClient):
             case 1:
                 data["fanmode"] = "normal"
 
-        for i in range(0, len(urls)):
+        for i in range(len(urls)):
             if (
                 not any(pool_conf[i].values())
                 and not len(urls[i])

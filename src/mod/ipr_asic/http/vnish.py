@@ -425,9 +425,7 @@ class VnishHTTPClient(BaseHTTPClient):
         try:
             resobj = Info.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump()
@@ -446,9 +444,7 @@ class VnishHTTPClient(BaseHTTPClient):
         try:
             resobj = Summary.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump(exclude_none=True)
@@ -458,9 +454,7 @@ class VnishHTTPClient(BaseHTTPClient):
         try:
             resobj = Settings.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump(by_alias=True, exclude_none=True)
@@ -474,7 +468,7 @@ class VnishHTTPClient(BaseHTTPClient):
                 resobj = VnishError.model_validate(**resp)
             except ValidationError as e:
                 logger.error(
-                    f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
+                    f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}"
                 )
                 raise APIInvalidResponse
             else:
@@ -502,9 +496,7 @@ class VnishHTTPClient(BaseHTTPClient):
         try:
             resobj = MinerStatus.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump(exclude_none=True)
@@ -542,7 +534,7 @@ class VnishHTTPClient(BaseHTTPClient):
         if conf["miner"]["pools"] is None:
             raise APIError("Failed to retreive pool config.")
         pool_conf: list[dict[str, str]] = conf["miner"]["pools"]
-        for i in range(0, len(urls)):
+        for i in range(len(urls)):
             if (
                 not any(pool_conf[i].values())
                 and not len(urls[i])

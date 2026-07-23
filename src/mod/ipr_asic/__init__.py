@@ -9,3 +9,20 @@ from .data.miners import *
 from .http import *
 from .protocol import BaseClient, BaseHTTPClient, BaseRPCClient, BaseTCPClient
 from .rpc import *
+
+__all__ = [
+    "ASICClient",
+    "BaseClient",
+    "BaseHTTPClient",
+    "BaseRPCClient",
+    "BaseTCPClient",
+    "CGMinerRPCClient",
+    "LuxminerRPCClient",
+    "MinerData",
+    "MinerFirmware",
+    "MinerResult",
+    "MinerType",
+    "PoolConf",
+    "WhatsminerRPCClient",
+    "WhatsminerTCPClient",
+]

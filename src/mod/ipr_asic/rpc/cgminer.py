@@ -87,14 +87,12 @@ class CGMinerRPCClient(BaseRPCClient):
         try:
             resobj = Response.model_validate(obj=data, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             err = resobj.error()
             if err:
-                logger.error(f"{self.__repr__()} : {str(APIError(err))}")
+                logger.error(f"{self.__repr__()} : {APIError(err)!s}")
                 raise APIError("Command failed!")
             return resobj
 

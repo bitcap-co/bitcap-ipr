@@ -5,9 +5,9 @@
 
 import json
 import os
-from typing import Annotated, Any, Dict
+from typing import Annotated, Any
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field
 
 from utils import get_config_dir, get_config_file_path
 
@@ -173,7 +173,7 @@ class IPRConfig:
         self.config_path = get_config_file_path()
 
     @property
-    def dict(self) -> Dict[str, Any]:
+    def dict(self) -> dict[str, Any]:
         """Get the IPRConfigModel as dictionary.
 
         Returns:
@@ -204,36 +204,27 @@ class IPRConfig:
             instance=self.instance,
         )
 
-    def _validate_model(self, conf: Dict[str, Any]) -> None:
-        try:
-            self.config = IPRConfigModel.model_validate(
-                conf, strict=True, by_alias=True
-            )
-        except ValidationError as exc:
-            raise exc
-        else:
-            self.general = self.config.general
-            self.listen_for = self.config.listener.listen_for
-            self.listener = self.config.listener
-            self.auth_firmware = self.config.api.firmware
-            self.auth = self.config.api.auth
-            self.api = self.config.api
-            self.pool_config = self.config.pool_config
-            self.logs = self.config.logs
-            self.options = self.config.instance.options
-            self.table = self.config.instance.options.table
-            self.views = self.config.instance.views
-            self.instance = self.config.instance
+    def _validate_model(self, conf: dict[str, Any]) -> None:
+        self.config = IPRConfigModel.model_validate(conf, strict=True, by_alias=True)
+        self.general = self.config.general
+        self.listen_for = self.config.listener.listen_for
+        self.listener = self.config.listener
+        self.auth_firmware = self.config.api.firmware
+        self.auth = self.config.api.auth
+        self.api = self.config.api
+        self.pool_config = self.config.pool_config
+        self.logs = self.config.logs
+        self.options = self.config.instance.options
+        self.table = self.config.instance.options.table
+        self.views = self.config.instance.views
+        self.instance = self.config.instance
 
     def _read_config(self) -> None:
         os.makedirs(self.config_dir, exist_ok=True)
         if not os.path.exists(self.config_path):
             return self.write_default()
         with open(self.config_path, "r") as d:
-            try:
-                c = json.load(d)
-            except json.JSONDecodeError as exc:
-                raise exc
+            c = json.load(d)
         self._validate_model(c)
 
     def _write_config(self) -> None:
@@ -241,7 +232,7 @@ class IPRConfig:
         with open(self.config_path, "w") as f:
             f.write(c)
 
-    def validate(self, conf: Dict[str, Any]) -> None:
+    def validate(self, conf: dict[str, Any]) -> None:
         self._validate_model(conf)
 
     def read(self) -> None:

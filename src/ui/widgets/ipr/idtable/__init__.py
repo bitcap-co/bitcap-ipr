@@ -15,3 +15,16 @@ from .model import (
     IPRTableModel,
 )
 from .proxy import IPRFilterProxyModel
+
+__all__ = [
+    "COL_ACTION",
+    "COL_RECV_AT",
+    "FILTERABLE_COLUMNS",
+    "ColumnFilterPopup",
+    "FilterHeaderView",
+    "IPRActionDelegate",
+    "IPRFilterProxyModel",
+    "IPRTableContextMenu",
+    "IPRTableModel",
+    "MinerControlPopup",
+]

@@ -5,3 +5,5 @@
 
 from .ipreport import IPReport, IPReportDatagram
 from .patterns import MinerTypeHint
+
+__all__ = ["IPReport", "IPReportDatagram", "MinerTypeHint"]

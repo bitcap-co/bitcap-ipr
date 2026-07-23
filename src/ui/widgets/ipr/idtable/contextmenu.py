@@ -3,13 +3,11 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-from typing import Optional
-
 from PySide6.QtWidgets import QMenu, QWidget
 
 
 class IPRTableContextMenu(QMenu):
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         self._init_context()
 

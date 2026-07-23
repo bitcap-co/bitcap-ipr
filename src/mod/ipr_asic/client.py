@@ -233,7 +233,7 @@ class ASICClient(QObject):
                     client._close()
                     return WhatsminerTCPClient(ip, alt_pwd=alt_pwd)
         except _CLIENT_ERRORS as e:
-            logger.error(f"{client.__repr__()} : client error raised: {str(e)}")
+            logger.error(f"{client.__repr__()} : client error raised: {e!s}")
         return client
 
     def _parser_for(self, client: BaseClient) -> BaseParser | None:
@@ -319,11 +319,11 @@ class ASICClient(QObject):
             try:
                 pools = await client.pools()
             except _CLIENT_ERRORS as e:
-                logger.error(f"{client.__repr__()} : client error raised: {str(e)}")
+                logger.error(f"{client.__repr__()} : client error raised: {e!s}")
                 pools = []
             parser.parse_pools(pools)
         except _CLIENT_ERRORS as e:
-            logger.error(f"{client.__repr__()} : client error raised: {str(e)}")
+            logger.error(f"{client.__repr__()} : client error raised: {e!s}")
             client._close(e)
         return parser.get_data()
 
@@ -341,7 +341,7 @@ class ASICClient(QObject):
         try:
             pool_conf = await client.get_pool_conf()
         except _CLIENT_ERRORS as e:
-            logger.error(f"{client.__repr__()} : client error raised: {str(e)}")
+            logger.error(f"{client.__repr__()} : client error raised: {e!s}")
             error = e
         finally:
             client._close()
@@ -374,7 +374,7 @@ class ASICClient(QObject):
             data = await client.update_pool_conf(urls, users, passwds)
             return MinerResult(data=data)
         except _CLIENT_ERRORS as e:
-            logger.error(f"{client.__repr__()} : client error raised: {str(e)}")
+            logger.error(f"{client.__repr__()} : client error raised: {e!s}")
             return MinerResult(error=e)
         finally:
             client._close()
@@ -400,7 +400,7 @@ class ASICClient(QObject):
             data = await operation()
             return MinerResult(data=data)
         except _CLIENT_ERRORS as e:
-            logger.error(f"{client.__repr__()} : client error raised: {str(e)}")
+            logger.error(f"{client.__repr__()} : client error raised: {e!s}")
             return MinerResult(error=e)
         finally:
             client._close()
@@ -457,7 +457,7 @@ class ASICClient(QObject):
                 except _CLIENT_ERRORS:
                     pass
         except _CLIENT_ERRORS as e:
-            logger.error(f"{client.__repr__()} : client error raised: {str(e)}")
+            logger.error(f"{client.__repr__()} : client error raised: {e!s}")
             return MinerResult(error=e)
         finally:
             client._close()

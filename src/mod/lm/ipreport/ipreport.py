@@ -114,14 +114,14 @@ class IPReportDatagram:
             try:
                 out = zlib.decompress(data.data())
             except zlib.error:
-                return bytes()
+                return b""
             else:
                 # fix data to be valid json
                 out = out.replace(b"\x00", b"")
                 out = out.replace(b"}{", b"}, {")
                 out = b"[" + out + b"]"
                 return out
-        return bytes()
+        return b""
 
     def _from_json(self) -> Any:
         try:
@@ -173,7 +173,7 @@ class IPReportDatagram:
                             model = SealMinerIPReport(payload=obj)
                             ip = model.interfaces[1].ipv4
                             mac = model.info.mac
-                        except (ValueError, ValidationError):
+                        except (TypeError, ValueError, ValidationError):
                             self.valid = False
                         else:
                             self.ip_addr = ip

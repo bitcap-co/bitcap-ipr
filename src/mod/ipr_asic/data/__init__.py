@@ -130,7 +130,7 @@ class MinerData(BaseModel):
 
     def as_dict(self) -> dict[str, Any]:
         miner_data = self.model_dump()
-        for key in miner_data.keys():
+        for key in miner_data:
             # fill missing keys
             if miner_data[key] is None or miner_data[key] == "":
                 miner_data[key] = "N/A"
@@ -142,3 +142,5 @@ class MinerData(BaseModel):
 
 from .base import BaseParser
 from .models import ActionResponse, BlinkStatus, MinerConfPool
+
+__all__ = ["ActionResponse", "BaseParser", "BlinkStatus", "MinerConfPool"]

@@ -13,13 +13,12 @@ end-to-end (the exact shape of ipr.process_result).
 import asyncio
 import unittest
 
+import httpx
 from PySide6.QtCore import QCoreApplication, QObject, Signal
 from qasync import QEventLoop, asyncSlot
 
 from mod.ipr_asic import ASICClient, MinerType
 from mod.ipr_asic.http import SRBMinerHTTPClient
-
-import httpx
 
 
 class _Emitter(QObject):

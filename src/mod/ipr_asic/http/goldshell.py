@@ -175,9 +175,7 @@ class GoldshellHTTPClient(BaseHTTPClient):
         try:
             resobj = Status.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump()
@@ -195,9 +193,7 @@ class GoldshellHTTPClient(BaseHTTPClient):
         try:
             resobj = Devs.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump()
@@ -207,9 +203,7 @@ class GoldshellHTTPClient(BaseHTTPClient):
         try:
             resobj = Settings.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump(by_alias=True, exclude_none=True)
@@ -222,9 +216,7 @@ class GoldshellHTTPClient(BaseHTTPClient):
         try:
             resobj = AlgoSettings.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump()
@@ -234,9 +226,7 @@ class GoldshellHTTPClient(BaseHTTPClient):
         try:
             resobj = PoolSettings.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump(by_alias=True)
@@ -283,7 +273,7 @@ class GoldshellHTTPClient(BaseHTTPClient):
         if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
             raise APIError("Invalid length of arguments")
 
-        for i in range(0, len(urls)):
+        for i in range(len(urls)):
             if not len(urls[i]) and not len(users[i]):
                 continue
             pool = {
@@ -296,7 +286,7 @@ class GoldshellHTTPClient(BaseHTTPClient):
                 PoolSettings.model_validate(obj=resp, by_alias=True)
             except ValidationError as e:
                 logger.error(
-                    f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
+                    f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}"
                 )
                 raise APIInvalidResponse
         resobj = ActionResponse(success=True, msg="OK")

@@ -79,9 +79,7 @@ class SRBMinerHTTPClient(BaseHTTPClient):
         try:
             info = SRBMinerInfo.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return info.model_dump()

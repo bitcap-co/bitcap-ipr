@@ -11,11 +11,12 @@ import shutil
 import subprocess
 import time
 import webbrowser
+from collections.abc import Callable
 from datetime import datetime
 from enum import Enum, auto
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from pydantic import TypeAdapter, ValidationError
 from PySide6.QtCore import (
@@ -578,9 +579,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.activateWindow()
 
     def is_minimized_to_tray(self) -> bool:
-        if self.sys_tray.isVisible() and not self.isVisible():
-            return True
-        return False
+        return self.sys_tray.isVisible() and not self.isVisible()
 
     def changeEvent(self, event):
         # keep the titlebar's maximize/restore glyph correct even when the OS
@@ -712,9 +711,12 @@ class IPR(QMainWindow, Ui_MainWindow):
             ):
                 edges = self._resize_edges(event.globalPosition().toPoint())
                 handle = self.windowHandle()
-                if edges is not None and handle is not None:
-                    if handle.startSystemResize(edges):
-                        return True
+                if (
+                    edges is not None
+                    and handle is not None
+                    and handle.startSystemResize(edges)
+                ):
+                    return True
             elif event_type == QEvent.Type.MouseMove and not (
                 QApplication.mouseButtons() & Qt.MouseButton.LeftButton
             ):
@@ -734,9 +736,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         elif view_index < self.stackedWidget.count():
             if self.is_minimized_to_tray():
                 self.toggle_visibility()
-            if self.menu_bar.actionShowConfigurator.isChecked():
-                if view_index == 2:
-                    self.configurator.setVisible(False)
+            if self.menu_bar.actionShowConfigurator.isChecked() and view_index == 2:
+                self.configurator.setVisible(False)
             self.stackedWidget.setCurrentIndex(view_index)
 
     # status bar
@@ -809,13 +810,13 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def update_preset_names(self):
         # pool presets
-        for idx in range(0, len(self.config.pool_config.pool_presets)):
+        for idx in range(len(self.config.pool_config.pool_presets)):
             self.comboPoolPreset.insertItem(
                 idx, self.config.pool_config.pool_presets[idx].preset_name
             )
         self.comboPoolPreset.setCurrentIndex(self.config.pool_config.selected_preset)
         # iprd presets
-        for idx in range(0, len(self.config.listener.iprd.socket_presets)):
+        for idx in range(len(self.config.listener.iprd.socket_presets)):
             self.comboIPRDPreset.insertItem(
                 idx, self.config.listener.iprd.socket_presets[idx].preset_name
             )
@@ -2208,7 +2209,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             miner_data = res.data
             # an unsupported backend is non-fatal; still surface partial data
             if isinstance(res.error, UnknownClientError):
-                logger.warning(f"process_result : {str(res.error)}")
+                logger.warning(f"process_result : {res.error!s}")
             else:
                 error = res.error
 
@@ -2243,7 +2244,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         # let user know that we got an error and may not have complete data
         if error:
             self.notify(
-                f"Status :: Failed to get complete miner data {result.src_ip}: {str(error)}",
+                f"Status :: Failed to get complete miner data {result.src_ip}: {error!s}",
                 5000,
             )
             return self.show_confirmation(miner_data)
@@ -2450,7 +2451,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         if res.error:
             logger.error(f"_control_miner : {key} failed for {ip_addr}: {res.error}")
             return self.notify(
-                f"Status :: Failed to {key} {ip_addr}: {str(res.error)}",
+                f"Status :: Failed to {key} {ip_addr}: {res.error!s}",
                 5000,
             )
         self.notify(
@@ -2537,7 +2538,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         for row, ip_addr, res in zip(task_rows, ips, results):
             if isinstance(res, Exception) or res.error is not None:
                 err = res if isinstance(res, Exception) else res.error
-                logger.error(f"{action} : {ip_addr} : {str(err)}")
+                logger.error(f"{action} : {ip_addr} : {err!s}")
                 failed.append(ip_addr)
             else:
                 if on_success is not None:
@@ -2608,11 +2609,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         alt_pwd = self.get_client_auth(miner_type.value)
         res = await self.asic.get_miner_data(miner_type, ip_addr, alt_pwd=alt_pwd)
         if isinstance(res.error, UnknownClientError):
-            logger.error(f"refresh_miner : {str(res.error)}")
-            return self.notify(f"Status :: Failed action: {str(res.error)}", 5000)
+            logger.error(f"refresh_miner : {res.error!s}")
+            return self.notify(f"Status :: Failed action: {res.error!s}", 5000)
         if res.error:
             return self.notify(
-                f"Status :: Failed to get complete miner data {ip_addr}: {str(res.error)}",
+                f"Status :: Failed to get complete miner data {ip_addr}: {res.error!s}",
                 5000,
             )
         miner_data = res.data
@@ -2661,11 +2662,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         alt_pwd = self.get_client_auth(miner_type.value)
         res = await self.asic.get_miner_pool_conf(miner_type, ip_addr, alt_pwd=alt_pwd)
         if isinstance(res.error, UnknownClientError):
-            logger.error(f"get_miner_pool : {str(res.error)}")
-            return self.notify(f"Status :: Failed action: {str(res.error)}", 5000)
+            logger.error(f"get_miner_pool : {res.error!s}")
+            return self.notify(f"Status :: Failed action: {res.error!s}", 5000)
         if res.error:
             return self.notify(
-                f"Status :: Failed to get pool config: {str(res.error)}",
+                f"Status :: Failed to get pool config: {res.error!s}",
                 5000,
             )
         urls, users, passwds = res.data.urls, res.data.users, res.data.passwds
@@ -2721,7 +2722,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 elif macaddr and macaddr != "N/A":
                     worker_name = f".{macaddr.replace(':', '')[-5:]}"
                 if worker_name:
-                    for i in range(0, len(users)):
+                    for i in range(len(users)):
                         if len(users[i]):
                             users[i] = users[i] + worker_name
                 else:
@@ -2748,7 +2749,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         for ip_addr, res in zip(ips, results):
             if isinstance(res, Exception) or res.error is not None:
                 err = res if isinstance(res, Exception) else res.error
-                logger.error(f"update_miner_pools : {ip_addr} : {str(err)}")
+                logger.error(f"update_miner_pools : {ip_addr} : {err!s}")
                 failed.append(ip_addr)
             else:
                 passed.append(ip_addr)

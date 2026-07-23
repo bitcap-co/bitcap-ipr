@@ -110,7 +110,7 @@ class BaseHTTPClient(BaseClient):
                 httpx.RequestError,
             ) as ex:
                 self._ex = ex
-                raise ex
+                raise
         headers = {}
         if self.cookies:
             headers.update({"Cookie": self.cookies})
@@ -128,7 +128,7 @@ class BaseHTTPClient(BaseClient):
         except httpx.HTTPError as ex:
             if isinstance(ex, (httpx.ConnectTimeout, httpx.ReadTimeout)):
                 logger.error(
-                    f"{self.__repr__()} : request {method} {self.base_url + path} timed out! {str(ex)}"
+                    f"{self.__repr__()} : request {method} {self.base_url + path} timed out! {ex!s}"
                 )
                 return {}
             elif isinstance(ex, httpx.HTTPStatusError):
@@ -137,7 +137,7 @@ class BaseHTTPClient(BaseClient):
                 )
             else:
                 logger.error(
-                    f"{self.__repr__()} : request {method} {self.base_url + path} failed! {str(ex)}"
+                    f"{self.__repr__()} : request {method} {self.base_url + path} failed! {ex!s}"
                 )
             raise APIError("Failed to send command")
         else:

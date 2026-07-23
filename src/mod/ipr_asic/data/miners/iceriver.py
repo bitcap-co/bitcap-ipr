@@ -54,7 +54,7 @@ class IceriverParser(BaseParser):
             self.data.subtype = obj["model"]
 
     def parse_algorithm(self, obj: dict[str, Any]) -> None:
-        if not obj["algo"] == "none":
+        if obj["algo"] != "none":
             self.data.algorithm = MinerAlgorithm.from_value(obj["algo"])
         elif self.data.subtype is not None:
             if self.data.subtype == "AL3":

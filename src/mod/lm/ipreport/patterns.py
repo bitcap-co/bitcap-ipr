@@ -5,9 +5,9 @@
 
 import re
 from enum import IntEnum
-from typing import Annotated, Any, List, Optional
+from typing import Annotated, Any
 
-from pydantic import BaseModel, Field, RootModel, TypeAdapter, ValidationError
+from pydantic import BaseModel, Field, RootModel, TypeAdapter
 
 ZLIB_DEFAULT_MAGIC = b"\x78\x9c"
 IP_PATTERN = (
@@ -55,7 +55,7 @@ class GoldshellIPReport(BaseModel):
     mac: Annotated[str, Field(pattern=rf"^{MAC_PATTERN}$")]
     mask: str
     gateway: str
-    cpbsn: List[Optional[str]]
+    cpbsn: list[str | None]
     dns: Any
     boxsn: str
     time: str
@@ -80,7 +80,7 @@ class MinerInfo(BaseModel):
     serial: Annotated[str, Field(validation_alias="MainBoardSN")]
     rated_power: Annotated[int, Field(validation_alias="RatedInputPower")]
     power_limit: Annotated[int, Field(validation_alias="InputPowerLimit")]
-    board_serials: Annotated[List[BoardSN], Field(validation_alias="BoardSnArray")]
+    board_serials: Annotated[list[BoardSN], Field(validation_alias="BoardSnArray")]
 
 
 class Interface(BaseModel):
@@ -111,20 +111,17 @@ class SealMinerIPReport:
         return self._info
 
     @property
-    def interfaces(self) -> List[Interface]:
+    def interfaces(self) -> list[Interface]:
         return self._interfaces
 
     def _validate_model(self) -> None:
         if not isinstance(self._data, list):
-            raise ValueError
+            raise TypeError
         if not len(self._data) or len(self._data) != 7:
             raise ValueError
-        try:
-            self._info = MinerInfo.model_validate(self._data[1])
-            iface_list = TypeAdapter(List[Interface])
-            self._interfaces = iface_list.validate_python(self._data[2:4])
-        except ValidationError as exc:
-            raise exc
+        self._info = MinerInfo.model_validate(self._data[1])
+        iface_list = TypeAdapter(list[Interface])
+        self._interfaces = iface_list.validate_python(self._data[2:4])
 
 
 class AuradineIPReport(BaseModel):

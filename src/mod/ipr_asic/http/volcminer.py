@@ -268,9 +268,7 @@ class VolcminerHTTPClient(BaseHTTPClient):
         try:
             resobj = SystemInfo.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump()
@@ -280,9 +278,7 @@ class VolcminerHTTPClient(BaseHTTPClient):
         try:
             resobj = NetInfo.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump()
@@ -294,17 +290,13 @@ class VolcminerHTTPClient(BaseHTTPClient):
         try:
             data = re.search(r'"data":"\{(.*?)\}"', cleaned).group(1)
         except AttributeError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         net_info = json.loads("{" + data + "}")
         try:
             resobj = NetInfoV1.model_validate(obj=net_info)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump()
@@ -314,9 +306,7 @@ class VolcminerHTTPClient(BaseHTTPClient):
         try:
             resobj = MinerConfig.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump(exclude_none=True)
@@ -330,9 +320,7 @@ class VolcminerHTTPClient(BaseHTTPClient):
                 r'"cfgs":"\[(.*?)\]",(.*?),"debug":"\{(.*?)\}",(.*?)\}', cleaned
             ).groups()
         except AttributeError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         cfgs = parts[0]
         keep_power = parts[1]
@@ -355,9 +343,7 @@ class VolcminerHTTPClient(BaseHTTPClient):
         try:
             resobj = MinerConfigV1.model_validate(obj=miner_conf, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump(exclude_none=True, by_alias=True)
@@ -377,9 +363,7 @@ class VolcminerHTTPClient(BaseHTTPClient):
                 r'(.*?),"pool_dtls":"\[(.*?)\]"\},"chains":"\[(.*?)\]",(.*?)$', data
             ).groups()
         except AttributeError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         status = parts[0]
         pools = parts[1]
@@ -403,9 +387,7 @@ class VolcminerHTTPClient(BaseHTTPClient):
         try:
             resobj = MinerStatus.model_validate(obj=miner_status)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump()
@@ -458,7 +440,7 @@ class VolcminerHTTPClient(BaseHTTPClient):
         miner = MinerConfig(**resp["miner"])
 
         data = {}
-        for i in range(0, len(urls)):
+        for i in range(len(urls)):
             if len(urls[i]) and len(users[i]) and passwds[i] == "":
                 passwds[i] = "x"
             data[f"_bb_pool{i + 1}url"] = urls[i]

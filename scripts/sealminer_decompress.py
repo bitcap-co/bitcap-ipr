@@ -24,7 +24,7 @@ def parse_arguments():
 if __name__ == "__main__":
     args = parse_arguments()
 
-    data = bytes()
+    data = b""
     if args.file:
         with open(Path(args.file).resolve(), "rb") as f:
             data = f.read()

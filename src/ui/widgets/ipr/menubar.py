@@ -3,8 +3,6 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-from typing import Optional
-
 from PySide6.QtWidgets import (
     QMenuBar,
     QWidget,
@@ -16,7 +14,7 @@ from utils import IPR_METADATA
 class IPRMenubar(QMenuBar):
     def __init__(
         self,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ):
         super().__init__(parent)
         self._init_menubar()

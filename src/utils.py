@@ -8,7 +8,7 @@ import collections.abc
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from platformdirs import user_data_dir, user_downloads_dir, user_log_dir
 from PySide6.QtCore import qVersion
@@ -32,7 +32,7 @@ IPR_METADATA = {
 MAX_ROTATE_LOG_FILES = 4
 
 
-def deep_update(d: Dict[str, Any], u: Dict[str, Any]) -> Dict[str, Any]:
+def deep_update(d: dict[str, Any], u: dict[str, Any]) -> dict[str, Any]:
     for k, v in u.items():
         if isinstance(v, collections.abc.Mapping):
             d[k] = deep_update(d.get(k, {}), dict(v))
