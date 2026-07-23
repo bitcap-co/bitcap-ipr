@@ -113,10 +113,17 @@ class MinerConf(BaseModel):
 
 
 class Summary(BaseModel):
-    elapsed: int
-    mhsav: float
-    foundblocks: str
-    rejected: float
+    elapsed: int | None
+    mhsav: float | None
+    foundblocks: str | None
+    rejected: float | None
+
+    @field_validator("*", mode="before")
+    @classmethod
+    def _empty_to_none(cls, field_value):
+        if field_value == "":
+            return None
+        return field_value
 
 
 class Pool(BaseModel):
@@ -225,9 +232,7 @@ class SealminerHTTPClient(BaseHTTPClient):
         try:
             resobj = SystemInfo.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump()
@@ -237,9 +242,7 @@ class SealminerHTTPClient(BaseHTTPClient):
         try:
             resobj = NetInfo.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump()
@@ -252,9 +255,7 @@ class SealminerHTTPClient(BaseHTTPClient):
         try:
             resobj = MinerStatus.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump()
@@ -264,9 +265,7 @@ class SealminerHTTPClient(BaseHTTPClient):
         try:
             resobj = MinerConf.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             return resobj.model_dump(by_alias=True)
@@ -278,9 +277,7 @@ class SealminerHTTPClient(BaseHTTPClient):
         try:
             resobj = ConfResponse.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             err = resobj.error()
@@ -319,9 +316,7 @@ class SealminerHTTPClient(BaseHTTPClient):
         try:
             resobj = ActionResponse.model_validate(obj=resp)
         except ValidationError as e:
-            logger.error(
-                f"{self.__repr__()} : {str(APIInvalidResponse(reason=str(e)))}"
-            )
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
             err = resobj.error()
@@ -361,7 +356,7 @@ class SealminerHTTPClient(BaseHTTPClient):
             "pooluser3": "",
             "poolpwd3": "",
         }
-        for i in range(0, len(urls)):
+        for i in range(len(urls)):
             if (
                 not any(pool_conf[i].values())
                 and not len(urls[i])
