@@ -232,7 +232,7 @@ class ASICClient(QObject):
                 if int(version_info["fw_ver"][:6]) > 202412:
                     client._close()
                     return WhatsminerTCPClient(ip, alt_pwd=alt_pwd)
-        except (APIError, FailedConnectionError, LookupError, OSError) as e:
+        except _CLIENT_ERRORS as e:
             logger.error(f"{client.__repr__()} : client error raised: {str(e)}")
         return client
 
