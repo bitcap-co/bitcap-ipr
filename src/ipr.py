@@ -226,7 +226,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         # tracks the in-flight locate coroutine to prevent concurrent locates
         self._locate_task: asyncio.Task | None = None
         logger.info(" init miner locate duration for 10000ms.")
-        self.miner_locate_duration: int = api_settings.get("locate_duration_ms")
+        self.locate_duration_ms: int = api_settings.get("locate_duration_ms")
 
         # initialize IPR_Titlebar widget
         self.title_bar = IPRTitlebar(self, "BitCap IPReporter", ["min", "max", "close"])
@@ -1212,9 +1212,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.restart_listen()
 
     def update_miner_locate_duration(self):
-        self.miner_locate_duration = self.spinLocateDuration.value() * 1000
-        api_settings.update("locate_duration_ms", self.miner_locate_duration)
-        logger.info(f" update miner locate duration: {self.miner_locate_duration}ms.")
+        self.locate_duration_ms = self.spinLocateDuration.value() * 1000
+        api_settings.update("locate_duration_ms", self.locate_duration_ms)
+        logger.info(f" update miner locate duration: {self.locate_duration_ms}ms.")
 
     def update_inactive_timer_settings(self):
         if self.checkUseCustomTimeout.isChecked():
@@ -2526,6 +2526,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         if not tasks:
             return
 
+        if action == "Locate":
+            self.notify(
+                f"Status :: {action} started for {self.locate_duration_ms / 1000}s.",
+                self.locate_duration_ms,
+            )
         results = await asyncio.gather(*tasks, return_exceptions=True)
         passed: list[str] = []
         failed: list[str] = []
