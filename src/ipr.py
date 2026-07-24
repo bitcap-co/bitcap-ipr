@@ -2613,6 +2613,10 @@ class IPR(QMainWindow, Ui_MainWindow):
     async def refresh_miner(self, row: int):
         ip_addr, miner_type, _ = self.retrieve_miner_from_table(row)
         logger.info(f" refresh miner {ip_addr}.")
+        # check for updated miner type from HTTP, catching firmware/type change
+        update_type = await self.asic._parse_http_type(ip_addr)
+        if update_type is not None and update_type != miner_type:
+            miner_type = update_type
         alt_pwd = self.get_client_auth(miner_type.value)
         res = await self.asic.get_miner_data(miner_type, ip_addr, alt_pwd=alt_pwd)
         if isinstance(res.error, UnknownClientError):
@@ -2638,8 +2642,18 @@ class IPR(QMainWindow, Ui_MainWindow):
         if not rows:
             return self.notify("Status :: Failed action: no miners to refresh.", 5000)
 
-        def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
-            return self.asic.get_miner_data(miner_type, ip_addr, alt_pwd=alt_pwd)
+        async def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
+            # Re-detect each miner before fetching so firmware changes select
+            # the correct client and authentication settings.
+            updated_type = await self.asic._parse_http_type(ip_addr)
+            if updated_type is not None and updated_type != miner_type:
+                miner_type = updated_type
+                alt_pwd = self.get_client_auth(miner_type.value)
+            return await self.asic.get_miner_data(
+                miner_type,
+                ip_addr,
+                alt_pwd=alt_pwd,
+            )
 
         def on_success(row, ip_addr, res):
             miner_data = res.data

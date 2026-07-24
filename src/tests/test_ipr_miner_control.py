@@ -117,6 +117,48 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
             [("reboot", MinerType.ANTMINER, "10.0.0.3", "secret")],
         )
 
+    async def test_bulk_refresh_redetects_type_and_auth_before_fetch(self):
+        result = MinerResult(data={"type": "antminer", "mac": "N/A"})
+        asic = SimpleNamespace(
+            _parse_http_type=AsyncMock(return_value=MinerType.ANTMINER),
+            get_miner_data=AsyncMock(return_value=result),
+        )
+        run_bulk_action = AsyncMock()
+        subject: Any = SimpleNamespace(
+            asic=asic,
+            get_action_target_rows=Mock(return_value=[3]),
+            get_client_auth=Mock(return_value="antminer-secret"),
+            _run_bulk_action=run_bulk_action,
+            notify=Mock(),
+        )
+
+        await IPR.bulk_refresh_miners(subject)
+
+        run_bulk_action.assert_awaited_once()
+        await_args = run_bulk_action.await_args
+        if await_args is None:
+            self.fail("bulk refresh was not awaited")
+        action, rows, make_coro = await_args.args
+        self.assertEqual(action, "Refresh")
+        self.assertEqual(rows, [3])
+
+        refresh_result = await make_coro(
+            3,
+            "10.0.0.4",
+            MinerType.VNISH,
+            MinerFirmware.VNISH,
+            "vnish-secret",
+        )
+
+        self.assertIs(refresh_result, result)
+        asic._parse_http_type.assert_awaited_once_with("10.0.0.4")
+        subject.get_client_auth.assert_called_once_with(MinerType.ANTMINER.value)
+        asic.get_miner_data.assert_awaited_once_with(
+            MinerType.ANTMINER,
+            "10.0.0.4",
+            alt_pwd="antminer-secret",
+        )
+
     async def test_bulk_control_reports_empty_target_set(self):
         subject: Any = SimpleNamespace(
             asic=_ControlFacade(),
