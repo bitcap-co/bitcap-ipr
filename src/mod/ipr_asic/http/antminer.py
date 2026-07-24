@@ -99,9 +99,9 @@ class MinerSummary(BaseModel):
 
 
 class Summary(BaseModel):
-    status: StatusResponse = Field(alias="STATUS")
-    info: InfoResponse = Field(alias="INFO")
-    summary: list[MinerSummary] = Field(alias="SUMMARY")
+    status: StatusResponse | None = Field(None, alias="STATUS")
+    info: InfoResponse | None = Field(None, alias="INFO")
+    summary: list[MinerSummary] | None = Field(None, alias="SUMMARY")
 
     @field_validator("summary", mode="before")
     @classmethod

@@ -131,9 +131,9 @@ class PoolInfo(BaseModel):
 
 
 class Summary(BaseModel):
-    status: APIStatusResponse = Field(alias="STATUS")
-    info: APIInfoResponse = Field(alias="INFO")
-    summary: list[MinerSummary] = Field(alias="SUMMARY")
+    status: APIStatusResponse | None = Field(None, alias="STATUS")
+    info: APIInfoResponse | None = Field(None, alias="INFO")
+    summary: list[MinerSummary] | None = Field(None, alias="SUMMARY")
 
     @field_validator("summary", mode="before")
     @classmethod
