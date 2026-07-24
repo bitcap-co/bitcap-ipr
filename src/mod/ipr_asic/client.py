@@ -8,7 +8,7 @@ import logging
 from typing import Any
 
 import httpx
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from PySide6.QtCore import QObject
 
 from mod.ipr_asic import settings
@@ -73,6 +73,8 @@ class MinerResult(BaseModel):
     the apiv2 ``client_error()``-after-the-fact pattern (which relied on a single
     shared active client and is unsafe under concurrent/bulk operations).
     """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     data: Any = None
     error: Exception | None = None
