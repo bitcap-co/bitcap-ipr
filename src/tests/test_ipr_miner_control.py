@@ -159,6 +159,75 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
             alt_pwd="antminer-secret",
         )
 
+    async def test_update_pools_uses_shared_bulk_engine(self):
+        result = MinerResult(data={"success": True})
+        asic = SimpleNamespace(update_miner_pools=AsyncMock(return_value=result))
+        selected_index = Mock()
+        source_index = Mock()
+        source_index.row.return_value = 7
+        run_bulk_action = AsyncMock()
+
+        def field(value):
+            widget = Mock()
+            widget.text.return_value = value
+            return widget
+
+        subject: Any = SimpleNamespace(
+            asic=asic,
+            get_selected_indexes_for_action=Mock(return_value=[selected_index]),
+            id_proxy=Mock(),
+            id_model=Mock(),
+            linePoolURL=field("stratum://pool-1"),
+            linePoolURL_2=field("stratum://pool-2"),
+            linePoolURL_3=field(""),
+            linePoolUser=field("account.worker"),
+            linePoolUser_2=field("backup"),
+            linePoolUser_3=field(""),
+            linePoolPasswd=field("x"),
+            linePoolPasswd_2=field("y"),
+            linePoolPasswd_3=field(""),
+            checkAutomaticWorkerNames=Mock(),
+            _run_bulk_action=run_bulk_action,
+            notify=Mock(),
+        )
+        subject.id_proxy.mapToSource.return_value = source_index
+        subject.id_model.miner_at.return_value = SimpleNamespace(
+            serial="ANTMINER12345",
+            mac="aa:bb:cc:dd:ee:ff",
+        )
+        subject.checkAutomaticWorkerNames.isChecked.return_value = True
+
+        await IPR.update_miner_pools(subject)
+
+        subject.get_selected_indexes_for_action.assert_called_once_with(
+            "update_miner_pools", section=2
+        )
+        run_bulk_action.assert_awaited_once()
+        await_args = run_bulk_action.await_args
+        if await_args is None:
+            self.fail("pool update bulk action was not awaited")
+        action, rows, make_coro = await_args.args
+        self.assertEqual(action, "Update Pools")
+        self.assertEqual(rows, [7])
+
+        update_result = await make_coro(
+            7,
+            "10.0.0.5",
+            MinerType.ANTMINER,
+            MinerFirmware.STOCK,
+            "secret",
+        )
+
+        self.assertIs(update_result, result)
+        asic.update_miner_pools.assert_awaited_once_with(
+            MinerType.ANTMINER,
+            "10.0.0.5",
+            ["stratum://pool-1", "stratum://pool-2", ""],
+            ["account.worker.12345", "backup.12345", ""],
+            ["x", "y", ""],
+            alt_pwd="secret",
+        )
+
     async def test_bulk_control_reports_empty_target_set(self):
         subject: Any = SimpleNamespace(
             asic=_ControlFacade(),

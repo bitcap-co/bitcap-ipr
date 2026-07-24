@@ -2515,8 +2515,8 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         ``coro_factory(row, ip, miner_type, fw_type, alt_pwd)`` returns the
         coroutine to run for a row, or ``None`` to skip that row. Results are
-        gathered, classified into passed/failed with the same rule as
-        ``update_miner_pools``, and summarised via ``notify``. ``on_success``
+        gathered, classified into passed/failed, and summarised via ``notify``.
+        ``on_success``
         (if given) runs for each miner whose result carried no error.
         """
         ips: list[str] = []
@@ -2709,79 +2709,54 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     @asyncSlot()
     async def update_miner_pools(self):
-        passed: list[str] = []
-        failed: list[str] = []
         selected_ips = self.get_selected_indexes_for_action(
             "update_miner_pools", section=2
         )
         if selected_ips is None:
             return self.notify("Status :: Failed action: no selected IPs.", 5000)
 
-        ips: list[str] = []
-        tasks = []
-        for index in selected_ips:
-            source_row = self.id_proxy.mapToSource(index).row()
-            ip_addr, miner_type, _ = self.retrieve_miner_from_table(source_row)
-            miner = self.id_model.miner_at(source_row)
-            macaddr = miner.mac
-            serial = miner.serial
-            urls = [
-                self.linePoolURL.text(),
-                self.linePoolURL_2.text(),
-                self.linePoolURL_3.text(),
-            ]
-            users = [
-                self.linePoolUser.text(),
-                self.linePoolUser_2.text(),
-                self.linePoolUser_3.text(),
-            ]
-            # append worker name
+        rows = [self.id_proxy.mapToSource(index).row() for index in selected_ips]
+        urls = [
+            self.linePoolURL.text(),
+            self.linePoolURL_2.text(),
+            self.linePoolURL_3.text(),
+        ]
+        base_users = [
+            self.linePoolUser.text(),
+            self.linePoolUser_2.text(),
+            self.linePoolUser_3.text(),
+        ]
+        passwds = [
+            self.linePoolPasswd.text(),
+            self.linePoolPasswd_2.text(),
+            self.linePoolPasswd_3.text(),
+        ]
+
+        def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
+            users = base_users.copy()
             if self.checkAutomaticWorkerNames.isChecked():
+                miner = self.id_model.miner_at(row)
                 worker_name = ""
-                if serial and serial not in ("N/A", "Unknown"):
-                    worker_name = f".{serial[-5:]}"
-                elif macaddr and macaddr != "N/A":
-                    worker_name = f".{macaddr.replace(':', '')[-5:]}"
+                if miner.serial and miner.serial not in ("N/A", "Unknown"):
+                    worker_name = f".{miner.serial[-5:]}"
+                elif miner.mac and miner.mac != "N/A":
+                    worker_name = f".{miner.mac.replace(':', '')[-5:]}"
                 if worker_name:
-                    for i in range(len(users)):
-                        if len(users[i]):
-                            users[i] = users[i] + worker_name
+                    users = [user + worker_name if user else user for user in users]
                 else:
                     logger.warning(
                         "update_miner_pools : failed to find applicable worker name. Continuing.."
                     )
-            passwds = [
-                self.linePoolPasswd.text(),
-                self.linePoolPasswd_2.text(),
-                self.linePoolPasswd_3.text(),
-            ]
-
-            alt_pwd = self.get_client_auth(miner_type.value)
-            ips.append(ip_addr)
-            tasks.append(
-                self.asic.update_miner_pools(
-                    miner_type, ip_addr, urls, users, passwds, alt_pwd=alt_pwd
-                )
+            return self.asic.update_miner_pools(
+                miner_type,
+                ip_addr,
+                urls.copy(),
+                users,
+                passwds.copy(),
+                alt_pwd=alt_pwd,
             )
 
-        # run all pool updates concurrently (keeps the UI responsive without
-        # the previous manual processEvents() pump)
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        for ip_addr, res in zip(ips, results):
-            if isinstance(res, Exception) or res.error is not None:
-                err = res if isinstance(res, Exception) else res.error
-                logger.error(f"update_miner_pools : {ip_addr} : {err!s}")
-                failed.append(ip_addr)
-            else:
-                passed.append(ip_addr)
-
-        # action status
-        logger.info(
-            f"status for action 'update_miner_pools': passed - {passed}, failed - {failed}"
-        )
-        if len(failed) > 0:
-            return self.notify(f"Status :: Failed to update pools for {failed}.", 5000)
-        self.notify("Status :: Successfully updated pools.", 3000)
+        await self._run_bulk_action("Update Pools", rows, make_coro)
 
     # exit
     def close_to_tray_or_exit(self):
