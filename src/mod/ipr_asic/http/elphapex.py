@@ -131,9 +131,9 @@ class PoolInfo(BaseModel):
 
 
 class Summary(BaseModel):
-    status: APIStatusResponse | None = Field(None, alias="STATUS")
-    info: APIInfoResponse | None = Field(None, alias="INFO")
-    summary: list[MinerSummary] | None = Field(None, alias="SUMMARY")
+    status: APIStatusResponse = Field(alias="STATUS")
+    info: APIInfoResponse = Field(alias="INFO")
+    summary: list[MinerSummary] = Field(alias="SUMMARY", default_factory=list)
 
     @field_validator("summary", mode="before")
     @classmethod
@@ -239,7 +239,7 @@ class ElphapexHTTPClient(BaseHTTPClient):
         resp = await self.send_command("GET", command="summary")
         try:
             resobj = Summary.model_validate(obj=resp, by_alias=True)
-        except ValidationError as e:
+        except (ValidationError, ValueError) as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:

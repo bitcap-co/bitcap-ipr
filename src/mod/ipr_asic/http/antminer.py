@@ -99,9 +99,9 @@ class MinerSummary(BaseModel):
 
 
 class Summary(BaseModel):
-    status: StatusResponse | None = Field(None, alias="STATUS")
-    info: InfoResponse | None = Field(None, alias="INFO")
-    summary: list[MinerSummary] | None = Field(None, alias="SUMMARY")
+    status: StatusResponse = Field(alias="STATUS")
+    info: InfoResponse = Field(alias="INFO")
+    summary: list[MinerSummary] = Field(alias="SUMMARY", default_factory=list)
 
     @field_validator("summary", mode="before")
     @classmethod
@@ -328,7 +328,7 @@ class AntminerHTTPClient(BaseHTTPClient):
         resp = await self.send_command("GET", command="summary")
         try:
             resobj = Summary.model_validate(obj=resp, by_alias=True)
-        except ValidationError as e:
+        except (ValidationError, ValueError) as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
