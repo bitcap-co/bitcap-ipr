@@ -172,6 +172,57 @@ class TestIPRDService(unittest.TestCase):
 
     @patch("mod.lm.iprd.service.ServiceBrowser", FakeServiceBrowser)
     @patch("mod.lm.iprd.service.Zeroconf", FakeZeroconf)
+    def test_suspend_resume_recreates_active_discovery(self) -> None:
+        listener = IPRDServiceListener()
+        listener.start()
+        old_zeroconf = listener._zeroconf
+        old_browser = listener._browser
+        assert isinstance(old_zeroconf, FakeZeroconf)
+        assert isinstance(old_browser, FakeServiceBrowser)
+
+        listener.on_suspend()
+
+        self.assertFalse(listener.active)
+        self.assertEqual(old_browser.cancelled, 1)
+        self.assertEqual(old_zeroconf.closed, 1)
+
+        listener.on_resume()
+
+        self.assertTrue(listener.active)
+        self.assertIsNot(listener._zeroconf, old_zeroconf)
+        self.assertIsNot(listener._browser, old_browser)
+        listener.close()
+
+    @patch("mod.lm.iprd.service.ServiceBrowser", FakeServiceBrowser)
+    @patch("mod.lm.iprd.service.Zeroconf", FakeZeroconf)
+    def test_stop_while_suspended_prevents_resume(self) -> None:
+        listener = IPRDServiceListener()
+        listener.start()
+        listener.on_suspend()
+
+        listener.stop()
+        listener.on_resume()
+
+        self.assertFalse(listener.active)
+        self.assertIsNone(listener._zeroconf)
+        self.assertIsNone(listener._browser)
+
+    @patch("mod.lm.iprd.service.ServiceBrowser", FakeServiceBrowser)
+    @patch("mod.lm.iprd.service.Zeroconf", FakeZeroconf)
+    def test_start_while_suspended_is_deferred_until_resume(self) -> None:
+        listener = IPRDServiceListener()
+        listener.on_suspend()
+
+        listener.start()
+
+        self.assertFalse(listener.active)
+        self.assertIsNone(listener._zeroconf)
+        listener.on_resume()
+        self.assertTrue(listener.active)
+        listener.close()
+
+    @patch("mod.lm.iprd.service.ServiceBrowser", FakeServiceBrowser)
+    @patch("mod.lm.iprd.service.Zeroconf", FakeZeroconf)
     def test_add_update_and_remove_signals(self) -> None:
         listener = IPRDServiceListener(resolve_timeout_ms=1500)
         found: list[IPRDService] = []

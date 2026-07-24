@@ -93,6 +93,8 @@ class IPRDServiceListener(QObject, ServiceListener):
         self._session = 0
         self._lock = threading.RLock()
         self._active = False
+        self._power_suspended = False
+        self._resume_after_suspend = False
 
         self._resolved.connect(self._publish_resolved)
         self._removed.connect(self._publish_removed)
@@ -123,6 +125,9 @@ class IPRDServiceListener(QObject, ServiceListener):
         try:
             with self._lock:
                 if self._active:
+                    return
+                if self._power_suspended:
+                    self._resume_after_suspend = True
                     return
                 zeroconf = Zeroconf()
                 self._session += 1
@@ -155,7 +160,12 @@ class IPRDServiceListener(QObject, ServiceListener):
     @Slot()
     def stop(self) -> None:
         """Stop browsing and release all zeroconf sockets and threads."""
+        self._stop()
+
+    def _stop(self, *, preserve_resume: bool = False) -> None:
         with self._lock:
+            if not preserve_resume:
+                self._resume_after_suspend = False
             if not self._active and self._browser is None and self._zeroconf is None:
                 return
             self._active = False
@@ -185,6 +195,32 @@ class IPRDServiceListener(QObject, ServiceListener):
             )
         logger.info(f"{self.__repr__()} : stopped service discovery.")
         self.stopped.emit()
+
+    @Slot()
+    def on_suspend(self) -> None:
+        """Pause discovery and remember whether it should resume after wake."""
+        with self._lock:
+            if self._power_suspended:
+                return
+            self._power_suspended = True
+            pause = self._active
+            self._resume_after_suspend = pause
+        if pause:
+            logger.info(f"{self.__repr__()} : host suspending; pausing discovery.")
+            self._stop(preserve_resume=True)
+
+    @Slot()
+    def on_resume(self) -> None:
+        """Recreate zeroconf after wake if discovery was active before sleep."""
+        with self._lock:
+            if not self._power_suspended:
+                return
+            self._power_suspended = False
+            restart = self._resume_after_suspend
+            self._resume_after_suspend = False
+        if restart:
+            logger.info(f"{self.__repr__()} : host resumed; restarting discovery.")
+            self.start()
 
     def close(self) -> None:
         self.stop()
