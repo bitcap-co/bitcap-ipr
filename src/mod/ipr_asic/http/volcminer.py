@@ -12,13 +12,13 @@ import httpx
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
 from mod.ipr_asic import settings
-from mod.ipr_asic.data import MinerConfPool
 from mod.ipr_asic.errors import (
     APIError,
     APIInvalidResponse,
     AuthenticationError,
     FailedConnectionError,
 )
+from mod.ipr_asic.models import MinerConfPool
 from mod.ipr_asic.protocol import BaseHTTPClient
 
 logger = logging.getLogger(__name__)

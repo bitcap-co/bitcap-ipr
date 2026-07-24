@@ -141,6 +141,5 @@ class MinerData(BaseModel):
 
 
 from .base import BaseParser
-from .models import ActionResponse, BlinkStatus, MinerConfPool
 
-__all__ = ["ActionResponse", "BaseParser", "BlinkStatus", "MinerConfPool"]
+__all__ = ["BaseParser"]

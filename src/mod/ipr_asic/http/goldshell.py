@@ -12,13 +12,13 @@ from Crypto.Cipher import AES
 from pydantic import BaseModel, Field, RootModel, TypeAdapter, ValidationError
 
 from mod.ipr_asic import settings
-from mod.ipr_asic.data import ActionResponse, BlinkStatus, MinerConfPool
 from mod.ipr_asic.errors import (
     APIError,
     APIInvalidResponse,
     AuthenticationError,
     FailedConnectionError,
 )
+from mod.ipr_asic.models import ActionResponse, BlinkStatus, MinerConfPool
 from mod.ipr_asic.protocol import BaseHTTPClient
 
 logger = logging.getLogger(__name__)

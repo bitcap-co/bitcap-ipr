@@ -7,15 +7,14 @@ import httpx
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
 from mod.ipr_asic import settings
-from mod.ipr_asic.data import BlinkStatus, MinerConfPool
 from mod.ipr_asic.errors import (
     APIError,
     APIInvalidResponse,
     AuthenticationError,
     FailedConnectionError,
 )
+from mod.ipr_asic.models import BlinkStatus, MinerConfPool, Status, Version
 from mod.ipr_asic.protocol import BaseHTTPClient
-from mod.ipr_asic.rpc.cgminer import Status, Version
 
 logger = logging.getLogger(__name__)
 

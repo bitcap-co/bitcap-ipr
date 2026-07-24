@@ -17,14 +17,13 @@ from passlib.hash import md5_crypt
 from pydantic import BaseModel, Field, RootModel, TypeAdapter, ValidationError
 
 from mod.ipr_asic import settings
-from mod.ipr_asic.data import BlinkStatus, MinerConfPool
 from mod.ipr_asic.errors import (
     APIError,
     APIInvalidResponse,
     AuthenticationError,
 )
+from mod.ipr_asic.models import BlinkStatus, MinerConfPool, Pool, Status
 from mod.ipr_asic.protocol import BaseRPCClient, BaseTCPClient
-from mod.ipr_asic.rpc.cgminer import Pool, Status
 
 logger = logging.getLogger(__name__)
 
