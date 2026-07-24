@@ -146,6 +146,9 @@ class BaseHTTPClient(BaseClient):
                 try:
                     return resp.json()
                 except json.JSONDecodeError:
+                    content = resp.content.decode().strip("\n")
+                    if content == "Socket connect failed: Connection refused":
+                        raise APIError("API not available: connection refused")
                     return {"text": resp.content.decode()}
         logger.error(
             f"{self.__repr__()} : request {method} {self.base_url + path} failed! Unknown error occurred!"
