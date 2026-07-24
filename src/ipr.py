@@ -199,9 +199,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd_discovery_timeout.setInterval(IPRD_DISCOVERY_TIMEOUT_MS)
         self.iprd_discovery_timeout.timeout.connect(self.on_iprd_discovery_timeout)
 
-        # pause/resume iprd reconnect around OS sleep so we don't wake the host.
+        # Pause both discovery and reconnect around OS sleep. Recreating the
+        # zeroconf browser on resume avoids retaining stale mDNS state.
         self.power = PowerMonitor(self)
+        self.power.aboutToSuspend.connect(self.iprd_discovery.on_suspend)
         self.power.aboutToSuspend.connect(self.iprd.on_suspend)
+        self.power.resumed.connect(self.iprd_discovery.on_resume)
         self.power.resumed.connect(self.iprd.on_resume)
         # whether the user currently wants the iprd backend listening. Survives a
         # reconnect give-up so we can recover when the window is reactivated
@@ -2084,7 +2087,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         self._start_iprd_connection(address, service.port)
 
     def on_iprd_service_found(self, service: IPRDService) -> None:
-        if self._discovered_iprd_service_name not in (None, service.name):
+        selected_name = self._discovered_iprd_service_name
+        if (
+            selected_name not in (None, service.name)
+            and self.iprd_discovery.get_service(selected_name) is not None
+        ):
             return
         self._connect_to_iprd_service(service)
 
@@ -2824,7 +2831,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd.subscribed.disconnect(self.on_iprd_subscribed)
         self.iprd.reconnecting.disconnect(self.on_iprd_reconnecting)
         self.iprd.reconnect_failed.disconnect(self.on_iprd_reconnect_failed)
+        self.power.aboutToSuspend.disconnect(self.iprd_discovery.on_suspend)
         self.power.aboutToSuspend.disconnect(self.iprd.on_suspend)
+        self.power.resumed.disconnect(self.iprd_discovery.on_resume)
         self.power.resumed.disconnect(self.iprd.on_resume)
         self.lm.stop()
         self.lm.listen_complete.disconnect(self.process_result)
