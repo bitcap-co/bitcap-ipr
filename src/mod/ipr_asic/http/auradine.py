@@ -136,7 +136,7 @@ class Summary(BaseModel):
 
 
 class Mode(BaseModel):
-    command: str
+    command: str | None = None
     mode: str | None = Field(None, pattern=r"normal|eco|turbo|custom")
     sleep: str | None = Field(None, pattern=r"on|off")
     tune: str | None = Field(None, pattern=r"ths|power")
@@ -446,10 +446,10 @@ class AuradineHTTPClient(BaseHTTPClient):
         return await self.set_miner_conf(conf)
 
     async def start(self) -> dict:
-        return await self.set_miner_mode(mode="on")
+        return await self.set_miner_mode(mode="off")
 
     async def stop(self) -> dict:
-        return await self.set_miner_mode(mode="off")
+        return await self.set_miner_mode(mode="on")
 
     async def restart(self) -> dict:
         return await super().restart()
