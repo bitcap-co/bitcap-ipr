@@ -5,10 +5,10 @@
 
 import asyncio
 import logging
-from dataclasses import dataclass, field
 from typing import Any
 
 import httpx
+from pydantic import BaseModel, Field
 from PySide6.QtCore import QObject
 
 from mod.ipr_asic import settings
@@ -66,8 +66,7 @@ _CLIENT_ERRORS = (
 )
 
 
-@dataclass
-class MinerResult:
+class MinerResult(BaseModel):
     """Result of a high-level facade operation.
 
     Carries the operation payload and any client error that occurred, replacing
@@ -83,11 +82,10 @@ class MinerResult:
         return self.error is None
 
 
-@dataclass
-class PoolConf:
-    urls: list[str] = field(default_factory=list)
-    users: list[str] = field(default_factory=list)
-    passwds: list[str] = field(default_factory=list)
+class PoolConf(BaseModel):
+    urls: list[str] = Field(default_factory=list)
+    users: list[str] = Field(default_factory=list)
+    passwds: list[str] = Field(default_factory=list)
 
 
 class ASICClient(QObject):
