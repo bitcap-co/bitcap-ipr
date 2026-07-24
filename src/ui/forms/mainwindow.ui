@@ -975,7 +975,7 @@ Uses last 5 of SN or MAC address.</string>
              </size>
             </property>
             <property name="toolTip">
-             <string>Execute bulk actions for selected miners/all visible miners.</string>
+             <string>Execute bulk actions for specific/visible miners.</string>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_7">
              <property name="leftMargin">
@@ -1042,7 +1042,7 @@ Uses last 5 of SN or MAC address.</string>
                 </size>
                </property>
                <property name="toolTip">
-                <string>Refresh data for selected/all visible miners</string>
+                <string>Refresh data for selected/all visible miners.</string>
                </property>
                <property name="text">
                 <string/>
@@ -1080,7 +1080,7 @@ Uses last 5 of SN or MAC address.</string>
                 </size>
                </property>
                <property name="toolTip">
-                <string>Set a configuration for selected/all visible miners.</string>
+                <string>Set a configuration for selected miners only.</string>
                </property>
                <property name="text">
                 <string/>
@@ -1198,7 +1198,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>478</width>
+                   <width>457</width>
                    <height>849</height>
                   </rect>
                  </property>
@@ -1859,7 +1859,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>476</width>
+                   <width>255</width>
                    <height>986</height>
                   </rect>
                  </property>
@@ -2594,7 +2594,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>478</width>
+                   <width>368</width>
                    <height>242</height>
                   </rect>
                  </property>
