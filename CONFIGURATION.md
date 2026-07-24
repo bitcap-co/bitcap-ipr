@@ -12,7 +12,8 @@ Below is the default configuration file. All of these options can be found in th
     "onWindowClose": 0, // window on close behavior (X). 0 = "Minimize to Tray", 1 = "Close".
     "useCustomTimeout": false, // Enable/Disable custom inactive timeout duration.
     "inactiveTimeoutDuration": 15, // the duration of the inactive timeout in minutes.
-    "checkForUpdatesOnStartup": false // Enable/Disable checking GitHub for a newer release on startup.
+    "checkForUpdatesOnStartup": true // Enable/Disable checking GitHub for a newer release on startup.
+    "includePreReleases": false // Enable/Disable including pre-release versions when checking for updates.
   },
   // "Listener Configuration" settings
   "listener": {
@@ -27,13 +28,20 @@ Below is the default configuration file. All of these options can be found in th
       "volcminer": true,
       "goldshell": true,
       "sealminer": true,
-      "elphapex": true
+      "elphapex": true,
+      "auradine": true,
+      "ipollo": true,
+      "hivegpu": true, // IPRD backend only
     },
     // "IPR Daemon" settings
     "IPRD": {
       "enableIPRD": false, // Enable/Disable IPR Daemon backend listener, replaces built-in listener if enabled.
+      "autoDiscover": false, // Enable/Disable auto-discovery of IPR Daemon backend from the network.
       "socketAddress": "" // socket address for host of IPR Daemon, in the form of <HOST>:<PORT>
-    }
+      "autoReconnect": false, // Enable/Disable auto-reconnection to IPR Daemon backend.
+      "maxReconnectAttempts": 3, // Maximum number of reconnect attempts to attempt before giving up.
+      "selectedSocketPreset": -1, // Selected socket preset to use for connection.
+      "socketPresets": [] // Stored socket addresses.
   },
   // "API" Settings
   "api": {
@@ -44,10 +52,12 @@ Below is the default configuration file. All of these options can be found in th
       "iceriverAltPasswd": "",
       "whatsminerAltPasswd": "",
       "goldshellAltPasswd": "",
-      "hammerAltPasswd": "",
+      "hammerAltPasswd": "", // unused
       "volcminerAltPasswd": "",
       "elphapexAltPasswd": "",
-      "sealminerAltPasswd": ""
+      "sealminerAltPasswd": "",
+      "auradineAltPasswd": "",
+      "ipolloAltPasswd": "" // unused
     },
     // set Alternative passwords for firmwares
     "firmware": {
@@ -77,12 +87,15 @@ Below is the default configuration file. All of these options can be found in th
       "alwaysOpenIP": false, // Enable/Disable always open received IP address in default browser.
       "disableInactiveTimer": false, // Enable/Disable the inactive listening timer.
       "autoStartOnLaunch": false, // Enable/Disable auto start listeners on application launch.
-      "clearTableOnStop": false, // Enable/Disable clear ID Table data when listening is stopped.
       "confirmsStayOnTop": false // Enable/Disable IP Confirmations stay on top of desktop.
+      "idTable": {
+        "enableTableLiveCapture": false, // Enable/Disable live capture mode (always insert new entries to mimic real-time capture)
+        "clearTableOnStop": false // Enable/Disable clear ID Table data when listening is stopped.
+      }
     },
     "views": {
       "showIDTable": false, // Enable/Disable the ID Table view.
-      "showPoolConfigurator": false // Enable/Disable the Pool Configurator view.
+      "showConfigurator": false // Enable/Disable the Configurator view.
     }
   }
 }
