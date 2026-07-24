@@ -48,6 +48,7 @@ class FakeServiceInfo(ServiceInfo):
 
 class FakeZeroconf:
     def __init__(self) -> None:
+        self.created_thread_id = threading.get_ident()
         self.info: FakeServiceInfo | None = FakeServiceInfo()
         self.closed = 0
         self.requests: list[tuple[str, str, int]] = []
@@ -160,6 +161,7 @@ class TestIPRDService(unittest.TestCase):
         self.assertIsInstance(zeroconf, FakeZeroconf)
         self.assertIsInstance(browser, FakeServiceBrowser)
         assert isinstance(zeroconf, FakeZeroconf)
+        self.assertNotEqual(zeroconf.created_thread_id, threading.get_ident())
         assert isinstance(browser, FakeServiceBrowser)
 
         listener.stop()

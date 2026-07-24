@@ -6,6 +6,7 @@
 import ipaddress
 import logging
 import threading
+from concurrent.futures import ThreadPoolExecutor
 
 from pydantic import BaseModel, ConfigDict
 from PySide6.QtCore import QObject, Signal, Slot
@@ -15,6 +16,15 @@ logger = logging.getLogger(__name__)
 
 IPRD_SERVICE_TYPE = "_iprd._tcp.local."
 DEFAULT_RESOLVE_TIMEOUT_MS = 3000
+
+
+def _create_zeroconf() -> Zeroconf:
+    """Create the synchronous client outside any running asyncio event loop."""
+    with ThreadPoolExecutor(
+        max_workers=1,
+        thread_name_prefix="iprd-zeroconf-init",
+    ) as executor:
+        return executor.submit(Zeroconf).result()
 
 
 class IPRDService(BaseModel):
@@ -129,7 +139,7 @@ class IPRDServiceListener(QObject, ServiceListener):
                 if self._power_suspended:
                     self._resume_after_suspend = True
                     return
-                zeroconf = Zeroconf()
+                zeroconf = _create_zeroconf()
                 self._session += 1
                 self._revisions.clear()
                 self._services.clear()
