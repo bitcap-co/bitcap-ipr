@@ -71,6 +71,7 @@ class BaseHTTPClient(BaseClient):
             timeout = settings.get("api_function_timeout", 5)
         async with self._new_client(verify=verify, timeout=timeout) as c:
             if self.token:
+                c.headers.update({"Token": self.token})
                 c.headers.update({"Authorization": "Bearer " + self.token})
             if self.digest:
                 c.auth = self.digest
