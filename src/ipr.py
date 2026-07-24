@@ -648,7 +648,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 0,
                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED,
             )
-        except Exception as exc:  # pragma: no cover - platform specific
+        except Exception as exc:  # pragma: no cover - platform specific  # noqa: BLE001
             logger.warning(f" could not enable native window snapping: {exc}")
 
     # frameless window resizing
@@ -2604,7 +2604,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         await self._start_locate(rows)
 
     async def refresh_miner(self, row: int):
-        ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(row)
+        ip_addr, miner_type, _ = self.retrieve_miner_from_table(row)
         logger.info(f" refresh miner {ip_addr}.")
         alt_pwd = self.get_client_auth(miner_type.value)
         res = await self.asic.get_miner_data(miner_type, ip_addr, alt_pwd=alt_pwd)
@@ -2658,7 +2658,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             return self.notify("Status :: Failed action: no selected IPs.", 5000)
         index = selected_ips[0]
         source_row = self.id_proxy.mapToSource(index).row()
-        ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(source_row)
+        ip_addr, miner_type, _ = self.retrieve_miner_from_table(source_row)
         alt_pwd = self.get_client_auth(miner_type.value)
         res = await self.asic.get_miner_pool_conf(miner_type, ip_addr, alt_pwd=alt_pwd)
         if isinstance(res.error, UnknownClientError):
@@ -2700,7 +2700,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         tasks = []
         for index in selected_ips:
             source_row = self.id_proxy.mapToSource(index).row()
-            ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(source_row)
+            ip_addr, miner_type, _ = self.retrieve_miner_from_table(source_row)
             miner = self.id_model.miner_at(source_row)
             macaddr = miner.mac
             serial = miner.serial

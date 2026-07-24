@@ -175,9 +175,7 @@ def fetch_latest_release(
     resp.raise_for_status()
     # GitHub returns releases newest-first; max() keeps the first of any tie,
     # so competing previews of the same base resolve to the most recent one.
-    releases = [
-        release for release in resp.json() if not release.get("draft")
-    ]
+    releases = [release for release in resp.json() if not release.get("draft")]
     if not releases:
         return _release_info({})
     latest = max(releases, key=lambda r: version_key(r.get("tag_name", "")))
@@ -417,7 +415,7 @@ class DebInstaller(QThread):
     @staticmethod
     def _query(args: list[str]) -> str:
         try:
-            proc = subprocess.run(args, capture_output=True, text=True)
+            proc = subprocess.run(args, check=False, capture_output=True, text=True)
         except OSError:
             return ""
         return proc.stdout.strip() if proc.returncode == 0 else ""
@@ -429,6 +427,7 @@ class DebInstaller(QThread):
         try:
             proc = subprocess.run(
                 ["pkexec", "dpkg", "-i", self._deb],
+                check=False,
                 capture_output=True,
                 text=True,
             )
