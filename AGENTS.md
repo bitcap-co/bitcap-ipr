@@ -24,13 +24,16 @@ The core functionality of the IP reporter is resides in `src/mod`. These are the
  - httpx for facilitating async HTTP method requests
 
 
- ## Environment Guide
- - Do not use system python3, always `.venv/bin/python` for running/testing this project.
- - Run tests from `src/`, not the root directory.
- ```bash
-cd src && ../.venv/bin/python -m unittest discover tests/
- ```
- - Use pydantic models for dataclasses/model validation/serialization
+## Environment Guide
+- Do not use system `python3`; always use `.venv/bin/python` or `poetry run python` for this project.
+- Poetry is the dependency manager. Treat `pyproject.toml` and `poetry.lock` as authoritative; do not add or manually maintain a `requirements.txt` file.
+- Install locked runtime and development dependencies with:
+  ```bash
+  make install
+  # Equivalent: poetry install --with dev --no-interaction
+  ```
+- Run tests through `make test`, which verifies generated metadata and runs the suite from `src/`.
+- Use pydantic models for dataclasses/model validation/serialization.
 
 ## UI generation
 There are included tools in the PySide6 suite that can automatically generate UI classes and app resources into Python code.
@@ -45,25 +48,54 @@ cd src/ui/ && pyside6-rcc ipr.qrc -o resources.py  # generate app resources/asse
 ```
 
 ## Test suite
-To test suite, run from `src/` directory:
+Run the complete test suite from the repository root:
+```bash
+make test
+```
+
+The equivalent direct command, which must run from `src/`, is:
 ```bash
 cd src/ && ../.venv/bin/python -m unittest discover tests/
 ```
 
-## Build & Run
-bitcap-ipr is built using Nuitka to produce compiled binaries for multiple systems (Windows, MacOS, Linux).
-```bash
-.venv/bin/python -m nuitka src/main.py --assume-yes-for-downloads --standalone --output-file=BitCapIPR --output-dir=dist/BitCapIPR
+## Application Metadata
+- `pyproject.toml` is the source of truth for the application version, description, URLs, and static application/company metadata.
+- `src/app_metadata.py` is generated from `pyproject.toml`; do not edit it by hand.
+- After changing metadata or the version, regenerate and validate it:
+  ```bash
+  make metadata
+  make metadata-check
+  ```
+- Tagged builds validate that the Git tag, such as `v1.6.0`, matches the project version.
 
-.venv/bin/python -m nuitka src/main.py --assume-yes-for-downloads --msvc=latest --windows-console-mode=disable --standalone --output-file=BitCapIPR --output-dir=dist/BitCapIPR # windows (msvc)
+## Build & Run
+BitCap IPReporter uses Nuitka to produce binaries for Windows, macOS, and Linux. The shared build entry point is `tools/build_app.py`; do not duplicate Nuitka or packaging commands in workflows or platform scripts.
+
+```bash
+# Build a portable archive for the current platform.
+make build
+
+# Build the portable archive and platform package/installer.
+make package
+
+# Cross-platform direct equivalents when make is unavailable.
+poetry run python tools/build_app.py --portable-only
+poetry run python tools/build_app.py
 ```
-Output artifacts are put in `dist/`
+
+Nuitka's invariant project options remain in `src/main.py`. Variable metadata, output paths, and packaging behavior belong in `tools/build_app.py`, `tools/build_support.py`, or the modules under `tools/builders/`.
+
+Output artifacts and `nuitka-report.xml` are written to `dist/`.
 
 ### Running
-`src/main.py` can be ran locally with Python:
+Run the application locally with:
 ```bash
-.venv/bin/python src/main.py
+make run
+# Equivalent: .venv/bin/python src/main.py
 ```
 
 ## Releases
-bitcap-ipr artifacts/releases are automatically built on git tags with workflows
+- `.github/workflows/build.yml` builds release artifacts with Python 3.14 on Git tags matching `v*`.
+- The release workflow also supports manual runs through `workflow_dispatch`.
+- CI must install dependencies from `poetry.lock` and call `tools/build_app.py`, keeping local and CI builds aligned.
+- Release tags must match the version in `pyproject.toml`; generate `src/app_metadata.py` before tagging.
