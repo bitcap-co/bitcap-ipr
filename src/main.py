@@ -36,10 +36,6 @@
 # nuitka-project: --include-data-dir=resources/app=resources/app
 # nuitka-project: --include-data-files=src/ui/theme.qss=ui/theme.qss
 # nuitka-project: --remove-output
-# nuitka-project: --company-name="Bit Capital Group"
-# nuitka-project: --product-name="BitCap IPReporter"
-# nuitka-project: --file-version=0.0.0.0
-# nuitka-project: --product-version=0.0.0.0
 
 
 import asyncio
