@@ -13,21 +13,16 @@ from typing import Any
 from platformdirs import user_data_dir, user_downloads_dir, user_log_dir
 from PySide6.QtCore import qVersion
 
+from metadata import APP_METADATA
+
 CURR_PLATFORM = sys.platform
 BASEDIR = os.path.dirname(__file__)
 IPR_THEME = Path(BASEDIR, "ui", "theme.qss")
 IPR_DEFAULT_CONFIG = Path(BASEDIR, "resources", "app", "config.json.default")
 IPR_METADATA = {
-    "name": "BitCap IPReporter",
-    "appname": "BitCapIPR",
-    "appversion": "1.5.0",
+    **APP_METADATA,
     "qt": qVersion(),
     "python": ".".join(map(str, sys.version_info[:3])),
-    "appauthor": "BitCap",
-    "author": "MatthewWertman",
-    "source": "https://github.com/bitcap-co/bitcap-ipr",
-    "company": "Bit Capital Group",
-    "desc": "cross-platform IP reporter that listens for AntMiner, IceRiver, and Whatsminer ASICs.",
 }
 MAX_ROTATE_LOG_FILES = 4
 
