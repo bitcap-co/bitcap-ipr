@@ -23,7 +23,7 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.10
 
 ROOT = Path(__file__).resolve().parents[1]
 PYPROJECT_PATH = ROOT / "pyproject.toml"
-RUNTIME_METADATA_PATH = ROOT / "src" / "app_metadata.py"
+RUNTIME_METADATA_PATH = ROOT / "src" / "metadata.py"
 
 
 @dataclass(frozen=True)
