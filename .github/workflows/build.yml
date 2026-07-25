@@ -1,169 +1,108 @@
 name: Build and Release BitCap IPReporter
+
 on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
 
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-22.04
-            arch: x64
-          - os: ubuntu-latest
-            arch: x64
+            platform-tag: ubuntu-22.04-x64
+          - os: ubuntu-24.04
+            platform-tag: ubuntu-24.04-x64
           - os: macos-15-intel
-            arch: x64
+            platform-tag: macos-x64
           - os: macos-latest
-            arch: arm64
+            platform-tag: macos-arm64
           - os: windows-latest
-            arch: x64
+            platform-tag: win-x64
     runs-on: ${{ matrix.os }}
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.14"
 
-      - name: Setup dependencies
+      - name: Install Poetry
+        run: python -m pip install --upgrade pip poetry==2.2.1
+
+      - name: Install locked dependencies
         run: |
-          pip install -U pip
-          pip install -r requirements.txt
+          poetry config virtualenvs.create false
+          poetry install --with dev --no-interaction --no-root
 
-      - name: Linux - Build standalone with Nuitka
-        uses: Nuitka/Nuitka-Action@main
-        with:
-          script-name: src/main.py
-          output-file: BitCapIPR
-          output-dir: dist/BitCapIPR
-          mode: standalone
+      - name: Install Linux build dependencies
         if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install --yes ccache libegl1 patchelf zip
 
-      - name: Linux - Run package script
-        shell: bash
-        run: |
-          mv dist/BitCapIPR/main.dist dist/BitCapIPR/bitcap-ipr
-          cp README.md CONFIGURATION.md dist/BitCapIPR/
-          ln -s bitcap-ipr/BitCapIPR dist/BitCapIPR/BitCapIPR
-          (cd dist && zip -r --symlinks BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}-portable.zip .)
-          rm dist/BitCapIPR/README.md dist/BitCapIPR/CONFIGURATION.md dist/BitCapIPR/BitCapIPR
-
-          [ -e package ] && rm -rf package
-          mkdir -p package/DEBIAN
-          mkdir -p package/opt/bitcap-ipr
-          mkdir -p package/usr/share/applications
-          mkdir -p package/usr/share/icons/hicolor/128x128/apps
-
-          echo "Package: bitcap-ipr" > package/DEBIAN/control
-          echo "Version: ${GITHUB_REF_NAME##v}" >> package/DEBIAN/control
-          echo "Maintainer: MatthewWertman" >> package/DEBIAN/control
-          echo "Architecture: amd64" >> package/DEBIAN/control
-          echo "Homepage: https://github.com/bitcap-co/bitcap-ipr" >> package/DEBIAN/control
-          echo "Description: cross-platform IP Reporter that listens for AntMiners, IceRivers, and Whatsminers." >> package/DEBIAN/control
-
-          (cd dist/BitCapIPR/bitcap-ipr && cp -r . ../../../package/opt/bitcap-ipr)
-          cp resources/app/icons/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.png package/usr/share/icons/hicolor/128x128/apps/
-          cp resources/linux/bitcap-ipr.desktop package/usr/share/applications/
-
-          find package/opt/bitcap-ipr -type f -exec chmod 644 -- {} +
-          find package/opt/bitcap-ipr -type d -exec chmod 755 -- {} +
-          find package/usr/share -type f -exec chmod 644 -- {} +
-          chmod +x package/opt/bitcap-ipr/BitCapIPR
-
-          dpkg-deb --build --root-owner-group package "dist/BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}.deb"
-        if: runner.os == 'Linux'
-
-      - name: MacOS - Remove problematic brew libs
+      - name: Remove problematic Homebrew OpenSSL libraries
+        if: matrix.os == 'macos-15-intel'
         run: |
           brew remove --force --ignore-dependencies openssl@3
           brew cleanup openssl@3
-        if: runner.os == 'macOS' && runner.arch == 'X64'
 
-      - name: MacOS - Build standalone with Nuitka
-        uses: Nuitka/Nuitka-Action@main
-        with:
-          script-name: src/main.py
-          output-file: BitCapIPR
-          output-dir: dist
-          macos-app-name: BitCapIPR
-          macos-app-icon: resources/app/icons/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.icns
+      - name: Install macOS packaging dependencies
         if: runner.os == 'macOS'
+        run: brew install create-dmg
 
-      - name: MacOS - Run package script
-        shell: bash
-        run: |
-          mv dist/main.app dist/BitCapIPR.app
-          cp README.md dist/BitCapIPR.app/Contents
-          cp CONFIGURATION.md dist/BitCapIPR.app/Contents
-          zip -9 -y -r dist/BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}-portable.zip dist/BitCapIPR.app
-          rm dist/BitCapIPR.app/Contents/README.md dist/BitCapIPR.app/Contents/CONFIGURATION.md
-
-          brew install create-dmg
-          mkdir -p dist/dmg
-          cp -r dist/BitCapIPR.app dist/dmg
-          DMG_FS="HFS+"
-          create-dmg \
-            --volname "BitCapIPR" \
-            --filesystem $DMG_FS \
-            --volicon "resources/app/icons/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.icns" \
-            --window-pos 200 120 \
-            --window-size 600 300 \
-            --icon-size 100 \
-            --icon "BitCapIPR.app" 175 120 \
-            --hide-extension "BitCapIPR.app" \
-            --app-drop-link 425 120 \
-            "dist/BitCapIPR-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}-setup.dmg" \
-            "dist/dmg/"
-        if: runner.os == 'macOS'
-
-      - name: Windows - Build standalone with Nuitka
-        uses: Nuitka/Nuitka-Action@main
-        with:
-          script-name: src/main.py
-          output-file: BitCapIPR.exe
-          output-dir: dist/BitCapIPR
-          mode: standalone
-          windows-console-mode: disable
-          windows-icon-from-ico: resources/app/icons/BitCapLngLogo_IPR_Full_ORG_BLK-02_Square.ico
+      - name: Install Windows packaging dependencies
         if: runner.os == 'Windows'
+        run: choco install innosetup --yes --no-progress
 
-      - name: Windows - Run package script
-        shell: pwsh
-        run: |
-          Rename-Item -Path .\dist\BitCapIPR\main.dist -NewName bitcap-ipr
+      - name: Verify generated metadata
+        run: poetry run python tools/project_metadata.py --check
 
-          Copy-Item .\README.md .\dist\BitCapIPR
-          Copy-Item .\CONFIGURATION.md .\dist\BitCapIPR
-          Compress-Archive -Path .\dist\BitCapIPR -DestinationPath .\dist\BitCapIPR-${{ github.ref_name }}-win-${{ matrix.arch }}-portable.zip -Force
-          Remove-Item -Path .\dist\BitCapIPR\README.md,.\dist\BitCapIPR\CONFIGURATION.md
+      - name: Build tagged release
+        if: github.ref_type == 'tag'
+        run: >-
+          poetry run python tools/build_app.py
+          --platform-tag "${{ matrix.platform-tag }}"
+          --expected-version "${{ github.ref_name }}"
 
-          choco install innosetup
-          ISCC.exe .\setup\setup.iss /O".\dist\"
-          Rename-Item -Path .\dist\BitCapIPR-setup.exe -NewName "BitCapIPR-${{ github.ref_name }}-win-${{ matrix.arch }}-setup.exe"
-        if: runner.os == 'Windows'
+      - name: Build manual release
+        if: github.ref_type != 'tag'
+        run: >-
+          poetry run python tools/build_app.py
+          --platform-tag "${{ matrix.platform-tag }}"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-${{ runner.arch }}
+          name: ${{ matrix.platform-tag }}
+          if-no-files-found: error
+          retention-days: 14
           path: |
             dist/*.zip
             dist/*.dmg
             dist/*.deb
             dist/*-setup.exe
+            dist/nuitka-report.xml
 
   release:
-    name: Create release
+    name: Create draft release
+    if: github.ref_type == 'tag'
     permissions:
       contents: write
     needs: build
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
 
-      - name: Download and extract artifacts
+    steps:
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
@@ -175,13 +114,7 @@ jobs:
           draft: true
           prerelease: false
           files: |
-            ${{ github.workspace }}/artifacts/ubuntu-22.04-X64/*.zip
-            ${{ github.workspace }}/artifacts/ubuntu-22.04-X64/*.deb
-            ${{ github.workspace }}/artifacts/ubuntu-latest-X64/*.zip
-            ${{ github.workspace }}/artifacts/ubuntu-latest-X64/*.deb
-            ${{ github.workspace }}/artifacts/macos-15-intel-X64/*.zip
-            ${{ github.workspace }}/artifacts/macos-15-intel-X64/*.dmg
-            ${{ github.workspace }}/artifacts/macos-latest-ARM64/*.zip
-            ${{ github.workspace }}/artifacts/macos-latest-ARM64/*.dmg
-            ${{ github.workspace }}/artifacts/windows-latest-X64/*.zip
-            ${{ github.workspace }}/artifacts/windows-latest-X64/*-setup.exe
+            artifacts/**/*.zip
+            artifacts/**/*.dmg
+            artifacts/**/*.deb
+            artifacts/**/*-setup.exe
