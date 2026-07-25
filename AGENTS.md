@@ -37,14 +37,16 @@ The core functionality of the IP reporter is resides in `src/mod`. These are the
 
 ## UI generation
 There are included tools in the PySide6 suite that can automatically generate UI classes and app resources into Python code.
-
- - Generate UI classes from .ui forms using `pyside6-uic`
- ```bash
+```bash
+make gen-uic # generate UI classes from .ui forms
+```
+or specific .ui form with direct command
+```bash
 cd src/ui/ && pyside6-uic forms/mainwindow.ui -o MainWindow.py  # generate new MainWindow.py from mainwindow.ui file.
 ```
- - Generate app resources from `ipr.qrc` file using `pyside6-rcc`
 ```bash
-cd src/ui/ && pyside6-rcc ipr.qrc -o resources.py  # generate app resources/assets from ipr.qrc file.
+make gen-rcc # generate app resources/assets from ipr.qrc file
+# equivalent: cd src/ui/ && pyside6-rcc ipr.qrc -o resources.py
 ```
 
 ## Test suite
