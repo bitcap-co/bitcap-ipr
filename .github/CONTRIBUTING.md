@@ -42,28 +42,47 @@ If you are using Linux, make sure you have the following system depenedencies:
  - `ccache` (Optional; used to speed up re-compilication)
 Which can be installed with your package manager.
 ```bash
-# make sure dev dependencies are installed in your venv
+# Install the locked runtime and development dependencies.
 poetry install --with dev
-# verify nuitka version
-python3 -m nuitka --version
-```
-Within the root of the repo, there are some build scripts for Linux and Windows. Execute from project root.
-#### Building Linux Binaries
-```bash
-# building for Linux example, will build .deb package and portable version (archive)
-./build_linux.sh -V 1.0.0
-# to just build portable/archive, add --archive-only
-./build_linux.sh -V 1.0.0 --archive-only
-```
-#### Building Window Binaries
-```powershell
-# building for Windows example, will build setup.exe and portable version (archive)
-py.exe build_win.py -v 0.0.0
-# to just build portable/archive, add --no-setup
-py.exe build_win.py -v 0.0.0 --no-setup
+# Verify the Nuitka version selected by poetry.lock.
+poetry run python -m nuitka --version
 ```
 
-Artifacts will be put in the generated `dist` folder after completion.
+Builds on every platform use the same Python entry point. The package version and
+application metadata come from `pyproject.toml`.
+
+```bash
+# Build the portable archive for the current platform.
+make build
+
+# Build the portable archive and the platform package/installer.
+make package
+
+# Cross-platform commands when make is unavailable (for example, Windows).
+poetry run python tools/build_app.py --portable-only
+poetry run python tools/build_app.py
+```
+
+Linux packaging requires `dpkg-deb` and `zip`. macOS installer builds require
+`create-dmg`, and Windows installer builds require Inno Setup 6. Artifacts and a
+Nuitka compilation report are written to `dist/`.
+
+The old `build_linux.sh` and `build_win.py` commands remain as compatibility
+wrappers around `tools/build_app.py`.
+
+#### Updating release metadata
+
+Edit the version and other static application metadata in `pyproject.toml`, then
+regenerate and verify the runtime constants:
+
+```bash
+make metadata
+make metadata-check
+```
+
+A tagged build fails if the tag does not match the project version. For example,
+`v1.6.0` requires `version = "1.6.0"` in `pyproject.toml`. Release builds can also
+be started manually from the GitHub Actions workflow.
 
 ### Debugging
 The application has a logging system which is very useful for debugging. Within the enviroment, it is located at `./Logs/ipr.log`. You can also open the log within your default text editor within the app at "Help" -> "Open Log" in the menu.
@@ -86,7 +105,10 @@ For now, there is only one test that verifies that the lm module is working prop
 
 To verify, can simply run:
 ```bash
-cd src && python3 -m unittest discover tests/
+make test
+
+# Equivalent direct command:
+cd src && ../.venv/bin/python -m unittest discover tests/
 ```
 
 #### Simulating IP Report messages
