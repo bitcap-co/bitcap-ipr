@@ -966,7 +966,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def update_settings(self):
         logger.info(" update settings.")
-        settings = self.config.dict
+        settings = self.config.as_dict
         settings["instance"] = {
             "geometry": [
                 self.geometry().x(),

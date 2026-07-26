@@ -173,7 +173,7 @@ class IPRConfig:
         self.config_path = get_config_file_path()
 
     @property
-    def dict(self) -> dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         """Get the IPRConfigModel as dictionary.
 
         Returns:
