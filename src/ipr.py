@@ -2849,7 +2849,6 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         curr_passwd_text = self.linePasswdCurrent.text()
         new_passwd_text = self.linePasswdNew.text()
-        confirm_passwd_text = self.linePasswdConfirm.text()
 
         def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
             if miner_type in (
@@ -2873,16 +2872,10 @@ class IPR(QMainWindow, Ui_MainWindow):
                 else api_settings.get_auth(miner_type.value).default
             )
             new_passwd = new_passwd_text
-            confirm_passwd = confirm_passwd_text
 
             # use current passwd as alt_pwd for authentication
             return self.asic.update_miner_passwd(
-                miner_type,
-                ip_addr,
-                curr_passwd,
-                curr_passwd,
-                new_passwd,
-                confirm_passwd,
+                miner_type, ip_addr, curr_passwd, curr_passwd, new_passwd
             )
 
         await self._run_bulk_action("Update Passwords", rows, make_coro)
