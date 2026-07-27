@@ -309,6 +309,87 @@ class Ui_MainWindow(object):
         self.verticalLayout_17.addWidget(self.pool3Config)
 
         self.tabConfigurator.addTab(self.poolConfigurator, "")
+        self.passwdConfigurator = QWidget()
+        self.passwdConfigurator.setObjectName(u"passwdConfigurator")
+        self.verticalLayout_14 = QVBoxLayout(self.passwdConfigurator)
+        self.verticalLayout_14.setObjectName(u"verticalLayout_14")
+        self.widget = QWidget(self.passwdConfigurator)
+        self.widget.setObjectName(u"widget")
+        sizePolicy.setHeightForWidth(self.widget.sizePolicy().hasHeightForWidth())
+        self.widget.setSizePolicy(sizePolicy)
+        self.widget.setMinimumSize(QSize(0, 50))
+        self.horizontalLayout_9 = QHBoxLayout(self.widget)
+        self.horizontalLayout_9.setSpacing(6)
+        self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
+        self.horizontalLayout_9.setContentsMargins(0, 0, 0, 0)
+        self.checkNonDefaultPasswd = QCheckBox(self.widget)
+        self.checkNonDefaultPasswd.setObjectName(u"checkNonDefaultPasswd")
+
+        self.horizontalLayout_9.addWidget(self.checkNonDefaultPasswd)
+
+        self.pushIPRStoreAlternativePasswd = QPushButton(self.widget)
+        self.pushIPRStoreAlternativePasswd.setObjectName(u"pushIPRStoreAlternativePasswd")
+
+        self.horizontalLayout_9.addWidget(self.pushIPRStoreAlternativePasswd)
+
+        self.horizontalSpacer_7 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_9.addItem(self.horizontalSpacer_7)
+
+
+        self.verticalLayout_14.addWidget(self.widget)
+
+        self.gridLayout_21 = QGridLayout()
+        self.gridLayout_21.setSpacing(15)
+        self.gridLayout_21.setObjectName(u"gridLayout_21")
+        self.gridLayout_21.setContentsMargins(9, 9, 9, 9)
+        self.linePasswdNew = QLineEdit(self.passwdConfigurator)
+        self.linePasswdNew.setObjectName(u"linePasswdNew")
+        sizePolicy.setHeightForWidth(self.linePasswdNew.sizePolicy().hasHeightForWidth())
+        self.linePasswdNew.setSizePolicy(sizePolicy)
+        self.linePasswdNew.setMinimumSize(QSize(180, 25))
+        self.linePasswdNew.setEchoMode(QLineEdit.EchoMode.Password)
+
+        self.gridLayout_21.addWidget(self.linePasswdNew, 1, 1, 1, 1)
+
+        self.linePasswdCurrent = QLineEdit(self.passwdConfigurator)
+        self.linePasswdCurrent.setObjectName(u"linePasswdCurrent")
+        self.linePasswdCurrent.setEnabled(False)
+        sizePolicy.setHeightForWidth(self.linePasswdCurrent.sizePolicy().hasHeightForWidth())
+        self.linePasswdCurrent.setSizePolicy(sizePolicy)
+        self.linePasswdCurrent.setMinimumSize(QSize(180, 25))
+        self.linePasswdCurrent.setEchoMode(QLineEdit.EchoMode.Password)
+
+        self.gridLayout_21.addWidget(self.linePasswdCurrent, 0, 1, 1, 1)
+
+        self.label_32 = QLabel(self.passwdConfigurator)
+        self.label_32.setObjectName(u"label_32")
+
+        self.gridLayout_21.addWidget(self.label_32, 1, 0, 1, 1)
+
+        self.label_31 = QLabel(self.passwdConfigurator)
+        self.label_31.setObjectName(u"label_31")
+
+        self.gridLayout_21.addWidget(self.label_31, 0, 0, 1, 1)
+
+        self.label_33 = QLabel(self.passwdConfigurator)
+        self.label_33.setObjectName(u"label_33")
+
+        self.gridLayout_21.addWidget(self.label_33, 2, 0, 1, 1)
+
+        self.linePasswdConfirm = QLineEdit(self.passwdConfigurator)
+        self.linePasswdConfirm.setObjectName(u"linePasswdConfirm")
+        sizePolicy.setHeightForWidth(self.linePasswdConfirm.sizePolicy().hasHeightForWidth())
+        self.linePasswdConfirm.setSizePolicy(sizePolicy)
+        self.linePasswdConfirm.setMinimumSize(QSize(180, 25))
+        self.linePasswdConfirm.setEchoMode(QLineEdit.EchoMode.Password)
+
+        self.gridLayout_21.addWidget(self.linePasswdConfirm, 2, 1, 1, 1)
+
+
+        self.verticalLayout_14.addLayout(self.gridLayout_21)
+
+        self.tabConfigurator.addTab(self.passwdConfigurator, "")
 
         self.verticalLayout_13.addWidget(self.tabConfigurator)
 
@@ -535,7 +616,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 457, 849))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 478, 849))
         self.verticalLayout_5 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_5.setSpacing(15)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
@@ -809,7 +890,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 255, 986))
+        self.scrollAPI.setGeometry(QRect(0, 0, 476, 986))
         self.verticalLayout_8 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_8.setSpacing(15)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
@@ -1145,7 +1226,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollLogs = QWidget()
         self.scrollLogs.setObjectName(u"scrollLogs")
-        self.scrollLogs.setGeometry(QRect(0, 0, 368, 242))
+        self.scrollLogs.setGeometry(QRect(0, 0, 741, 242))
         self.verticalLayout_11 = QVBoxLayout(self.scrollLogs)
         self.verticalLayout_11.setSpacing(15)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
@@ -1341,6 +1422,33 @@ class Ui_MainWindow(object):
         self.label_23.setText(QCoreApplication.translate("MainWindow", u"Password:", None))
         self.label_23.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.tabConfigurator.setTabText(self.tabConfigurator.indexOf(self.poolConfigurator), QCoreApplication.translate("MainWindow", u"Pool", None))
+#if QT_CONFIG(tooltip)
+        self.checkNonDefaultPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Enable current password field for non-default passwords.", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkNonDefaultPasswd.setText(QCoreApplication.translate("MainWindow", u"Non-Default", None))
+#if QT_CONFIG(tooltip)
+        self.pushIPRStoreAlternativePasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Store new password as alternative for type.", None))
+#endif // QT_CONFIG(tooltip)
+        self.pushIPRStoreAlternativePasswd.setText(QCoreApplication.translate("MainWindow", u"Store as alternative", None))
+#if QT_CONFIG(tooltip)
+        self.linePasswdNew.setToolTip(QCoreApplication.translate("MainWindow", u"Supply new password.", None))
+#endif // QT_CONFIG(tooltip)
+        self.linePasswdNew.setPlaceholderText("")
+#if QT_CONFIG(tooltip)
+        self.linePasswdCurrent.setToolTip(QCoreApplication.translate("MainWindow", u"Supply current non-default password.", None))
+#endif // QT_CONFIG(tooltip)
+        self.linePasswdCurrent.setPlaceholderText("")
+        self.label_32.setText(QCoreApplication.translate("MainWindow", u"New Password", None))
+        self.label_32.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+        self.label_31.setText(QCoreApplication.translate("MainWindow", u"Current Password", None))
+        self.label_31.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+        self.label_33.setText(QCoreApplication.translate("MainWindow", u"Confirm Password", None))
+        self.label_33.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.linePasswdConfirm.setToolTip(QCoreApplication.translate("MainWindow", u"Confirm new password.", None))
+#endif // QT_CONFIG(tooltip)
+        self.linePasswdConfirm.setPlaceholderText("")
+        self.tabConfigurator.setTabText(self.tabConfigurator.indexOf(self.passwdConfigurator), QCoreApplication.translate("MainWindow", u"Password", None))
 #if QT_CONFIG(tooltip)
         self.btnConfiguratorCancel.setToolTip(QCoreApplication.translate("MainWindow", u"Cancel configuration", None))
 #endif // QT_CONFIG(tooltip)
