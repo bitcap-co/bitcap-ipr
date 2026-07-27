@@ -182,6 +182,9 @@ class LuxminerRPCClient(CGMinerRPCClient):
     async def reboot(self) -> dict:
         return await self.send_privileged_command("rebootdevice")
 
+    async def update_passwd(self, curr: str, new: str, confirm_new: str) -> dict:
+        return await super().update_passwd(curr, new, confirm_new)
+
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
     ) -> dict:

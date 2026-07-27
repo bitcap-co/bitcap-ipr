@@ -348,6 +348,16 @@ class WhatsminerRPCClient(BaseRPCClient):
     async def reboot(self) -> dict:
         return await self.send_privileged_command("reboot")
 
+    async def update_passwd(self, curr: str, new: str, confirm_new: str) -> dict:
+        if new != confirm_new:
+            raise APIError("New password does not match confirmation")
+
+        # check if password length is greater than 8 bytes.
+        if len(new.encode("utf-8")) > 8:
+            raise APIError("Password must be 8 characters or less")
+
+        return await self.send_privileged_command("update_pwd", old=curr, new=new)
+
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
     ) -> dict:
@@ -486,6 +496,20 @@ class BTMinerV3PoolConf(RootModel[list[BTMinerV3ConfPool]]):
     pass
 
 
+class BTMinerV3PasswdChange(BaseModel):
+    account: str
+    new: str
+    old: str
+
+
+def _btv3_encrypt_param(token_str: str, param: Any) -> str:
+    param_str = json.dumps(param)
+    padding = 16 - len(param_str) % 16
+    aligned = param_str + (chr(padding) * padding)
+    cipher = AES.new(hashlib.sha256(token_str.encode("utf-8")).digest(), AES.MODE_ECB)
+    return base64.b64encode(cipher.encrypt(aligned.encode("utf-8"))).decode("utf-8")
+
+
 class WhatsminerTCPClient(BaseTCPClient):
     def __init__(
         self,
@@ -521,21 +545,22 @@ class WhatsminerTCPClient(BaseTCPClient):
             cmd = BTMinerV3PriviledgedCommand(
                 cmd=command, param=param, ts=ts, account=self.username, token=str_token
             )
-            if command == "set.miner.pools" and param:
+            # encrypt param for certain commands (set.miner.pools, set.user.change_passwd)
+            if (
+                command == "set.miner.pools"
+                or command == "set.user.change_passwd"
+                and param
+            ):
                 try:
-                    BTMinerV3PoolConf.model_validate(param)
+                    match command:
+                        case "set.miner.pools":
+                            BTMinerV3PoolConf.model_validate(param)
+                        case "set.user.change_passwd":
+                            BTMinerV3PasswdChange.model_validate(param)
                 except ValidationError:
                     raise APIError("Invalid param")
                 else:
-                    param_str = json.dumps(param)
-                    padding = 16 - (len(param_str) % 16)
-                    aligned = param_str + (chr(padding) * padding)
-                    aes_key = hashlib.sha256(token_str.encode("utf-8")).digest()
-                    cipher = AES.new(aes_key, AES.MODE_ECB)
-                    enc_param = base64.b64encode(
-                        cipher.encrypt(aligned.encode())
-                    ).decode()
-                    cmd.param = enc_param
+                    cmd.param = _btv3_encrypt_param(token_str, param)
         else:
             cmd = BTMinerV3Command(cmd=command, param=param)
         cmd_dict = cmd.model_dump()
@@ -666,6 +691,17 @@ class WhatsminerTCPClient(BaseTCPClient):
 
     async def reboot(self) -> dict:
         return await self.send_command("set.system.reboot")
+
+    async def update_passwd(self, curr: str, new: str, confirm: str) -> dict:
+        if new != confirm:
+            raise APIError("Passwords do not match")
+
+        param_data = {
+            "account": self.username,
+            "new": new,
+            "old": curr,
+        }
+        return await self.send_command("set.user.change_passwd", param=param_data)
 
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
