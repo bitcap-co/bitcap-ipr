@@ -8,7 +8,6 @@ import json
 import logging
 import random
 import time
-from string import Template
 
 import httpx
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError, field_validator
@@ -180,7 +179,7 @@ class SealminerHTTPClient(BaseHTTPClient):
             settings.set_alt_auth("sealminer", alt_pwd)
         self.passwds = settings.get_auth_list("sealminer")
 
-        self.command_path = Template("cgi-bin/${command}.php")
+        self.command_path = "cgi-bin/{command}.php"
 
     async def authenticate(self) -> None:
         php_session = gen_php_session_id()
@@ -307,11 +306,11 @@ class SealminerHTTPClient(BaseHTTPClient):
         return await super().get_miner_status()
 
     async def blink(self, enabled: bool, *args, **kwargs) -> dict:
-        data = '{"key":"led","value":"%s"}' % ("on" if enabled else "off")
+        data = f'{{"key":"led","value":"{"on" if enabled else "off"}"}}'
         return await self.send_command("POST", command="led_conf", data=data)
 
     async def set_miner_mode(self, mode: int = 1) -> dict:
-        data = '{"params_data":%s}' % (mode)
+        data = f'{{"params_data":{mode}}}'
         resp = await self.send_command("POST", command="mining_setting", data=data)
         try:
             resobj = ActionResponse.model_validate(obj=resp)

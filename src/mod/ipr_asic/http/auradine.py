@@ -1,6 +1,5 @@
 import json
 import logging
-from string import Template
 from typing import Any, Literal
 
 import httpx
@@ -256,7 +255,7 @@ class AuradineHTTPClient(BaseHTTPClient):
             settings.set_alt_auth("auradine", alt_pwd)
         self.passwds = settings.get_auth_list("auradine")
 
-        self.command_path = Template("${command}")
+        self.command_path = "{command}"
         self.token = None
 
     def _validate_response(self, data: dict) -> Response:
@@ -276,10 +275,7 @@ class AuradineHTTPClient(BaseHTTPClient):
         for pwd in self.passwds:
             if not pwd:
                 continue
-            data = '{"command":"token","user":"%s","password":"%s"}' % (
-                self.username,
-                pwd,
-            )
+            data = f'{{"command":"token","user":"{self.username}","password":"{pwd}"}}'
             try:
                 async with self._new_client() as client:
                     resp = await client.post(self.base_url + "token", data=data)

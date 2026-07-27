@@ -5,7 +5,6 @@
 
 import json
 import logging
-from string import Template
 from typing import Any, Literal
 
 import httpx
@@ -146,7 +145,7 @@ class IceriverHTTPClient(BaseHTTPClient):
             settings.set_alt_auth("iceriver", alt_pwd)
         self.passwds = settings.get_auth_list("iceriver")
 
-        self.command_path = Template("user/${command}")
+        self.command_path = "user/{command}"
 
     async def authenticate(self) -> None:
         for pwd in self.passwds:

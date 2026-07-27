@@ -6,7 +6,6 @@
 import json
 import logging
 from abc import abstractmethod
-from string import Template
 from typing import Any
 
 import httpx
@@ -31,7 +30,8 @@ class BaseHTTPClient(BaseClient):
     ) -> None:
         super().__init__(ip, port)
         self.base_url = f"http://{self.ip}:{self.port}/"
-        self.command_path: Template | None = None
+        # format string for command path, use "{command}" placeholder
+        self.command_path: str = "{command}"
 
         self.digest: Auth | DigestAuth | BasicAuth | None = None
         self.token: str | None = None
@@ -115,7 +115,7 @@ class BaseHTTPClient(BaseClient):
         headers = {}
         if self.cookies:
             headers.update({"Cookie": self.cookies})
-        path = self.command_path.substitute(command=command)
+        path = self.command_path.format(command=command)
         try:
             resp = await self._do_http(
                 method=method,

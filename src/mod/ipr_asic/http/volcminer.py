@@ -6,7 +6,6 @@
 import json
 import logging
 import re
-from string import Template
 
 import httpx
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
@@ -225,7 +224,7 @@ class VolcminerHTTPClient(BaseHTTPClient):
             settings.set_alt_auth("volcminer", alt_pwd)
         self.passwds = settings.get_auth_list("volcminer")
 
-        self.command_path = Template("cgi-bin/${command}.cgi")
+        self.command_path = "cgi-bin/{command}.cgi"
 
     async def authenticate(self) -> None:
         for pwd in self.passwds:

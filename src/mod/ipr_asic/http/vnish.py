@@ -5,7 +5,6 @@
 
 import json
 import logging
-from string import Template
 from typing import Annotated, Literal
 
 import httpx
@@ -375,7 +374,7 @@ class VnishHTTPClient(BaseHTTPClient):
             settings.set_alt_auth("vnish", alt_pwd)
         self.passwds = settings.get_auth_list("vnish")
 
-        self.command_path = Template("api/v1/${command}")
+        self.command_path = "api/v1/{command}"
 
     async def authenticate(self) -> None:
         for pwd in self.passwds:

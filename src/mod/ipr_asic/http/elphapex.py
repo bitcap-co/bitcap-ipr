@@ -4,7 +4,6 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 import logging
-from string import Template
 
 import httpx
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError, field_validator
@@ -167,7 +166,7 @@ class ElphapexHTTPClient(BaseHTTPClient):
             settings.set_alt_auth("elphapex", alt_pwd)
         self.passwds = settings.get_auth_list("elphapex")
 
-        self.command_path = Template("cgi-bin/${command}.cgi")
+        self.command_path = "cgi-bin/{command}.cgi"
 
     async def authenticate(self) -> None:
         for pwd in self.passwds:

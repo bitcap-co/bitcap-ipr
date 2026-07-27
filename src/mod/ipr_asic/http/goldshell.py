@@ -5,7 +5,6 @@
 
 import json
 import logging
-from string import Template
 
 import httpx
 from Crypto.Cipher import AES
@@ -128,7 +127,7 @@ class GoldshellHTTPClient(BaseHTTPClient):
             settings.set_alt_auth("goldshell", alt_pwd)
         self.passwds = settings.get_auth_list("goldshell")
 
-        self.command_path = Template("mcb/${command}")
+        self.command_path = "mcb/{command}"
         self.token = None
 
     async def authenticate(self) -> None:

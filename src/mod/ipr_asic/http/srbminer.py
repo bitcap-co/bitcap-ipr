@@ -4,7 +4,6 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 import logging
-from string import Template
 
 import httpx
 from pydantic import BaseModel, ValidationError
@@ -58,7 +57,7 @@ class SRBMinerHTTPClient(BaseHTTPClient):
         super().__init__(ip, port, alt_pwd, transport)
         # SRBMiner's remote API is read-only and unauthenticated.
         self.authed = True
-        self.command_path = Template("${command}")
+        self.command_path = "{command}"
 
     async def authenticate(self) -> None:
         # nothing to authenticate against; the API is open.

@@ -4,7 +4,6 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 import logging
-from string import Template
 from typing import Any
 
 import httpx
@@ -261,12 +260,12 @@ class AntminerHTTPClient(BaseHTTPClient):
     ) -> None:
         super().__init__(ip, port, transport=transport)
 
-        self.command_path = Template("cgi-bin/${command}.cgi")
-
         self.username: str = "root"
         if alt_pwd:
             settings.set_alt_auth("antminer", alt_pwd)
         self.passwds = settings.get_auth_list("antminer")
+
+        self.command_path = "cgi-bin/{command}.cgi"
 
     async def authenticate(self) -> None:
         for pwd in self.passwds:
@@ -494,7 +493,7 @@ class AntminerOldHTTPClient(BaseHTTPClient):
     ) -> None:
         super().__init__(ip, port, transport=transport)
 
-        self.command_path = Template("cgi-bin/${command}.cgi")
+        self.command_path = "cgi-bin/{command}.cgi"
 
         self.username: str = "root"
         if alt_pwd:
