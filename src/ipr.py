@@ -2852,6 +2852,21 @@ class IPR(QMainWindow, Ui_MainWindow):
         confirm_passwd_text = self.linePasswdConfirm.text()
 
         def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
+            if miner_type in (
+                MinerType.HAMMER,
+                MinerType.GOLDSHELL,
+                MinerType.VOLCMINER,
+                MinerType.HIVEGPU,
+            ):
+                logger.error(
+                    f"update_passwd : {miner_type.value} is currently not supported."
+                )
+                self.notify(
+                    f"Status :: Skipping {ip_addr}: {miner_type.value.capitalize()} update password is not supported.",
+                    5000,
+                )
+                return None
+
             curr_passwd = (
                 curr_passwd_text
                 if self.checkUseNonDefaultPasswd.isChecked()
