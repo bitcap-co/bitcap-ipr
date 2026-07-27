@@ -1999,7 +1999,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             case 0:  # pools
                 self.update_miner_pools()
             case 1:  # passwd
-                if not self.linePasswdNew.text() or self.linePasswdConfirm.text():
+                if not self.linePasswdNew.text() or not self.linePasswdConfirm.text():
                     return self.notify(
                         "Status :: Failed action: Password fields are required", 5000
                     )
