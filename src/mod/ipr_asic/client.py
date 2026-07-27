@@ -434,9 +434,8 @@ class ASICClient(QObject):
         miner_type: MinerType,
         ip: str,
         alt_pwd: str | None = None,
-        curr: str | None = None,
-        new: str | None = None,
-        confirm_new: str | None = None,
+        old_passwd: str | None = None,
+        new_passwd: str | None = None,
     ) -> MinerResult:
         """Update the miner's password."""
         try:
@@ -444,7 +443,7 @@ class ASICClient(QObject):
         except UnknownClientError as e:
             return MinerResult(error=e)
         try:
-            data = await client.update_passwd(curr, new, confirm_new)
+            data = await client.update_passwd(old_passwd, new_passwd)
             return MinerResult(data=data)
         except _CLIENT_ERRORS as e:
             logger.error(f"{client.__repr__()} : client error raised: {e!s}")

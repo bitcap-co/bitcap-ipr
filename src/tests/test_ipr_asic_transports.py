@@ -94,7 +94,7 @@ class _HTTPClient(BaseHTTPClient):
     async def reboot(self) -> dict:
         return {}
 
-    async def update_passwd(self, curr: str, new: str, confirm_new: str) -> dict:
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
         return {}
 
     async def update_pool_conf(self, urls, users, passwds) -> dict:
@@ -147,7 +147,7 @@ class _RPCClient(BaseRPCClient):
     async def reboot(self) -> dict:
         return {}
 
-    async def update_passwd(self, curr: str, new: str, confirm_new: str) -> dict:
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
         return {}
 
     async def update_pool_conf(
