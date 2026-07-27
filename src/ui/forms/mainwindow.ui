@@ -143,6 +143,9 @@
              <attribute name="title">
               <string>Pool</string>
              </attribute>
+             <attribute name="toolTip">
+              <string>Miner pool configuration</string>
+             </attribute>
              <layout class="QVBoxLayout" name="verticalLayout_17">
               <item>
                <widget class="QWidget" name="presetControl" native="true">
@@ -663,9 +666,12 @@ Uses last 5 of SN or MAC address.</string>
              <attribute name="title">
               <string>Password</string>
              </attribute>
+             <attribute name="toolTip">
+              <string>Miner password configuration</string>
+             </attribute>
              <layout class="QVBoxLayout" name="verticalLayout_14">
               <item>
-               <widget class="QWidget" name="widget" native="true">
+               <widget class="QWidget" name="passwdOptions" native="true">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -695,9 +701,9 @@ Uses last 5 of SN or MAC address.</string>
                   <number>0</number>
                  </property>
                  <item>
-                  <widget class="QCheckBox" name="checkNonDefaultPasswd">
+                  <widget class="QCheckBox" name="checkUseNonDefaultPasswd">
                    <property name="toolTip">
-                    <string>Enable current password field for non-default passwords.</string>
+                    <string>Use non-default password for current password.</string>
                    </property>
                    <property name="text">
                     <string>Non-Default</string>
@@ -705,9 +711,9 @@ Uses last 5 of SN or MAC address.</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="pushIPRStoreAlternativePasswd">
+                  <widget class="QPushButton" name="actionIPRStoreAsAlternative">
                    <property name="toolTip">
-                    <string>Store new password as alternative for type.</string>
+                    <string>Store new password as alternative for selected types.</string>
                    </property>
                    <property name="text">
                     <string>Store as alternative</string>
@@ -731,131 +737,133 @@ Uses last 5 of SN or MAC address.</string>
                </widget>
               </item>
               <item>
-               <layout class="QGridLayout" name="gridLayout_21">
-                <property name="leftMargin">
-                 <number>9</number>
-                </property>
-                <property name="topMargin">
-                 <number>9</number>
-                </property>
-                <property name="rightMargin">
-                 <number>9</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>9</number>
-                </property>
-                <property name="spacing">
-                 <number>15</number>
-                </property>
-                <item row="1" column="1">
-                 <widget class="QLineEdit" name="linePasswdNew">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>180</width>
-                    <height>25</height>
-                   </size>
-                  </property>
-                  <property name="toolTip">
-                   <string>Supply new password.</string>
-                  </property>
-                  <property name="echoMode">
-                   <enum>QLineEdit::EchoMode::Password</enum>
-                  </property>
-                  <property name="placeholderText">
-                   <string/>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QLineEdit" name="linePasswdCurrent">
-                  <property name="enabled">
-                   <bool>false</bool>
-                  </property>
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>180</width>
-                    <height>25</height>
-                   </size>
-                  </property>
-                  <property name="toolTip">
-                   <string>Supply current non-default password.</string>
-                  </property>
-                  <property name="echoMode">
-                   <enum>QLineEdit::EchoMode::Password</enum>
-                  </property>
-                  <property name="placeholderText">
-                   <string/>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QLabel" name="label_32">
-                  <property name="text">
-                   <string>New Password</string>
-                  </property>
-                  <property name="StyleClass" stdset="0">
-                   <string>setText</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_31">
-                  <property name="text">
-                   <string>Current Password</string>
-                  </property>
-                  <property name="StyleClass" stdset="0">
-                   <string>setText</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="0">
-                 <widget class="QLabel" name="label_33">
-                  <property name="text">
-                   <string>Confirm Password</string>
-                  </property>
-                  <property name="StyleClass" stdset="0">
-                   <string>setText</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="1">
-                 <widget class="QLineEdit" name="linePasswdConfirm">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>180</width>
-                    <height>25</height>
-                   </size>
-                  </property>
-                  <property name="toolTip">
-                   <string>Confirm new password.</string>
-                  </property>
-                  <property name="echoMode">
-                   <enum>QLineEdit::EchoMode::Password</enum>
-                  </property>
-                  <property name="placeholderText">
-                   <string/>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+               <widget class="QWidget" name="passwdConfig" native="true">
+                <layout class="QGridLayout" name="gridLayout_21">
+                 <property name="leftMargin">
+                  <number>9</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>9</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>9</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>9</number>
+                 </property>
+                 <property name="spacing">
+                  <number>15</number>
+                 </property>
+                 <item row="1" column="1">
+                  <widget class="QLineEdit" name="linePasswdNew">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>180</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>Supply new password.</string>
+                   </property>
+                   <property name="echoMode">
+                    <enum>QLineEdit::EchoMode::Password</enum>
+                   </property>
+                   <property name="placeholderText">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QLineEdit" name="linePasswdCurrent">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>180</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>Supply current non-default password. Defaults to default miner authentication</string>
+                   </property>
+                   <property name="echoMode">
+                    <enum>QLineEdit::EchoMode::Password</enum>
+                   </property>
+                   <property name="placeholderText">
+                    <string>Miner Default</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_32">
+                   <property name="text">
+                    <string>New Password</string>
+                   </property>
+                   <property name="StyleClass" stdset="0">
+                    <string>setText</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="0">
+                  <widget class="QLabel" name="label_31">
+                   <property name="text">
+                    <string>Current Password</string>
+                   </property>
+                   <property name="StyleClass" stdset="0">
+                    <string>setText</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="0">
+                  <widget class="QLabel" name="label_33">
+                   <property name="text">
+                    <string>Confirm Password</string>
+                   </property>
+                   <property name="StyleClass" stdset="0">
+                    <string>setText</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QLineEdit" name="linePasswdConfirm">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>180</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>Confirm new password.</string>
+                   </property>
+                   <property name="echoMode">
+                    <enum>QLineEdit::EchoMode::Password</enum>
+                   </property>
+                   <property name="placeholderText">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -2059,7 +2067,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>476</width>
+                   <width>255</width>
                    <height>986</height>
                   </rect>
                  </property>
@@ -2794,7 +2802,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>741</width>
+                   <width>368</width>
                    <height>242</height>
                   </rect>
                  </property>
