@@ -1990,6 +1990,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         match self.tabConfigurator.currentIndex():
             case 0:
                 self.update_miner_pools()
+            case 1:
+                self.update_miner_passwds()
             case _:
                 return
 
@@ -2826,6 +2828,41 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
 
         await self._run_bulk_action("Update Pools", rows, make_coro)
+
+    @asyncSlot()
+    async def update_miner_passwds(self):
+        selected_ips = self.get_selected_indexes_for_action(
+            "update_miner_passwds", section=2
+        )
+        if selected_ips is None:
+            return self.notify("Status :: Failed action: no selected IPs.", 5000)
+
+        rows = [self.id_proxy.mapToSource(index).row() for index in selected_ips]
+
+        curr_passwd_text = self.linePasswdCurrent.text()
+        new_passwd_text = self.linePasswdNew.text()
+        confirm_passwd_text = self.linePasswdConfirm.text()
+
+        def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
+            curr_passwd = (
+                curr_passwd_text
+                if self.checkNonDefaultPasswd.isChecked()
+                else api_settings.get_auth(miner_type.value).default
+            )
+            new_passwd = new_passwd_text
+            confirm_passwd = confirm_passwd_text
+
+            # use current passwd as alt_pwd for authentication
+            return self.asic.update_miner_passwd(
+                miner_type,
+                ip_addr,
+                curr_passwd,
+                curr_passwd,
+                new_passwd,
+                confirm_passwd,
+            )
+
+        await self._run_bulk_action("Update Passwords", rows, make_coro)
 
     # exit
     def close_to_tray_or_exit(self):
