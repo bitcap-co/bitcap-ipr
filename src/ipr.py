@@ -1996,9 +1996,25 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def apply_configuration(self) -> None:
         match self.tabConfigurator.currentIndex():
-            case 0:
+            case 0:  # pools
                 self.update_miner_pools()
-            case 1:
+            case 1:  # passwd
+                if not self.linePasswdNew.text() or self.linePasswdConfirm.text():
+                    return self.notify(
+                        "Status :: Failed action: Password fields are required", 5000
+                    )
+                if self.linePasswdConfirm.text() != self.linePasswdNew.text():
+                    return self.notify(
+                        "Status :: Failed action: Password fields do not match", 5000
+                    )
+                if (
+                    self.checkUseNonDefaultPasswd.isChecked()
+                    and self.linePasswdCurrent.text() == self.linePasswdNew.text()
+                ):
+                    return self.notify(
+                        "Status :: Failed action: Current password cannot be the same as the new password",
+                        5000,
+                    )
                 self.update_miner_passwds()
             case _:
                 return
