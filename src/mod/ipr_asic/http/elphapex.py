@@ -151,6 +151,12 @@ class Pools(BaseModel):
     pools: list[PoolInfo] = Field(alias="POOLS")
 
 
+class MinerConfigPasswd(BaseModel):
+    curr_passwd: str = Field(serialization_alias="curPwd")
+    new_passwd: str = Field(serialization_alias="newPwd")
+    confirm_passwd: str = Field(serialization_alias="confirmPwd")
+
+
 class ElphapexHTTPClient(BaseHTTPClient):
     def __init__(
         self,
@@ -318,6 +324,29 @@ class ElphapexHTTPClient(BaseHTTPClient):
 
     async def reboot(self) -> dict:
         return await self.send_command("POST", command="reboot")
+
+    async def update_passwd(self, curr: str, new: str, confirm_new: str) -> dict:
+        if new != confirm_new:
+            raise APIError("Passwords do not match")
+        pw_conf = MinerConfigPasswd(
+            curr_passwd=curr, new_passwd=new, confirm_passwd=confirm_new
+        )
+        return await self.send_command(
+            "POST",
+            command="passwd",
+            payload=pw_conf.model_dump(mode="json", by_alias=True),
+        )
+        # try:
+        #     resobj = ActionResponse.model_validate(obj=resp)
+        # except ValidationError as e:
+        #     logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+        #     raise APIInvalidResponse
+        # else:
+        #     err = resobj.error()
+        #     if err:
+        #         logger.error(f"{self.__repr__()} : {err}")
+        #         raise APIError("Command failed!")
+        #     return resobj.model_dump(exclude_none=True)
 
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]

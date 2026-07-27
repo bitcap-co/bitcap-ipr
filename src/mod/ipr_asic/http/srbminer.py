@@ -135,6 +135,9 @@ class SRBMinerHTTPClient(BaseHTTPClient):
     async def reboot(self) -> dict:
         raise APIError("Reboot is not supported for HiveOS GPU rigs")
 
+    async def update_passwd(self, curr: str, new: str, confirm_new: str) -> dict:
+        raise APIError("Password update is not supported for HiveOS GPU rigs")
+
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
     ) -> dict:

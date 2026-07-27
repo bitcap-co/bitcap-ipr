@@ -454,6 +454,19 @@ class AuradineHTTPClient(BaseHTTPClient):
             "POST", command="restart", payload={"command": "restart"}
         )
 
+    async def update_passwd(self, curr: str, new: str, confirm_new: str) -> dict:
+        if new != confirm_new:
+            raise APIError("Passwords do not match")
+        pw_conf = {
+            "command": "password",
+            "user": self.username,
+            "old": curr,
+            "new": new,
+        }
+        resp = await self.send_command("POST", command="password", payload=pw_conf)
+        _ = self._validate_response(resp)
+        return resp
+
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
     ) -> dict:

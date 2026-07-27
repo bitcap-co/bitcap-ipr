@@ -130,6 +130,12 @@ class MinerConfPool(BaseModel):
     passwd: str = Field(default="", alias="pass")
 
 
+class MinerConfigPasswd(BaseModel):
+    curr_passwd: str = Field(alias="nowpwd")
+    new_passwd: str = Field(alias="newpwd")
+    confirm_passwd: str = Field(alias="compwd")
+
+
 class IceriverHTTPClient(BaseHTTPClient):
     def __init__(
         self,
@@ -307,6 +313,23 @@ class IceriverHTTPClient(BaseHTTPClient):
 
     async def reboot(self) -> dict:
         return await self.send_command("POST", command="userpanel", data={"post": 3})
+
+    async def update_passwd(self, curr: str, new: str, confirm_new: str) -> dict:
+        if new != confirm_new:
+            raise APIError("Passwords do not match")
+        data = {"post": 2, "nowpwd": curr, "newpwd": new, "compwd": confirm_new}
+        resp = await self.send_command("POST", command="systemconfig", data=data)
+        try:
+            resobj = ActionResponse.model_validate(obj=resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        else:
+            err = resobj.error_()
+            if err:
+                logger.error(f"{self.__repr__()} : {err}")
+                raise APIError("Command failed!")
+            return resobj.model_dump()
 
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
