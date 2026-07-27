@@ -337,6 +337,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.configurator.hide()
         self.btnConfiguratorCancel.clicked.connect(self.toggle_configurator_settings)
         self.btnConfiguratorApply.clicked.connect(self.apply_configuration)
+        # pool configurator
         self.actionTogglePoolPasswd = self.create_passwd_toggle_action(
             self.linePoolPasswd
         )
@@ -358,6 +359,24 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.pool_preset.remove_requested.connect(self.remove_preset)
         self.actionIPRSavePreset.clicked.connect(self.write_pool_preset)
         self.actionIPRClearPreset.clicked.connect(self.clear_pool_preset)
+        # password configurator
+        self.actionToggleConfigCurrentPasswd = self.create_passwd_toggle_action(
+            self.linePasswdCurrent
+        )
+        self.actionToggleConfigNewPasswd = self.create_passwd_toggle_action(
+            self.linePasswdNew
+        )
+        self.actionToggleConfigConfirmPasswd = self.create_passwd_toggle_action(
+            self.linePasswdConfirm
+        )
+        self.checkNonDefaultPasswd.toggled.connect(
+            lambda: self.linePasswdCurrent.setEnabled(
+                self.checkNonDefaultPasswd.isChecked()
+            )
+        )
+        self.pushIPRStoreAlternativePasswd.clicked.connect(
+            self.store_alternative_passwds
+        )
 
         # initialize ID Table (headers are provided by IPRTableModel)
         self.id_model = IPRTableModel(self)
@@ -1916,6 +1935,56 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.resize(self.width(), height)
         finally:
             self._toggling_configurator = False
+
+    def store_alternative_passwds(self) -> None:
+        if not self.id_proxy.rowCount():
+            return
+        selected_ips = [
+            x
+            for x in self.tableIPRID.selectionModel().selectedIndexes()
+            if x.column() == 2
+        ]
+        if not selected_ips:
+            return self.notify("Status :: Failed action: no selected IPs.", 5000)
+
+        rows = [self.id_proxy.mapToSource(index).row() for index in selected_ips]
+        miner_types = [self.retrieve_miner_from_table(row)[1] for row in rows]
+
+        dialog = IPRMessage(
+            self,
+            "Alternative password update",
+            f"Overwrites the alternative password for {', '.join(set(miner_types))} miner types. Are you sure you want to proceed?",
+            action_text="Confirm",
+        )
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        for type in set(miner_types):
+            match type:
+                case MinerType.ANTMINER:
+                    self.lineAntminerPasswd.setText(self.linePasswdNew.text())
+                case MinerType.WHATSMINER:
+                    self.lineWhatsminerPasswd.setText(self.linePasswdNew.text())
+                case MinerType.GOLDSHELL:
+                    self.lineGoldshellPasswd.setText(self.linePasswdNew.text())
+                case MinerType.VOLCMINER:
+                    self.lineVolcminerPasswd.setText(self.linePasswdNew.text())
+                case MinerType.SEALMINER:
+                    self.lineSealminerPasswd.setText(self.linePasswdNew.text())
+                case MinerType.ICERIVER:
+                    self.lineIceriverPasswd.setText(self.linePasswdNew.text())
+                case MinerType.ELPHAPEX:
+                    self.lineElphapexPasswd.setText(self.linePasswdNew.text())
+                case MinerType.AURADINE:
+                    self.lineAuradinePasswd.setText(self.linePasswdNew.text())
+                case MinerType.VNISH:
+                    if not self.checkUseAntminerLogin.isChecked():
+                        self.lineVnishPasswd.setText(self.linePasswdNew.text())
+                    else:
+                        self.lineAntminerPasswd.setText(self.linePasswdNew.text())
+                case _:
+                    pass
+        self.notify("Status:: updated alternative password for selected miners.")
 
     def apply_configuration(self) -> None:
         match self.tabConfigurator.currentIndex():
