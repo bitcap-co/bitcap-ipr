@@ -14,7 +14,6 @@ import asyncio
 import json
 import struct
 import unittest
-from string import Template
 
 import httpx
 
@@ -32,7 +31,7 @@ class _HTTPClient(BaseHTTPClient):
 
     def __init__(self, ip, transport):
         super().__init__(ip, transport=transport)
-        self.command_path = Template("api/${command}")
+        self.command_path = "api/{command}"
         self.authed = True  # bypass auth for transport-only tests
 
     async def authenticate(self) -> None:
