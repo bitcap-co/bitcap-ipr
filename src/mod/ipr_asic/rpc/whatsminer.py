@@ -348,15 +348,14 @@ class WhatsminerRPCClient(BaseRPCClient):
     async def reboot(self) -> dict:
         return await self.send_privileged_command("reboot")
 
-    async def update_passwd(self, curr: str, new: str, confirm_new: str) -> dict:
-        if new != confirm_new:
-            raise APIError("New password does not match confirmation")
-
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
         # check if password length is greater than 8 bytes.
-        if len(new.encode("utf-8")) > 8:
+        if len(new_passwd.encode("utf-8")) > 8:
             raise APIError("Password must be 8 characters or less")
 
-        return await self.send_privileged_command("update_pwd", old=curr, new=new)
+        return await self.send_privileged_command(
+            "update_pwd", old=old_passwd, new=new_passwd
+        )
 
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
@@ -692,14 +691,11 @@ class WhatsminerTCPClient(BaseTCPClient):
     async def reboot(self) -> dict:
         return await self.send_command("set.system.reboot")
 
-    async def update_passwd(self, curr: str, new: str, confirm: str) -> dict:
-        if new != confirm:
-            raise APIError("Passwords do not match")
-
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
         param_data = {
             "account": self.username,
-            "new": new,
-            "old": curr,
+            "new": new_passwd,
+            "old": old_passwd,
         }
         return await self.send_command("set.user.change_passwd", param=param_data)
 

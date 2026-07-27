@@ -428,8 +428,8 @@ class VolcminerHTTPClient(BaseHTTPClient):
     async def reboot(self) -> dict:
         return await self.send_command("POST", command="reboot")
 
-    async def update_passwd(self, curr: str, new: str, confirm_new: str) -> dict:
-        return await super().update_passwd(curr, new, confirm_new)
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
+        return await super().update_passwd(old_passwd, new_passwd)
 
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]

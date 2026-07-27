@@ -181,7 +181,7 @@ class BaseRPCClient(BaseClient):
         raise NotImplementedError
 
     @abstractmethod
-    async def update_passwd(self, curr: str, new: str, confirm_new: str) -> dict:
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
         """Update miner password."""
         raise NotImplementedError
 

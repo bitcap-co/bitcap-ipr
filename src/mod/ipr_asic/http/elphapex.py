@@ -325,11 +325,9 @@ class ElphapexHTTPClient(BaseHTTPClient):
     async def reboot(self) -> dict:
         return await self.send_command("POST", command="reboot")
 
-    async def update_passwd(self, curr: str, new: str, confirm_new: str) -> dict:
-        if new != confirm_new:
-            raise APIError("Passwords do not match")
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
         pw_conf = MinerConfigPasswd(
-            curr_passwd=curr, new_passwd=new, confirm_passwd=confirm_new
+            curr_passwd=old_passwd, new_passwd=new_passwd, confirm_passwd=new_passwd
         )
         return await self.send_command(
             "POST",
