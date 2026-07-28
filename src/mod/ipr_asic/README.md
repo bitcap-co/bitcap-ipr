@@ -16,10 +16,13 @@
  * [ ] Standarized `MinerData` model to retrieve identifing information & current status/stats
  >- [ ] Standardized Model
  >- [ ] CGminer/RPC API runtime status/stats
+ >- [ ] Miner errors
  - [x] Asyncronous clients to execute tasks in parellel (bulk actions)
+ - [ ] Network scanning
  - Client support:
     * Backends
     >- [ ] cgminer/RPC API in parellel to retrieve runtime stats/status
+    >- [ ] SSH client for GPU miners
     * Alternative authentacation
     >- [x] Try set alternative password first for authentication with API, falling back to hardcoded default password on fail
 
@@ -30,9 +33,11 @@
 
     * Miner configuration
     >- [x] Set/Update pool configuration
-    >- [ ] Set password authentication
+    >- [x] Set password authentication
+    >- [ ] Network configuration
     >- [ ] Set Fan & Power modes
     >- [ ] Ability to set power/tune presets if supported (i.e. Vnish firmware)
+    >- [ ] Reset configuration
 
  - Miner/Firmware support:
    - [x] Antminer (Stock) New Gen, 2020
@@ -43,6 +48,8 @@
    - [x] Volcminer (Stock)
    - [x] Elphapex (Stock)
    - [x] Auradine (Stock)
+   - [ ] Hammer (Stock)
+   - [ ] iPollo (Stock)
    - [x] Vnish firmware
    - [x] LuxOS firmware
    - [ ] HiveOS (GPU)
