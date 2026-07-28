@@ -359,6 +359,11 @@ class SettingsResponse(BaseModel):
     reboot_required: bool
 
 
+class MinerConfigPasswd(BaseModel):
+    curr_passwd: str = Field(serialization_alias="current")
+    new_passwd: str = Field(serialization_alias="pw")
+
+
 class VnishHTTPClient(BaseHTTPClient):
     def __init__(
         self,
@@ -522,6 +527,10 @@ class VnishHTTPClient(BaseHTTPClient):
 
     async def reboot(self) -> dict:
         return await self.send_command("POST", command="system/reboot")
+
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
+        pw_conf = MinerConfigPasswd(curr_passwd=old_passwd, new_passwd=new_passwd)
+        return await self.set_miner_conf(conf=pw_conf.model_dump(by_alias=True))
 
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]

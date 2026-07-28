@@ -337,6 +337,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.configurator.hide()
         self.btnConfiguratorCancel.clicked.connect(self.toggle_configurator_settings)
         self.btnConfiguratorApply.clicked.connect(self.apply_configuration)
+        # pool configurator
         self.actionTogglePoolPasswd = self.create_passwd_toggle_action(
             self.linePoolPasswd
         )
@@ -358,6 +359,24 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.pool_preset.remove_requested.connect(self.remove_preset)
         self.actionIPRSavePreset.clicked.connect(self.write_pool_preset)
         self.actionIPRClearPreset.clicked.connect(self.clear_pool_preset)
+        # password configurator
+        self.actionToggleConfigCurrentPasswd = self.create_passwd_toggle_action(
+            self.linePasswdCurrent
+        )
+        self.actionToggleConfigNewPasswd = self.create_passwd_toggle_action(
+            self.linePasswdNew
+        )
+        self.actionToggleConfigConfirmPasswd = self.create_passwd_toggle_action(
+            self.linePasswdConfirm
+        )
+        self.checkUseNonDefaultPasswd.toggled.connect(
+            lambda: self.linePasswdCurrent.setEnabled(
+                self.checkUseNonDefaultPasswd.isChecked()
+            )
+        )
+        self.actionIPRStoreAsAlternative.clicked.connect(
+            self.update_alternative_passwds
+        )
 
         # initialize ID Table (headers are provided by IPRTableModel)
         self.id_model = IPRTableModel(self)
@@ -1885,6 +1904,66 @@ class IPR(QMainWindow, Ui_MainWindow):
         outfile << out << "\n"
         self.notify(f"Status :: Wrote table as .CSV to {p}.", 3000)
 
+    def update_alternative_passwds(self) -> None:
+        if not self.id_proxy.rowCount():
+            return
+        selected_ips = [
+            x
+            for x in self.tableIPRID.selectionModel().selectedIndexes()
+            if x.column() == 2
+        ]
+        if not selected_ips:
+            return self.notify("Status :: Failed action: no selected IPs.", 5000)
+        if not self._validate_passwd_fields():
+            return
+        rows = [self.id_proxy.mapToSource(index).row() for index in selected_ips]
+        selected_types = {self.retrieve_miner_from_table(row)[1] for row in rows}
+        if len(selected_types) > 1:
+            confirm = IPRMessage(
+                self,
+                "Confirm Alternative Password Update",
+                f"Update alternative password for selected {', '.join(selected_types)} miner types?",
+                action_text="Update",
+            )
+            if confirm.exec() != QDialog.DialogCode.Accepted:
+                return
+        new_passwd = self.linePasswdNew.text()
+        for mtype in selected_types:
+            match mtype:
+                case MinerType.ANTMINER:
+                    self.lineAntminerPasswd.setText(new_passwd)
+                case MinerType.WHATSMINER:
+                    self.lineWhatsminerPasswd.setText(new_passwd)
+                case MinerType.GOLDSHELL:
+                    self.lineGoldshellPasswd.setText(new_passwd)
+                case MinerType.VOLCMINER:
+                    self.lineVolcminerPasswd.setText(new_passwd)
+                case MinerType.SEALMINER:
+                    self.lineSealminerPasswd.setText(new_passwd)
+                case MinerType.ICERIVER:
+                    self.lineIceriverPasswd.setText(new_passwd)
+                case MinerType.ELPHAPEX:
+                    self.lineElphapexPasswd.setText(new_passwd)
+                case MinerType.AURADINE:
+                    self.lineAuradinePasswd.setText(new_passwd)
+                # firmwares: respect antminer login setting if ANTMINER is present in set
+                case MinerType.VNISH:
+                    if (
+                        MinerType.ANTMINER in selected_types
+                        and self.checkUseAntminerLogin.isChecked()
+                    ):
+                        continue
+                    elif self.checkUseAntminerLogin.isChecked():
+                        self.checkUseAntminerLogin.setChecked(False)
+                    self.lineVnishPasswd.setText(new_passwd)
+                case _:
+                    pass
+
+        return self.notify(
+            f"Status :: updated alternative password for {', '.join(selected_types)} in settings.",
+            3000,
+        )
+
     def toggle_configurator(self, enabled: bool = False):
         # setChecked() below re-emits toggled and re-enters this slot; the guard
         # keeps the one-off window resize from being applied more than once.
@@ -1917,10 +1996,31 @@ class IPR(QMainWindow, Ui_MainWindow):
         finally:
             self._toggling_configurator = False
 
+    def _validate_passwd_fields(self) -> bool:
+        if not self.linePasswdNew.text() or not self.linePasswdConfirm.text():
+            self.notify("Status :: Failed action: Password fields are required", 5000)
+            return False
+        if self.linePasswdConfirm.text() != self.linePasswdNew.text():
+            self.notify("Status :: Failed action: Password fields do not match", 5000)
+            return False
+        return True
+
     def apply_configuration(self) -> None:
         match self.tabConfigurator.currentIndex():
-            case 0:
+            case 0:  # pools
                 self.update_miner_pools()
+            case 1:  # passwd
+                if not self._validate_passwd_fields():
+                    return
+                if (
+                    self.checkUseNonDefaultPasswd.isChecked()
+                    and self.linePasswdCurrent.text() == self.linePasswdNew.text()
+                ):
+                    return self.notify(
+                        "Status :: Failed action: Current password cannot be the same as the new password",
+                        5000,
+                    )
+                self.update_miner_passwds()
             case _:
                 return
 
@@ -2757,6 +2857,49 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
 
         await self._run_bulk_action("Update Pools", rows, make_coro)
+
+    @asyncSlot()
+    async def update_miner_passwds(self):
+        selected_ips = self.get_selected_indexes_for_action(
+            "update_miner_passwds", section=2
+        )
+        if selected_ips is None:
+            return self.notify("Status :: Failed action: no selected IPs.", 5000)
+
+        rows = [self.id_proxy.mapToSource(index).row() for index in selected_ips]
+
+        curr_passwd_text = self.linePasswdCurrent.text()
+        new_passwd_text = self.linePasswdNew.text()
+
+        def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
+            if miner_type in (
+                MinerType.HAMMER,
+                MinerType.GOLDSHELL,
+                MinerType.VOLCMINER,
+                MinerType.HIVEGPU,
+            ):
+                logger.error(
+                    f"update_passwd : {miner_type.value} is currently not supported."
+                )
+                self.notify(
+                    f"Status :: Skipping {ip_addr}: {miner_type.value.capitalize()} update password is not supported.",
+                    5000,
+                )
+                return None
+
+            curr_passwd = (
+                curr_passwd_text
+                if self.checkUseNonDefaultPasswd.isChecked()
+                else api_settings.get_auth(miner_type.value).default
+            )
+            new_passwd = new_passwd_text
+
+            # use current passwd as alt_pwd for authentication
+            return self.asic.update_miner_passwd(
+                miner_type, ip_addr, curr_passwd, curr_passwd, new_passwd
+            )
+
+        await self._run_bulk_action("Update Passwords", rows, make_coro)
 
     # exit
     def close_to_tray_or_exit(self):

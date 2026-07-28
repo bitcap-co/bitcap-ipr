@@ -416,6 +416,27 @@ class AntminerHTTPClient(BaseHTTPClient):
     async def reboot(self) -> dict:
         return await self.send_command("POST", command="reboot")
 
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
+        pw_conf = MinerConfigPasswd(
+            curr_passwd=old_passwd, new_passwd=new_passwd, confirm_passwd=new_passwd
+        )
+        resp = await self.send_command(
+            "POST",
+            command="passwd",
+            payload=pw_conf.model_dump(mode="json", by_alias=True),
+        )
+        try:
+            resobj = ActionResponse.model_validate(obj=resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        else:
+            err = resobj.error()
+            if err:
+                logger.error(f"{self.__repr__()} : {err}")
+                raise APIError("Command failed!")
+            return resobj.model_dump(exclude_none=True)
+
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
     ) -> dict:
@@ -448,6 +469,12 @@ class AntminerHTTPClient(BaseHTTPClient):
 
 class OldBlinkStatus(BaseModel):
     blink: bool = Field(alias="isBlinking")
+
+
+class OldMinerConfigPasswd(BaseModel):
+    curr_passwd: str = Field(serialization_alias="current_pw")
+    new_passwd: str = Field(serialization_alias="new_pw")
+    confirm_new_passwd: str = Field(serialization_alias="new_pw_ctrl")
 
 
 class Pool(BaseModel):
@@ -645,6 +672,16 @@ class AntminerOldHTTPClient(BaseHTTPClient):
 
     async def reboot(self) -> dict:
         return await self.send_command("POST", command="reboot")
+
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
+        pw_conf = OldMinerConfigPasswd(
+            curr_passwd=old_passwd, new_passwd=new_passwd, confirm_new_passwd=new_passwd
+        )
+        return await self.send_command(
+            "POST",
+            command="passwd",
+            params=pw_conf.model_dump(mode="json", by_alias=True),
+        )
 
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]

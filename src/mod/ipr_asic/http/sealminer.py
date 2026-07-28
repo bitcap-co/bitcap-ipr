@@ -156,6 +156,13 @@ class MinerStatus(BaseModel):
     pools: list[Pool]
 
 
+class MinerConfigPasswd(BaseModel):
+    username: str = Field(serialization_alias="user_name")
+    curr_passwd: str = Field(serialization_alias="origin_pwd")
+    new_passwd: str = Field(serialization_alias="new_pwd")
+    confirm_passwd: str = Field(serialization_alias="confirm_pwd")
+
+
 def gen_php_session_id() -> str:
     random.seed(time.time_ns())
     ran_id = bytearray(random.randbytes(10))
@@ -335,6 +342,17 @@ class SealminerHTTPClient(BaseHTTPClient):
 
     async def reboot(self) -> dict:
         return await self.send_command("POST", command="reboot")
+
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
+        pw_conf = MinerConfigPasswd(
+            username=self.username,
+            curr_passwd=old_passwd,
+            new_passwd=new_passwd,
+            confirm_passwd=new_passwd,
+        )
+        return await self.send_command(
+            "POST", command="update_passwd", payload=pw_conf.model_dump(by_alias=True)
+        )
 
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]

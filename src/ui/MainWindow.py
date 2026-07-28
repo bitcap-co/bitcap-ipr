@@ -309,6 +309,89 @@ class Ui_MainWindow(object):
         self.verticalLayout_17.addWidget(self.pool3Config)
 
         self.tabConfigurator.addTab(self.poolConfigurator, "")
+        self.passwdConfigurator = QWidget()
+        self.passwdConfigurator.setObjectName(u"passwdConfigurator")
+        self.verticalLayout_14 = QVBoxLayout(self.passwdConfigurator)
+        self.verticalLayout_14.setObjectName(u"verticalLayout_14")
+        self.passwdOptions = QWidget(self.passwdConfigurator)
+        self.passwdOptions.setObjectName(u"passwdOptions")
+        sizePolicy.setHeightForWidth(self.passwdOptions.sizePolicy().hasHeightForWidth())
+        self.passwdOptions.setSizePolicy(sizePolicy)
+        self.passwdOptions.setMinimumSize(QSize(0, 50))
+        self.horizontalLayout_9 = QHBoxLayout(self.passwdOptions)
+        self.horizontalLayout_9.setSpacing(6)
+        self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
+        self.horizontalLayout_9.setContentsMargins(0, 0, 0, 0)
+        self.checkUseNonDefaultPasswd = QCheckBox(self.passwdOptions)
+        self.checkUseNonDefaultPasswd.setObjectName(u"checkUseNonDefaultPasswd")
+
+        self.horizontalLayout_9.addWidget(self.checkUseNonDefaultPasswd)
+
+        self.actionIPRStoreAsAlternative = QPushButton(self.passwdOptions)
+        self.actionIPRStoreAsAlternative.setObjectName(u"actionIPRStoreAsAlternative")
+
+        self.horizontalLayout_9.addWidget(self.actionIPRStoreAsAlternative)
+
+        self.horizontalSpacer_7 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_9.addItem(self.horizontalSpacer_7)
+
+
+        self.verticalLayout_14.addWidget(self.passwdOptions)
+
+        self.passwdConfig = QWidget(self.passwdConfigurator)
+        self.passwdConfig.setObjectName(u"passwdConfig")
+        self.gridLayout_21 = QGridLayout(self.passwdConfig)
+        self.gridLayout_21.setSpacing(15)
+        self.gridLayout_21.setObjectName(u"gridLayout_21")
+        self.gridLayout_21.setContentsMargins(9, 9, 9, 9)
+        self.linePasswdNew = QLineEdit(self.passwdConfig)
+        self.linePasswdNew.setObjectName(u"linePasswdNew")
+        sizePolicy.setHeightForWidth(self.linePasswdNew.sizePolicy().hasHeightForWidth())
+        self.linePasswdNew.setSizePolicy(sizePolicy)
+        self.linePasswdNew.setMinimumSize(QSize(180, 25))
+        self.linePasswdNew.setEchoMode(QLineEdit.EchoMode.Password)
+
+        self.gridLayout_21.addWidget(self.linePasswdNew, 1, 1, 1, 1)
+
+        self.linePasswdCurrent = QLineEdit(self.passwdConfig)
+        self.linePasswdCurrent.setObjectName(u"linePasswdCurrent")
+        self.linePasswdCurrent.setEnabled(False)
+        sizePolicy.setHeightForWidth(self.linePasswdCurrent.sizePolicy().hasHeightForWidth())
+        self.linePasswdCurrent.setSizePolicy(sizePolicy)
+        self.linePasswdCurrent.setMinimumSize(QSize(180, 25))
+        self.linePasswdCurrent.setEchoMode(QLineEdit.EchoMode.Password)
+
+        self.gridLayout_21.addWidget(self.linePasswdCurrent, 0, 1, 1, 1)
+
+        self.label_32 = QLabel(self.passwdConfig)
+        self.label_32.setObjectName(u"label_32")
+
+        self.gridLayout_21.addWidget(self.label_32, 1, 0, 1, 1)
+
+        self.label_31 = QLabel(self.passwdConfig)
+        self.label_31.setObjectName(u"label_31")
+
+        self.gridLayout_21.addWidget(self.label_31, 0, 0, 1, 1)
+
+        self.label_33 = QLabel(self.passwdConfig)
+        self.label_33.setObjectName(u"label_33")
+
+        self.gridLayout_21.addWidget(self.label_33, 2, 0, 1, 1)
+
+        self.linePasswdConfirm = QLineEdit(self.passwdConfig)
+        self.linePasswdConfirm.setObjectName(u"linePasswdConfirm")
+        sizePolicy.setHeightForWidth(self.linePasswdConfirm.sizePolicy().hasHeightForWidth())
+        self.linePasswdConfirm.setSizePolicy(sizePolicy)
+        self.linePasswdConfirm.setMinimumSize(QSize(180, 25))
+        self.linePasswdConfirm.setEchoMode(QLineEdit.EchoMode.Password)
+
+        self.gridLayout_21.addWidget(self.linePasswdConfirm, 2, 1, 1, 1)
+
+
+        self.verticalLayout_14.addWidget(self.passwdConfig)
+
+        self.tabConfigurator.addTab(self.passwdConfigurator, "")
 
         self.verticalLayout_13.addWidget(self.tabConfigurator)
 
@@ -535,7 +618,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 457, 849))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 478, 849))
         self.verticalLayout_5 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_5.setSpacing(15)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
@@ -1341,6 +1424,39 @@ class Ui_MainWindow(object):
         self.label_23.setText(QCoreApplication.translate("MainWindow", u"Password:", None))
         self.label_23.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.tabConfigurator.setTabText(self.tabConfigurator.indexOf(self.poolConfigurator), QCoreApplication.translate("MainWindow", u"Pool", None))
+#if QT_CONFIG(tooltip)
+        self.tabConfigurator.setTabToolTip(self.tabConfigurator.indexOf(self.poolConfigurator), QCoreApplication.translate("MainWindow", u"Miner pool configuration", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.checkUseNonDefaultPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Use non-default password for current password.", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkUseNonDefaultPasswd.setText(QCoreApplication.translate("MainWindow", u"Non-Default", None))
+#if QT_CONFIG(tooltip)
+        self.actionIPRStoreAsAlternative.setToolTip(QCoreApplication.translate("MainWindow", u"Store new password as alternative for selected types.", None))
+#endif // QT_CONFIG(tooltip)
+        self.actionIPRStoreAsAlternative.setText(QCoreApplication.translate("MainWindow", u"Store as alternative", None))
+#if QT_CONFIG(tooltip)
+        self.linePasswdNew.setToolTip(QCoreApplication.translate("MainWindow", u"Supply new password.", None))
+#endif // QT_CONFIG(tooltip)
+        self.linePasswdNew.setPlaceholderText("")
+#if QT_CONFIG(tooltip)
+        self.linePasswdCurrent.setToolTip(QCoreApplication.translate("MainWindow", u"Supply current non-default password. Defaults to default miner authentication", None))
+#endif // QT_CONFIG(tooltip)
+        self.linePasswdCurrent.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Miner Default", None))
+        self.label_32.setText(QCoreApplication.translate("MainWindow", u"New Password", None))
+        self.label_32.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+        self.label_31.setText(QCoreApplication.translate("MainWindow", u"Current Password", None))
+        self.label_31.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+        self.label_33.setText(QCoreApplication.translate("MainWindow", u"Confirm Password", None))
+        self.label_33.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.linePasswdConfirm.setToolTip(QCoreApplication.translate("MainWindow", u"Confirm new password.", None))
+#endif // QT_CONFIG(tooltip)
+        self.linePasswdConfirm.setPlaceholderText("")
+        self.tabConfigurator.setTabText(self.tabConfigurator.indexOf(self.passwdConfigurator), QCoreApplication.translate("MainWindow", u"Password", None))
+#if QT_CONFIG(tooltip)
+        self.tabConfigurator.setTabToolTip(self.tabConfigurator.indexOf(self.passwdConfigurator), QCoreApplication.translate("MainWindow", u"Miner password configuration", None))
+#endif // QT_CONFIG(tooltip)
 #if QT_CONFIG(tooltip)
         self.btnConfiguratorCancel.setToolTip(QCoreApplication.translate("MainWindow", u"Cancel configuration", None))
 #endif // QT_CONFIG(tooltip)
