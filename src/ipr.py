@@ -1914,6 +1914,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         ]
         if not selected_ips:
             return self.notify("Status :: Failed action: no selected IPs.", 5000)
+        if not self._validate_passwd_fields():
+            return
         rows = [self.id_proxy.mapToSource(index).row() for index in selected_ips]
         selected_types = {self.retrieve_miner_from_table(row)[1] for row in rows}
         if len(selected_types) > 1:
@@ -1994,19 +1996,22 @@ class IPR(QMainWindow, Ui_MainWindow):
         finally:
             self._toggling_configurator = False
 
+    def _validate_passwd_fields(self) -> bool:
+        if not self.linePasswdNew.text() or not self.linePasswdConfirm.text():
+            self.notify("Status :: Failed action: Password fields are required", 5000)
+            return False
+        if self.linePasswdConfirm.text() != self.linePasswdNew.text():
+            self.notify("Status :: Failed action: Password fields do not match", 5000)
+            return False
+        return True
+
     def apply_configuration(self) -> None:
         match self.tabConfigurator.currentIndex():
             case 0:  # pools
                 self.update_miner_pools()
             case 1:  # passwd
-                if not self.linePasswdNew.text() or not self.linePasswdConfirm.text():
-                    return self.notify(
-                        "Status :: Failed action: Password fields are required", 5000
-                    )
-                if self.linePasswdConfirm.text() != self.linePasswdNew.text():
-                    return self.notify(
-                        "Status :: Failed action: Password fields do not match", 5000
-                    )
+                if not self._validate_passwd_fields():
+                    return
                 if (
                     self.checkUseNonDefaultPasswd.isChecked()
                     and self.linePasswdCurrent.text() == self.linePasswdNew.text()
