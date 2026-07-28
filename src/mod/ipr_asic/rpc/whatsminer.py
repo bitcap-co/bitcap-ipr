@@ -692,12 +692,13 @@ class WhatsminerTCPClient(BaseTCPClient):
         return await self.send_command("set.system.reboot")
 
     async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
-        param_data = {
-            "account": self.username,
-            "new": new_passwd,
-            "old": old_passwd,
-        }
-        return await self.send_command("set.user.change_passwd", param=param_data)
+        # param_data = {
+        #     "account": self.username,
+        #     "new": new_passwd,
+        #     "old": old_passwd,
+        # }
+        # return await self.send_command("set.user.change_passwd", param=param_data)
+        return await super().update_passwd(old_passwd, new_passwd)
 
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
