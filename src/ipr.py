@@ -1920,7 +1920,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             confirm = IPRMessage(
                 self,
                 "Confirm Alternative Password Update",
-                f"Update alternative password for selected {', '.join(selected_types)} miners?",
+                f"Update alternative password for selected {', '.join(selected_types)} miner types?",
                 action_text="Update",
             )
             if confirm.exec() != QDialog.DialogCode.Accepted:
