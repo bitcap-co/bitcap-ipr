@@ -36,6 +36,7 @@ class _FakeClient:
         self.closed = False
         self.blinks: list[bool] = []
         self.controls: list[str] = []
+        self.passwd_updates: list[tuple[str, str]] = []
         self._ex = None
 
     def error(self):
@@ -78,6 +79,13 @@ class _FakeClient:
 
     async def reboot(self):
         return await self._control("reboot")
+
+    async def update_passwd(self, old_passwd: str, new_passwd: str):
+        self.passwd_updates.append((old_passwd, new_passwd))
+        error = self._behaviours.get("update_passwd_error")
+        if error is not None:
+            raise error
+        return {"success": True}
 
 
 class TestIdentify(unittest.IsolatedAsyncioTestCase):
@@ -242,6 +250,65 @@ class TestMinerControl(unittest.IsolatedAsyncioTestCase):
     async def test_unknown_client_returns_error_result(self):
         asic = ASICClient()
         result = await asic.start_miner(MinerType.IPOLLO, "10.0.0.1")
+
+        self.assertFalse(result.ok)
+        self.assertIsInstance(result.error, UnknownClientError)
+
+
+class TestUpdatePasswd(unittest.IsolatedAsyncioTestCase):
+    async def test_update_passwd_dispatches_credentials_and_closes_client(self):
+        asic = ASICClient()
+        client = _FakeClient()
+
+        async def fake_make(miner_type, ip, alt_pwd=None):
+            self.assertEqual(miner_type, MinerType.ANTMINER)
+            self.assertEqual(ip, "10.0.0.1")
+            self.assertEqual(alt_pwd, "alternate")
+            return client
+
+        asic._make_client = fake_make
+        result = await asic.update_miner_passwd(
+            MinerType.ANTMINER,
+            "10.0.0.1",
+            alt_pwd="alternate",
+            old_passwd="old-secret",
+            new_passwd="new-secret",
+        )
+
+        self.assertTrue(result.ok)
+        self.assertEqual(result.data, {"success": True})
+        self.assertEqual(client.passwd_updates, [("old-secret", "new-secret")])
+        self.assertTrue(client.closed)
+
+    async def test_update_passwd_error_is_returned_and_client_is_closed(self):
+        asic = ASICClient()
+        error = APIError("password update failed")
+        client = _FakeClient(update_passwd_error=error)
+
+        async def fake_make(miner_type, ip, alt_pwd=None):
+            return client
+
+        asic._make_client = fake_make
+        result = await asic.update_miner_passwd(
+            MinerType.ANTMINER,
+            "10.0.0.1",
+            old_passwd="old-secret",
+            new_passwd="new-secret",
+        )
+
+        self.assertFalse(result.ok)
+        self.assertIs(result.error, error)
+        self.assertTrue(client.closed)
+
+    async def test_update_passwd_unknown_client_returns_error_result(self):
+        asic = ASICClient()
+
+        result = await asic.update_miner_passwd(
+            MinerType.IPOLLO,
+            "10.0.0.1",
+            old_passwd="old-secret",
+            new_passwd="new-secret",
+        )
 
         self.assertFalse(result.ok)
         self.assertIsInstance(result.error, UnknownClientError)

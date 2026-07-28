@@ -18,7 +18,11 @@ import httpx
 from mod.ipr_asic.data import MinerType
 from mod.ipr_asic.data.miners import SRBMinerParser
 from mod.ipr_asic.errors import APIError
-from mod.ipr_asic.http import AntminerHTTPClient, SRBMinerHTTPClient
+from mod.ipr_asic.http import (
+    AntminerHTTPClient,
+    AntminerOldHTTPClient,
+    SRBMinerHTTPClient,
+)
 
 
 def read_payload(filename: str) -> dict:
@@ -50,14 +54,93 @@ class TestAntminerClient(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(request.url.path.endswith("cgi-bin/get_system_info.cgi"))
             return httpx.Response(200, json=ANTMINER_SYSTEM_INFO)
 
-        client = AntminerHTTPClient(
-            "127.0.0.1", transport=httpx.MockTransport(handler)
-        )
+        client = AntminerHTTPClient("127.0.0.1", transport=httpx.MockTransport(handler))
         client.authed = True  # bypass the digest handshake for a transport-only test
         info = await client.get_system_info()
         self.assertEqual(info["hostname"], "antminer")
         self.assertEqual(info["macaddr"], "AA:BB:CC:DD:EE:FF")
         self.assertEqual(info["serinum"], "SER123")
+
+    async def test_update_passwd_posts_expected_json_payload(self):
+        def handler(request: httpx.Request) -> httpx.Response:
+            self.assertEqual(request.method, "POST")
+            self.assertTrue(request.url.path.endswith("cgi-bin/passwd.cgi"))
+            self.assertEqual(
+                json.loads(request.content),
+                {
+                    "curPwd": "old-secret",
+                    "newPwd": "new-secret",
+                    "confirmPwd": "new-secret",
+                },
+            )
+            return httpx.Response(
+                200,
+                json={
+                    "stats": "success",
+                    "status": "success",
+                    "code": "0",
+                    "msg": "OK",
+                },
+            )
+
+        client = AntminerHTTPClient("127.0.0.1", transport=httpx.MockTransport(handler))
+        client.authed = True
+
+        result = await client.update_passwd("old-secret", "new-secret")
+
+        self.assertEqual(
+            result,
+            {
+                "stats": "success",
+                "status": "success",
+                "code": "0",
+                "msg": "OK",
+            },
+        )
+
+    async def test_update_passwd_rejects_failed_action_response(self):
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={
+                    "stats": "fail",
+                    "status": "fail",
+                    "code": "1",
+                    "msg": "FAIL!",
+                },
+            )
+
+        client = AntminerHTTPClient("127.0.0.1", transport=httpx.MockTransport(handler))
+        client.authed = True
+
+        with self.assertRaises(APIError):
+            await client.update_passwd("old-secret", "new-secret")
+
+
+class TestAntminerOldClient(unittest.IsolatedAsyncioTestCase):
+    async def test_update_passwd_posts_expected_query_params(self):
+        def handler(request: httpx.Request) -> httpx.Response:
+            self.assertEqual(request.method, "POST")
+            self.assertTrue(request.url.path.endswith("cgi-bin/passwd.cgi"))
+            self.assertEqual(
+                dict(request.url.params),
+                {
+                    "current_pw": "old-secret",
+                    "new_pw": "new-secret",
+                    "new_pw_ctrl": "new-secret",
+                },
+            )
+            self.assertEqual(request.content, b"")
+            return httpx.Response(200, json={"success": True})
+
+        client = AntminerOldHTTPClient(
+            "127.0.0.1", transport=httpx.MockTransport(handler)
+        )
+        client.authed = True
+
+        result = await client.update_passwd("old-secret", "new-secret")
+
+        self.assertEqual(result, {"success": True})
 
 
 class TestSRBMinerClient(unittest.IsolatedAsyncioTestCase):
@@ -65,9 +148,7 @@ class TestSRBMinerClient(unittest.IsolatedAsyncioTestCase):
         def handler(request: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=payload)
 
-        return SRBMinerHTTPClient(
-            "127.0.0.1", transport=httpx.MockTransport(handler)
-        )
+        return SRBMinerHTTPClient("127.0.0.1", transport=httpx.MockTransport(handler))
 
     async def test_system_info_pools_and_parser(self):
         payload = read_payload("tests/payloads/srbminer.json")
