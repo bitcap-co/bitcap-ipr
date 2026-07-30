@@ -2670,7 +2670,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         """
 
         def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
-            if miner_type in (MinerType.VOLCMINER, MinerType.HIVEGPU):
+            if miner_type in (MinerType.VOLCMINER, MinerType.HIVEGPU, MinerType.IPOLLO):
                 logger.error(f"locate : {miner_type.value} is currently not supported.")
                 self.notify(
                     f"Status :: Skipping {ip_addr}: {miner_type.value.capitalize()} locate is not supported.",
