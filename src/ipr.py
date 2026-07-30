@@ -904,7 +904,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.lineAuradinePasswd.setText(self.config.api.auth.auradine_alt_passwd)
         # disabled APIs
         # self.lineHammerPasswd.setText(self.config.api.auth.hammer_alt_passwd)
-        # self.lineIPolloPasswd.setText(self.config.api.auth.ipollo_alt_passwd)
+        self.lineIPolloPasswd.setText(self.config.api.auth.ipollo_alt_passwd)
 
         # api settings
         self.spinLocateDuration.setValue(self.config.api.locate_duration)
@@ -1054,7 +1054,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "elphapexAltPasswd": self.lineElphapexPasswd.text(),
                 "sealminerAltPasswd": self.lineSealminerPasswd.text(),
                 "auradineAltPasswd": self.lineAuradinePasswd.text(),
-                # "ipolloAltPasswd": self.lineIPolloPasswd.text()
+                "ipolloAltPasswd": self.lineIPolloPasswd.text(),
             },
             "firmware": {
                 "useAntminerLogin": self.checkUseAntminerLogin.isChecked(),
@@ -2427,6 +2427,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                 client_auth = self.lineElphapexPasswd.text()
             case "auradine":
                 client_auth = self.lineAuradinePasswd.text()
+            case "ipollo":
+                client_auth = self.lineIPolloPasswd.text()
             case "vnish":
                 if not self.checkUseAntminerLogin.isChecked():
                     client_auth = self.lineVnishPasswd.text()

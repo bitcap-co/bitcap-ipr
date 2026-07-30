@@ -892,7 +892,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 255, 986))
+        self.scrollAPI.setGeometry(QRect(0, 0, 476, 986))
         self.verticalLayout_8 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_8.setSpacing(15)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
@@ -1145,7 +1145,7 @@ class Ui_MainWindow(object):
 
         self.groupIPollo = QGroupBox(self.groupAPIAuth)
         self.groupIPollo.setObjectName(u"groupIPollo")
-        self.groupIPollo.setEnabled(False)
+        self.groupIPollo.setEnabled(True)
         sizePolicy.setHeightForWidth(self.groupIPollo.sizePolicy().hasHeightForWidth())
         self.groupIPollo.setSizePolicy(sizePolicy)
         self.groupIPollo.setMinimumSize(QSize(0, 64))
@@ -1159,7 +1159,7 @@ class Ui_MainWindow(object):
 
         self.lineIPolloPasswd = QLineEdit(self.groupIPollo)
         self.lineIPolloPasswd.setObjectName(u"lineIPolloPasswd")
-        self.lineIPolloPasswd.setEnabled(False)
+        self.lineIPolloPasswd.setEnabled(True)
         sizePolicy.setHeightForWidth(self.lineIPolloPasswd.sizePolicy().hasHeightForWidth())
         self.lineIPolloPasswd.setSizePolicy(sizePolicy)
         self.lineIPolloPasswd.setEchoMode(QLineEdit.EchoMode.Password)
