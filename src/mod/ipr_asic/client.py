@@ -19,6 +19,7 @@ from mod.ipr_asic.data.miners import (
     ElphapexParser,
     GoldshellParser,
     IceriverParser,
+    IPolloParser,
     LuxminerParser,
     SealminerParser,
     SRBMinerParser,
@@ -40,6 +41,7 @@ from mod.ipr_asic.http import (
     ElphapexHTTPClient,
     GoldshellHTTPClient,
     IceriverHTTPClient,
+    IPolloHTTPClient,
     SealminerHTTPClient,
     SRBMinerHTTPClient,
     VnishHTTPClient,
@@ -207,6 +209,8 @@ class ASICClient(QObject):
                 return AuradineHTTPClient(ip, alt_pwd=alt_pwd)
             case MinerType.HIVEGPU:
                 return SRBMinerHTTPClient(ip, alt_pwd=alt_pwd)
+            case MinerType.IPOLLO:
+                return IPolloHTTPClient(ip, alt_pwd=alt_pwd)
             case _:
                 raise UnknownClientError(
                     f"unsupported client for IP {ip}: {miner_type.value}"
@@ -261,6 +265,9 @@ class ASICClient(QObject):
             return AuradineParser()
         if isinstance(client, SRBMinerHTTPClient):
             return SRBMinerParser()
+        if isinstance(client, IPolloHTTPClient):
+            return IPolloParser()
+
         return None
 
     # -- high-level operations ---------------------------------------------
@@ -313,6 +320,9 @@ class ASICClient(QObject):
                 parser.parse_system_info(system_info)
                 version_info = await client.version()
                 parser.parse_version_info(version_info)
+            elif isinstance(parser, IPolloParser):
+                parser.parse_summary(summary)
+                parser.parse_system_info(system_info)
             else:
                 parser.parse_summary(summary)
                 parser.parse_all(system_info)
