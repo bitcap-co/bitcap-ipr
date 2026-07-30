@@ -68,6 +68,7 @@ class MinerAlgorithm(str, Enum):
     EQUIHASH = "Equihash"
     RANDOMX = "RandomX"
     PEARLHASH = "Pearlhash"
+    CUCKATOO = "Cuckatoo"
 
     def __str__(self) -> str:
         return self.value

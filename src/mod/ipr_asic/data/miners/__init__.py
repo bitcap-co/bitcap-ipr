@@ -8,6 +8,7 @@ from .auradine import AuradineParser
 from .elphapex import ElphapexParser
 from .goldshell import GoldshellParser
 from .iceriver import IceriverParser
+from .ipollo import IPolloParser
 from .luxminer import LuxminerParser
 from .sealminer import SealminerParser
 from .srbminer import SRBMinerParser
@@ -20,6 +21,7 @@ __all__ = [
     "AuradineParser",
     "ElphapexParser",
     "GoldshellParser",
+    "IPolloParser",
     "IceriverParser",
     "LuxminerParser",
     "SRBMinerParser",
