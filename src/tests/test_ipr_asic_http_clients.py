@@ -23,6 +23,7 @@ from mod.ipr_asic.http import (
     AntminerOldHTTPClient,
     SRBMinerHTTPClient,
 )
+from mod.ipr_asic.http.ipollo import IPolloHTTPClient
 
 
 def read_payload(filename: str) -> dict:
@@ -141,6 +142,156 @@ class TestAntminerOldClient(unittest.IsolatedAsyncioTestCase):
         result = await client.update_passwd("old-secret", "new-secret")
 
         self.assertEqual(result, {"success": True})
+
+
+class TestIPolloClient(unittest.IsolatedAsyncioTestCase):
+    async def test_get_miner_conf_parses_luci_html(self):
+        html = """
+        <form>
+          <select id="cbid.cgminer.default.show_fan" name="cbid.cgminer.default.show_fan">
+            <option value="fan1">Fan 1</option>
+            <option value="fan3" selected="selected">Fan 3</option>
+          </select>
+          <select id="cbid.cgminer.default.show_temp" name="cbid.cgminer.default.show_temp">
+            <option value="temp2" selected="selected">Temp 2</option>
+          </select>
+          <input name="cbid.cgminer.default.asic_alarm_temp" value="90">
+          <input name="cbid.cgminer.default.fan_min" value="60">
+          <input name="cbid.cgminer.default.fan_max" value="100">
+          <input name="cbid.cgminer.default.pwm_default" value="60">
+          <select name="cbid.cgminer.default.fan_ctrl">
+            <option value="1" selected>Enabled</option>
+            <option value="0">Disabled</option>
+          </select>
+          <select name="cbid.cgminer.default.pre_boot_time">
+            <option value="3" selected="selected">3</option>
+          </select>
+          <input name="cbid.cgminer.default.pre_boot_fan" value="100">
+          <input name="unrelated.field" value="ignored">
+        </form>
+        """
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            self.assertEqual(request.method, "GET")
+            self.assertTrue(
+                request.url.path.endswith("cgi-bin/luci/admin/ipollo_main/normal")
+            )
+            return httpx.Response(200, text=html)
+
+        client = IPolloHTTPClient("127.0.0.1", transport=httpx.MockTransport(handler))
+        client.authed = True
+
+        config = await client.get_miner_conf()
+
+        self.assertEqual(config["show_fan"], "fan3")
+        self.assertEqual(config["show_temp"], "temp2")
+        self.assertEqual(config["alarm_temp"], 90)
+        self.assertEqual(config["fan_min"], 60)
+        self.assertEqual(config["fan_max"], 100)
+        self.assertEqual(config["default_pwm"], 60)
+        self.assertEqual(config["fan_ctrl"], 1)
+        self.assertEqual(config["pre_boot_time"], 3)
+        self.assertEqual(config["pre_boot_fan"], 100)
+
+    async def test_get_pool_conf_returns_selected_coin_pools(self):
+        html = """
+        <form>
+          <select name="cbid.cgminer.default.select_coin">
+            <option value="mwc">MWC</option>
+            <option value="grin" selected="selected">Grin</option>
+          </select>
+          <input name="cbid.cgminer.default.mwc_pool1url" value="mwc.example:1">
+          <input name="cbid.cgminer.default.mwc_pool1user" value="mwc-user">
+          <input name="cbid.cgminer.default.mwc_pool1pw" value="mwc-pass">
+          <input name="cbid.cgminer.default.grin_pool1url" value="grin.example:1">
+          <input name="cbid.cgminer.default.grin_pool1user" value="grin-user-1">
+          <input name="cbid.cgminer.default.grin_pool1pw" value="grin-pass-1">
+          <input name="cbid.cgminer.default.grin_pool2url" value="grin.example:2">
+          <input name="cbid.cgminer.default.grin_pool2user" value="grin-user-2">
+          <input name="cbid.cgminer.default.grin_pool2pw" value="grin-pass-2">
+          <input name="cbid.cgminer.default.grin_pool3url" value="">
+          <input name="cbid.cgminer.default.grin_pool3user" value="">
+          <input name="cbid.cgminer.default.grin_pool3pw" value="">
+        </form>
+        """
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            self.assertEqual(request.method, "GET")
+            self.assertTrue(
+                request.url.path.endswith("cgi-bin/luci/admin/ipollo_main/pool")
+            )
+            return httpx.Response(200, text=html)
+
+        client = IPolloHTTPClient("127.0.0.1", transport=httpx.MockTransport(handler))
+        client.authed = True
+
+        pools = await client.get_pool_conf()
+
+        self.assertEqual(
+            pools,
+            [
+                {
+                    "url": "grin.example:1",
+                    "user": "grin-user-1",
+                    "pass": "grin-pass-1",
+                },
+                {
+                    "url": "grin.example:2",
+                    "user": "grin-user-2",
+                    "pass": "grin-pass-2",
+                },
+                {"url": "", "user": "", "pass": ""},
+            ],
+        )
+
+    async def test_update_pool_conf_posts_active_coin_and_preserves_inactive_coin(self):
+        html = """
+        <form>
+          <select name="cbid.cgminer.default.select_coin">
+            <option value="mwc" selected="selected">MWC</option>
+            <option value="grin">Grin</option>
+          </select>
+          <input name="cbid.cgminer.default.mwc_pool1url" value="old-mwc.example">
+          <input name="cbid.cgminer.default.mwc_pool1user" value="old-mwc-user">
+          <input name="cbid.cgminer.default.mwc_pool1pw" value="old-mwc-pass">
+          <input name="cbid.cgminer.default.grin_pool1url" value="grin.example">
+          <input name="cbid.cgminer.default.grin_pool1user" value="grin-user">
+          <input name="cbid.cgminer.default.grin_pool1pw" value="grin-pass">
+        </form>
+        """
+        requests: list[httpx.Request] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            requests.append(request)
+            self.assertTrue(
+                request.url.path.endswith("cgi-bin/luci/admin/ipollo_main/pool")
+            )
+            if request.method == "GET":
+                return httpx.Response(200, text=html)
+
+            self.assertEqual(request.method, "POST")
+            form = dict(httpx.QueryParams(request.content.decode()))
+            self.assertEqual(form["cbid.cgminer.default.select_coin"], "mwc")
+            self.assertEqual(form["cbid.cgminer.default.mwc_pool1url"], "new.example")
+            self.assertEqual(form["cbid.cgminer.default.mwc_pool1user"], "new-user")
+            self.assertEqual(form["cbid.cgminer.default.mwc_pool1pw"], "new-pass")
+            self.assertEqual(form["cbid.cgminer.default.grin_pool1url"], "grin.example")
+            self.assertEqual(form["cbid.cgminer.default.grin_pool1user"], "grin-user")
+            self.assertEqual(form["cbid.cgminer.default.grin_pool1pw"], "grin-pass")
+            self.assertEqual(form["cbi.apply"], "Save & Apply")
+            return httpx.Response(200, text=html)
+
+        client = IPolloHTTPClient("127.0.0.1", transport=httpx.MockTransport(handler))
+        client.authed = True
+
+        result = await client.update_pool_conf(
+            ["new.example", "", ""],
+            ["new-user", "", ""],
+            ["new-pass", "", ""],
+        )
+
+        self.assertEqual(result, {"success": True, "msg": "OK"})
+        self.assertEqual([request.method for request in requests], ["GET", "POST"])
 
 
 class TestSRBMinerClient(unittest.IsolatedAsyncioTestCase):

@@ -8,6 +8,7 @@ from .auradine import AuradineHTTPClient
 from .elphapex import ElphapexHTTPClient
 from .goldshell import GoldshellHTTPClient
 from .iceriver import IceriverHTTPClient
+from .ipollo import IPolloHTTPClient
 from .sealminer import SealminerHTTPClient
 from .srbminer import SRBMinerHTTPClient
 from .vnish import VnishHTTPClient
@@ -19,6 +20,7 @@ __all__ = [
     "AuradineHTTPClient",
     "ElphapexHTTPClient",
     "GoldshellHTTPClient",
+    "IPolloHTTPClient",
     "IceriverHTTPClient",
     "SRBMinerHTTPClient",
     "SealminerHTTPClient",
