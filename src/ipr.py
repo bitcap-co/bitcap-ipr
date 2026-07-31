@@ -2272,10 +2272,19 @@ class IPR(QMainWindow, Ui_MainWindow):
             self._maybe_reconnect_iprd()
 
     def _maybe_reconnect_iprd(self):
-        """Recover an iprd connection that was dropped while the app was inactive
-        (typically a resume from sleep whose automatic retry burst ran before the
-        network was back). Triggered when the window regains focus."""
+        """Recover IPRD connection or discovery after the app was inactive.
+
+        Triggered when the window regains focus, after resumed networking has had
+        more time to settle than during the initial OS resume notification.
+        """
         if not self._iprd_listening or self.iprd.active:
+            return
+        if (
+            self.checkEnableIPRDAutoDiscover.isChecked()
+            and self.iprd_discovery.restart_after_resume()
+        ):
+            self._last_iprd_error = ""
+            self._wait_for_iprd_service()
             return
         # don't interrupt an attempt already in flight.
         if self._listen_state in (
