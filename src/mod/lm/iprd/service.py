@@ -105,6 +105,7 @@ class IPRDServiceListener(QObject, ServiceListener):
         self._active = False
         self._power_suspended = False
         self._resume_after_suspend = False
+        self._resume_refresh_pending = False
 
         self._resolved.connect(self._publish_resolved)
         self._removed.connect(self._publish_removed)
@@ -170,7 +171,20 @@ class IPRDServiceListener(QObject, ServiceListener):
     @Slot()
     def stop(self) -> None:
         """Stop browsing and release all zeroconf sockets and threads."""
+        with self._lock:
+            self._resume_refresh_pending = False
         self._stop()
+
+    @Slot()
+    def restart(self) -> None:
+        """Recreate the browser so it binds to the current interfaces."""
+        with self._lock:
+            if self._power_suspended:
+                self._resume_after_suspend = True
+                return
+        logger.info(f"{self.__repr__()} : restarting service discovery.")
+        self._stop()
+        self.start()
 
     def _stop(self, *, preserve_resume: bool = False) -> None:
         with self._lock:
@@ -215,6 +229,7 @@ class IPRDServiceListener(QObject, ServiceListener):
             self._power_suspended = True
             pause = self._active
             self._resume_after_suspend = pause
+            self._resume_refresh_pending = False
         if pause:
             logger.info(f"{self.__repr__()} : host suspending; pausing discovery.")
             self._stop(preserve_resume=True)
@@ -231,6 +246,27 @@ class IPRDServiceListener(QObject, ServiceListener):
         if restart:
             logger.info(f"{self.__repr__()} : host resumed; restarting discovery.")
             self.start()
+            with self._lock:
+                self._resume_refresh_pending = self._active and not self._services
+
+    def restart_after_resume(self) -> bool:
+        """Refresh an empty post-resume browser once networking has settled."""
+        with self._lock:
+            if (
+                not self._resume_refresh_pending
+                or self._power_suspended
+                or not self._active
+                or self._services
+            ):
+                self._resume_refresh_pending = False
+                return False
+            self._resume_refresh_pending = False
+        logger.info(
+            f"{self.__repr__()} : app reactivated with no service after resume; "
+            "restarting discovery."
+        )
+        self.restart()
+        return True
 
     def close(self) -> None:
         self.stop()
@@ -320,6 +356,7 @@ class IPRDServiceListener(QObject, ServiceListener):
             if previous == service:
                 return
             self._services[service.name] = service
+            self._resume_refresh_pending = False
 
         if previous is None or not is_update:
             logger.info(
