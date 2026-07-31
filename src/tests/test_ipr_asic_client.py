@@ -147,7 +147,7 @@ class TestGetMinerData(unittest.IsolatedAsyncioTestCase):
 
     async def test_unknown_client_returns_error_result(self):
         asic = ASICClient()
-        result = await asic.get_miner_data(MinerType.IPOLLO, "10.0.0.1")
+        result = await asic.get_miner_data(MinerType.UNKNOWN, "10.0.0.1")
         self.assertFalse(result.ok)
         self.assertIsInstance(result.error, UnknownClientError)
         # still returns a filled MinerData dict
@@ -249,7 +249,7 @@ class TestMinerControl(unittest.IsolatedAsyncioTestCase):
 
     async def test_unknown_client_returns_error_result(self):
         asic = ASICClient()
-        result = await asic.start_miner(MinerType.IPOLLO, "10.0.0.1")
+        result = await asic.start_miner(MinerType.UNKNOWN, "10.0.0.1")
 
         self.assertFalse(result.ok)
         self.assertIsInstance(result.error, UnknownClientError)
@@ -304,7 +304,7 @@ class TestUpdatePasswd(unittest.IsolatedAsyncioTestCase):
         asic = ASICClient()
 
         result = await asic.update_miner_passwd(
-            MinerType.IPOLLO,
+            MinerType.UNKNOWN,
             "10.0.0.1",
             old_passwd="old-secret",
             new_passwd="new-secret",
