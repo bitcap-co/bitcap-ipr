@@ -11,7 +11,19 @@ from typing import Any
 from unittest.mock import Mock
 
 import config  # noqa: F401  # initialize Pydantic before importing PySide-backed IPR
-from ipr import IPR, ListenState
+from ipr import IPR, ListenState, _select_iprd_service_address
+from mod.lm import IPRDService
+
+
+def make_service(name: str, addresses: tuple[str, ...]) -> IPRDService:
+    return IPRDService(
+        name=name,
+        instance_name=name,
+        hostname="iprd-host.local",
+        addresses=addresses,
+        port=7788,
+        properties={},
+    )
 
 
 class TestIPRDRecovery(unittest.TestCase):
@@ -37,6 +49,82 @@ class TestIPRDRecovery(unittest.TestCase):
         self.assertEqual(subject._last_iprd_error, "")
         subject._wait_for_iprd_service.assert_called_once_with()
         subject.start_listen.assert_not_called()
+
+    def test_sticky_address_survives_advertisement_reordering(self) -> None:
+        service = make_service(
+            "IPR Daemon._iprd._tcp.local.",
+            ("192.168.122.1", "192.168.1.107"),
+        )
+
+        address = _select_iprd_service_address(
+            service,
+            service.name,
+            "192.168.1.107",
+        )
+
+        self.assertEqual(address, "192.168.1.107")
+
+    def test_sticky_address_falls_back_when_no_longer_advertised(self) -> None:
+        service = make_service(
+            "IPR Daemon._iprd._tcp.local.",
+            ("192.168.122.1",),
+        )
+
+        address = _select_iprd_service_address(
+            service,
+            service.name,
+            "192.168.1.107",
+        )
+
+        self.assertEqual(address, "192.168.122.1")
+
+    def test_service_update_does_not_interrupt_active_sticky_endpoint(self) -> None:
+        service = make_service(
+            "IPR Daemon._iprd._tcp.local.",
+            ("192.168.122.1", "192.168.1.107"),
+        )
+        address_field = Mock()
+        address_field.text.return_value = "192.168.1.107:7788"
+        listener = SimpleNamespace(active=True, stop=Mock())
+        subject: Any = SimpleNamespace(
+            _discovered_iprd_service_name=service.name,
+            _discovered_iprd_address="192.168.1.107",
+            _iprd_listening=True,
+            lineIPRDSocketAddress=address_field,
+            iprd=listener,
+            _start_iprd_connection=Mock(),
+        )
+
+        IPR._connect_to_iprd_service(subject, service)
+
+        self.assertEqual(subject._discovered_iprd_address, "192.168.1.107")
+        address_field.setText.assert_called_once_with("192.168.1.107:7788")
+        listener.stop.assert_not_called()
+        subject._start_iprd_connection.assert_not_called()
+
+    def test_service_update_reconnects_when_sticky_endpoint_disappears(self) -> None:
+        service = make_service(
+            "IPR Daemon._iprd._tcp.local.",
+            ("192.168.122.1",),
+        )
+        address_field = Mock()
+        address_field.text.return_value = "192.168.1.107:7788"
+        listener = SimpleNamespace(active=True, stop=Mock())
+        subject: Any = SimpleNamespace(
+            _discovered_iprd_service_name=service.name,
+            _discovered_iprd_address="192.168.1.107",
+            _iprd_listening=True,
+            lineIPRDSocketAddress=address_field,
+            iprd=listener,
+            _start_iprd_connection=Mock(),
+        )
+
+        IPR._connect_to_iprd_service(subject, service)
+
+        self.assertEqual(subject._discovered_iprd_address, "192.168.122.1")
+        address_field.setText.assert_called_once_with("192.168.122.1:7788")
+        listener.stop.assert_called_once_with()
+        subject._start_iprd_connection.assert_called_once_with("192.168.122.1", 7788)
 
 
 if __name__ == "__main__":
