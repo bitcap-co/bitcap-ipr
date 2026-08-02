@@ -9,14 +9,13 @@ import asyncio
 from typing import Self
 
 from mod.ipr_asic.errors import APIError, AuthenticationError, FailedConnectionError
+from mod.ipr_asic.models import MinerSnapshot, ProtocolResult
 from mod.ipr_asic.protocol import (
     BaseClient,
     BaseHTTPClient,
     BaseRPCClient,
     BaseTCPClient,
 )
-
-from .models import MinerSnapshot, ProtocolResult
 
 _COLLECTION_ERRORS = (
     FailedConnectionError,

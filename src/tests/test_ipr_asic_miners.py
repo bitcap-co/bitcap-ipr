@@ -8,8 +8,10 @@ import unittest
 from typing import cast
 
 from mod.ipr_asic.errors import APIError
-from mod.ipr_asic.miners import BaseMiner
+from mod.ipr_asic.http import IPolloHTTPClient
+from mod.ipr_asic.miners import BaseMiner, IPolloMiner
 from mod.ipr_asic.protocol import BaseHTTPClient, BaseRPCClient
+from mod.ipr_asic.rpc import CGMinerRPCClient
 
 
 class _FakeHTTPClient:
@@ -50,6 +52,14 @@ class _FakeRPCClient:
 
     def _close(self, ex=None):
         self.closed = True
+
+
+class _FakeIPolloHTTPClient(_FakeHTTPClient):
+    async def summary(self):
+        return {"algo": "etc", "hashrate": 100, "version": "1.0"}
+
+    async def pools(self):
+        return [{"url": "stratum.example", "user": "worker"}]
 
 
 class TestBaseMiner(unittest.IsolatedAsyncioTestCase):
@@ -132,6 +142,33 @@ class TestBaseMiner(unittest.IsolatedAsyncioTestCase):
 
         self.assertTrue(http.closed)
         self.assertTrue(rpc.closed)
+
+
+class TestIPolloMiner(unittest.IsolatedAsyncioTestCase):
+    def test_builds_default_vendor_clients(self):
+        miner = IPolloMiner("10.0.0.1")
+
+        self.assertIsInstance(miner.http, IPolloHTTPClient)
+        self.assertIsInstance(miner.rpc, CGMinerRPCClient)
+        miner.close()
+
+    async def test_collects_ipollo_http_and_cgminer_rpc_data(self):
+        miner = IPolloMiner(
+            "10.0.0.1",
+            http=cast(BaseHTTPClient, _FakeIPolloHTTPClient()),
+            rpc=cast(BaseRPCClient, _FakeRPCClient()),
+        )
+
+        snapshot = await miner.collect()
+
+        assert snapshot.http is not None
+        assert snapshot.rpc is not None
+        self.assertEqual(
+            set(snapshot.http.data), {"get_system_info", "summary", "pools"}
+        )
+        self.assertEqual(snapshot.http.data["summary"]["algo"], "etc")
+        self.assertEqual(snapshot.rpc.data["summary"]["hashrate"], 100)
+        self.assertEqual(snapshot.errors, {})
 
 
 if __name__ == "__main__":

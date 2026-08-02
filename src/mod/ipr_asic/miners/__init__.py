@@ -4,6 +4,6 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 from .base import BaseMiner
-from .models import MinerSnapshot, ProtocolResult
+from .ipollo import IPolloMiner
 
-__all__ = ["BaseMiner", "MinerSnapshot", "ProtocolResult"]
+__all__ = ["BaseMiner", "IPolloMiner"]

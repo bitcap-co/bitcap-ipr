@@ -5,9 +5,10 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
+# Common API dataclasses
 class MinerConfPool(BaseModel):
     url: str = ""
     user: str = ""
@@ -28,6 +29,10 @@ class Command(BaseModel):
     parameter: str | None = None
 
 
+## END Common API dataclasses
+
+
+# CGMiner dataclasses
 class Status(BaseModel):
     status: str = Field(alias="STATUS")
     when: int | None = Field(None, alias="When")
@@ -85,3 +90,112 @@ class Response(BaseModel):
                     return f"received API error ({status.code}) {status.msg} - {status.description}"
                 case _:
                     return None
+
+
+## END CGMiner dataclasses
+
+
+# Miner backend dataclasses
+class ProtocolResult(BaseModel):
+    """Raw data and endpoint errors collected from one miner protocol."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    data: dict[str, Any] = Field(default_factory=dict)
+    errors: dict[str, Exception] = Field(default_factory=dict)
+
+    @property
+    def ok(self) -> bool:
+        return not self.errors
+
+    @property
+    def partial(self) -> bool:
+        return bool(self.data) and bool(self.errors)
+
+
+class MinerSnapshot(BaseModel):
+    """Raw multi-protocol snapshot for one physical miner."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    ip: str
+    http: ProtocolResult | None = None
+    rpc: ProtocolResult | None = None
+
+    @property
+    def ok(self) -> bool:
+        results = (self.http, self.rpc)
+        return any(result is not None and bool(result.data) for result in results)
+
+    @property
+    def errors(self) -> dict[str, Exception]:
+        errors: dict[str, Exception] = {}
+        for protocol, result in (("http", self.http), ("rpc", self.rpc)):
+            if result is None:
+                continue
+            errors.update(
+                {
+                    f"{protocol}.{command}": error
+                    for command, error in result.errors.items()
+                }
+            )
+        return errors
+
+
+class MinerPool(BaseModel):
+    url: str
+    user: str
+    passwd: str | None = None
+    priority: int | None = None
+    type: int | None = None
+    active: bool | None = None
+    accepted: int | None = None
+    rejected: int | None = None
+    stale: int | None = None
+    difficulty: float | None = None
+    difficulty_accepted: float | None = None
+    difficulty_rejected: float | None = None
+
+
+class MinerStatus(BaseModel):
+    pass
+
+
+class MinerStats(BaseModel):
+    pass
+
+
+class MinerSummary(BaseModel):
+    elapsed: int | None = None
+    hashrate: float | None = None
+    hashrate_ideal: float | None = None
+    accepted: int | None = None
+    rejected: int | None = None
+    stale: int | None = None
+    hw_errors: int | None = None
+    pcb_temp: int | None = None
+    chip_temp: int | None = None
+    voltage: float | None = None
+    frequency: float | None = None
+    power: float | None = None
+    fans: list[int] = Field(default_factory=list)
+
+
+class Hashboard(BaseModel):
+    pass
+
+
+class PSU(BaseModel):
+    model: str | None = None
+    serial: str | None = None
+    current: float | None = None
+    voltage: float | None = None
+    power: float | None = None
+
+
+class Firmware(BaseModel):
+    pass
+
+
+class MinerPreset(BaseModel):
+    pass
