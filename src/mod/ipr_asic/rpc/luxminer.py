@@ -9,8 +9,8 @@ from typing import Literal
 from pydantic import BaseModel, Field, ValidationError
 
 from mod.ipr_asic.errors import APIError, APIInvalidResponse
-from mod.ipr_asic.models import ActionResponse, BlinkStatus, Status
-from mod.ipr_asic.rpc.cgminer import CGMinerRPCClient
+from mod.ipr_asic.models import ActionResponse, BlinkStatus
+from mod.ipr_asic.rpc.cgminer import CGMinerRPCClient, Status
 
 logger = logging.getLogger(__name__)
 

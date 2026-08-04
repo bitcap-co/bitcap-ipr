@@ -4,11 +4,13 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 from .cgminer import CGMinerRPCClient
+from .ipollo import IPolloRPCClient
 from .luxminer import LuxminerRPCClient
 from .whatsminer import WhatsminerRPCClient, WhatsminerTCPClient
 
 __all__ = [
     "CGMinerRPCClient",
+    "IPolloRPCClient",
     "LuxminerRPCClient",
     "WhatsminerRPCClient",
     "WhatsminerTCPClient",

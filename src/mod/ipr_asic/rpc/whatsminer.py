@@ -22,8 +22,9 @@ from mod.ipr_asic.errors import (
     APIInvalidResponse,
     AuthenticationError,
 )
-from mod.ipr_asic.models import BlinkStatus, MinerConfPool, Pool, Status
+from mod.ipr_asic.models import BlinkStatus, MinerConfPool
 from mod.ipr_asic.protocol import BaseRPCClient, BaseTCPClient
+from mod.ipr_asic.rpc.cgminer import Pool, Status
 
 logger = logging.getLogger(__name__)
 

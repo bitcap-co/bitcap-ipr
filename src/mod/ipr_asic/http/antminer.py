@@ -22,8 +22,9 @@ from mod.ipr_asic.errors import (
     AuthenticationError,
     FailedConnectionError,
 )
-from mod.ipr_asic.models import BlinkStatus, MinerConfPool, Status
+from mod.ipr_asic.models import BlinkStatus, MinerConfPool
 from mod.ipr_asic.protocol import BaseHTTPClient
+from mod.ipr_asic.rpc.cgminer import Status
 
 logger = logging.getLogger(__name__)
 
