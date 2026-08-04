@@ -42,35 +42,6 @@ class ProtocolResult(BaseModel):
         return bool(self.data) and bool(self.errors)
 
 
-class MinerSnapshot(BaseModel):
-    """Raw multi-protocol snapshot for one physical miner."""
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    ip: str
-    http: ProtocolResult | None = None
-    rpc: ProtocolResult | None = None
-
-    @property
-    def ok(self) -> bool:
-        results = (self.http, self.rpc)
-        return any(result is not None and bool(result.data) for result in results)
-
-    @property
-    def errors(self) -> dict[str, Exception]:
-        errors: dict[str, Exception] = {}
-        for protocol, result in (("http", self.http), ("rpc", self.rpc)):
-            if result is None:
-                continue
-            errors.update(
-                {
-                    f"{protocol}.{command}": error
-                    for command, error in result.errors.items()
-                }
-            )
-        return errors
-
-
 class MinerPool(BaseModel):
     url: str
     user: str
@@ -87,17 +58,24 @@ class MinerPool(BaseModel):
 
 
 class MinerStatus(BaseModel):
-    pass
+    state: str | None = None
+    message: str | None = None
+    warnings: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
 
 
 class MinerStats(BaseModel):
-    pass
+    accepted: int | None = None
+    rejected: int | None = None
+    stale: int | None = None
+    hw_errors: int | None = None
 
 
 class MinerSummary(BaseModel):
     elapsed: int | None = None
     hashrate: float | None = None
     hashrate_ideal: float | None = None
+    hashrate_unit: str | None = None
     accepted: int | None = None
     rejected: int | None = None
     stale: int | None = None
@@ -111,7 +89,23 @@ class MinerSummary(BaseModel):
 
 
 class Hashboard(BaseModel):
-    pass
+    id: int
+    name: str | None = None
+    serial: str | None = None
+    status: str | None = None
+    error: str | None = None
+    enabled: bool | None = None
+    chip_bin: int | None = None
+    chip_count: int | None = None
+    chip_count_healthy: int | None = None
+    hashrate: float | None = None
+    hashrate_ideal: float | None = None
+    voltage: float | None = None
+    power: float | None = None
+    frequency: float | None = None
+    pcb_temp: int | None = None
+    chip_temp: int | None = None
+    hw_errors: int | None = None
 
 
 class PSU(BaseModel):
@@ -128,3 +122,39 @@ class Firmware(BaseModel):
 
 class MinerPreset(BaseModel):
     pass
+
+
+class MinerSnapshot(BaseModel):
+    """Normalized point-in-time view of one physical miner."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    ip: str
+    summary: MinerSummary | None = None
+    status: MinerStatus | None = None
+    stats: MinerStats | None = None
+    pools: list[MinerPool] = Field(default_factory=list)
+    hashboards: list[Hashboard] = Field(default_factory=list)
+    psu: PSU | None = None
+    firmware: Firmware | None = None
+    preset: MinerPreset | None = None
+    errors: dict[str, Exception] = Field(default_factory=dict)
+
+    @property
+    def ok(self) -> bool:
+        return any(
+            (
+                self.summary is not None,
+                self.status is not None,
+                self.stats is not None,
+                bool(self.pools),
+                bool(self.hashboards),
+                self.psu is not None,
+                self.firmware is not None,
+                self.preset is not None,
+            )
+        )
+
+    @property
+    def partial(self) -> bool:
+        return self.ok and bool(self.errors)
