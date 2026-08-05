@@ -49,7 +49,7 @@
    - [x] Elphapex (Stock)
    - [x] Auradine (Stock)
    - [ ] Hammer (Stock)
-   - [ ] iPollo (Stock)
+   - [x] iPollo (Stock)
    - [x] Vnish firmware
    - [x] LuxOS firmware
    - [ ] HiveOS (GPU)

@@ -265,4 +265,3 @@ class BaseHTTPClient(BaseClient):
     def _close(self, ex: Exception | None = None) -> None:
         if ex:
             self._ex = ex
-            raise ex

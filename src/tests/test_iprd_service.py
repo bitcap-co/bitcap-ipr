@@ -197,6 +197,50 @@ class TestIPRDService(unittest.TestCase):
 
     @patch("mod.lm.iprd.service.ServiceBrowser", FakeServiceBrowser)
     @patch("mod.lm.iprd.service.Zeroconf", FakeZeroconf)
+    def test_app_reactivation_recreates_empty_resume_discovery_once(self) -> None:
+        listener = IPRDServiceListener()
+        listener.start()
+        listener.on_suspend()
+        listener.on_resume()
+        early_zeroconf = listener._zeroconf
+        early_browser = listener._browser
+        assert isinstance(early_zeroconf, FakeZeroconf)
+        assert isinstance(early_browser, FakeServiceBrowser)
+
+        self.assertTrue(listener.restart_after_resume())
+
+        self.assertTrue(listener.active)
+        self.assertEqual(early_browser.cancelled, 1)
+        self.assertEqual(early_zeroconf.closed, 1)
+        self.assertIsNot(listener._zeroconf, early_zeroconf)
+        self.assertIsNot(listener._browser, early_browser)
+        self.assertFalse(listener.restart_after_resume())
+        listener.close()
+
+    @patch("mod.lm.iprd.service.ServiceBrowser", FakeServiceBrowser)
+    @patch("mod.lm.iprd.service.Zeroconf", FakeZeroconf)
+    def test_service_found_before_activation_clears_resume_refresh(self) -> None:
+        listener = IPRDServiceListener()
+        listener.start()
+        listener.on_suspend()
+        listener.on_resume()
+        resumed_zeroconf = listener._zeroconf
+        assert isinstance(resumed_zeroconf, FakeZeroconf)
+        assert resumed_zeroconf.info is not None
+
+        listener.add_service(
+            resumed_zeroconf,
+            IPRD_SERVICE_TYPE,
+            resumed_zeroconf.info.name,
+        )
+        self.assertTrue(wait_for(lambda: len(listener.services) == 1))
+
+        self.assertFalse(listener.restart_after_resume())
+        self.assertIs(listener._zeroconf, resumed_zeroconf)
+        listener.close()
+
+    @patch("mod.lm.iprd.service.ServiceBrowser", FakeServiceBrowser)
+    @patch("mod.lm.iprd.service.Zeroconf", FakeZeroconf)
     def test_stop_while_suspended_prevents_resume(self) -> None:
         listener = IPRDServiceListener()
         listener.start()

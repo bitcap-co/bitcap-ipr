@@ -145,6 +145,23 @@ class TestGetMinerData(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.data["hostname"], "SRBMiner-Multi-Rig")
         self.assertEqual(result.data["subtype"], "4x RTX 3070")
 
+    async def test_http_api_error_returns_error_result(self):
+        transport = httpx.MockTransport(
+            lambda r: httpx.Response(
+                200, content=b"Socket connect failed: Connection refused"
+            )
+        )
+        asic = ASICClient()
+
+        async def fake_make(miner_type, ip, alt_pwd=None):
+            return SRBMinerHTTPClient(ip, transport=transport)
+
+        asic._make_client = fake_make
+        result = await asic.get_miner_data(MinerType.HIVEGPU, "10.0.0.1")
+        self.assertFalse(result.ok)
+        self.assertIsInstance(result.error, APIError)
+        self.assertEqual(str(result.error), "API not available: connection refused")
+
     async def test_unknown_client_returns_error_result(self):
         asic = ASICClient()
         result = await asic.get_miner_data(MinerType.UNKNOWN, "10.0.0.1")

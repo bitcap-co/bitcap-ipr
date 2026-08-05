@@ -109,6 +109,17 @@ RESIZE_MARGIN = 6
 IPRD_DISCOVERY_TIMEOUT_MS = 10_000
 
 
+def _select_iprd_service_address(
+    service: IPRDService,
+    selected_service_name: str | None,
+    selected_address: str | None,
+) -> str:
+    """Keep a selected service address while it remains advertised."""
+    if service.name == selected_service_name and selected_address in service.addresses:
+        return selected_address
+    return service.address
+
+
 class ListenState(Enum):
     """Persistent state of the listening backend, reflected in the status bar."""
 
@@ -194,6 +205,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd_discovery.service_removed.connect(self.on_iprd_service_removed)
         self.iprd_discovery.error.connect(self.on_iprd_discovery_error)
         self._discovered_iprd_service_name: str | None = None
+        self._discovered_iprd_address: str | None = None
         self.iprd_discovery_timeout = QTimer(self)
         self.iprd_discovery_timeout.setSingleShot(True)
         self.iprd_discovery_timeout.setInterval(IPRD_DISCOVERY_TIMEOUT_MS)
@@ -1262,6 +1274,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.iprd_discovery_timeout.stop()
             self.iprd_discovery.stop()
             self._discovered_iprd_service_name = None
+            self._discovered_iprd_address = None
 
     def update_iprd_reconnect_settings(self):
         # max retries only applies when the backend and auto-reconnect are both on.
@@ -2155,7 +2168,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         services = self.iprd_discovery.services
         if not services:
             return None
-        self._discovered_iprd_service_name = services[0].name
         return services[0]
 
     def _wait_for_iprd_service(self) -> None:
@@ -2172,8 +2184,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.set_listen_state(ListenState.CONNECTING)
 
     def _connect_to_iprd_service(self, service: IPRDService) -> None:
+        address = _select_iprd_service_address(
+            service,
+            self._discovered_iprd_service_name,
+            self._discovered_iprd_address,
+        )
         self._discovered_iprd_service_name = service.name
-        address = service.address
+        self._discovered_iprd_address = address
         endpoint = (
             f"[{address}]:{service.port}"
             if ":" in address
@@ -2203,6 +2220,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         if name != self._discovered_iprd_service_name:
             return
         self._discovered_iprd_service_name = None
+        self._discovered_iprd_address = None
         replacement = self._selected_iprd_service()
         if replacement is not None:
             self._connect_to_iprd_service(replacement)
@@ -2272,10 +2290,19 @@ class IPR(QMainWindow, Ui_MainWindow):
             self._maybe_reconnect_iprd()
 
     def _maybe_reconnect_iprd(self):
-        """Recover an iprd connection that was dropped while the app was inactive
-        (typically a resume from sleep whose automatic retry burst ran before the
-        network was back). Triggered when the window regains focus."""
+        """Recover IPRD connection or discovery after the app was inactive.
+
+        Triggered when the window regains focus, after resumed networking has had
+        more time to settle than during the initial OS resume notification.
+        """
         if not self._iprd_listening or self.iprd.active:
+            return
+        if (
+            self.checkEnableIPRDAutoDiscover.isChecked()
+            and self.iprd_discovery.restart_after_resume()
+        ):
+            self._last_iprd_error = ""
+            self._wait_for_iprd_service()
             return
         # don't interrupt an attempt already in flight.
         if self._listen_state in (
