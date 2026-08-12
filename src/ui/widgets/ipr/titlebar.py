@@ -3,11 +3,12 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QColor, QIcon, QMouseEvent, QPixmap
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
+    QSizePolicy,
     QToolButton,
     QWidget,
 )
@@ -16,16 +17,13 @@ from utils import CURR_PLATFORM
 
 
 class IPRTitlebar(QWidget):
-    def __init__(
-        self,
-        parent: QWidget,
-        title: str,
-        button_hints: list[str] = ["min", "max", "close"],
-    ):
+    def __init__(self, parent: QWidget, title: str, button_hints: list[str]):
         super().__init__(parent)
         self._parent = parent
         self._window = self._parent.window()
         self._title_str = title
+        if not button_hints:
+            button_hints = ["min", "max", "close"]
         self._button_hints = button_hints
         self._bar_style = CURR_PLATFORM
 
@@ -39,8 +37,20 @@ class IPRTitlebar(QWidget):
         self.title_label = QLabel()
         self.icon_button = QToolButton()
         self.close_button = QToolButton()
+        self.close_button.setSizePolicy(
+            QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
+        )
+        self.close_button.setIconSize(QSize(16, 16))
         self.minimize_button = QToolButton()
+        self.minimize_button.setSizePolicy(
+            QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
+        )
+        self.minimize_button.setIconSize(QSize(16, 16))
         self.maximize_button = QToolButton()
+        self.maximize_button.setSizePolicy(
+            QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
+        )
+        self.maximize_button.setIconSize(QSize(16, 16))
 
         self._buttons = {
             "close": self.close_button,
@@ -98,9 +108,9 @@ class IPRTitlebar(QWidget):
         title_bar_layout.addWidget(self.title_label)
 
         if self._bar_style != "darwin":
-            self.close_button.setText("🗙")
-            self.minimize_button.setText("🗕")
-            self.maximize_button.setText("🗖")
+            self.close_button.setIcon(QIcon(":rc/titlebar/close.png"))
+            self.minimize_button.setIcon(QIcon(":rc/titlebar/min.png"))
+            self.maximize_button.setIcon(QIcon(":rc/titlebar/max.png"))
 
             for x in self._button_hints:
                 if x in self._buttons:
@@ -118,7 +128,13 @@ class IPRTitlebar(QWidget):
         """Swap the maximize/restore glyph to match the window state."""
         if self._bar_style == "darwin":
             return
-        self.maximize_button.setText("🗗" if self._window.isMaximized() else "🗖")
+        self.maximize_button.setIcon(
+            QIcon(
+                ":rc/titlebar/restore.png"
+                if self._window.isMaximized()
+                else ":rc/titlebar/max.png"
+            )
+        )
 
     def changeEvent(self, event):
         super().changeEvent(event)
@@ -143,19 +159,20 @@ class IPRTitlebar(QWidget):
         event.accept()
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
-        if event.button() == Qt.MouseButton.LeftButton:
-            if not self._window.windowHandle().startSystemMove():
-                self._set_pos = True
-                self._pos = event.position().toPoint()
+        if (
+            event.button() == Qt.MouseButton.LeftButton
+            and not self._window.windowHandle().startSystemMove()
+        ):
+            self._set_pos = True
+            self._pos = event.position().toPoint()
         return event.accept()
 
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
-        if self._set_pos:
-            if self._pos is not None:
-                offset = event.position().toPoint() - self._pos
-                self._window.move(
-                    self._window.x() + offset.x(), self._window.y() + offset.y()
-                )
+        if self._set_pos and self._pos is not None:
+            offset = event.position().toPoint() - self._pos
+            self._window.move(
+                self._window.x() + offset.x(), self._window.y() + offset.y()
+            )
         return event.accept()
 
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
