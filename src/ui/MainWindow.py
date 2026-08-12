@@ -392,6 +392,84 @@ class Ui_MainWindow(object):
         self.verticalLayout_14.addWidget(self.passwdConfig)
 
         self.tabConfigurator.addTab(self.passwdConfigurator, "")
+        self.firmwareConfigurator = QWidget()
+        self.firmwareConfigurator.setObjectName(u"firmwareConfigurator")
+        self.verticalLayout_16 = QVBoxLayout(self.firmwareConfigurator)
+        self.verticalLayout_16.setObjectName(u"verticalLayout_16")
+        self.groupUpdateFirmware = QGroupBox(self.firmwareConfigurator)
+        self.groupUpdateFirmware.setObjectName(u"groupUpdateFirmware")
+        self.verticalLayout_18 = QVBoxLayout(self.groupUpdateFirmware)
+        self.verticalLayout_18.setObjectName(u"verticalLayout_18")
+        self.firmwareUpdateConfig = QGridLayout()
+        self.firmwareUpdateConfig.setObjectName(u"firmwareUpdateConfig")
+        self.checkStoreFirmwarePath = QCheckBox(self.groupUpdateFirmware)
+        self.checkStoreFirmwarePath.setObjectName(u"checkStoreFirmwarePath")
+
+        self.firmwareUpdateConfig.addWidget(self.checkStoreFirmwarePath, 0, 0, 1, 2)
+
+        self.lineSelectedFirmwarePath = QLineEdit(self.groupUpdateFirmware)
+        self.lineSelectedFirmwarePath.setObjectName(u"lineSelectedFirmwarePath")
+        sizePolicy.setHeightForWidth(self.lineSelectedFirmwarePath.sizePolicy().hasHeightForWidth())
+        self.lineSelectedFirmwarePath.setSizePolicy(sizePolicy)
+        self.lineSelectedFirmwarePath.setReadOnly(True)
+
+        self.firmwareUpdateConfig.addWidget(self.lineSelectedFirmwarePath, 1, 0, 1, 1)
+
+        self.pushSelectFirmware = QPushButton(self.groupUpdateFirmware)
+        self.pushSelectFirmware.setObjectName(u"pushSelectFirmware")
+        self.pushSelectFirmware.setMaximumSize(QSize(400, 25))
+
+        self.firmwareUpdateConfig.addWidget(self.pushSelectFirmware, 1, 1, 1, 1)
+
+
+        self.verticalLayout_18.addLayout(self.firmwareUpdateConfig)
+
+        self.checkUpdateKeepSettings = QCheckBox(self.groupUpdateFirmware)
+        self.checkUpdateKeepSettings.setObjectName(u"checkUpdateKeepSettings")
+
+        self.verticalLayout_18.addWidget(self.checkUpdateKeepSettings)
+
+
+        self.verticalLayout_16.addWidget(self.groupUpdateFirmware)
+
+        self.groupRestoreFirmware = QGroupBox(self.firmwareConfigurator)
+        self.groupRestoreFirmware.setObjectName(u"groupRestoreFirmware")
+        self.verticalLayout_19 = QVBoxLayout(self.groupRestoreFirmware)
+        self.verticalLayout_19.setObjectName(u"verticalLayout_19")
+        self.gridLayout = QGridLayout()
+        self.gridLayout.setObjectName(u"gridLayout")
+        self.pushResetFirmware = QPushButton(self.groupRestoreFirmware)
+        self.pushResetFirmware.setObjectName(u"pushResetFirmware")
+
+        self.gridLayout.addWidget(self.pushResetFirmware, 0, 2, 1, 1)
+
+        self.label_34 = QLabel(self.groupRestoreFirmware)
+        self.label_34.setObjectName(u"label_34")
+
+        self.gridLayout.addWidget(self.label_34, 0, 1, 1, 1)
+
+
+        self.verticalLayout_19.addLayout(self.gridLayout)
+
+        self.gridLayout_22 = QGridLayout()
+        self.gridLayout_22.setObjectName(u"gridLayout_22")
+        self.label_35 = QLabel(self.groupRestoreFirmware)
+        self.label_35.setObjectName(u"label_35")
+
+        self.gridLayout_22.addWidget(self.label_35, 0, 0, 1, 1)
+
+        self.pushRollbackFirmware = QPushButton(self.groupRestoreFirmware)
+        self.pushRollbackFirmware.setObjectName(u"pushRollbackFirmware")
+
+        self.gridLayout_22.addWidget(self.pushRollbackFirmware, 0, 1, 1, 1)
+
+
+        self.verticalLayout_19.addLayout(self.gridLayout_22)
+
+
+        self.verticalLayout_16.addWidget(self.groupRestoreFirmware)
+
+        self.tabConfigurator.addTab(self.firmwareConfigurator, "")
 
         self.verticalLayout_13.addWidget(self.tabConfigurator)
 
@@ -618,7 +696,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 478, 849))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 927, 849))
         self.verticalLayout_5 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_5.setSpacing(15)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
@@ -892,7 +970,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 476, 986))
+        self.scrollAPI.setGeometry(QRect(0, 0, 925, 986))
         self.verticalLayout_8 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_8.setSpacing(15)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
@@ -1228,7 +1306,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollLogs = QWidget()
         self.scrollLogs.setObjectName(u"scrollLogs")
-        self.scrollLogs.setGeometry(QRect(0, 0, 368, 242))
+        self.scrollLogs.setGeometry(QRect(0, 0, 927, 242))
         self.verticalLayout_11 = QVBoxLayout(self.scrollLogs)
         self.verticalLayout_11.setSpacing(15)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
@@ -1457,6 +1535,34 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(tooltip)
         self.tabConfigurator.setTabToolTip(self.tabConfigurator.indexOf(self.passwdConfigurator), QCoreApplication.translate("MainWindow", u"Miner password configuration", None))
 #endif // QT_CONFIG(tooltip)
+        self.groupUpdateFirmware.setTitle(QCoreApplication.translate("MainWindow", u"Update", None))
+#if QT_CONFIG(tooltip)
+        self.checkStoreFirmwarePath.setToolTip(QCoreApplication.translate("MainWindow", u"Store current base path as default firmware path", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkStoreFirmwarePath.setText(QCoreApplication.translate("MainWindow", u"Store as default path", None))
+        self.lineSelectedFirmwarePath.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Selected Firmware Path", None))
+#if QT_CONFIG(tooltip)
+        self.pushSelectFirmware.setToolTip(QCoreApplication.translate("MainWindow", u"Select firmware updates from local filesystem", None))
+#endif // QT_CONFIG(tooltip)
+        self.pushSelectFirmware.setText(QCoreApplication.translate("MainWindow", u"Select Firmware", None))
+#if QT_CONFIG(tooltip)
+        self.checkUpdateKeepSettings.setToolTip(QCoreApplication.translate("MainWindow", u"Keep current miner configuration", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkUpdateKeepSettings.setText(QCoreApplication.translate("MainWindow", u"Keep Settings", None))
+        self.groupRestoreFirmware.setTitle(QCoreApplication.translate("MainWindow", u"Restoration", None))
+#if QT_CONFIG(tooltip)
+        self.pushResetFirmware.setToolTip(QCoreApplication.translate("MainWindow", u"Reset firmware/configuration back to factory settings", None))
+#endif // QT_CONFIG(tooltip)
+        self.pushResetFirmware.setText(QCoreApplication.translate("MainWindow", u"Reset Firmware", None))
+        self.label_34.setText(QCoreApplication.translate("MainWindow", u"Reset Firmware", None))
+        self.label_34.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+        self.label_35.setText(QCoreApplication.translate("MainWindow", u"Rollback to Stock firmware (Custom)", None))
+        self.label_35.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.pushRollbackFirmware.setToolTip(QCoreApplication.translate("MainWindow", u"Rollback custom back to stock firmware", None))
+#endif // QT_CONFIG(tooltip)
+        self.pushRollbackFirmware.setText(QCoreApplication.translate("MainWindow", u"Rollback Firmware", None))
+        self.tabConfigurator.setTabText(self.tabConfigurator.indexOf(self.firmwareConfigurator), QCoreApplication.translate("MainWindow", u"Firmware", None))
 #if QT_CONFIG(tooltip)
         self.btnConfiguratorCancel.setToolTip(QCoreApplication.translate("MainWindow", u"Cancel configuration", None))
 #endif // QT_CONFIG(tooltip)
