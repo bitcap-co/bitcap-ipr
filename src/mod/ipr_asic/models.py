@@ -7,6 +7,8 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from mod.ipr_asic.data import MinerAlgorithm, MinerPlatform, MinerType
+
 
 # Common API dataclasses
 class MinerConfPool(BaseModel):
@@ -40,6 +42,16 @@ class ProtocolResult(BaseModel):
     @property
     def partial(self) -> bool:
         return bool(self.data) and bool(self.errors)
+
+
+class MinerInfo(BaseModel):
+    type: MinerType
+    subtype: str | None = None
+    algorithm: MinerAlgorithm | None = None
+    hostname: str | None = None
+    mac: str | None = None
+    serial: str | None = None
+    platform: MinerPlatform | None = None
 
 
 class MinerPool(BaseModel):
@@ -135,6 +147,7 @@ class MinerSnapshot(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     ip: str
+    info: MinerInfo | None = None
     summary: MinerSummary | None = None
     status: MinerStatus | None = None
     stats: MinerStats | None = None

@@ -16,6 +16,7 @@ from mod.ipr_asic.models import (
     PSU,
     Firmware,
     Hashboard,
+    MinerInfo,
     MinerPool,
     MinerPreset,
     MinerSnapshot,
@@ -200,6 +201,9 @@ class BaseMiner(ABC):
             difficulty_rejected=self._number(data, "Difficulty Rejected"),
         )
 
+    async def get_info(self) -> MinerInfo | None:
+        return None
+
     @abstractmethod
     async def get_summary(self) -> MinerSummary:
         """Return normalized realtime summary metrics, normally sourced from RPC."""
@@ -233,6 +237,27 @@ class BaseMiner(ABC):
     async def get_preset(self) -> MinerPreset | None:
         """Return the active normalized mining preset or mode."""
         return None
+
+    # async def get_pool_config(self) -> list[MinerConfPool]:
+    #     ...
+
+    # async def update_pool_config(...):
+    #     ...
+
+    # async def start(self):
+    #     ...
+
+    # async def stop(self):
+    #     ...
+
+    # async def restart(self):
+    #     ...
+
+    # async def reboot(self):
+    #     ...
+
+    # async def blink(self, enabled: bool):
+    #     ...
 
     def close(self) -> None:
         """Close each configured transport once."""

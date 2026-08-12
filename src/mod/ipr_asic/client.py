@@ -12,7 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from PySide6.QtCore import QObject
 
 from mod.ipr_asic import settings
-from mod.ipr_asic.data import BaseParser, MinerData, MinerType
+from mod.ipr_asic.data import BaseParser, MinerData, MinerFirmware, MinerType
 from mod.ipr_asic.data.miners import (
     AntminerParser,
     AuradineParser,
@@ -47,6 +47,8 @@ from mod.ipr_asic.http import (
     VnishHTTPClient,
     VolcminerHTTPClient,
 )
+from mod.ipr_asic.miners import BaseMiner, IPolloMiner
+from mod.ipr_asic.models import MinerSnapshot
 from mod.ipr_asic.protocol import BaseClient
 from mod.ipr_asic.rpc import (
     LuxminerRPCClient,
@@ -66,6 +68,26 @@ _CLIENT_ERRORS = (
     LookupError,
     NotImplementedError,
 )
+
+
+def snapshot_to_miner_data(snapshot: MinerSnapshot) -> dict[str, Any]:
+    firmware = snapshot.firmware if snapshot.firmware else None
+    return MinerData(
+        ip=snapshot.ip,
+        type=snapshot.info.type if snapshot.info else None,
+        subtype=snapshot.info.subtype if snapshot.info else None,
+        firmware=MinerFirmware.from_value(firmware.type) if firmware else None,
+        fw_version=firmware.version if firmware else None,
+        platform=snapshot.info.platform if snapshot.info else None,
+        algorithm=snapshot.info.algorithm if snapshot.info else None,
+        hostname=snapshot.info.hostname if snapshot.info else None,
+        mac=snapshot.info.mac if snapshot.info else None,
+        serial=snapshot.info.serial if snapshot.info else None,
+        uptime=snapshot.summary.elapsed if snapshot.summary else None,
+        stratum_url=snapshot.pools[0].url if snapshot.pools else None,
+        username=snapshot.pools[0].user if snapshot.pools else None,
+        worker_name=snapshot.pools[0].user.split(".")[1] if snapshot.pools else None,
+    ).as_dict()
 
 
 class MinerResult(BaseModel):
@@ -179,6 +201,16 @@ class ASICClient(QObject):
         except (TypeError, LookupError):
             return None
 
+    # -- miner creation (future)----------------------------------------------------
+    async def _make_miner(
+        self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
+    ) -> BaseMiner:
+        match miner_type:
+            case MinerType.IPOLLO:
+                return IPolloMiner(ip, alt_pwd=alt_pwd)
+            case _:
+                raise UnknownClientError
+
     # -- client creation ----------------------------------------------------
 
     async def _make_client(
@@ -271,6 +303,23 @@ class ASICClient(QObject):
         return None
 
     # -- high-level operations ---------------------------------------------
+
+    async def get_miner_snapshot(
+        self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
+    ) -> MinerResult:
+        try:
+            miner = await self._make_miner(miner_type, ip, alt_pwd)
+        except UnknownClientError as e:
+            return MinerResult(data=None, error=e)
+
+        async with miner:
+            snapshot = await miner.collect()
+
+        error = None
+        if not snapshot.ok and snapshot.errors:
+            error = next(iter(snapshot.errors.values()))
+
+        return MinerResult(data=snapshot, error=error)
 
     async def get_miner_data(
         self, miner_type: MinerType, ip: str, alt_pwd: str | None = None

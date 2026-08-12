@@ -47,7 +47,7 @@ class MinerFirmware(str, Enum):
         return self.value
 
     @classmethod
-    def from_value(cls, fw_type: str):
+    def from_value(cls, fw_type: str | None):
         try:
             return cls(fw_type)
         except ValueError:
