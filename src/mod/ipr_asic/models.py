@@ -95,6 +95,7 @@ class Hashboard(BaseModel):
     status: str | None = None
     error: str | None = None
     enabled: bool | None = None
+    has_pic: bool | None = None
     chip_bin: int | None = None
     chip_count: int | None = None
     chip_count_healthy: int | None = None
@@ -117,7 +118,11 @@ class PSU(BaseModel):
 
 
 class Firmware(BaseModel):
-    pass
+    type: str | None = None
+    version: str | None = None
+    build: str | None = None
+    install_type: str | None = None
+    platform: str | None = None
 
 
 class MinerPreset(BaseModel):

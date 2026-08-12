@@ -4,7 +4,7 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 from .client import ASICClient, MinerResult, PoolConf
-from .data import MinerData, MinerFirmware, MinerType
+from .data import MinerAlgorithm, MinerData, MinerFirmware, MinerPlatform, MinerType
 from .data.miners import *
 from .http import *
 from .miners import BaseMiner, IPolloMiner
@@ -26,8 +26,10 @@ __all__ = [
     "IPolloMiner",
     "IPolloRPCClient",
     "LuxminerRPCClient",
+    "MinerAlgorithm",
     "MinerData",
     "MinerFirmware",
+    "MinerPlatform",
     "MinerPool",
     "MinerPreset",
     "MinerResult",
