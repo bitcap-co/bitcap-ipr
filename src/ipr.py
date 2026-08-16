@@ -2040,6 +2040,16 @@ class IPR(QMainWindow, Ui_MainWindow):
                 return
 
     # listener
+    def _update_listen_controls(self):
+        """Update the enabled state of the listen start/stop buttons based on user listening intent."""
+        listening = self._iprd_listening or bool(self.lm.count)
+        self.pushIPRListenStart.setEnabled(not listening)
+        self.pushIPRListenStop.setEnabled(listening)
+
+        if self.checkEnableSysTray.isChecked():
+            self.actionSysStartListen.setEnabled(not listening)
+            self.actionSysStopListen.setEnabled(listening)
+
     def start_listen(self):
         logger.info(" start listeners.")
         if (
@@ -2055,18 +2065,16 @@ class IPR(QMainWindow, Ui_MainWindow):
             return
         if not self.menu_bar.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
-        if self.checkEnableSysTray.isChecked():
-            self.actionSysStartListen.setEnabled(False)
-            self.actionSysStopListen.setEnabled(True)
-        self.pushIPRListenStart.setEnabled(False)
-        self.pushIPRListenStop.setEnabled(True)
         if not self.checkEnableIPRDBackend.isChecked():
             self.lm.start(self.listenerConfig)
             self._last_iprd_error = ""
             self._iprd_listening = False
+            self._update_listen_controls()
             self.set_listen_state(ListenState.LISTENING)
         else:
+            # start listening through iprd.
             self._iprd_listening = True
+            self._update_listen_controls()
             if self.checkEnableIPRDAutoDiscover.isChecked():
                 self.iprd_discovery.start()
                 service = self._selected_iprd_service()
@@ -2112,22 +2120,19 @@ class IPR(QMainWindow, Ui_MainWindow):
             self._iprd_listening = False
         self.iprd_discovery_timeout.stop()
         self.inactive.stop()
-        if self.checkEnableSysTray.isChecked():
-            self.actionSysStartListen.setEnabled(True)
-            self.actionSysStopListen.setEnabled(False)
         if (
             self.menu_bar.actionEnableIDTable.isChecked()
             and self.menu_bar.actionClearTableAfterStopListen.isChecked()
         ):
             self.clear_table()
-        self.pushIPRListenStart.setEnabled(True)
-        self.pushIPRListenStop.setEnabled(False)
         # ensure lm is stopped
         self.lm.stop()
         # always stop iprd: during a reconnect loop active is False but the retry
         # timer is still running, so a guard on active would leave it retrying.
         self.iprd.stop()
-        # back to idle; any transient below will revert here once it expires.
+        self._update_listen_controls()
+        # A give-up ends the immediate retry burst without cancelling the user's
+        # listening intent; all other stops return the application to idle.
         self._last_iprd_error = ""
         self.set_listen_state(
             ListenState.DISCONNECTED if from_giveup else ListenState.READY

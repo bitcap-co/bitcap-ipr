@@ -27,6 +27,43 @@ def make_service(name: str, addresses: tuple[str, ...]) -> IPRDService:
 
 
 class TestIPRDRecovery(unittest.TestCase):
+    def test_reconnect_giveup_preserves_intent_and_controls(self) -> None:
+        start_button = Mock()
+        stop_button = Mock()
+        inactive = Mock()
+        subject: Any = SimpleNamespace(
+            _iprd_listening=True,
+            _last_iprd_error="connection refused",
+            _listen_state=ListenState.RECONNECTING,
+            lm=SimpleNamespace(count=0, stop=Mock()),
+            iprd=SimpleNamespace(stop=Mock()),
+            iprd_discovery_timeout=SimpleNamespace(stop=Mock()),
+            inactive=inactive,
+            pushIPRListenStart=start_button,
+            pushIPRListenStop=stop_button,
+            checkEnableSysTray=SimpleNamespace(isChecked=lambda: False),
+            _update_listen_controls=lambda: IPR._update_listen_controls(subject),
+            set_listen_state=lambda state: setattr(subject, "_listen_state", state),
+            is_minimized_to_tray=lambda: False,
+        )
+
+        IPR.stop_listen(subject, from_giveup=True)
+
+        self.assertTrue(subject._iprd_listening)
+        self.assertEqual(subject._listen_state, ListenState.DISCONNECTED)
+        start_button.setEnabled.assert_called_once_with(False)
+        stop_button.setEnabled.assert_called_once_with(True)
+        inactive.stop.assert_not_called()
+
+    def test_disconnected_status_describes_preserved_intent(self) -> None:
+        subject: Any = SimpleNamespace(_listen_state=ListenState.DISCONNECTED)
+
+        status = IPR._base_status_text(subject)
+
+        self.assertEqual(
+            status, "Status :: IPR Daemon disconnected; listening remains enabled."
+        )
+
     def test_app_activation_refreshes_empty_resume_discovery(self) -> None:
         discovery = Mock()
         discovery.restart_after_resume.return_value = True
