@@ -1917,10 +1917,10 @@ Uses last 5 of SN or MAC address.</string>
                            </size>
                           </property>
                           <property name="toolTip">
-                           <string>Socket address pointing to IPRD instance in the format of &lt;HOST&gt;:&lt;PORT&gt;</string>
+                           <string>Socket address pointing to IPRD instance in the format of &lt;IP&gt;:&lt;PORT&gt;</string>
                           </property>
                           <property name="placeholderText">
-                           <string>HOST:PORT</string>
+                           <string>IP:PORT</string>
                           </property>
                           <property name="clearButtonEnabled">
                            <bool>true</bool>
