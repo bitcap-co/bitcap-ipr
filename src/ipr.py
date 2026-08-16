@@ -2061,16 +2061,27 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.error(
                 "start_listen : no listeners configured. at least one listener needs to be checked."
             )
-            self.notify("Status :: Failed to start listeners. No listeners configured")
+            self.notify("Status :: Failed to start listeners: No listeners configured")
             return
         if not self.menu_bar.actionDisableInactiveTimer.isChecked():
             self.inactive.start()
         if not self.checkEnableIPRDBackend.isChecked():
-            self.lm.start(self.listenerConfig)
-            self._last_iprd_error = ""
             self._iprd_listening = False
-            self._update_listen_controls()
+            self._last_iprd_error = ""
+            self.lm.start(self.listenerConfig)
+            if self.lm.count <= 0:
+                logger.error(
+                    "start_listen : no UDP listeners started; bind failed or configuration has no local listener."
+                )
+                self.inactive.stop()
+                self.set_listen_state(ListenState.READY)
+                self._update_listen_controls()
+                self.notify(
+                    "Status :: Failed to start listeners: Failed to bind or invalid configuration"
+                )
+                return
             self.set_listen_state(ListenState.LISTENING)
+            self._update_listen_controls()
         else:
             # start listening through iprd.
             self._iprd_listening = True
