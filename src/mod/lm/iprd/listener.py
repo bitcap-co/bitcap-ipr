@@ -79,6 +79,7 @@ class IPRDListener(QObject):
         # set True between an OS suspend and the following resume so reconnects
         # are not attempted while the host is asleep (which would wake it).
         self._power_suspended = False
+        self._resume_after_suspend = False
         # monotonic-clock guard: records when/how long a reconnect was scheduled
         # so we can detect an oversized wall-clock gap (i.e. we just resumed from
         # sleep) on platforms without a power backend.
@@ -211,6 +212,11 @@ class IPRDListener(QObject):
     def emit_error(self, error: QAbstractSocket.SocketError) -> None:
         logger.error(f"{self.__repr__()} : emit error! {self.sock.errorString()}")
         self.active = False
+
+        if self._power_suspended or self._intentional_stop:
+            return
+
+        logger.error(f"{self.__repr__()} : emit error! {self.sock.errorString()}")
         # notify the user ONCE per drop; retries stay quiet
         if not self._notified:
             self._notified = True
@@ -271,24 +277,39 @@ class IPRDListener(QObject):
     def on_suspend(self) -> None:
         """The host is about to sleep: stop reconnecting and drop the socket
         cleanly so we don't keep the machine awake. on_resume() restores it."""
+        if self._power_suspended:
+            return
+
+        socket_connected_or_connecting = (
+            self.sock.state() != QAbstractSocket.SocketState.UnconnectedState
+        )
+        reconnect_pending = self._reconnect_timer.isActive()
+
+        self._resume_after_suspend = not self._intentional_stop and (
+            self.active or socket_connected_or_connecting or reconnect_pending
+        )
+
         self._power_suspended = True
         self._reconnect_timer.stop()
-        if self.active:
+        if socket_connected_or_connecting:
             logger.info(f"{self.__repr__()} : host suspending; aborting socket.")
             self.sock.abort()
-            self.active = False
+
+        self.active = False
 
     @Slot()
     def on_resume(self) -> None:
-        """The host has woken: reconnect if auto-reconnect is on and the user
-        hasn't intentionally stopped the listener."""
-        self._power_suspended = False
-        if self._intentional_stop or self.active:
+        """Restore a connection that was active or pending before suspend."""
+        if not self._power_suspended:
             return
-        if self.auto_reconnect and not self.addr.isNull():
-            logger.info(f"{self.__repr__()} : host resumed; reconnecting.")
-            self._reset_reconnect_state()
-            self._schedule_reconnect()
+        self._power_suspended = False
+        resume = self._resume_after_suspend
+        self._resume_after_suspend = False
+        if not resume or self._intentional_stop or self.active or self.addr.isNull():
+            return
+        logger.info(f"{self.__repr__()} : host resumed; reconnecting.")
+        self._reset_reconnect_state()
+        self._schedule_reconnect()
 
     def close(self) -> None:
         self.stop()
