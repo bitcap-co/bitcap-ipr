@@ -10,12 +10,39 @@ from types import SimpleNamespace
 from typing import Any
 from unittest.mock import Mock
 
-from PySide6.QtNetwork import QAbstractSocket
+from PySide6.QtNetwork import QAbstractSocket, QHostAddress
 
 from mod.lm.iprd.listener import IPRDListener
 
 
 class TestIPRDListenerLifecycle(unittest.TestCase):
+    def test_set_socket_addr_rejects_invalid_values_atomically(self) -> None:
+        subject: Any = SimpleNamespace(
+            addr=QHostAddress("192.168.1.10"),
+            port=7788,
+        )
+
+        for addr, port in (
+            ("not-an-ip", 7788),
+            ("192.168.1.20", 0),
+            ("192.168.1.20", 65536),
+        ):
+            with self.subTest(addr=addr, port=port):
+                self.assertFalse(IPRDListener.set_socket_addr(subject, addr, port))
+                self.assertEqual(subject.addr.toString(), "192.168.1.10")
+                self.assertEqual(subject.port, 7788)
+
+    def test_set_socket_addr_accepts_valid_ipv4_and_ipv6(self) -> None:
+        subject: Any = SimpleNamespace(addr=QHostAddress(), port=7788)
+
+        self.assertTrue(IPRDListener.set_socket_addr(subject, "192.168.1.20", 1234))
+        self.assertEqual(subject.addr.toString(), "192.168.1.20")
+        self.assertEqual(subject.port, 1234)
+
+        self.assertTrue(IPRDListener.set_socket_addr(subject, "::1", 65535))
+        self.assertEqual(subject.addr.toString(), "::1")
+        self.assertEqual(subject.port, 65535)
+
     def test_stop_aborts_pending_connection(self) -> None:
         socket = Mock()
         socket.state.return_value = QAbstractSocket.SocketState.ConnectingState

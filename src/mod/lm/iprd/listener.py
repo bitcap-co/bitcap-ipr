@@ -161,22 +161,28 @@ class IPRDListener(QObject):
             return
         self.emit_result(packet)
 
-    def set_socket_addr(self, addr: str, port: int) -> None:
-        parsed = QHostAddress(addr)
-        if parsed.isNull():
+    def set_socket_addr(self, addr: str, port: int) -> bool:
+        host_addr = QHostAddress(addr)
+        if host_addr.isNull():
             logger.error(
-                f"{self.__repr__()} : failed to initialize socket address! Invalid IP address"
+                f"{self.__repr__()} : failed to set socket address! IP address ({addr}) is invalid."
             )
-            return self.error.emit("Invalid IP address.")
+            return False
+        if port < 1 or port > 65535:
+            logger.error(
+                f"{self.__repr__()} : failed to set socket address! Port ({port}) is invalid."
+            )
+            return False
         self.port = port
-        self.addr = parsed
+        self.addr = host_addr
+        return True
 
     def start(self) -> None:
         if self.addr.isNull():
             logger.error(
-                f"{self.__repr__()} : failed to start IPRD listener! Socket address cannot be null."
+                f"{self.__repr__()} : failed to start IPRD listener! Socket address not set."
             )
-            return self.error.emit("Null address.")
+            return self.error.emit("Socket address not set.")
         self._intentional_stop = False
         self._reset_reconnect_state()
         if not self.active:
