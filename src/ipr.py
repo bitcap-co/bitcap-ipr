@@ -2116,15 +2116,15 @@ class IPR(QMainWindow, Ui_MainWindow):
         # A reconnect give-up stops the socket but keeps the user's intent to be
         # listening, so reactivating the window can recover (see
         # _maybe_reconnect_iprd). Any other stop clears that intent.
+        self.iprd_discovery_timeout.stop()
         if not from_giveup:
             self._iprd_listening = False
-        self.iprd_discovery_timeout.stop()
-        self.inactive.stop()
-        if (
-            self.menu_bar.actionEnableIDTable.isChecked()
-            and self.menu_bar.actionClearTableAfterStopListen.isChecked()
-        ):
-            self.clear_table()
+            self.inactive.stop()
+            if (
+                self.menu_bar.actionEnableIDTable.isChecked()
+                and self.menu_bar.actionClearTableAfterStopListen.isChecked()
+            ):
+                self.clear_table()
         # ensure lm is stopped
         self.lm.stop()
         # always stop iprd: during a reconnect loop active is False but the retry
@@ -2153,10 +2153,10 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "Timeout",
                     "Inactive timeout exceeded! Stopped listeners...",
                 )
-        if self.is_minimized_to_tray():
+        if self.is_minimized_to_tray() and not from_giveup:
             self.sys_tray.showMessage(
                 "IPR Listener: Stop",
-                "Stopped UDP listening.",
+                "Stopped active listener(s).",
                 QSystemTrayIcon.MessageIcon.Information,
                 3000,
             )
