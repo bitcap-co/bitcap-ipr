@@ -126,6 +126,10 @@ class IPRDListener(QObject):
             logger.error(f"{self.__repr__()} : failed to set keepalive: {e}")
 
     def _send_subscribe(self) -> None:
+        if self._intentional_stop or self._power_suspended:
+            self.sock.abort()
+            self.active = False
+            return
         logger.info(
             f"{self.__repr__()} : connected to {self.addr.toString()}:{self.port}."
         )
@@ -182,10 +186,14 @@ class IPRDListener(QObject):
         self._intentional_stop = True
         self._resume_after_suspend = False
         self._reconnect_timer.stop()
-        if self.active:
+        was_connected = (
+            self.sock.state() != QAbstractSocket.SocketState.UnconnectedState
+        )
+        if was_connected:
             logger.info(f"{self.__repr__()} : disconnect from host.")
             self.sock.abort()
-            self.active = False
+        self.active = False
+        if was_connected:
             self.stopped.emit()
 
     def emit_result(self, result: IPRDPacketData) -> None:
@@ -211,7 +219,6 @@ class IPRDListener(QObject):
         self.result.emit(ip_report)
 
     def emit_error(self, error: QAbstractSocket.SocketError) -> None:
-        logger.error(f"{self.__repr__()} : emit error! {self.sock.errorString()}")
         self.active = False
 
         if self._power_suspended or self._intentional_stop:
