@@ -129,6 +129,7 @@ class ListenState(Enum):
     CONNECTING = auto()  # iprd socket connecting/subscribing
     SUBSCRIBED = auto()  # iprd connected and subscribed to the stream
     RECONNECTING = auto()  # iprd connection lost, retrying
+    DISCONNECTED = auto()  # iprd retries exhausted, listening intent preserved
 
 
 class IPR(QMainWindow, Ui_MainWindow):
@@ -219,9 +220,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.power.resumed.connect(self.iprd_discovery.on_resume)
         self.power.resumed.connect(self.iprd.on_resume)
         # whether the user currently wants the iprd backend listening. Survives a
-        # reconnect give-up so we can recover when the window is reactivated
-        # (e.g. resume from sleep, where the network isn't up yet for the
-        # automatic retry burst). See _maybe_reconnect_iprd().
+        # reconnect give-up so service discovery or window reactivation can recover
+        # after resumed networking settles. See _maybe_reconnect_iprd().
         self._iprd_listening = False
         if self._app_instance is not None:
             self._app_instance.applicationStateChanged.connect(
@@ -812,6 +812,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                 f"{self._reconnect_attempt}/{self.iprd.max_reconnect_attempts} "
                 f"in {self._reconnect_delay_ms // 1000}s…"
             )
+        if self._listen_state is ListenState.DISCONNECTED:
+            return "Status :: IPR Daemon disconnected; listening remains enabled."
         if self._listen_state is ListenState.LISTENING:
             return f"Status :: Listening on 0.0.0.0[{self.lm.status}]..."
         return "Status :: Ready."
@@ -2127,7 +2129,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd.stop()
         # back to idle; any transient below will revert here once it expires.
         self._last_iprd_error = ""
-        self.set_listen_state(ListenState.READY)
+        self.set_listen_state(
+            ListenState.DISCONNECTED if from_giveup else ListenState.READY
+        )
         if timeout:
             logger.warning("stop_listen : timeout.")
             self.notify("Status :: Inactive timeout. Stopped listeners")
@@ -2269,9 +2273,8 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def on_iprd_reconnect_failed(self):
         logger.error("IPRD reconnect failed; giving up.")
-        # keep the listening intent if auto-reconnect is on so refocusing the
-        # window retries (covers resume-from-sleep where the network isn't up
-        # yet during the automatic retry burst).
+        # Keep the listening intent if auto-reconnect is on so service discovery
+        # or window reactivation can recover after the immediate retry burst.
         self.stop_listen(from_giveup=self.iprd.auto_reconnect)
         if self.is_minimized_to_tray():
             self.sys_tray.showMessage(
@@ -2281,7 +2284,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                 5000,
             )
         if self._iprd_listening:
-            self.notify("Status :: Could not reconnect. Will retry when refocused.")
+            self.notify(
+                "Status :: Could not reconnect. Automatic recovery remains enabled."
+            )
         else:
             self.notify("Status :: Could not reconnect. Stopped.")
 
