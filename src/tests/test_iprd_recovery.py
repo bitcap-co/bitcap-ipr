@@ -27,6 +27,61 @@ def make_service(name: str, addresses: tuple[str, ...]) -> IPRDService:
 
 
 class TestIPRDRecovery(unittest.TestCase):
+    def test_invalid_endpoint_does_not_start_or_enter_connecting(self) -> None:
+        listener = SimpleNamespace(
+            auto_reconnect=False,
+            max_reconnect_attempts=3,
+            set_socket_addr=Mock(return_value=False),
+            start=Mock(),
+        )
+        subject: Any = SimpleNamespace(
+            iprd=listener,
+            iprd_discovery_timeout=SimpleNamespace(stop=Mock()),
+            checkIPRDAutoReconnect=SimpleNamespace(isChecked=lambda: True),
+            spinIPRDMaxRetries=SimpleNamespace(value=lambda: 5),
+            stop_listen=Mock(),
+            notify=Mock(),
+            set_listen_state=Mock(),
+        )
+
+        started = IPR._start_iprd_connection(subject, "invalid", 7788)
+
+        self.assertFalse(started)
+        listener.set_socket_addr.assert_called_once_with("invalid", 7788)
+        listener.start.assert_not_called()
+        subject.set_listen_state.assert_not_called()
+        subject.stop_listen.assert_called_once_with()
+        subject.notify.assert_called_once_with(
+            "Status :: Failed to start IPRD Listener: Invalid socket address."
+        )
+
+    def test_valid_endpoint_starts_and_enters_connecting(self) -> None:
+        listener = SimpleNamespace(
+            auto_reconnect=False,
+            max_reconnect_attempts=3,
+            set_socket_addr=Mock(return_value=True),
+            start=Mock(),
+        )
+        subject: Any = SimpleNamespace(
+            iprd=listener,
+            iprd_discovery_timeout=SimpleNamespace(stop=Mock()),
+            checkIPRDAutoReconnect=SimpleNamespace(isChecked=lambda: True),
+            spinIPRDMaxRetries=SimpleNamespace(value=lambda: 5),
+            _last_iprd_error="previous",
+            stop_listen=Mock(),
+            notify=Mock(),
+            set_listen_state=Mock(),
+        )
+
+        started = IPR._start_iprd_connection(subject, "192.168.1.20", 7788)
+
+        self.assertTrue(started)
+        listener.start.assert_called_once_with()
+        self.assertEqual(subject._last_iprd_error, "")
+        subject.set_listen_state.assert_called_once_with(ListenState.CONNECTING)
+        subject.stop_listen.assert_not_called()
+        subject.notify.assert_not_called()
+
     def test_reconnect_giveup_preserves_intent_and_controls(self) -> None:
         start_button = Mock()
         stop_button = Mock()

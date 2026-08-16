@@ -2086,7 +2086,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             else:
                 try:
                     addr, port_text = self.lineIPRDSocketAddress.text().rsplit(":", 1)
-                    addr = addr.strip("[]")
+                    addr = addr.strip().strip("[]")
                     port = int(port_text)
                 except ValueError:
                     self.stop_listen()
@@ -2097,7 +2097,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                         "Status :: Failed to start IPRD Listener: Invalid socket address."
                     )
                 else:
-                    self._start_iprd_connection(addr, port)
+                    if not self._start_iprd_connection(addr, port):
+                        return
 
         listen_status = self._base_status_text().removeprefix("Status :: ")
         logger.info(f"start_listen : {listen_status}")
@@ -2183,14 +2184,23 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd_discovery_timeout.start()
         self.set_listen_state(ListenState.DISCOVERING)
 
-    def _start_iprd_connection(self, addr: str, port: int) -> None:
+    def _start_iprd_connection(self, addr: str, port: int) -> bool:
         self.iprd_discovery_timeout.stop()
         self.iprd.auto_reconnect = self.checkIPRDAutoReconnect.isChecked()
         self.iprd.max_reconnect_attempts = self.spinIPRDMaxRetries.value()
-        self.iprd.set_socket_addr(addr, port)
+        if not self.iprd.set_socket_addr(addr, port):
+            logger.error(
+                "start_listen : failed to start IPRD listener! Invalid socket address."
+            )
+            self.stop_listen()
+            self.notify(
+                "Status :: Failed to start IPRD Listener: Invalid socket address."
+            )
+            return False
         self.iprd.start()
         self._last_iprd_error = ""
         self.set_listen_state(ListenState.CONNECTING)
+        return True
 
     def _connect_to_iprd_service(self, service: IPRDService) -> None:
         address = _select_iprd_service_address(
