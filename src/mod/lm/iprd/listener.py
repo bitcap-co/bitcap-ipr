@@ -180,6 +180,7 @@ class IPRDListener(QObject):
 
     def stop(self) -> None:
         self._intentional_stop = True
+        self._resume_after_suspend = False
         self._reconnect_timer.stop()
         if self.active:
             logger.info(f"{self.__repr__()} : disconnect from host.")
