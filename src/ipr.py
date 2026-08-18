@@ -2044,11 +2044,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         """Update the enabled state of the listen start/stop buttons based on user listening intent."""
         listening = self._iprd_listening or bool(self.lm.count)
         self.pushIPRListenStart.setEnabled(not listening)
+        self.actionSysStartListen.setEnabled(not listening)
         self.pushIPRListenStop.setEnabled(listening)
-
-        if self.checkEnableSysTray.isChecked():
-            self.actionSysStartListen.setEnabled(not listening)
-            self.actionSysStopListen.setEnabled(listening)
+        self.actionSysStopListen.setEnabled(listening)
 
     def start_listen(self):
         logger.info(" start listeners.")
