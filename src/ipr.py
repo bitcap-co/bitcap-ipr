@@ -211,14 +211,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd_discovery_timeout.setSingleShot(True)
         self.iprd_discovery_timeout.setInterval(IPRD_DISCOVERY_TIMEOUT_MS)
         self.iprd_discovery_timeout.timeout.connect(self.on_iprd_discovery_timeout)
+        self._resume_discovery_timeout = False
+        self._resume_inactive_timer = False
 
         # Pause both discovery and reconnect around OS sleep. Recreating the
         # zeroconf browser on resume avoids retaining stale mDNS state.
         self.power = PowerMonitor(self)
-        self.power.aboutToSuspend.connect(self.iprd_discovery.on_suspend)
-        self.power.aboutToSuspend.connect(self.iprd.on_suspend)
-        self.power.resumed.connect(self.iprd_discovery.on_resume)
-        self.power.resumed.connect(self.iprd.on_resume)
+        self.power.aboutToSuspend.connect(self.on_suspend)
+        self.power.resumed.connect(self.on_resume)
         # whether the user currently wants the iprd backend listening. Survives a
         # reconnect give-up so service discovery or window reactivation can recover
         # after resumed networking settles. See _maybe_reconnect_iprd().
@@ -2314,6 +2314,41 @@ class IPR(QMainWindow, Ui_MainWindow):
         else:
             self.notify("Status :: Could not reconnect. Stopped.")
 
+    def on_suspend(self):
+        # Preserve timer activity across duplicate suspend notifications instead
+        # of overwriting a previously captured True after the timers are stopped.
+        self._resume_discovery_timeout |= self.iprd_discovery_timeout.isActive()
+        self._resume_inactive_timer |= self.inactive.isActive()
+        self.iprd_discovery_timeout.stop()
+        self.inactive.stop()
+        self.iprd_discovery.on_suspend()
+        self.iprd.on_suspend()
+
+    def on_resume(self):
+        resume_discovery_timeout = self._resume_discovery_timeout
+        resume_inactive_timer = self._resume_inactive_timer
+        self._resume_discovery_timeout = False
+        self._resume_inactive_timer = False
+
+        # Let the backends restore first; their synchronous state signals may make
+        # a previously active timeout no longer applicable.
+        self.iprd_discovery.on_resume()
+        self.iprd.on_resume()
+
+        listening = self._iprd_listening or bool(self.lm.count)
+        if (
+            resume_inactive_timer
+            and listening
+            and not self.menu_bar.actionDisableInactiveTimer.isChecked()
+        ):
+            self.inactive.start()
+        if (
+            resume_discovery_timeout
+            and self._iprd_listening
+            and self._listen_state is ListenState.DISCOVERING
+        ):
+            self.iprd_discovery_timeout.start()
+
     def on_application_state_changed(self, state: Qt.ApplicationState):
         if state is Qt.ApplicationState.ApplicationActive:
             self._maybe_reconnect_iprd()
@@ -3021,10 +3056,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd.subscribed.disconnect(self.on_iprd_subscribed)
         self.iprd.reconnecting.disconnect(self.on_iprd_reconnecting)
         self.iprd.reconnect_failed.disconnect(self.on_iprd_reconnect_failed)
-        self.power.aboutToSuspend.disconnect(self.iprd_discovery.on_suspend)
-        self.power.aboutToSuspend.disconnect(self.iprd.on_suspend)
-        self.power.resumed.disconnect(self.iprd_discovery.on_resume)
-        self.power.resumed.disconnect(self.iprd.on_resume)
+        self.power.aboutToSuspend.disconnect(self.on_suspend)
+        self.power.resumed.disconnect(self.on_resume)
         self.lm.stop()
         self.lm.listen_complete.disconnect(self.process_result)
         self.lm.listen_error.disconnect(self.restart_listen)
