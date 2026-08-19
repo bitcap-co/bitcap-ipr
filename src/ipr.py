@@ -2653,7 +2653,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info(f"_control_miner : '{key}' requested for {ip_addr}.")
         alt_pwd = self.get_client_auth(miner_type.value)
         operation = getattr(self.asic, f"{key}_miner")
-        res = await operation(miner_type, ip_addr, alt_pwd=alt_pwd)
+        res: MinerResult = await operation(miner_type, ip_addr, alt_pwd=alt_pwd)
         if res.error:
             logger.error(f"_control_miner : {key} failed for {ip_addr}: {res.error}")
             return self.notify(
@@ -2697,7 +2697,13 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         operation = getattr(self.asic, f"{key}_miner")
 
-        def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
+        def make_coro(
+            row: int,
+            ip_addr: str,
+            miner_type: MinerType,
+            fw_type: MinerFirmware,
+            alt_pwd: str | None,
+        ):
             return operation(miner_type, ip_addr, alt_pwd=alt_pwd)
 
         await self._run_bulk_action(action, rows, make_coro)
@@ -2766,7 +2772,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         so cancelling this batch turns every LED back off.
         """
 
-        def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
+        def make_coro(
+            row: int,
+            ip_addr: str,
+            miner_type: MinerType,
+            fw_type: MinerFirmware,
+            alt_pwd: str | None,
+        ):
             if miner_type in (MinerType.VOLCMINER, MinerType.HIVEGPU, MinerType.IPOLLO):
                 logger.error(f"locate : {miner_type.value} is currently not supported.")
                 self.notify(
@@ -2841,7 +2853,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         if not rows:
             return self.notify("Status :: Failed action: no miners to refresh.", 5000)
 
-        async def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
+        async def make_coro(
+            row: int,
+            ip_addr: str,
+            miner_type: MinerType,
+            fw_type: MinerFirmware,
+            alt_pwd: str | None,
+        ):
             # Re-detect each miner before fetching so firmware changes select
             # the correct client and authentication settings.
             updated_type = await self.asic._parse_http_type(ip_addr)
@@ -2854,7 +2872,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 alt_pwd=alt_pwd,
             )
 
-        def on_success(row, ip_addr, res):
+        def on_success(row: int, ip_addr: str, res: MinerResult):
             miner_data = res.data
             miner_data["recv_at"] = int(time.time())
             miner_data["ip"] = ip_addr
@@ -2915,23 +2933,29 @@ class IPR(QMainWindow, Ui_MainWindow):
             return self.notify("Status :: Failed action: no selected IPs.", 5000)
 
         rows = [self.id_proxy.mapToSource(index).row() for index in selected_ips]
-        urls = [
+        urls: list[str] = [
             self.linePoolURL.text(),
             self.linePoolURL_2.text(),
             self.linePoolURL_3.text(),
         ]
-        base_users = [
+        base_users: list[str] = [
             self.linePoolUser.text(),
             self.linePoolUser_2.text(),
             self.linePoolUser_3.text(),
         ]
-        passwds = [
+        passwds: list[str] = [
             self.linePoolPasswd.text(),
             self.linePoolPasswd_2.text(),
             self.linePoolPasswd_3.text(),
         ]
 
-        def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
+        def make_coro(
+            row: int,
+            ip_addr: str,
+            miner_type: MinerType,
+            fw_type: MinerFirmware,
+            alt_pwd: str | None,
+        ):
             users = base_users.copy()
             if self.checkAutomaticWorkerNames.isChecked():
                 miner = self.id_model.miner_at(row)
@@ -2970,7 +2994,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         curr_passwd_text = self.linePasswdCurrent.text()
         new_passwd_text = self.linePasswdNew.text()
 
-        def make_coro(row, ip_addr, miner_type, fw_type, alt_pwd):
+        def make_coro(
+            row: int,
+            ip_addr: str,
+            miner_type: MinerType,
+            fw_type: MinerFirmware,
+            alt_pwd: str | None,
+        ):
             if miner_type in (
                 MinerType.HAMMER,
                 MinerType.GOLDSHELL,
