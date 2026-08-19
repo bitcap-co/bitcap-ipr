@@ -16,16 +16,19 @@ from datetime import datetime
 from enum import Enum, auto
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Any
+from typing import Any, override
 
 from pydantic import TypeAdapter, ValidationError
 from PySide6.QtCore import (
+    QCoreApplication,
     QDateTime,
     QEvent,
     QFile,
     QIODevice,
     QItemSelectionModel,
     QModelIndex,
+    QObject,
+    QPoint,
     Qt,
     QTextStream,
     QTimer,
@@ -37,10 +40,12 @@ from PySide6.QtGui import (
     QDesktopServices,
     QIcon,
     QPixmap,
+    QShowEvent,
 )
 from PySide6.QtWidgets import (
     QApplication,
     QButtonGroup,
+    QComboBox,
     QDialog,
     QFileDialog,
     QHeaderView,
@@ -107,6 +112,7 @@ logger = logging.getLogger(__name__)
 # px band along the frameless window border that triggers an edge/corner resize
 RESIZE_MARGIN = 6
 IPRD_DISCOVERY_TIMEOUT_MS = 10_000
+INACTIVE_TIMEOUT_MS = 900_000
 
 
 def _select_iprd_service_address(
@@ -137,108 +143,108 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info(" start IPR() init.")
         super().__init__(flags=Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
-        self.config = stored
-        self._app_instance = QApplication.instance()
+        self._app_instance: QCoreApplication | None = QApplication.instance()
+        self._central_widget: QWidget | None = self.centralWidget()
         # frameless-window edge/corner resizing: a global event filter hit-tests
         # the window border and hands off to the OS via startSystemResize (which
         # also lets the resize participate in window snapping).
         self._active_resize_cursor: Qt.CursorShape | None = None
         self.setMouseTracking(True)
-        self.centralWidget().setMouseTracking(True)
-        self._app_instance.installEventFilter(self)
+        if self._central_widget:
+            self._central_widget.setMouseTracking(True)
+        if self._app_instance:
+            self._app_instance.installEventFilter(self)
         # applied once on first show (Windows only) to re-enable Aero Snap
-        self._snapping_enabled = False
-        # re-entrancy guard for the configurator toggle (its setChecked
-        # calls re-emit toggled and re-enter the slot)
-        self._toggling_configurator = False
-        self.confirms: list[IPRConfirmation] = []
-        self.aboutDialog: IPRAbout | None = None
+        self._snapping_enabled: bool = False
+
+        self.config: IPRConfig = stored
         self.update_checker: UpdateChecker | None = None
-        self._update_check_silent = False
+        self._update_check_silent: bool = False
         self.downloader: UpdateDownloader | None = None
         self.download_dialog: IPRProgress | None = None
         self.installer: DebInstaller | None = None
         self.install_dialog: IPRProgress | None = None
+        self.aboutDialog: IPRAbout | None = None
+        self.confirms: list[IPRConfirmation] = []
         self.sys_tray: QSystemTrayIcon = QSystemTrayIcon(
-            QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"),
+            QIcon(":rc/img/BitCapIPR_BLK-02_Sqaure.png"),
             parent=self,
             toolTip="BitCap IPReporter",
             visible=False,
         )
-        self.system_tray_context = QMenu(self)
-        self.system_tray_context.addAction("Show/Hide", self.toggle_visibility)
-        self.system_tray_context.addAction("Open Log", self.open_log)
-        self.actionSysStartListen = self.system_tray_context.addAction(
+        self.sys_tray_context_menu: QMenu = QMenu(self)
+        self.sys_tray_context_menu.addAction("Show/Hide", self.toggle_visibility)
+        self.sys_tray_context_menu.addAction("Open Log", self.open_log)
+        self.actionSysStartListen: QAction = self.sys_tray_context_menu.addAction(
             "Start Listen", self.start_listen
         )
-        self.actionSysStopListen = self.system_tray_context.addAction(
+        self.actionSysStopListen: QAction = self.sys_tray_context_menu.addAction(
             "Stop Listen", self.stop_listen
         )
         self.actionSysStopListen.setEnabled(False)
-        self.system_tray_context.addSeparator()
-        self.system_tray_context.addAction(
+        self.sys_tray_context_menu.addSeparator()
+        self.sys_tray_context_menu.addAction(
             "Settings", lambda: self.update_stacked_widget(view_index=2)
         )
-        self.system_tray_context.addAction("Quit", self.quit)
-        self.sys_tray.setContextMenu(self.system_tray_context)
+        self.sys_tray_context_menu.addAction("Quit", self.quit)
+        self.sys_tray.setContextMenu(self.sys_tray_context_menu)
         self.sys_tray.activated.connect(self.activate_system_tray)
 
         logger.info(" init inactive timer for 900000ms.")
-        self.inactive = QTimer(self)
-        self.inactive.setInterval(900000)
+        self.inactive: QTimer = QTimer(self)
+        self.inactive.setInterval(INACTIVE_TIMEOUT_MS)
         self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
 
         logger.info(" init mod lm.")
-        self.lm = ListenerManager(self)
+        self.lm: ListenerManager = ListenerManager(self)
         self.lm.listen_complete.connect(self.process_result)
         # restart listeners on fail
         self.lm.listen_error.connect(self.restart_listen)
         # init iprd listener
-        self.iprd = IPRDListener(self)
+        self.iprd: IPRDListener = IPRDListener(self)
         self.iprd.result.connect(self.process_result)
         self.iprd.subscribed.connect(self.on_iprd_subscribed)
         self.iprd.error.connect(self.show_iprd_error)
         self.iprd.reconnecting.connect(self.on_iprd_reconnecting)
         self.iprd.reconnect_failed.connect(self.on_iprd_reconnect_failed)
-        self.iprd_discovery = IPRDServiceListener(self)
-        self.iprd_discovery.service_found.connect(self.on_iprd_service_found)
-        self.iprd_discovery.service_updated.connect(self.on_iprd_service_updated)
-        self.iprd_discovery.service_removed.connect(self.on_iprd_service_removed)
-        self.iprd_discovery.error.connect(self.on_iprd_discovery_error)
-        self._discovered_iprd_service_name: str | None = None
-        self._discovered_iprd_address: str | None = None
-        self.iprd_discovery_timeout = QTimer(self)
-        self.iprd_discovery_timeout.setSingleShot(True)
-        self.iprd_discovery_timeout.setInterval(IPRD_DISCOVERY_TIMEOUT_MS)
-        self.iprd_discovery_timeout.timeout.connect(self.on_iprd_discovery_timeout)
-        self._resume_discovery_timeout = False
-        self._resume_inactive_timer = False
-
-        # Pause both discovery and reconnect around OS sleep. Recreating the
-        # zeroconf browser on resume avoids retaining stale mDNS state.
-        self.power = PowerMonitor(self)
-        self.power.aboutToSuspend.connect(self.on_suspend)
-        self.power.resumed.connect(self.on_resume)
         # whether the user currently wants the iprd backend listening. Survives a
         # reconnect give-up so service discovery or window reactivation can recover
         # after resumed networking settles. See _maybe_reconnect_iprd().
-        self._iprd_listening = False
+        self._iprd_listening: bool = False
         if self._app_instance is not None:
             self._app_instance.applicationStateChanged.connect(
                 self.on_application_state_changed
             )
+        self._discovered_iprd_service_name: str | None = None
+        self._discovered_iprd_address: str | None = None
+        self.iprd_discovery_timeout: QTimer = QTimer(self)
+        self.iprd_discovery_timeout.setSingleShot(True)
+        self.iprd_discovery_timeout.setInterval(IPRD_DISCOVERY_TIMEOUT_MS)
+        self.iprd_discovery: IPRDServiceListener = IPRDServiceListener(self)
+        self.iprd_discovery.service_found.connect(self.on_iprd_service_found)
+        self.iprd_discovery.service_updated.connect(self.on_iprd_service_updated)
+        self.iprd_discovery.service_removed.connect(self.on_iprd_service_removed)
+        self.iprd_discovery.error.connect(self.on_iprd_discovery_error)
+
+        # Pause both discovery and reconnect around OS sleep. Recreating the
+        # zeroconf browser on resume avoids retaining stale mDNS state.
+        self._resume_discovery_timeout: bool = False
+        self._resume_inactive_timer: bool = False
+        self.power: PowerMonitor = PowerMonitor(self)
+        self.power.aboutToSuspend.connect(self.on_suspend)
+        self.power.resumed.connect(self.on_resume)
 
         # status bar state: a single persistent "base" message reflects what the
         # app is currently doing; transient notifications are layered on top via
         # notify() and fall back to the base when they expire.
-        self._listen_state = ListenState.READY
-        self._showing_transient = False
-        self._reconnect_attempt = 0
-        self._reconnect_delay_ms = 0
-        self._last_iprd_error = ""
+        self._listen_state: ListenState = ListenState.READY
+        self._showing_transient: bool = False
+        self._reconnect_attempt: int = 0
+        self._reconnect_delay_ms: int = 0
+        self._last_iprd_error: str = ""
 
         logger.info(" init mod ipr_asic.")
-        self.asic = ASICClient(self)
+        self.asic: ASICClient = ASICClient(self)
         # tracks the in-flight locate coroutine to prevent concurrent locates
         self._locate_task: asyncio.Task | None = None
         logger.info(" init miner locate duration for 10000ms.")
@@ -254,7 +260,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             title_bar_widget.addWidget(self.title_bar)
 
         # initialize IPR_Menubar widget
-        self.menu_bar = IPRMenubar(self)
+        self.menu_bar: IPRMenubar = IPRMenubar(self)
         menu_bar_widget = self.menuBarWidget.layout()
         if menu_bar_widget:
             menu_bar_widget.addWidget(self.menu_bar)
@@ -293,8 +299,44 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.update_inactive_timer
         )
 
-        # set logo
-        self.labelIPRLogo.setPixmap(QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg"))
+        # read-only spinboxes
+        self.spinLocateDuration.lineEdit().setReadOnly(True)
+        self.spinInactiveTimeout.lineEdit().setReadOnly(True)
+
+        # show/hide toggles for API passwords
+        self.actionToggleAntminerPasswd = self.create_passwd_toggle_action(
+            self.lineAntminerPasswd
+        )
+        self.actionToggleIceriverPasswd = self.create_passwd_toggle_action(
+            self.lineIceriverPasswd
+        )
+        self.actionToggleWhatsminerPasswd = self.create_passwd_toggle_action(
+            self.lineWhatsminerPasswd
+        )
+        self.actionToggleVolcminerPasswd = self.create_passwd_toggle_action(
+            self.lineVolcminerPasswd
+        )
+        self.actionToggleGoldshellPasswd = self.create_passwd_toggle_action(
+            self.lineGoldshellPasswd
+        )
+        self.actionToggleHammerPasswd = self.create_passwd_toggle_action(
+            self.lineHammerPasswd
+        )
+        self.actionToggleSealminerPasswd = self.create_passwd_toggle_action(
+            self.lineSealminerPasswd
+        )
+        self.actionToggleElphapexPasswd = self.create_passwd_toggle_action(
+            self.lineElphapexPasswd
+        )
+        self.actionToggleVnishPasswd = self.create_passwd_toggle_action(
+            self.lineVnishPasswd
+        )
+        self.actionToggleAuradinePasswd = self.create_passwd_toggle_action(
+            self.lineAuradinePasswd
+        )
+        self.actionToggleIPolloPasswd = self.create_passwd_toggle_action(
+            self.lineIPolloPasswd
+        )
 
         # listener config
         for child in self.groupListeners.children():
@@ -302,7 +344,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 child.setEnabled(True)
         self.groupListeners.toggled.connect(self.toggle_all_listeners)
 
-        self.listenerConfig = QButtonGroup(self, exclusive=False)
+        self.listenerConfig: QButtonGroup = QButtonGroup(self, exclusive=False)
         self.listenerConfig.addButton(self.checkListenAntminer, 1)
         self.listenerConfig.addButton(self.checkListenIceRiver, 2)
         self.listenerConfig.addButton(self.checkListenWhatsminer, 3)
@@ -330,7 +372,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.checkIPRDAutoReconnect.toggled.connect(self.update_iprd_reconnect_settings)
         self.checkIPRDAutoReconnect.toggled.connect(self.restart_listen)
         self.spinIPRDMaxRetries.valueChanged.connect(self.restart_listen)
-        self.iprd_preset = IPRPresetSelector(
+        self.iprd_preset: IPRPresetSelector = IPRPresetSelector(
             tooltip="Saved IPR Daemon socket addresses. Select one to switch instances.",
             add_tooltip="Save current socket address as a new preset",
             remove_tooltip="Remove selected preset",
@@ -339,13 +381,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         if iprd_preset_layout:
             iprd_preset_layout.addWidget(self.iprd_preset)
         # alias the combo so the preset handlers read like the pool ones
-        self.comboIPRDPreset = self.iprd_preset.combo
+        self.comboIPRDPreset: QComboBox = self.iprd_preset.combo
         self.comboIPRDPreset.currentIndexChanged.connect(self.read_iprd_preset)
         self.comboIPRDPreset.editTextChanged.connect(self.update_iprd_preset)
         self.iprd_preset.create_requested.connect(self.add_new_iprd_preset)
         self.iprd_preset.remove_requested.connect(self.remove_iprd_preset)
 
         # configurator
+        self._toggling_configurator: bool = False
         self.configurator.hide()
         self.btnConfiguratorCancel.clicked.connect(self.toggle_configurator_settings)
         self.btnConfiguratorApply.clicked.connect(self.apply_configuration)
@@ -359,12 +402,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionTogglePoolPasswd3 = self.create_passwd_toggle_action(
             self.linePoolPasswd_3
         )
-        self.pool_preset = IPRPresetSelector(combo_max_width=280)
+        self.pool_preset: IPRPresetSelector = IPRPresetSelector(combo_max_width=280)
         pool_preset_layout = self.presetSet.layout()
         if pool_preset_layout:
             pool_preset_layout.addWidget(self.pool_preset)
         # alias the combo so the existing pool-preset handlers are unchanged
-        self.comboPoolPreset = self.pool_preset.combo
+        self.comboPoolPreset: QComboBox = self.pool_preset.combo
         self.comboPoolPreset.currentIndexChanged.connect(self.read_pool_preset)
         self.comboPoolPreset.editTextChanged.connect(self.update_pool_preset)
         self.pool_preset.create_requested.connect(self.add_new_preset)
@@ -390,16 +433,19 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.update_alternative_passwds
         )
 
+        # set logo
+        self.labelIPRLogo.setPixmap(QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg"))
+
         # initialize ID Table (headers are provided by IPRTableModel)
-        self.id_model = IPRTableModel(self)
-        self.id_proxy = IPRFilterProxyModel(self)
+        self.id_model: IPRTableModel = IPRTableModel(self)
+        self.id_proxy: IPRFilterProxyModel = IPRFilterProxyModel(self)
         self.id_proxy.setSourceModel(self.id_model)
         self.tableIPRID.setModel(self.id_proxy)
         # custom header: funnel dropdowns on low-cardinality columns, alongside
         # the existing click-to-select-column behaviour on the header text.
         # Installed before the setColumnWidth calls below so the widths apply to
         # this header rather than being reset when it replaces the default one.
-        self.id_header = FilterHeaderView(self.tableIPRID)
+        self.id_header: FilterHeaderView = FilterHeaderView(self.tableIPRID)
         self.tableIPRID.setHorizontalHeader(self.id_header)
         # restore the section-size config setupUi applied to the default header
         # (a fresh header defaults to a larger minimum, which would clamp the
@@ -407,7 +453,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.id_header.setMinimumSectionSize(15)
         self.id_header.setDefaultSectionSize(150)
         # action-column icons (refresh / locate) painted by a delegate
-        self.id_action_delegate = IPRActionDelegate(self.tableIPRID)
+        self.id_action_delegate: IPRActionDelegate = IPRActionDelegate(self.tableIPRID)
         self.tableIPRID.setItemDelegateForColumn(COL_ACTION, self.id_action_delegate)
         self.id_action_delegate.action_clicked.connect(self.handle_widget_action)
         self.tableIPRID.setColumnWidth(0, 15)
@@ -451,27 +497,15 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.btnResetView.setIcon(QIcon(":theme/icons/rc/clear.png"))
         self.btnResetView.clicked.connect(self.reset_view)
         # asc/desc glyphs for the sort order toggle (keyed by "is descending")
-        self.id_sort_icons = {
+        self.id_sort_icons: dict[bool, QIcon] = {
             False: QIcon(":theme/icons/rc/arrow_up.png"),
             True: QIcon(":theme/icons/rc/arrow_down.png"),
         }
         # default sort: oldest -> newest by RECV AT (new arrivals at the bottom)
         self.reset_sort()
 
-        # action center
-        self.btnBulkRefresh.setIcon(QIcon(":theme/icons/rc/refresh.png"))
-        self.btnBulkRefresh.clicked.connect(self.bulk_refresh_miners)
-        self.btnBulkLocate.setIcon(QIcon(":theme/icons/rc/flash.png"))
-        self.btnBulkLocate.clicked.connect(self.bulk_locate_miners)
-        self.btnBulkControl.setIcon(QIcon(":theme/icons/rc/wrench.png"))
-        self.btnBulkControl.clicked.connect(self.open_bulk_control)
-        self.btnBulkConfig.setIcon(QIcon(":theme/icons/rc/edit.png"))
-        self.btnBulkConfig.clicked.connect(
-            lambda: self.toggle_configurator_settings(True)
-        )
-
         # id table context menu
-        self.id_context_menu = IPRTableContextMenu(self)
+        self.id_context_menu: IPRTableContextMenu = IPRTableContextMenu(self)
         self.id_context_menu.contextActionOpenSelectedIPs.triggered.connect(
             self.open_selected_ips
         )
@@ -509,43 +543,17 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.tableIPRID.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tableIPRID.customContextMenuRequested.connect(self.show_table_context)
 
-        # read-only spinboxes
-        self.spinLocateDuration.lineEdit().setReadOnly(True)
-        self.spinInactiveTimeout.lineEdit().setReadOnly(True)
-
-        # show/hide toggles for API passwords
-        self.actionToggleAntminerPasswd = self.create_passwd_toggle_action(
-            self.lineAntminerPasswd
-        )
-        self.actionToggleIceriverPasswd = self.create_passwd_toggle_action(
-            self.lineIceriverPasswd
-        )
-        self.actionToggleWhatsminerPasswd = self.create_passwd_toggle_action(
-            self.lineWhatsminerPasswd
-        )
-        self.actionToggleVolcminerPasswd = self.create_passwd_toggle_action(
-            self.lineVolcminerPasswd
-        )
-        self.actionToggleGoldshellPasswd = self.create_passwd_toggle_action(
-            self.lineGoldshellPasswd
-        )
-        self.actionToggleHammerPasswd = self.create_passwd_toggle_action(
-            self.lineHammerPasswd
-        )
-        self.actionToggleSealminerPasswd = self.create_passwd_toggle_action(
-            self.lineSealminerPasswd
-        )
-        self.actionToggleElphapexPasswd = self.create_passwd_toggle_action(
-            self.lineElphapexPasswd
-        )
-        self.actionToggleVnishPasswd = self.create_passwd_toggle_action(
-            self.lineVnishPasswd
-        )
-        self.actionToggleAuradinePasswd = self.create_passwd_toggle_action(
-            self.lineAuradinePasswd
-        )
-        self.actionToggleIPolloPasswd = self.create_passwd_toggle_action(
-            self.lineIPolloPasswd
+        # action center
+        self.id_control_popup: MinerControlPopup | None = None
+        self.btnBulkRefresh.setIcon(QIcon(":theme/icons/rc/refresh.png"))
+        self.btnBulkRefresh.clicked.connect(self.bulk_refresh_miners)
+        self.btnBulkLocate.setIcon(QIcon(":theme/icons/rc/flash.png"))
+        self.btnBulkLocate.clicked.connect(self.bulk_locate_miners)
+        self.btnBulkControl.setIcon(QIcon(":theme/icons/rc/wrench.png"))
+        self.btnBulkControl.clicked.connect(self.open_bulk_control)
+        self.btnBulkConfig.setIcon(QIcon(":theme/icons/rc/edit.png"))
+        self.btnBulkConfig.clicked.connect(
+            lambda: self.toggle_configurator_settings(True)
         )
 
         # configuration control signals
@@ -594,48 +602,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
 
     # window
-    def toggle_visibility(self):
-        self.setVisible(not self.isVisible())
-
-    def show_window(self):
-        if self.isHidden() or self.isMinimized():
-            self.showNormal()
-            self.activate_window()
-        else:
-            self.activate_window()
-
-    def activate_window(self):
-        self.setWindowState(
-            self.windowState() & ~Qt.WindowState.WindowMinimized
-            | Qt.WindowState.WindowActive
-        )
-        self.raise_()
-        self.activateWindow()
-
-    def is_minimized_to_tray(self) -> bool:
-        return self.sys_tray.isVisible() and not self.isVisible()
-
-    def changeEvent(self, event):
-        # keep the titlebar's maximize/restore glyph correct even when the OS
-        # changes the window state (e.g. drag-snap to the top edge)
-        super().changeEvent(event)
-        if event.type() == QEvent.Type.WindowStateChange:
-            title_bar = getattr(self, "title_bar", None)
-            if title_bar is not None:
-                title_bar.sync_maximize_button()
-        elif event.type() == QEvent.Type.ActivationChange and not self.isActiveWindow():
-            # the resize cursor is an app-wide override set only while active
-            # (see eventFilter); clear it on deactivation so a stale resize
-            # cursor doesn't linger over the unfocused window.
-            self._apply_resize_cursor(None)
-
-    def showEvent(self, event):
-        super().showEvent(event)
-        if not self._snapping_enabled and CURR_PLATFORM.startswith("win"):
-            self._enable_windows_snapping()
-            self._snapping_enabled = True
-
-    def _enable_windows_snapping(self):
+    def _enable_windows_snapping(self) -> None:
         """Re-enable native Aero Snap for the frameless window (Windows).
 
         Qt strips ``WS_THICKFRAME``/``WS_MAXIMIZEBOX`` from a frameless window,
@@ -691,7 +658,7 @@ class IPR(QMainWindow, Ui_MainWindow):
     # against the window edges ourselves and delegate the actual resize to the
     # OS via QWindow.startSystemResize(). Using the system resize means the
     # drag behaves natively, including snapping.
-    def _resize_edges(self, global_pos) -> Qt.Edge | None:
+    def _resize_edges(self, global_pos: QPoint) -> Qt.Edge | None:
         if self.isMaximized() or self.isFullScreen():
             return None
         rect = self.frameGeometry()
@@ -704,11 +671,11 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         if global_pos.x() <= rect.left() + margin:
             add(Qt.Edge.LeftEdge)
-        elif global_pos.x() >= rect.right() - margin:
+        if global_pos.x() >= rect.right() - margin:
             add(Qt.Edge.RightEdge)
         if global_pos.y() <= rect.top() + margin:
             add(Qt.Edge.TopEdge)
-        elif global_pos.y() >= rect.bottom() - margin:
+        if global_pos.y() >= rect.bottom() - margin:
             add(Qt.Edge.BottomEdge)
         return edges
 
@@ -716,7 +683,7 @@ class IPR(QMainWindow, Ui_MainWindow):
     def _cursor_for_edges(edges: Qt.Edge | None) -> Qt.CursorShape | None:
         left, right = Qt.Edge.LeftEdge, Qt.Edge.RightEdge
         top, bottom = Qt.Edge.TopEdge, Qt.Edge.BottomEdge
-        if edges in (left | top, right | bottom):
+        if edges in (left | right, top | bottom):
             return Qt.CursorShape.SizeFDiagCursor
         if edges in (right | top, left | bottom):
             return Qt.CursorShape.SizeBDiagCursor
@@ -736,7 +703,25 @@ class IPR(QMainWindow, Ui_MainWindow):
             self._app_instance.setOverrideCursor(QCursor(shape))
         self._active_resize_cursor = shape
 
-    def eventFilter(self, obj, event):
+    @override
+    def changeEvent(self, event: QEvent) -> None:
+        super().changeEvent(event)
+        if event.type() == QEvent.Type.WindowStateChange:
+            title_bar: IPRTitlebar | None = getattr(self, "title_bar", None)
+            if title_bar is not None:
+                title_bar.sync_maximize_button()
+        elif event.type() == QEvent.Type.ActivationChange and not self.isActiveWindow():
+            self._apply_resize_cursor(None)
+
+    @override
+    def showEvent(self, event: QShowEvent) -> None:
+        super().showEvent(event)
+        if not self._snapping_enabled and CURR_PLATFORM.startswith("win"):
+            self._enable_windows_snapping()
+            self._snapping_enabled = True
+
+    @override
+    def eventFilter(self, obj: QObject, event: QEvent) -> bool:
         if self.isActiveWindow() and not self.isMaximized():
             event_type = event.type()
             if (
@@ -759,20 +744,76 @@ class IPR(QMainWindow, Ui_MainWindow):
                 )
         return super().eventFilter(obj, event)
 
-    def update_stacked_widget(self, view_index: int | None = None, *_):
-        if not view_index:
-            if self.menu_bar.actionShowConfigurator.isChecked():
-                self.configurator.setVisible(True)
-            if self.menu_bar.actionEnableIDTable.isChecked():
-                self.stackedWidget.setCurrentIndex(1)
-            else:
-                self.stackedWidget.setCurrentIndex(0)
-        elif view_index < self.stackedWidget.count():
-            if self.is_minimized_to_tray():
-                self.toggle_visibility()
-            if self.menu_bar.actionShowConfigurator.isChecked() and view_index == 2:
-                self.configurator.setVisible(False)
-            self.stackedWidget.setCurrentIndex(view_index)
+    def on_suspend(self):
+        # Preserve timer activity across duplicate suspend notifications instead
+        # of overwriting a previously captured True after the timers are stopped.
+        self._resume_discovery_timeout |= self.iprd_discovery_timeout.isActive()
+        self._resume_inactive_timer |= self.inactive.isActive()
+        self.iprd_discovery_timeout.stop()
+        self.inactive.stop()
+        self.iprd_discovery.on_suspend()
+        self.iprd.on_suspend()
+
+    def on_resume(self):
+        resume_discovery_timeout = self._resume_discovery_timeout
+        resume_inactive_timer = self._resume_inactive_timer
+        self._resume_discovery_timeout = False
+        self._resume_inactive_timer = False
+
+        # Let the backends restore first; their synchronous state signals may make
+        # a previously active timeout no longer applicable.
+        self.iprd_discovery.on_resume()
+        self.iprd.on_resume()
+
+        listening = self._iprd_listening or bool(self.lm.count)
+        if (
+            resume_inactive_timer
+            and listening
+            and not self.menu_bar.actionDisableInactiveTimer.isChecked()
+        ):
+            self.inactive.start()
+        if (
+            resume_discovery_timeout
+            and self._iprd_listening
+            and self._listen_state is ListenState.DISCOVERING
+        ):
+            self.iprd_discovery_timeout.start()
+
+    def on_application_state_changed(self, state: Qt.ApplicationState):
+        if state is Qt.ApplicationState.ApplicationActive:
+            self._maybe_reconnect_iprd()
+
+    def toggle_visibility(self):
+        self.setVisible(not self.isVisible())
+
+    def show_window(self):
+        if self.isHidden() or self.isMinimized():
+            self.showNormal()
+            self.activate_window()
+        else:
+            self.activate_window()
+
+    def activate_window(self):
+        self.setWindowState(
+            self.windowState() & ~Qt.WindowState.WindowMinimized
+            | Qt.WindowState.WindowActive
+        )
+        self.raise_()
+        self.activateWindow()
+
+    def is_minimized_to_tray(self) -> bool:
+        return self.sys_tray.isVisible() and not self.isVisible()
+
+    # system tray
+    def activate_system_tray(self, reason: QSystemTrayIcon.ActivationReason) -> None:
+        if reason == QSystemTrayIcon.ActivationReason.MiddleClick:
+            self.show_window()
+
+    def update_system_tray_visibility(self) -> None:
+        if self.checkEnableSysTray.isChecked():
+            self.sys_tray.show()
+        else:
+            self.sys_tray.hide()
 
     # status bar
     #
@@ -844,6 +885,21 @@ class IPR(QMainWindow, Ui_MainWindow):
         if not message:
             self._show_base_status()
 
+    def update_stacked_widget(self, view_index: int | None = None, *_):
+        if not view_index:
+            if self.menu_bar.actionShowConfigurator.isChecked():
+                self.configurator.setVisible(True)
+            if self.menu_bar.actionEnableIDTable.isChecked():
+                self.stackedWidget.setCurrentIndex(1)
+            else:
+                self.stackedWidget.setCurrentIndex(0)
+        elif view_index < self.stackedWidget.count():
+            if self.is_minimized_to_tray():
+                self.toggle_visibility()
+            if self.menu_bar.actionShowConfigurator.isChecked() and view_index == 2:
+                self.configurator.setVisible(False)
+            self.stackedWidget.setCurrentIndex(view_index)
+
     def update_preset_names(self):
         # pool presets
         for idx in range(len(self.config.pool_config.pool_presets)):
@@ -857,17 +913,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                 idx, self.config.listener.iprd.socket_presets[idx].preset_name
             )
         self.comboIPRDPreset.setCurrentIndex(self.config.listener.iprd.selected_preset)
-
-    # system tray
-    def activate_system_tray(self, reason):
-        if reason == QSystemTrayIcon.ActivationReason.MiddleClick:
-            self.show_window()
-
-    def update_system_tray_visibility(self):
-        if self.checkEnableSysTray.isChecked():
-            self.sys_tray.show()
-        else:
-            self.sys_tray.hide()
 
     # configuration
     def read_settings(self):
@@ -1455,7 +1500,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.notify("Status :: Checking for updates...", 3000)
         self.update_checker.start()
 
-    def on_update_available(self, release: dict):
+    def on_update_available(self, release: dict[str, Any]):
         self.iprStatusBar.clearMessage()
         is_prerelease = release.get("prerelease", False)
         kind = "pre-release" if is_prerelease else "version"
@@ -1473,7 +1518,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         if dialog.exec() == QDialog.DialogCode.Accepted:
             self.download_update(release)
 
-    def download_update(self, release: dict):
+    def download_update(self, release: dict[str, Any]):
         os_name, is_arm = get_platform()
         asset = select_asset(release.get("assets", []), os_name, is_arm)
         if not asset:
@@ -1919,6 +1964,38 @@ class IPR(QMainWindow, Ui_MainWindow):
         outfile << out << "\n"
         self.notify(f"Status :: Wrote table as .CSV to {p}.", 3000)
 
+    def toggle_configurator(self, enabled: bool = False):
+        # setChecked() below re-emits toggled and re-enters this slot; the guard
+        # keeps the one-off window resize from being applied more than once.
+        if self._toggling_configurator:
+            return
+        self._toggling_configurator = True
+        try:
+            self.menu_bar.actionShowConfigurator.setChecked(enabled)
+            self.id_context_menu.contextActionConfiguratorShowHide.setChecked(enabled)
+            self.id_context_menu.contextActionConfigutorGetPool.setEnabled(enabled)
+            self.id_context_menu.contextActionConfiguratorSetPools.setEnabled(enabled)
+            if enabled == (not self.configurator.isHidden()):
+                return  # already in the requested state; nothing to resize
+            # grow/shrink the window by exactly the configurator's own height so
+            # the rest of the layout keeps its size
+            delta = self.configurator.sizeHint().height()
+            self.configurator.setVisible(enabled)
+            # Only resize for a live user toggle. During start-up the window
+            # isn't shown yet and a restored geometry already accounts for the
+            # configurator, so growing again would double-count. When
+            # maximized/snapped, leave the size to the OS and let the layout
+            # absorb the configurator instead of fighting the state.
+            if self.isVisible() and not (self.isMaximized() or self.isFullScreen()):
+                if enabled:
+                    available = self.screen().availableGeometry().height()
+                    height = min(self.height() + delta, available)
+                else:
+                    height = max(self.height() - delta, self.minimumHeight())
+                self.resize(self.width(), height)
+        finally:
+            self._toggling_configurator = False
+
     def update_alternative_passwds(self) -> None:
         if not self.id_proxy.rowCount():
             return
@@ -1978,38 +2055,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             f"Status :: updated alternative password for {', '.join(selected_types)} in settings.",
             3000,
         )
-
-    def toggle_configurator(self, enabled: bool = False):
-        # setChecked() below re-emits toggled and re-enters this slot; the guard
-        # keeps the one-off window resize from being applied more than once.
-        if self._toggling_configurator:
-            return
-        self._toggling_configurator = True
-        try:
-            self.menu_bar.actionShowConfigurator.setChecked(enabled)
-            self.id_context_menu.contextActionConfiguratorShowHide.setChecked(enabled)
-            self.id_context_menu.contextActionConfigutorGetPool.setEnabled(enabled)
-            self.id_context_menu.contextActionConfiguratorSetPools.setEnabled(enabled)
-            if enabled == (not self.configurator.isHidden()):
-                return  # already in the requested state; nothing to resize
-            # grow/shrink the window by exactly the configurator's own height so
-            # the rest of the layout keeps its size
-            delta = self.configurator.sizeHint().height()
-            self.configurator.setVisible(enabled)
-            # Only resize for a live user toggle. During start-up the window
-            # isn't shown yet and a restored geometry already accounts for the
-            # configurator, so growing again would double-count. When
-            # maximized/snapped, leave the size to the OS and let the layout
-            # absorb the configurator instead of fighting the state.
-            if self.isVisible() and not (self.isMaximized() or self.isFullScreen()):
-                if enabled:
-                    available = self.screen().availableGeometry().height()
-                    height = min(self.height() + delta, available)
-                else:
-                    height = max(self.height() - delta, self.minimumHeight())
-                self.resize(self.width(), height)
-        finally:
-            self._toggling_configurator = False
 
     def _validate_passwd_fields(self) -> bool:
         if not self.linePasswdNew.text() or not self.linePasswdConfirm.text():
@@ -2313,45 +2358,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
         else:
             self.notify("Status :: Could not reconnect. Stopped.")
-
-    def on_suspend(self):
-        # Preserve timer activity across duplicate suspend notifications instead
-        # of overwriting a previously captured True after the timers are stopped.
-        self._resume_discovery_timeout |= self.iprd_discovery_timeout.isActive()
-        self._resume_inactive_timer |= self.inactive.isActive()
-        self.iprd_discovery_timeout.stop()
-        self.inactive.stop()
-        self.iprd_discovery.on_suspend()
-        self.iprd.on_suspend()
-
-    def on_resume(self):
-        resume_discovery_timeout = self._resume_discovery_timeout
-        resume_inactive_timer = self._resume_inactive_timer
-        self._resume_discovery_timeout = False
-        self._resume_inactive_timer = False
-
-        # Let the backends restore first; their synchronous state signals may make
-        # a previously active timeout no longer applicable.
-        self.iprd_discovery.on_resume()
-        self.iprd.on_resume()
-
-        listening = self._iprd_listening or bool(self.lm.count)
-        if (
-            resume_inactive_timer
-            and listening
-            and not self.menu_bar.actionDisableInactiveTimer.isChecked()
-        ):
-            self.inactive.start()
-        if (
-            resume_discovery_timeout
-            and self._iprd_listening
-            and self._listen_state is ListenState.DISCOVERING
-        ):
-            self.iprd_discovery_timeout.start()
-
-    def on_application_state_changed(self, state: Qt.ApplicationState):
-        if state is Qt.ApplicationState.ApplicationActive:
-            self._maybe_reconnect_iprd()
 
     def _maybe_reconnect_iprd(self):
         """Recover IPRD connection or discovery after the app was inactive.
