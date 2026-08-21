@@ -251,7 +251,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.locate_duration_ms: int = api_settings.get("locate_duration_ms")
 
         # initialize IPR_Titlebar widget
-        self.title_bar = IPRTitlebar(self, "BitCap IPReporter", ["min", "max", "close"])
+        self.title_bar: IPRTitlebar = IPRTitlebar(
+            self, "BitCap IPReporter", ["min", "max", "close"]
+        )
         self.title_bar.minimize_button.clicked.connect(self.window().showMinimized)
         self.title_bar.maximize_button.clicked.connect(self.title_bar.toggle_maximize)
         self.title_bar.close_button.clicked.connect(self.close_to_tray_or_exit)
@@ -304,37 +306,37 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.spinInactiveTimeout.lineEdit().setReadOnly(True)
 
         # show/hide toggles for API passwords
-        self.actionToggleAntminerPasswd = self.create_passwd_toggle_action(
+        self.actionToggleAntminerPasswd: QAction = self.create_passwd_toggle_action(
             self.lineAntminerPasswd
         )
-        self.actionToggleIceriverPasswd = self.create_passwd_toggle_action(
+        self.actionToggleIceriverPasswd: QAction = self.create_passwd_toggle_action(
             self.lineIceriverPasswd
         )
-        self.actionToggleWhatsminerPasswd = self.create_passwd_toggle_action(
+        self.actionToggleWhatsminerPasswd: QAction = self.create_passwd_toggle_action(
             self.lineWhatsminerPasswd
         )
-        self.actionToggleVolcminerPasswd = self.create_passwd_toggle_action(
+        self.actionToggleVolcminerPasswd: QAction = self.create_passwd_toggle_action(
             self.lineVolcminerPasswd
         )
-        self.actionToggleGoldshellPasswd = self.create_passwd_toggle_action(
+        self.actionToggleGoldshellPasswd: QAction = self.create_passwd_toggle_action(
             self.lineGoldshellPasswd
         )
-        self.actionToggleHammerPasswd = self.create_passwd_toggle_action(
+        self.actionToggleHammerPasswd: QAction = self.create_passwd_toggle_action(
             self.lineHammerPasswd
         )
-        self.actionToggleSealminerPasswd = self.create_passwd_toggle_action(
+        self.actionToggleSealminerPasswd: QAction = self.create_passwd_toggle_action(
             self.lineSealminerPasswd
         )
-        self.actionToggleElphapexPasswd = self.create_passwd_toggle_action(
+        self.actionToggleElphapexPasswd: QAction = self.create_passwd_toggle_action(
             self.lineElphapexPasswd
         )
-        self.actionToggleVnishPasswd = self.create_passwd_toggle_action(
+        self.actionToggleVnishPasswd: QAction = self.create_passwd_toggle_action(
             self.lineVnishPasswd
         )
-        self.actionToggleAuradinePasswd = self.create_passwd_toggle_action(
+        self.actionToggleAuradinePasswd: QAction = self.create_passwd_toggle_action(
             self.lineAuradinePasswd
         )
-        self.actionToggleIPolloPasswd = self.create_passwd_toggle_action(
+        self.actionToggleIPolloPasswd: QAction = self.create_passwd_toggle_action(
             self.lineIPolloPasswd
         )
 
@@ -393,13 +395,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.btnConfiguratorCancel.clicked.connect(self.toggle_configurator_settings)
         self.btnConfiguratorApply.clicked.connect(self.apply_configuration)
         # pool configurator
-        self.actionTogglePoolPasswd = self.create_passwd_toggle_action(
+        self.actionTogglePoolPasswd: QAction = self.create_passwd_toggle_action(
             self.linePoolPasswd
         )
-        self.actionTogglePoolPasswd2 = self.create_passwd_toggle_action(
+        self.actionTogglePoolPasswd2: QAction = self.create_passwd_toggle_action(
             self.linePoolPasswd_2
         )
-        self.actionTogglePoolPasswd3 = self.create_passwd_toggle_action(
+        self.actionTogglePoolPasswd3: QAction = self.create_passwd_toggle_action(
             self.linePoolPasswd_3
         )
         self.pool_preset: IPRPresetSelector = IPRPresetSelector(combo_max_width=280)
@@ -415,14 +417,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionIPRSavePreset.clicked.connect(self.write_pool_preset)
         self.actionIPRClearPreset.clicked.connect(self.clear_pool_preset)
         # password configurator
-        self.actionToggleConfigCurrentPasswd = self.create_passwd_toggle_action(
-            self.linePasswdCurrent
+        self.actionToggleConfigCurrentPasswd: QAction = (
+            self.create_passwd_toggle_action(self.linePasswdCurrent)
         )
-        self.actionToggleConfigNewPasswd = self.create_passwd_toggle_action(
+        self.actionToggleConfigNewPasswd: QAction = self.create_passwd_toggle_action(
             self.linePasswdNew
         )
-        self.actionToggleConfigConfirmPasswd = self.create_passwd_toggle_action(
-            self.linePasswdConfirm
+        self.actionToggleConfigConfirmPasswd: QAction = (
+            self.create_passwd_toggle_action(self.linePasswdConfirm)
         )
         self.checkUseNonDefaultPasswd.toggled.connect(
             lambda: self.linePasswdCurrent.setEnabled(
@@ -1824,7 +1826,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         for index in indexes:
             selection_model.select(index, flag)
 
-    def toggle_column_at(self, pos):
+    def toggle_column_at(self, pos: QPoint):
         """Right-click a column header to toggle highlighting that column."""
         section = self.id_header.logicalIndexAt(pos)
         # skip invalid hits and the icon-only action columns (no cell content)
@@ -1835,7 +1837,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             [self.id_proxy.index(row, section) for row in range(rows)]
         )
 
-    def toggle_row_at(self, pos):
+    def toggle_row_at(self, pos: QPoint):
         """Right-click a row header to toggle highlighting that whole row."""
         row = self.tableIPRID.verticalHeader().logicalIndexAt(pos)
         if row < 0:
@@ -2164,9 +2166,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 3000,
             )
 
-    def stop_listen(
-        self, timeout: bool = False, restart: bool = False, from_giveup: bool = False
-    ):
+    def stop_listen(self, timeout: bool = False, from_giveup: bool = False):
         logger.info(" stop listeners.")
         # A reconnect give-up stops the socket but keeps the user's intent to be
         # listening, so reactivating the window can recover (see
@@ -2203,7 +2203,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                     3000,
                 )
             else:
-                QMessageBox.warning(
+                _ = QMessageBox.warning(
                     self,
                     "Timeout",
                     "Inactive timeout exceeded! Stopped listeners...",
@@ -2219,7 +2219,7 @@ class IPR(QMainWindow, Ui_MainWindow):
     def restart_listen(self):
         if self.lm.count or self.iprd.active or self._iprd_listening:
             logger.info(" restart listeners.")
-            self.stop_listen(restart=True)
+            self.stop_listen()
             self.start_listen()
 
     def _selected_iprd_service(self) -> IPRDService | None:
