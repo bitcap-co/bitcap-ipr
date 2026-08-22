@@ -3,7 +3,7 @@ name: Build and Release BitCap IPReporter
 on:
   push:
     tags:
-      - "v*"
+      - "v*.*.*"
   workflow_dispatch:
 
 permissions:
@@ -112,7 +112,7 @@ jobs:
         with:
           name: BitCap IPReporter ${{ github.ref_name }} Release
           draft: true
-          prerelease: false
+          prerelease: ${{ contains(github.ref_name, '-rp-') }}
           files: |
             artifacts/**/*.zip
             artifacts/**/*.dmg
