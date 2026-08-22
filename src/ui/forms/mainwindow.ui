@@ -63,7 +63,7 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>550</width>
+           <width>535</width>
            <height>30</height>
           </size>
          </property>
@@ -96,7 +96,7 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>550</width>
+           <width>530</width>
            <height>26</height>
           </size>
          </property>
@@ -1406,7 +1406,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>478</width>
+                   <width>457</width>
                    <height>849</height>
                   </rect>
                  </property>
@@ -2067,7 +2067,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>476</width>
+                   <width>255</width>
                    <height>986</height>
                   </rect>
                  </property>
