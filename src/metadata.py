@@ -8,7 +8,7 @@
 APP_METADATA: dict[str, str] = {
     "name": "BitCap IPReporter",
     "appname": "BitCapIPR",
-    "appversion": "1.5.2-rp-listen-intent",
+    "appversion": "1.5.1",
     "appauthor": "BitCap",
     "author": "MatthewWertman",
     "source": "https://github.com/bitcap-co/bitcap-ipr",
