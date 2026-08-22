@@ -34,23 +34,26 @@ class IPRTitlebar(QWidget):
         self._set_pos = False
         self._pos = None
 
-        self.title_label = QLabel()
-        self.icon_button = QToolButton()
-        self.close_button = QToolButton()
+        self.title_label: QLabel = QLabel()
+        self.icon_button: QToolButton = QToolButton()
+        self.close_button: QToolButton = QToolButton()
         self.close_button.setSizePolicy(
             QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
         )
         self.close_button.setIconSize(QSize(16, 16))
-        self.minimize_button = QToolButton()
+        self.close_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+        self.minimize_button: QToolButton = QToolButton()
         self.minimize_button.setSizePolicy(
             QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
         )
         self.minimize_button.setIconSize(QSize(16, 16))
-        self.maximize_button = QToolButton()
+        self.minimize_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+        self.maximize_button: QToolButton = QToolButton()
         self.maximize_button.setSizePolicy(
             QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
         )
         self.maximize_button.setIconSize(QSize(16, 16))
+        self.maximize_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
 
         self._buttons = {
             "close": self.close_button,
@@ -65,7 +68,7 @@ class IPRTitlebar(QWidget):
 
         match self._bar_style:
             case "darwin":
-                btn_size = 14
+                btn_size = 15
                 btn_colors = {
                     "close": "#DD0000",
                     "min": "#AA8800",
@@ -80,6 +83,8 @@ class IPRTitlebar(QWidget):
                         border_color_name = border_color.name()
                         bkg_color_name = border_color.lighter().name()
                         self._buttons[x].setStyleSheet(f"""QToolButton {{
+                                                            padding: 1px;
+                                                            margin: 0px;
                                                             background-color: {bkg_color_name};
                                                             border: {btn_size // 20} solid {border_color_name};
                                                             border-radius: {btn_size // 2};
