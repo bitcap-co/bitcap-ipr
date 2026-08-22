@@ -49,6 +49,14 @@ class ProjectMetadata:
             )
         return ".".join((*match.groups(), "0"))
 
+    @property
+    def debian_version(self) -> str:
+        """Return a Debian version that orders release previews before the final."""
+        base, marker, preview = self.version.partition("-rp-")
+        if not marker:
+            return self.version
+        return f"{base}~rp.{preview.replace('-', '.')}"
+
     def runtime_values(self) -> dict[str, str]:
         return {
             "name": self.display_name,
@@ -98,8 +106,10 @@ APP_METADATA: dict[str, str] = {values}
 '''
 
 
-def sync_runtime_metadata(*, check: bool = False) -> bool:
-    expected = render_runtime_metadata(load_metadata())
+def sync_runtime_metadata(
+    *, check: bool = False, metadata: ProjectMetadata | None = None
+) -> bool:
+    expected = render_runtime_metadata(metadata or load_metadata())
     current = (
         RUNTIME_METADATA_PATH.read_text(encoding="utf-8")
         if RUNTIME_METADATA_PATH.exists()
