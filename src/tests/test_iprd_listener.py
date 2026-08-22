@@ -47,11 +47,13 @@ class TestIPRDListenerLifecycle(unittest.TestCase):
         socket = Mock()
         socket.state.return_value = QAbstractSocket.SocketState.ConnectingState
         reconnect_timer = Mock()
+        retry_cooldown_timer = Mock()
         stopped = Mock()
         subject: Any = SimpleNamespace(
             _intentional_stop=False,
             _resume_after_suspend=True,
             _reconnect_timer=reconnect_timer,
+            _retry_cooldown_timer=retry_cooldown_timer,
             sock=socket,
             active=True,
             stopped=stopped,
@@ -62,6 +64,7 @@ class TestIPRDListenerLifecycle(unittest.TestCase):
         self.assertTrue(subject._intentional_stop)
         self.assertFalse(subject._resume_after_suspend)
         reconnect_timer.stop.assert_called_once_with()
+        retry_cooldown_timer.stop.assert_called_once_with()
         socket.abort.assert_called_once_with()
         self.assertFalse(subject.active)
         stopped.emit.assert_called_once_with()
@@ -89,6 +92,8 @@ class TestIPRDListenerLifecycle(unittest.TestCase):
         socket.state.return_value = QAbstractSocket.SocketState.ConnectedState
         reconnect_timer = Mock()
         reconnect_timer.isActive.return_value = False
+        retry_cooldown_timer = Mock()
+        retry_cooldown_timer.isActive.return_value = False
         reset_reconnect_state = Mock()
         schedule_reconnect = Mock()
         subject: Any = SimpleNamespace(
@@ -96,6 +101,7 @@ class TestIPRDListenerLifecycle(unittest.TestCase):
             _resume_after_suspend=False,
             _intentional_stop=False,
             _reconnect_timer=reconnect_timer,
+            _retry_cooldown_timer=retry_cooldown_timer,
             auto_reconnect=False,
             sock=socket,
             active=True,
@@ -124,12 +130,15 @@ class TestIPRDListenerLifecycle(unittest.TestCase):
         socket.state.return_value = QAbstractSocket.SocketState.UnconnectedState
         reconnect_timer = Mock()
         reconnect_timer.isActive.return_value = True
+        retry_cooldown_timer = Mock()
+        retry_cooldown_timer.isActive.return_value = False
         schedule_reconnect = Mock()
         subject: Any = SimpleNamespace(
             _power_suspended=False,
             _resume_after_suspend=False,
             _intentional_stop=False,
             _reconnect_timer=reconnect_timer,
+            _retry_cooldown_timer=retry_cooldown_timer,
             sock=socket,
             active=False,
             addr=SimpleNamespace(isNull=lambda: False),
@@ -148,12 +157,15 @@ class TestIPRDListenerLifecycle(unittest.TestCase):
         socket.state.return_value = QAbstractSocket.SocketState.UnconnectedState
         reconnect_timer = Mock()
         reconnect_timer.isActive.return_value = False
+        retry_cooldown_timer = Mock()
+        retry_cooldown_timer.isActive.return_value = False
         schedule_reconnect = Mock()
         subject: Any = SimpleNamespace(
             _power_suspended=False,
             _resume_after_suspend=False,
             _intentional_stop=False,
             _reconnect_timer=reconnect_timer,
+            _retry_cooldown_timer=retry_cooldown_timer,
             sock=socket,
             active=False,
             addr=SimpleNamespace(isNull=lambda: False),
@@ -167,6 +179,67 @@ class TestIPRDListenerLifecycle(unittest.TestCase):
         self.assertFalse(subject._resume_after_suspend)
         socket.abort.assert_not_called()
         schedule_reconnect.assert_not_called()
+
+    def test_exhausted_retry_cycle_starts_cooldown_without_stopping(self) -> None:
+        reconnect_timer = Mock()
+        retry_cooldown_timer = Mock()
+        retry_paused = Mock()
+        socket = Mock()
+        subject: Any = SimpleNamespace(
+            _power_suspended=False,
+            _intentional_stop=False,
+            _reconnect_attempts=3,
+            max_reconnect_attempts=3,
+            _retry_cooldown_ms=60000,
+            _reconnect_timer=reconnect_timer,
+            _retry_cooldown_timer=retry_cooldown_timer,
+            retry_paused=retry_paused,
+            sock=socket,
+        )
+
+        IPRDListener._schedule_reconnect(subject)
+
+        self.assertFalse(subject._intentional_stop)
+        reconnect_timer.stop.assert_called_once_with()
+        socket.abort.assert_called_once_with()
+        retry_paused.emit.assert_called_once_with(60000)
+        retry_cooldown_timer.start.assert_called_once_with(60000)
+
+    def test_cooldown_restarts_retry_cycle(self) -> None:
+        reset_reconnect_state = Mock()
+        schedule_reconnect = Mock()
+        subject: Any = SimpleNamespace(
+            _intentional_stop=False,
+            _power_suspended=False,
+            _reset_reconnect_state=reset_reconnect_state,
+            _schedule_reconnect=schedule_reconnect,
+        )
+
+        IPRDListener._restart_retry_cycle(subject)
+
+        reset_reconnect_state.assert_called_once_with()
+        schedule_reconnect.assert_called_once_with()
+
+    def test_start_cancels_pending_cooldown(self) -> None:
+        retry_cooldown_timer = Mock()
+        reset_reconnect_state = Mock()
+        socket = Mock()
+        subject: Any = SimpleNamespace(
+            addr=SimpleNamespace(isNull=lambda: False),
+            port=7788,
+            _intentional_stop=True,
+            _retry_cooldown_timer=retry_cooldown_timer,
+            _reset_reconnect_state=reset_reconnect_state,
+            active=False,
+            sock=socket,
+        )
+
+        IPRDListener.start(subject)
+
+        self.assertFalse(subject._intentional_stop)
+        retry_cooldown_timer.stop.assert_called_once_with()
+        reset_reconnect_state.assert_called_once_with()
+        socket.connectToHost.assert_called_once_with(subject.addr, 7788)
 
     def test_suspend_induced_error_is_ignored(self) -> None:
         error_signal = Mock()

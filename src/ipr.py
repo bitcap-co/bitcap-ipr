@@ -206,10 +206,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd.subscribed.connect(self.on_iprd_subscribed)
         self.iprd.error.connect(self.show_iprd_error)
         self.iprd.reconnecting.connect(self.on_iprd_reconnecting)
-        self.iprd.reconnect_failed.connect(self.on_iprd_reconnect_failed)
-        # whether the user currently wants the iprd backend listening. Survives a
-        # reconnect give-up so service discovery or window reactivation can recover
-        # after resumed networking settles. See _maybe_reconnect_iprd().
+        self.iprd.retry_paused.connect(self.on_iprd_retry_paused)
+        # whether the user currently wants the iprd backend listening. Automatic
+        # reconnect repeats bounded retry cycles until the user explicitly stops.
         self._iprd_listening: bool = False
         if self._app_instance is not None:
             self._app_instance.applicationStateChanged.connect(
@@ -241,6 +240,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self._showing_transient: bool = False
         self._reconnect_attempt: int = 0
         self._reconnect_delay_ms: int = 0
+        self._retry_cooldown_ms: int = 0
         self._last_iprd_error: str = ""
 
         logger.info(" init mod ipr_asic.")
@@ -856,7 +856,11 @@ class IPR(QMainWindow, Ui_MainWindow):
                 f"in {self._reconnect_delay_ms // 1000}s…"
             )
         if self._listen_state is ListenState.DISCONNECTED:
-            return "Status :: IPR Daemon disconnected; listening remains enabled."
+            cooldown_seconds = max(1, (self._retry_cooldown_ms + 999) // 1000)
+            return (
+                "Status :: IPR Daemon disconnected; restarting retry cycle "
+                f"in {cooldown_seconds}s…"
+            )
         if self._listen_state is ListenState.LISTENING:
             return f"Status :: Listening on 0.0.0.0[{self.lm.status}]..."
         return "Status :: Ready."
@@ -2166,32 +2170,24 @@ class IPR(QMainWindow, Ui_MainWindow):
                 3000,
             )
 
-    def stop_listen(self, timeout: bool = False, from_giveup: bool = False):
+    def stop_listen(self, timeout: bool = False):
         logger.info(" stop listeners.")
-        # A reconnect give-up stops the socket but keeps the user's intent to be
-        # listening, so reactivating the window can recover (see
-        # _maybe_reconnect_iprd). Any other stop clears that intent.
+        self._iprd_listening = False
         self.iprd_discovery_timeout.stop()
-        if not from_giveup:
-            self._iprd_listening = False
-            self.inactive.stop()
-            if (
-                self.menu_bar.actionEnableIDTable.isChecked()
-                and self.menu_bar.actionClearTableAfterStopListen.isChecked()
-            ):
-                self.clear_table()
+        self.inactive.stop()
+        if (
+            self.menu_bar.actionEnableIDTable.isChecked()
+            and self.menu_bar.actionClearTableAfterStopListen.isChecked()
+        ):
+            self.clear_table()
         # ensure lm is stopped
         self.lm.stop()
         # always stop iprd: during a reconnect loop active is False but the retry
         # timer is still running, so a guard on active would leave it retrying.
         self.iprd.stop()
         self._update_listen_controls()
-        # A give-up ends the immediate retry burst without cancelling the user's
-        # listening intent; all other stops return the application to idle.
         self._last_iprd_error = ""
-        self.set_listen_state(
-            ListenState.DISCONNECTED if from_giveup else ListenState.READY
-        )
+        self.set_listen_state(ListenState.READY)
         if timeout:
             logger.warning("stop_listen : timeout.")
             self.notify("Status :: Inactive timeout. Stopped listeners")
@@ -2208,7 +2204,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                     "Timeout",
                     "Inactive timeout exceeded! Stopped listeners...",
                 )
-        if self.is_minimized_to_tray() and not from_giveup:
+        if self.is_minimized_to_tray():
             self.sys_tray.showMessage(
                 "IPR Listener: Stop",
                 "Stopped active listener(s).",
@@ -2340,24 +2336,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         self._reconnect_delay_ms = delay_ms
         self.set_listen_state(ListenState.RECONNECTING)
 
-    def on_iprd_reconnect_failed(self):
-        logger.error("IPRD reconnect failed; giving up.")
-        # Keep the listening intent if auto-reconnect is on so service discovery
-        # or window reactivation can recover after the immediate retry burst.
-        self.stop_listen(from_giveup=self.iprd.auto_reconnect)
-        if self.is_minimized_to_tray():
-            self.sys_tray.showMessage(
-                "IPR Listener: Disconnected",
-                "Could not reconnect to the daemon.",
-                QSystemTrayIcon.MessageIcon.Critical,
-                5000,
-            )
-        if self._iprd_listening:
-            self.notify(
-                "Status :: Could not reconnect. Automatic recovery remains enabled."
-            )
-        else:
-            self.notify("Status :: Could not reconnect. Stopped.")
+    def on_iprd_retry_paused(self, delay_ms: int):
+        logger.warning(f" IPRD retry cycle exhausted; restarting in {delay_ms} ms.")
+        self._retry_cooldown_ms = delay_ms
+        self.set_listen_state(ListenState.DISCONNECTED)
 
     def _maybe_reconnect_iprd(self):
         """Recover IPRD connection or discovery after the app was inactive.
@@ -3091,7 +3073,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd.result.disconnect(self.process_result)
         self.iprd.subscribed.disconnect(self.on_iprd_subscribed)
         self.iprd.reconnecting.disconnect(self.on_iprd_reconnecting)
-        self.iprd.reconnect_failed.disconnect(self.on_iprd_reconnect_failed)
+        self.iprd.retry_paused.disconnect(self.on_iprd_retry_paused)
         self.power.aboutToSuspend.disconnect(self.on_suspend)
         self.power.resumed.disconnect(self.on_resume)
         self.lm.stop()
