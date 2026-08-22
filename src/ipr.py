@@ -219,6 +219,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd_discovery_timeout: QTimer = QTimer(self)
         self.iprd_discovery_timeout.setSingleShot(True)
         self.iprd_discovery_timeout.setInterval(IPRD_DISCOVERY_TIMEOUT_MS)
+        self.iprd_discovery_timeout.timeout.connect(self.on_iprd_discovery_timeout)
         self.iprd_discovery: IPRDServiceListener = IPRDServiceListener(self)
         self.iprd_discovery.service_found.connect(self.on_iprd_service_found)
         self.iprd_discovery.service_updated.connect(self.on_iprd_service_updated)
