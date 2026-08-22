@@ -8,7 +8,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from build_support import (
+from ..build_support import (
     BUILD_DIR,
     DIST_DIR,
     ICON_DIR,
@@ -19,7 +19,7 @@ from build_support import (
     portable_archive_name,
     run,
 )
-from project_metadata import ROOT, ProjectMetadata
+from ..project_metadata import ROOT, ProjectMetadata
 
 
 def package(metadata: ProjectMetadata, platform_tag: str, portable_only: bool) -> None:

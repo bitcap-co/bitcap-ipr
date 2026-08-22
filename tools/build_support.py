@@ -13,7 +13,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from project_metadata import ROOT, ProjectMetadata
+from .project_metadata import ROOT, ProjectMetadata
 
 DIST_DIR = ROOT / "dist"
 BUILD_DIR = DIST_DIR / "BitCapIPR"
