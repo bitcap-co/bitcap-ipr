@@ -674,11 +674,11 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         if global_pos.x() <= rect.left() + margin:
             add(Qt.Edge.LeftEdge)
-        if global_pos.x() >= rect.right() - margin:
+        elif global_pos.x() >= rect.right() - margin:
             add(Qt.Edge.RightEdge)
         if global_pos.y() <= rect.top() + margin:
             add(Qt.Edge.TopEdge)
-        if global_pos.y() >= rect.bottom() - margin:
+        elif global_pos.y() >= rect.bottom() - margin:
             add(Qt.Edge.BottomEdge)
         return edges
 
@@ -686,7 +686,7 @@ class IPR(QMainWindow, Ui_MainWindow):
     def _cursor_for_edges(edges: Qt.Edge | None) -> Qt.CursorShape | None:
         left, right = Qt.Edge.LeftEdge, Qt.Edge.RightEdge
         top, bottom = Qt.Edge.TopEdge, Qt.Edge.BottomEdge
-        if edges in (left | right, top | bottom):
+        if edges in (left | top, right | bottom):
             return Qt.CursorShape.SizeFDiagCursor
         if edges in (right | top, left | bottom):
             return Qt.CursorShape.SizeBDiagCursor
@@ -714,6 +714,9 @@ class IPR(QMainWindow, Ui_MainWindow):
             if title_bar is not None:
                 title_bar.sync_maximize_button()
         elif event.type() == QEvent.Type.ActivationChange and not self.isActiveWindow():
+            # the resize cursor is an app-wide override set only while active
+            # (see eventFilter); clear it on deactivation so a stale resize
+            # cursor doesn't linger over the unfocused window.
             self._apply_resize_cursor(None)
 
     @override
