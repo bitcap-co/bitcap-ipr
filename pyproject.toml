@@ -1,6 +1,6 @@
 [project]
 name = "bitcap-ipr"
-version = "1.5.1"
+version = "1.5.2"
 description = "Cross-platform IP reporter that listens for AntMiner, IceRiver, and Whatsminer ASICs."
 authors = [{ name = "MatthewWertman", email = "matt@bitcap.co" }]
 license = "GPL-3.0-only"
