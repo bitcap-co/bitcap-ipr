@@ -70,6 +70,7 @@ from mod.lm import (
     IPRDListener,
     IPRDService,
     IPRDServiceListener,
+    IPRDSocket,
     IPReport,
     ListenerManager,
 )
@@ -200,6 +201,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.lm.listen_complete.connect(self.process_result)
         # restart listeners on fail
         self.lm.listen_error.connect(self.restart_listen)
+        self.iprd_socket: IPRDSocket = IPRDSocket(self)
+        self.iprd_socket.error.connect(self.show_iprd_socket_error)
         # init iprd listener
         self.iprd: IPRDListener = IPRDListener(self)
         self.iprd.result.connect(self.process_result)
@@ -389,6 +392,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.comboIPRDPreset.editTextChanged.connect(self.update_iprd_preset)
         self.iprd_preset.create_requested.connect(self.add_new_iprd_preset)
         self.iprd_preset.remove_requested.connect(self.remove_iprd_preset)
+
+        self.toolIPRDSocketStatus.setIcon(QIcon(":theme/icons/rc/info.png"))
+        self.toolIPRDSocketStatus.pressed.connect(self.show_iprd_socket_status)
 
         # configurator
         self._toggling_configurator: bool = False
@@ -2369,6 +2375,29 @@ class IPR(QMainWindow, Ui_MainWindow):
             return
         logger.info(" app activated; retrying iprd listen.")
         self.start_listen()
+
+    def show_iprd_socket_error(self, error_str: str):
+        logger.error(f"IPRD socket error: {error_str}")
+        self.notify(f"Status :: IPRD Socket error: {error_str}")
+
+    def show_iprd_socket_status(self) -> None:
+        try:
+            ip, port_text = self.lineIPRDSocketAddress.text().rsplit(":", 1)
+            ip = ip.strip().strip("[]")
+            port = int(port_text)
+        except (ValueError, IndexError):
+            ip = "127.0.0.1"
+            port = 7788
+        if not self.iprd_socket.set_socket_addr(ip, port):
+            return
+        status = self.iprd_socket.status()
+        logger.debug(f"IPRD socket status: {status}")
+        if status is None:
+            return
+        # show new message
+        status_msg = IPRMessage(self, "IPRD socket status", f"IPRD Response: {status}")
+        if status_msg.exec() == QDialog.DialogCode.Accepted:
+            return
 
     @asyncSlot(IPReport)
     async def process_result(self, result: IPReport):
