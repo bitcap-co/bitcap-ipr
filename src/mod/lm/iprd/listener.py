@@ -16,11 +16,9 @@ from PySide6.QtNetwork import QAbstractSocket, QHostAddress, QTcpSocket
 from mod.lm.ipreport import IPReport, MinerTypeHint
 from utils import CURR_PLATFORM
 
+from .socket import IPRD_CMD_SUBSCRIBE, IPRDCommand
+
 logger = logging.getLogger(__name__)
-
-
-class IPRDCommand(BaseModel):
-    command: str
 
 
 class IPRDPacketData(BaseModel):
@@ -138,7 +136,7 @@ class IPRDListener(QObject):
             f"{self.__repr__()} : connected to {self.addr.toString()}:{self.port}."
         )
         self._enable_keepalive()
-        cmd = IPRDCommand(command="iprd_subscribe")
+        cmd = IPRDCommand(command=IPRD_CMD_SUBSCRIBE)
         sub_msg = cmd.model_dump_json() + "\n"
         wrote = self.sock.write(sub_msg.encode())
         logger.debug(f"{self.__repr__()} : write subscribe ({wrote}).")

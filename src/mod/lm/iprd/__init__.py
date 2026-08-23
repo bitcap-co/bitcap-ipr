@@ -5,5 +5,23 @@
 
 from .listener import IPRDListener
 from .service import IPRDService, IPRDServiceListener
+from .socket import (
+    IPRD_CMD_STATUS,
+    IPRD_CMD_SUBSCRIBE,
+    IPRDCommand,
+    IPRDResponse,
+    IPRDSocket,
+    IPRDStatus,
+)
 
-__all__ = ["IPRDListener", "IPRDService", "IPRDServiceListener"]
+__all__ = [
+    "IPRD_CMD_STATUS",
+    "IPRD_CMD_SUBSCRIBE",
+    "IPRDCommand",
+    "IPRDListener",
+    "IPRDResponse",
+    "IPRDService",
+    "IPRDServiceListener",
+    "IPRDSocket",
+    "IPRDStatus",
+]
