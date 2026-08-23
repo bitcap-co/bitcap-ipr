@@ -157,7 +157,7 @@ class IPRDSocket(QObject):
         logger.error(f"{self.__repr__()} : {message}")
         self.error.emit(message)
 
-    def set_socket_addr(self, ip: str, port: int) -> bool:
+    def set_socket_addr(self, ip: str = "127.0.0.1", port: int = 7788) -> bool:
         host_addr = QHostAddress(ip)
         if host_addr.isNull():
             logger.error(
