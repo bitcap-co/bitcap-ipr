@@ -39,5 +39,6 @@ Licensed under the GNU General Public License v3.0; see LICENSE
         <file>rc/pause.png</file>
         <file>rc/restart.png</file>
         <file>rc/reboot.png</file>
+        <file>rc/info.png</file>
     </qresource>
 </RCC>
