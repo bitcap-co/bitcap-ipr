@@ -106,6 +106,7 @@ from utils import (
     deep_update,
     get_download_dir,
     get_log_dir,
+    normalize_datetime,
 )
 
 logger = logging.getLogger(__name__)
@@ -1455,8 +1456,8 @@ State: {status.state}
 Active Listeners: {status.listeners_active}/{status.listeners_configured}
 Statistics:
     Packets: {status.packets.processed} processed, {status.packets.reports} reports, {status.packets.invalid} invalid, {status.packets.duplicates} duplicates, {status.packets.unknown_filtered} filtered
-    Last Packet At: {status.last_packet_at.astimezone(None).strftime("%Y-%m-%d %H:%M:%S.%f") if status.last_packet_at else "N/A"}
-    Last Report At: {status.last_report_at.astimezone(None).strftime("%Y-%m-%d %H:%M:%S.%f") if status.last_report_at else "N/A"}
+    Last Packet At: {normalize_datetime(status.last_packet_at)}
+    Last Report At: {normalize_datetime(status.last_report_at)}
 """,
             )
             dialog.exec()

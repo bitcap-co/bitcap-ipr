@@ -7,6 +7,7 @@
 import collections.abc
 import os
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -25,6 +26,7 @@ IPR_METADATA = {
     "python": ".".join(map(str, sys.version_info[:3])),
 }
 MAX_ROTATE_LOG_FILES = 4
+MIN_DATETIME = datetime(1, 1, 1, 0, 0, tzinfo=timezone.utc)
 
 
 def deep_update(d: dict[str, Any], u: dict[str, Any]) -> dict[str, Any]:
@@ -70,3 +72,14 @@ def flush_log():
     with open(get_log_file_path(), "r+") as f:
         f.truncate(0)
         f.seek(0)
+
+
+def normalize_datetime(datetime_obj: datetime | None) -> str:
+    """
+    Normalize datetime to local string format: YYYY-MM-DD HH:MM:SS.mmm.
+
+    Returns "N/A" for the min datetime (1/1/1 00:00:00.000)
+    """
+    if datetime_obj is None or datetime_obj == MIN_DATETIME:
+        return "N/A"
+    return datetime_obj.astimezone().strftime("%Y-%m-%d %H:%M:%S.%f")
