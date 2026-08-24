@@ -1458,6 +1458,7 @@ Statistics:
     Packets: {status.packets.processed} processed, {status.packets.reports} reports, {status.packets.invalid} invalid, {status.packets.duplicates} duplicates, {status.packets.unknown_filtered} filtered
     Last Packet At: {normalize_datetime(status.last_packet_at)}
     Last Report At: {normalize_datetime(status.last_report_at)}
+    Errors: {status.activation_failures} activation, {status.capture_errors} capture, {status.capture_write_errors} capture-write; {status.reconnects} reconnects
 """,
             )
             dialog.exec()
