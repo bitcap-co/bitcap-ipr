@@ -76,10 +76,10 @@ def flush_log():
 
 def normalize_datetime(datetime_obj: datetime | None) -> str:
     """
-    Normalize datetime to local string format: YYYY-MM-DD HH:MM:SS.mmm.
+    Normalize datetime to local string format: YYYY-MM-DD HH:MM:SS.
 
-    Returns "N/A" for the min datetime (1/1/1 00:00:00.000)
+    Returns "N/A" for the min datetime (1/1/1 00:00:00)
     """
     if datetime_obj is None or datetime_obj == MIN_DATETIME:
         return "N/A"
-    return datetime_obj.astimezone().strftime("%Y-%m-%d %H:%M:%S.%f")
+    return datetime_obj.astimezone().strftime("%Y-%m-%d %H:%M:%S")

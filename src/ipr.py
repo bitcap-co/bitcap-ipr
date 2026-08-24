@@ -1455,13 +1455,22 @@ class IPR(QMainWindow, Ui_MainWindow):
 State: {status.state}
 Active Listeners: {status.listeners_active}/{status.listeners_configured}
 Statistics:
-    Packets: {status.packets.processed} processed, {status.packets.reports} reports, {status.packets.invalid} invalid, {status.packets.duplicates} duplicates, {status.packets.unknown_filtered} filtered
+    Errors:
+        {status.activation_failures} activation
+        {status.capture_errors} capture
+        {status.capture_write_errors} capture-write
+        {status.reconnects} reconnects
+    Packets:
+        {status.packets.processed} processed
+        {status.packets.reports} reports
+        {status.packets.invalid} invalid
+        {status.packets.duplicates} duplicates
+        {status.packets.unknown_filtered} filtered
     Last Packet At: {normalize_datetime(status.last_packet_at)}
     Last Report At: {normalize_datetime(status.last_report_at)}
-    Errors: {status.activation_failures} activation, {status.capture_errors} capture, {status.capture_write_errors} capture-write; {status.reconnects} reconnects
 """,
             )
-            dialog.exec()
+            _ = dialog.exec()
 
     def toggle_system_tray_settings(self):
         if self.checkEnableSysTray.isChecked():
