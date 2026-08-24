@@ -1421,6 +1421,46 @@ class IPR(QMainWindow, Ui_MainWindow):
         iprd.selected_preset = index
         self.config.write()
 
+    def show_iprd_socket_error(self, error_str: str):
+        logger.error(f"IPRD socket error: {error_str}")
+        self.notify(f"Status :: IPRD Socket error: {error_str}")
+
+    def show_iprd_socket_status(self) -> None:
+        socket_addr = self.lineIPRDSocketAddress.text()
+        if not socket_addr:
+            return
+        try:
+            ip, _port = socket_addr.rsplit(":", 1)
+            ip = ip.strip().strip("[]")
+            port = int(_port)
+            if not self.iprd_socket.set_socket_addr(ip, port):
+                raise ValueError
+        except (ValueError, IndexError):
+            logger.error("IPRD socket error: failed to parse socket address.")
+            return self.notify("Status :: IPRD socket address invalid!")
+        else:
+            status = self.iprd_socket.status()
+            if status is None:
+                return
+            instance_name = socket_addr
+            preset = self.comboIPRDPreset.currentText()
+            if self.comboIPRDPreset.isEnabled() and preset:
+                instance_name += f" ({preset})"
+
+            dialog = IPRMessage(
+                self,
+                "Status information",
+                f"""Instance {instance_name}
+State: {status.state}
+Active Listeners: {status.listeners_active}/{status.listeners_configured}
+Statistics:
+    Packets: {status.packets.processed} processed, {status.packets.reports} reports, {status.packets.invalid} invalid, {status.packets.duplicates} duplicates, {status.packets.unknown_filtered} filtered
+    Last Packet At: {status.last_packet_at.astimezone(None).strftime("%Y-%m-%d %H:%M:%S.%f") if status.last_packet_at else "N/A"}
+    Last Report At: {status.last_report_at.astimezone(None).strftime("%Y-%m-%d %H:%M:%S.%f") if status.last_report_at else "N/A"}
+""",
+            )
+            dialog.exec()
+
     def toggle_system_tray_settings(self):
         if self.checkEnableSysTray.isChecked():
             self.comboOnWindowClose.setEnabled(True)
@@ -2375,29 +2415,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             return
         logger.info(" app activated; retrying iprd listen.")
         self.start_listen()
-
-    def show_iprd_socket_error(self, error_str: str):
-        logger.error(f"IPRD socket error: {error_str}")
-        self.notify(f"Status :: IPRD Socket error: {error_str}")
-
-    def show_iprd_socket_status(self) -> None:
-        try:
-            ip, port_text = self.lineIPRDSocketAddress.text().rsplit(":", 1)
-            ip = ip.strip().strip("[]")
-            port = int(port_text)
-        except (ValueError, IndexError):
-            ip = "127.0.0.1"
-            port = 7788
-        if not self.iprd_socket.set_socket_addr(ip, port):
-            return
-        status = self.iprd_socket.status()
-        logger.debug(f"IPRD socket status: {status}")
-        if status is None:
-            return
-        # show new message
-        status_msg = IPRMessage(self, "IPRD socket status", f"IPRD Response: {status}")
-        if status_msg.exec() == QDialog.DialogCode.Accepted:
-            return
 
     @asyncSlot(IPReport)
     async def process_result(self, result: IPReport):
