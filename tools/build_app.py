@@ -14,7 +14,7 @@ import shutil
 import sys
 from dataclasses import replace
 
-from .build_support import (
+from build_support import (
     BUILD_DIR,
     DIST_DIR,
     ICON_DIR,
@@ -22,7 +22,7 @@ from .build_support import (
     default_platform_tag,
     run,
 )
-from .project_metadata import ProjectMetadata, load_metadata, sync_runtime_metadata
+from project_metadata import ProjectMetadata, load_metadata, sync_runtime_metadata
 
 _RELEASE_PREVIEW_RE = re.compile(
     r"(?P<base>\d+\.\d+\.\d+)-rp-[A-Za-z0-9][A-Za-z0-9.-]*"
@@ -134,11 +134,11 @@ def main() -> int:
             return 0
 
         if sys.platform == "win32":
-            from .builders.windows import package
+            from builders.windows import package
         elif sys.platform == "darwin":
-            from .builders.macos import package
+            from builders.macos import package
         elif sys.platform.startswith("linux"):
-            from .builders.linux import package
+            from builders.linux import package
         else:
             raise SystemExit(f"unsupported packaging platform: {sys.platform}")
         package(metadata, args.platform_tag, args.portable_only)

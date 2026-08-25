@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import shutil
 
-from ..build_support import (
+from build_support import (
     DIST_DIR,
     ICON_DIR,
     ICON_STEM,
@@ -16,7 +16,7 @@ from ..build_support import (
     portable_archive_name,
     run,
 )
-from ..project_metadata import ProjectMetadata
+from project_metadata import ProjectMetadata
 
 
 def package(metadata: ProjectMetadata, platform_tag: str, portable_only: bool) -> None:

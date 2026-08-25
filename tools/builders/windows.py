@@ -6,7 +6,7 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-from ..build_support import (
+from build_support import (
     BUILD_DIR,
     DIST_DIR,
     README_FILES,
@@ -16,7 +16,7 @@ from ..build_support import (
     portable_archive_name,
     run,
 )
-from ..project_metadata import ROOT, ProjectMetadata
+from project_metadata import ROOT, ProjectMetadata
 
 
 def find_inno_setup() -> str:
