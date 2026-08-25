@@ -29,6 +29,10 @@ class IPRTitlebar(QWidget):
         self._button_hints: list[str] = button_hints
         self._bar_style: str = CURR_PLATFORM
 
+        self._rc_path: str = ":rc/titlebar/"
+        if self._bar_style == "darwin":
+            self._rc_path += "macos/"
+
         self._init_titlebar()
         self._init_ui()
 
@@ -133,13 +137,11 @@ class IPRTitlebar(QWidget):
 
     def sync_maximize_button(self) -> None:
         """Swap the maximize/restore glyph to match the window state."""
-        if self._bar_style == "darwin":
-            return
         self.maximize_button.setIcon(
             QIcon(
-                ":rc/titlebar/restore.png"
+                self._rc_path + "restore.png"
                 if self._window.isMaximized()
-                else ":rc/titlebar/max.png"
+                else self._rc_path + "max.png"
             )
         )
 
@@ -158,8 +160,10 @@ class IPRTitlebar(QWidget):
     @override
     def enterEvent(self, event: QEvent) -> None:
         if self._bar_style == "darwin":
-            for x in self._buttons:
-                self._buttons[x].setIcon(QIcon(f":rc/titlebar/macos/{x}.png"))
+            # redraw icons on hover for macOS
+            self.close_button.setIcon(QIcon(f"{self._rc_path}close.png"))
+            self.minimize_button.setIcon(QIcon(f"{self._rc_path}min.png"))
+            self.sync_maximize_button()
         event.accept()
 
     @override
