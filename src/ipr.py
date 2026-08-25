@@ -1329,6 +1329,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.checkEnableIPRDAutoDiscover.setEnabled(enabled)
         self.iprd_preset.setEnabled(enabled and not auto_discover)
         self.lineIPRDSocketAddress.setEnabled(enabled and not auto_discover)
+        self.toolIPRDSocketStatus.setEnabled(enabled)
         self.checkIPRDAutoReconnect.setEnabled(enabled)
         self.update_iprd_reconnect_settings()
 
