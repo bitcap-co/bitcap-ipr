@@ -874,6 +874,7 @@ class Ui_MainWindow(object):
 
         self.toolIPRDSocketStatus = QToolButton(self.groupIPRD)
         self.toolIPRDSocketStatus.setObjectName(u"toolIPRDSocketStatus")
+        self.toolIPRDSocketStatus.setEnabled(False)
 
         self.gridLayout_17.addWidget(self.toolIPRDSocketStatus, 3, 1, 1, 1)
 
