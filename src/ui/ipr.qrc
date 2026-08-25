@@ -9,6 +9,7 @@ Licensed under the GNU General Public License v3.0; see LICENSE
         <file>rc/titlebar/macos/close.png</file>
         <file>rc/titlebar/macos/min.png</file>
         <file>rc/titlebar/macos/max.png</file>
+        <file>rc/titlebar/macos/restore.png</file>
         <file>rc/titlebar/close.png</file>
         <file>rc/titlebar/min.png</file>
         <file>rc/titlebar/max.png</file>
