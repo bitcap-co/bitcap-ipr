@@ -45,6 +45,8 @@ import os
 import sys
 import traceback
 from json.decoder import JSONDecodeError
+from pathlib import Path
+from types import TracebackType
 
 from pydantic import ValidationError
 from PySide6.QtCore import QUrl
@@ -82,9 +84,23 @@ except ImportError:
 
 
 class Main:
-    def __init__(self, argv: list[str] = []):
-        self.args = argv
-        self.app = QApplication(self.args)
+    def __init__(self, argv: list[str] | None = None):
+        self.args: list[str] = []
+        if argv is not None:
+            self.args = argv
+        self.config: IPRConfig = IPRConfig()
+        self.config_path: Path = get_config_file_path()
+        self.log_dir: str = get_log_dir()
+        self.log_path: Path = get_log_file_path()
+        self._handling_exception: bool = False
+        self.exit_code: int = 0
+        self.ipc_server: QLocalServer
+        self.app: QApplication = QApplication(self.args)
+        # run the asyncio loop as the Qt event loop (qasync) so the async
+        # ipr_asic clients can be awaited directly from Qt slots.
+        self.event_loop: QEventLoop = QEventLoop(self.app)
+        asyncio.set_event_loop(self.event_loop)
+
         font = QFont()
         font.setPointSize(10)
         self.app.setFont(font)
@@ -94,20 +110,6 @@ class Main:
         self.app.setWindowIcon(QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"))
         self.app.setStyle("Fusion")
         self.app.aboutToQuit.connect(self._close_app)
-        self.ipc_server: QLocalServer | None = None
-
-        # run the asyncio loop as the Qt event loop (qasync) so the async
-        # ipr_asic clients can be awaited directly from Qt slots.
-        self.event_loop = QEventLoop(self.app)
-        asyncio.set_event_loop(self.event_loop)
-        self._handling_exception = False
-        self.exit_code = 0
-
-        self.config_path = get_config_file_path()
-        self.config = IPRConfig()
-
-        self.log_dir = get_log_dir()
-        self.log_path = get_log_file_path()
 
         self._ipr_entry()
 
@@ -128,11 +130,13 @@ class Main:
             )
             match error_action:
                 case QMessageBox.StandardButton.Open:
-                    QDesktopServices.openUrl(
+                    _ = QDesktopServices.openUrl(
                         QUrl.fromLocalFile(self.config.config_path.resolve())
                     )
                 case QMessageBox.StandardButton.RestoreDefaults:
                     self.config.write_default()
+                case _:
+                    pass
             return False
         return True
 
@@ -144,19 +148,21 @@ class Main:
             self.log_path.as_posix(), maxBytes=max_log_size_kb, backupCount=1
         )
         match self.config.logs.on_max_log_size:
-            case 0:
+            case 0:  # flush
 
-                def namer(name):
+                def namer(name: str):
                     return name
 
-                def rotator(source, dest):
+                def rotator(*_):
                     # override rotator to flush log instead.
                     flush_log()
 
                 rfh.rotator = rotator
                 rfh.namer = namer
-            case 1:
+            case 1:  # rotate
                 rfh.backupCount = MAX_ROTATE_LOG_FILES
+            case _:
+                pass
 
         logging.basicConfig(
             format="%(asctime)s - %(levelname)s - %(name)s:%(message)s",
@@ -181,7 +187,7 @@ class Main:
             sys.exit(0)
         conn.deleteLater()
         # clean up any stale socket file left by a previous crash
-        QLocalServer.removeServer(app_key)
+        _ = QLocalServer.removeServer(app_key)
 
         self.ipc_server = QLocalServer(self.app)
         if not self.ipc_server.listen(app_key):
@@ -197,7 +203,7 @@ class Main:
         logger.debug(f"launch_app : bitcap-ipr v{IPR_METADATA['appversion']}")
         logger.info("launch_app : start app.")
 
-        self.main_window = IPR(stored=self.config)
+        self.main_window: IPR = IPR(stored=self.config)
         self.main_window.show()
 
         sys.excepthook = self._exc_hook
@@ -215,7 +221,7 @@ class Main:
 
     def _close_app(self):
         logger.info(" close_app : clean up")
-        if self.ipc_server is not None and self.ipc_server.isListening():
+        if self.ipc_server.isListening():
             self.ipc_server.close()
             if QLocalServer.removeServer(IPR_METADATA["appname"]):
                 logger.info(" close local ipc server.")
@@ -224,7 +230,12 @@ class Main:
             handler.close()
             logger.root.removeHandler(handler)
 
-    def _exc_hook(self, exc_type, exc_value, exc_tb):
+    def _exc_hook(
+        self,
+        exc_type: type[BaseException],
+        exc_value: BaseException,
+        exc_tb: TracebackType | None,
+    ):
         # Prevent an error raised during fatal-error cleanup from recursively
         # entering this hook after Qt has started deleting child objects.
         if self._handling_exception:
@@ -253,7 +264,7 @@ class Main:
             buttons=QMessageBox.StandardButton.Open | QMessageBox.StandardButton.Ok,
         )
         if response == QMessageBox.StandardButton.Open:
-            QDesktopServices.openUrl(QUrl.fromLocalFile(self.log_path.resolve()))
+            _ = QDesktopServices.openUrl(QUrl.fromLocalFile(self.log_path.resolve()))
 
         self.main_window.quit()
         self.app.exit(1)

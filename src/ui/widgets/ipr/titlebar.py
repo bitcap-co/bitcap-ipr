@@ -19,7 +19,9 @@ from utils import CURR_PLATFORM
 
 
 class IPRTitlebar(QWidget):
-    def __init__(self, parent: QWidget, title: str, button_hints: list[str]):
+    def __init__(
+        self, parent: QWidget, title: str, button_hints: list[str] | None = None
+    ):
         super().__init__(parent)
         self._parent: QWidget = parent
         self._window: QWidget = self._parent.window()
