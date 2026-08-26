@@ -390,7 +390,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         # alias the combo so the preset handlers read like the pool ones
         self.comboIPRDPreset: QComboBox = self.iprd_preset.combo
         self.comboIPRDPreset.currentIndexChanged.connect(self.read_iprd_preset)
-        self.comboIPRDPreset.editTextChanged.connect(self.update_iprd_preset)
         self.iprd_preset.create_requested.connect(self.add_new_iprd_preset)
         self.iprd_preset.remove_requested.connect(self.remove_iprd_preset)
 
@@ -419,7 +418,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         # alias the combo so the existing pool-preset handlers are unchanged
         self.comboPoolPreset: QComboBox = self.pool_preset.combo
         self.comboPoolPreset.currentIndexChanged.connect(self.read_pool_preset)
-        self.comboPoolPreset.editTextChanged.connect(self.update_pool_preset)
         self.pool_preset.create_requested.connect(self.add_new_preset)
         self.pool_preset.remove_requested.connect(self.remove_preset)
         self.actionIPRSavePreset.clicked.connect(self.write_pool_preset)
