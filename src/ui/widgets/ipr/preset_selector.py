@@ -74,7 +74,6 @@ class IPRPresetSelector(QWidget):
 
         self.add_button.clicked.connect(self.create_requested)
         self.remove_button.clicked.connect(self.remove_requested)
-        self.combo.editTextChanged.connect(self.update_current_preset_name)
 
     def _make_tool_button(self, text: str, tooltip: str, font: QFont) -> QToolButton:
         button = QToolButton(self)
@@ -85,6 +84,31 @@ class IPRPresetSelector(QWidget):
         button.setText(text)
         return button
 
-    def update_current_preset_name(self, preset_name: str) -> None:
-        current_index = self.combo.currentIndex()
-        self.combo.setItemText(current_index, preset_name)
+    @property
+    def index(self) -> int:
+        return self.combo.currentIndex()
+
+    @property
+    def preset_name(self) -> str:
+        return self.combo.currentText()
+
+    @property
+    def count(self) -> int:
+        return self.combo.count()
+
+    def update_selected_preset_name(self, preset_name: str) -> None:
+        self.combo.setItemText(self.index, preset_name)
+
+    def create_preset(self, preset_name: str, index: int | None = None) -> None:
+        if index is None:
+            index = self.count
+        self.combo.insertItem(index, preset_name)
+        self.combo.setCurrentIndex(index)
+        self.combo.setCurrentText(preset_name)
+        line_edit = self.combo.lineEdit()
+        if line_edit:
+            line_edit.setFocus()
+            line_edit.selectAll()
+
+    def remove_selected_preset(self) -> None:
+        self.combo.removeItem(self.index)

@@ -172,7 +172,7 @@
                   <number>0</number>
                  </property>
                  <item>
-                  <widget class="QWidget" name="presetSet" native="true">
+                  <widget class="QWidget" name="poolSelector" native="true">
                    <property name="maximumSize">
                     <size>
                      <width>450</width>
@@ -1877,7 +1877,7 @@ Uses last 5 of SN or MAC address.</string>
                          <number>9</number>
                         </property>
                         <item row="2" column="2">
-                         <widget class="QWidget" name="iprdPresetSet" native="true">
+                         <widget class="QWidget" name="socketSelector" native="true">
                           <property name="sizePolicy">
                            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                             <horstretch>0</horstretch>
