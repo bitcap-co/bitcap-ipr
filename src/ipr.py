@@ -18,7 +18,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any, override
 
-from pydantic import TypeAdapter, ValidationError
+from pydantic import ValidationError
 from PySide6.QtCore import (
     QCoreApplication,
     QDateTime,
@@ -59,7 +59,7 @@ from PySide6.QtWidgets import (
 from qasync import asyncSlot
 
 import ui.resources  # noqa F401
-from config import IPRConfig, IPRDPreset, PoolPreset
+from config import IPRConfig, PoolPreset, PresetType, SocketPreset
 from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
 from mod.ipr_asic import ASICClient, MinerResult
@@ -1190,28 +1190,21 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.notify("Status :: Successfully restored to default settings.", 5000)
 
     def update_current_preset_to_config(self) -> list[dict[str, str]]:
-        presets = TypeAdapter(list[PoolPreset])
-        saved_pools: list[dict[str, str]] = presets.dump_python(
-            self.config.pool_config.pool_presets, by_alias=True
-        )
-        if not len(saved_pools):
+        saved = self.config.dump_stored_presets(PresetType.POOL)
+        if not len(saved):
             return []
         current_index = self.comboPoolPreset.currentIndex()
-        saved_pools[current_index]["preset_name"] = self.comboPoolPreset.currentText()
-        saved_pools[current_index]["pool1"] = self.linePoolURL.text()
-        saved_pools[current_index]["pool2"] = self.linePoolURL_2.text()
-        saved_pools[current_index]["pool3"] = self.linePoolURL_3.text()
-        saved_pools[current_index]["user1"] = self.linePoolUser.text()
-        saved_pools[current_index]["user2"] = self.linePoolUser_2.text()
-        saved_pools[current_index]["user3"] = self.linePoolUser_3.text()
-        saved_pools[current_index]["passwd1"] = self.linePoolPasswd.text()
-        saved_pools[current_index]["passwd2"] = self.linePoolPasswd_2.text()
-        saved_pools[current_index]["passwd3"] = self.linePoolPasswd_3.text()
-        return saved_pools
-
-    def update_pool_preset(self, preset_name: str):
-        current_index = self.comboPoolPreset.currentIndex()
-        self.comboPoolPreset.setItemText(current_index, preset_name)
+        saved[current_index]["preset_name"] = self.comboPoolPreset.currentText()
+        saved[current_index]["pool1"] = self.linePoolURL.text()
+        saved[current_index]["pool2"] = self.linePoolURL_2.text()
+        saved[current_index]["pool3"] = self.linePoolURL_3.text()
+        saved[current_index]["user1"] = self.linePoolUser.text()
+        saved[current_index]["user2"] = self.linePoolUser_2.text()
+        saved[current_index]["user3"] = self.linePoolUser_3.text()
+        saved[current_index]["passwd1"] = self.linePoolPasswd.text()
+        saved[current_index]["passwd2"] = self.linePoolPasswd_2.text()
+        saved[current_index]["passwd3"] = self.linePoolPasswd_3.text()
+        return saved
 
     def add_new_preset(self, *_, preset: PoolPreset | None = None) -> None:
         index = len(self.config.pool_config.pool_presets)
@@ -1349,10 +1342,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
 
     def update_current_iprd_preset_to_config(self) -> list[dict[str, str]]:
-        presets = TypeAdapter(list[IPRDPreset])
-        saved: list[dict[str, str]] = presets.dump_python(
-            self.config.listener.iprd.socket_presets, by_alias=True
-        )
+        saved = self.config.dump_stored_presets(PresetType.SOCKET)
         current_index = self.comboIPRDPreset.currentIndex()
         if (
             self.checkEnableIPRDAutoDiscover.isChecked()
@@ -1364,17 +1354,11 @@ class IPR(QMainWindow, Ui_MainWindow):
         saved[current_index]["socket_addr"] = self.lineIPRDSocketAddress.text()
         return saved
 
-    def update_iprd_preset(self, preset_name: str):
-        current_index = self.comboIPRDPreset.currentIndex()
-        if current_index < 0:
-            return
-        self.comboIPRDPreset.setItemText(current_index, preset_name)
-
-    def add_new_iprd_preset(self, *_, preset: IPRDPreset | None = None) -> None:
+    def add_new_iprd_preset(self, *_, preset: SocketPreset | None = None) -> None:
         iprd = self.config.listener.iprd
         index = len(iprd.socket_presets)
         if preset is None:
-            preset = IPRDPreset(
+            preset = SocketPreset(
                 preset_name="New Preset",
                 socket_addr=self.lineIPRDSocketAddress.text(),
             )

@@ -74,10 +74,9 @@ class IPRPresetSelector(QWidget):
 
         self.add_button.clicked.connect(self.create_requested)
         self.remove_button.clicked.connect(self.remove_requested)
+        self.combo.editTextChanged.connect(self.update_current_preset_name)
 
-    def _make_tool_button(
-        self, text: str, tooltip: str, font: QFont
-    ) -> QToolButton:
+    def _make_tool_button(self, text: str, tooltip: str, font: QFont) -> QToolButton:
         button = QToolButton(self)
         button.setMinimumSize(QSize(25, 22))
         button.setMaximumSize(QSize(25, 22))
@@ -85,3 +84,7 @@ class IPRPresetSelector(QWidget):
         button.setToolTip(tooltip)
         button.setText(text)
         return button
+
+    def update_current_preset_name(self, preset_name: str) -> None:
+        current_index = self.combo.currentIndex()
+        self.combo.setItemText(current_index, preset_name)

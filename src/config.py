@@ -5,11 +5,38 @@
 
 import json
 import os
+from enum import Enum
+from pathlib import Path
 from typing import Annotated, Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, TypeAdapter
 
 from utils import get_config_dir, get_config_file_path
+
+
+class PresetType(int, Enum):
+    POOL = 0
+    SOCKET = 1
+
+
+class Preset(BaseModel):
+    preset_name: str = ""
+
+
+class PoolPreset(Preset):
+    pool1: str = ""
+    user1: str = ""
+    passwd1: str = ""
+    pool2: str = ""
+    user2: str = ""
+    passwd2: str = ""
+    pool3: str = ""
+    user3: str = ""
+    passwd3: str = ""
+
+
+class SocketPreset(Preset):
+    socket_addr: str = ""
 
 
 class GeneralSettings(BaseModel):
@@ -29,11 +56,6 @@ class GeneralSettings(BaseModel):
     include_prereleases: Annotated[bool, Field(alias="includePreReleases")] = False
 
 
-class IPRDPreset(BaseModel):
-    socket_addr: str = ""
-    preset_name: str = ""
-
-
 class IPRD(BaseModel):
     enable_iprd: Annotated[bool, Field(alias="enableIPRD")] = False
     auto_discover: Annotated[bool, Field(alias="autoDiscover")] = False
@@ -43,7 +65,7 @@ class IPRD(BaseModel):
         int, Field(ge=1), Field(le=10), Field(alias="maxReconnectAttempts")
     ] = 3
     selected_preset: Annotated[int, Field(alias="selectedSocketPreset")] = -1
-    socket_presets: Annotated[list[IPRDPreset], Field(alias="socketPresets")] = []
+    socket_presets: Annotated[list[SocketPreset], Field(alias="socketPresets")] = []
 
 
 class Listeners(BaseModel):
@@ -110,19 +132,6 @@ class LogSettings(BaseModel):
     ] = 0
 
 
-class PoolPreset(BaseModel):
-    pool1: str = ""
-    user1: str = ""
-    passwd1: str = ""
-    pool2: str = ""
-    user2: str = ""
-    passwd2: str = ""
-    pool3: str = ""
-    user3: str = ""
-    passwd3: str = ""
-    preset_name: str = ""
-
-
 class PoolConfiguratorSettings(BaseModel):
     auto_set_workers: Annotated[bool, Field(alias="autoSetWorkers")] = False
     selected_preset: Annotated[int, Field(alias="selectedPoolPreset")] = -1
@@ -169,8 +178,8 @@ class IPRConfigModel(BaseModel):
 class IPRConfig:
     def __init__(self):
         self._set_default()
-        self.config_dir = get_config_dir()
-        self.config_path = get_config_file_path()
+        self.config_dir: str = get_config_dir()
+        self.config_path: Path = get_config_file_path()
 
     @property
     def as_dict(self) -> dict[str, Any]:
@@ -182,20 +191,22 @@ class IPRConfig:
         return self.config.model_dump(by_alias=True)
 
     def _set_default(self) -> None:
-        self.general = GeneralSettings()
-        self.listen_for = Listeners()
-        self.listener = ListenerSettings()
+        self.general: GeneralSettings = GeneralSettings()
+        self.listen_for: Listeners = Listeners()
+        self.listener: ListenerSettings = ListenerSettings()
         self.listen_for = self.listener.listen_for
-        self.auth_firmware = APIAuthFirmware()
-        self.auth = APIAuth()
-        self.api = APISettings(auth=self.auth, firmware=self.auth_firmware)
-        self.pool_config = PoolConfiguratorSettings()
-        self.logs = LogSettings()
-        self.options = InstanceOptions()
-        self.table = IDTableInstanceSettings()
-        self.views = InstanceViews()
-        self.instance = InstanceSettings(options=self.options, views=self.views)
-        self.config = IPRConfigModel(
+        self.auth_firmware: APIAuthFirmware = APIAuthFirmware()
+        self.auth: APIAuth = APIAuth()
+        self.api: APISettings = APISettings(auth=self.auth, firmware=self.auth_firmware)
+        self.pool_config: PoolConfiguratorSettings = PoolConfiguratorSettings()
+        self.logs: LogSettings = LogSettings()
+        self.options: InstanceOptions = InstanceOptions()
+        self.table: IDTableInstanceSettings = IDTableInstanceSettings()
+        self.views: InstanceViews = InstanceViews()
+        self.instance: InstanceSettings = InstanceSettings(
+            options=self.options, views=self.views
+        )
+        self.config: IPRConfigModel = IPRConfigModel(
             general=self.general,
             listener=self.listener,
             api=self.api,
@@ -244,3 +255,18 @@ class IPRConfig:
     def write_default(self) -> None:
         self._set_default()
         self._write_config()
+
+    def dump_stored_presets(self, preset_type: PresetType) -> list[dict[str, str]]:
+        saved: list[dict[str, str]] = []
+        match preset_type:
+            case PresetType.POOL:
+                presets = TypeAdapter(list[PoolPreset])
+                saved = presets.dump_python(
+                    self.pool_config.pool_presets, by_alias=True
+                )
+            case PresetType.SOCKET:
+                presets = TypeAdapter(list[SocketPreset])
+                saved = presets.dump_python(
+                    self.listener.iprd.socket_presets, by_alias=True
+                )
+        return saved
