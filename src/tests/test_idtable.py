@@ -11,7 +11,7 @@ from unittest.mock import Mock, patch
 from PySide6.QtCore import QItemSelectionModel, Qt
 
 import config  # noqa: F401  # initialize Pydantic before importing PySide-backed IPR
-from mod.ipr_asic.data import MinerData, MinerType
+from mod.ipr_asic.data import MinerData, MinerFirmware, MinerType
 from ui.widgets import (
     COL_ACTION,
     COL_IP,
@@ -119,6 +119,81 @@ class TestIPRTableProxy(unittest.TestCase):
         self.assertEqual(self.proxy.active_filter_columns(), set())
         header.set_active_columns.assert_called_once_with(set())
         reset_sort.assert_called_once_with()
+
+    def test_populate_data_normalizes_and_upserts_by_source_row(self) -> None:
+        table = Mock()
+        subject: Any = SimpleNamespace(
+            model=self.model,
+            _table=table,
+            miner_from_data=IPRTableController.miner_from_data,
+        )
+        self.model.clear()
+
+        first_row = IPRTableController.populate_data(
+            subject,
+            {
+                "recv_at": "1234",
+                "ip": "10.0.0.1",
+                "mac": "aa:bb:cc:dd:ee:01",
+                "serial": "N/A",
+                "type": "antminer",
+            },
+            dedupe_key="mac",
+        )
+        updated_row = IPRTableController.populate_data(
+            subject,
+            {
+                "recv_at": "5678",
+                "ip": "10.0.0.10",
+                "mac": "aa:bb:cc:dd:ee:01",
+                "serial": "SERIAL-UPDATED",
+                "type": "antminer",
+            },
+            dedupe_key="mac",
+        )
+
+        self.assertEqual((first_row, updated_row), (0, 0))
+        self.assertEqual(self.model.rowCount(), 1)
+        self.assertEqual(self.model.miner_at(0).recv_at, 5678)
+        self.assertEqual(self.model.miner_at(0).ip, "10.0.0.10")
+        table.scrollToBottom.assert_called_once_with()
+
+    def test_miner_target_uses_firmware_specific_client_type(self) -> None:
+        miner = MinerData(
+            ip="10.0.0.1",
+            type=MinerType.ANTMINER,
+            firmware=MinerFirmware.VNISH,
+        )
+        subject: Any = SimpleNamespace(miner_at=lambda _row: miner)
+
+        target = IPRTableController.miner_target(subject, 3)
+
+        self.assertEqual(
+            target,
+            ("10.0.0.1", MinerType.VNISH, MinerFirmware.VNISH),
+        )
+
+    def test_export_csv_uses_visible_proxy_order(self) -> None:
+        self.proxy.sort(COL_IP, Qt.SortOrder.DescendingOrder)
+        subject: Any = SimpleNamespace(model=self.model, proxy=self.proxy)
+
+        output = IPRTableController.export_csv(subject)
+
+        self.assertIsNotNone(output)
+        lines = output.splitlines() if output is not None else []
+        self.assertEqual(
+            lines[0],
+            "RECV_AT,IP,MAC,TYPE,SUBTYPE,SERIAL,ALGORITHM,HOSTNAME,"
+            "STRATUM_URL,USERNAME,WORKER_NAME,FIRMWARE,FW_VERSION,PLATFORM",
+        )
+        self.assertEqual(
+            [line.split(",")[1] for line in lines[1:]],
+            [
+                "10.0.0.3",
+                "10.0.0.2",
+                "10.0.0.1",
+            ],
+        )
 
     def test_selected_source_rows_map_from_sorted_proxy(self) -> None:
         self.proxy.sort(COL_IP, Qt.SortOrder.DescendingOrder)

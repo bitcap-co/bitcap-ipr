@@ -37,11 +37,13 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
         facade = _ControlFacade()
         subject: Any = SimpleNamespace(
             asic=facade,
-            retrieve_miner_from_table=Mock(
-                return_value=(
-                    "10.0.0.1",
-                    MinerType.ANTMINER,
-                    MinerFirmware.STOCK,
+            table_controller=SimpleNamespace(
+                miner_target=Mock(
+                    return_value=(
+                        "10.0.0.1",
+                        MinerType.ANTMINER,
+                        MinerFirmware.STOCK,
+                    )
                 )
             ),
             get_client_auth=Mock(return_value="secret"),
@@ -50,7 +52,7 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
 
         await IPR._control_miner(subject, 4, "start")
 
-        subject.retrieve_miner_from_table.assert_called_once_with(4)
+        subject.table_controller.miner_target.assert_called_once_with(4)
         subject.get_client_auth.assert_called_once_with(MinerType.ANTMINER.value)
         self.assertEqual(
             facade.calls,
@@ -66,11 +68,13 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
         facade = _ControlFacade(MinerResult(error=error))
         subject: Any = SimpleNamespace(
             asic=facade,
-            retrieve_miner_from_table=Mock(
-                return_value=(
-                    "10.0.0.2",
-                    MinerType.ANTMINER,
-                    MinerFirmware.STOCK,
+            table_controller=SimpleNamespace(
+                miner_target=Mock(
+                    return_value=(
+                        "10.0.0.2",
+                        MinerType.ANTMINER,
+                        MinerFirmware.STOCK,
+                    )
                 )
             ),
             get_client_auth=Mock(return_value=None),
@@ -175,9 +179,9 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
         subject: Any = SimpleNamespace(
             asic=asic,
             table_controller=SimpleNamespace(
-                selected_source_rows_for_action=Mock(return_value=[7])
+                selected_source_rows_for_action=Mock(return_value=[7]),
+                miner_at=Mock(),
             ),
-            id_model=Mock(),
             linePoolURL=field("stratum://pool-1"),
             linePoolURL_2=field("stratum://pool-2"),
             linePoolURL_3=field(""),
@@ -191,7 +195,7 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
             _run_bulk_action=run_bulk_action,
             notify=Mock(),
         )
-        subject.id_model.miner_at.return_value = SimpleNamespace(
+        subject.table_controller.miner_at.return_value = SimpleNamespace(
             serial="ANTMINER12345",
             mac="aa:bb:cc:dd:ee:ff",
         )

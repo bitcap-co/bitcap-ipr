@@ -23,6 +23,7 @@ from .ipr import (
     IPRTableContextMenu,
     IPRTableController,
     IPRTableModel,
+    IPRTableWidgets,
     IPRTitlebar,
     MinerControlPopup,
 )
@@ -48,6 +49,7 @@ __all__ = [
     "IPRTableContextMenu",
     "IPRTableController",
     "IPRTableModel",
+    "IPRTableWidgets",
     "IPRTitlebar",
     "MinerControlPopup",
     "SvgLabel",

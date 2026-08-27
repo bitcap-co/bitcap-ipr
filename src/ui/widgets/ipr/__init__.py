@@ -19,6 +19,7 @@ from .idtable import (
     IPRTableContextMenu,
     IPRTableController,
     IPRTableModel,
+    IPRTableWidgets,
     MinerControlPopup,
 )
 from .menubar import IPRMenubar
@@ -47,6 +48,7 @@ __all__ = [
     "IPRTableContextMenu",
     "IPRTableController",
     "IPRTableModel",
+    "IPRTableWidgets",
     "IPRTitlebar",
     "MinerControlPopup",
 ]

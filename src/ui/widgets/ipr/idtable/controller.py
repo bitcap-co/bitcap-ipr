@@ -5,8 +5,18 @@
 
 import logging
 from collections.abc import Callable
+from typing import Any, ClassVar
 
-from PySide6.QtCore import QItemSelectionModel, QModelIndex, QObject, QPoint, Qt, Signal
+from pydantic import BaseModel, ConfigDict
+from PySide6.QtCore import (
+    QDateTime,
+    QItemSelectionModel,
+    QModelIndex,
+    QObject,
+    QPoint,
+    Qt,
+    Signal,
+)
 from PySide6.QtGui import QCursor, QIcon
 from PySide6.QtWidgets import (
     QApplication,
@@ -18,7 +28,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from mod.ipr_asic.data import MinerType
+from mod.ipr_asic.data import MinerData, MinerFirmware, MinerType
 
 from .contextmenu import IPRTableContextMenu
 from .delegate import IPRActionDelegate
@@ -42,6 +52,17 @@ logger = logging.getLogger(__name__)
 DashboardURL = Callable[[str, MinerType | str | None], str]
 
 
+class IPRTableWidgets(BaseModel):
+    model_config: ClassVar[ConfigDict] = ConfigDict(
+        frozen=True, extra="forbid", arbitrary_types_allowed=True
+    )
+    table: QTableView
+    text_filter: QLineEdit
+    sort_column: QComboBox
+    sort_order: QToolButton
+    reset_view: QToolButton
+
+
 class IPRTableController(QObject):
     """Owns passive ID-table presentation and interaction behavior."""
 
@@ -52,20 +73,16 @@ class IPRTableController(QObject):
     def __init__(
         self,
         parent: QWidget,
-        table: QTableView,
-        text_filter: QLineEdit,
-        sort_column: QComboBox,
-        sort_order: QToolButton,
-        reset_view: QToolButton,
+        widgets: IPRTableWidgets,
         dashboard_url: DashboardURL,
     ) -> None:
         super().__init__(parent)
         self._window: QWidget = parent
-        self._table: QTableView = table
-        self._text_filter: QLineEdit = text_filter
-        self._sort_column: QComboBox = sort_column
-        self._sort_order: QToolButton = sort_order
-        self._reset_view_button: QToolButton = reset_view
+        self._table: QTableView = widgets.table
+        self._text_filter: QLineEdit = widgets.text_filter
+        self._sort_column: QComboBox = widgets.sort_column
+        self._sort_order: QToolButton = widgets.sort_order
+        self._reset_view_button: QToolButton = widgets.reset_view
         self._dashboard_url: DashboardURL = dashboard_url
 
         self.model: IPRTableModel = IPRTableModel(self)
@@ -154,6 +171,106 @@ class IPRTableController(QObject):
             self.dashboard_requested.emit(str(index.data()), miner.type)
         elif column == COL_SERIAL:
             self._table.edit(index)
+
+    @staticmethod
+    def _coerce_recv_at(value: Any) -> int | None:
+        if value is None:
+            return None
+        if isinstance(value, int):
+            return value
+        text = str(value)
+        if text.isdigit():
+            return int(text)
+        recv_at = QDateTime.fromString(text)
+        return recv_at.toSecsSinceEpoch() if recv_at.isValid() else None
+
+    @classmethod
+    def miner_from_data(cls, data: dict[str, Any]) -> MinerData:
+        cleaned: dict[str, Any] = {}
+        for key in MinerData.model_fields:
+            if key not in data:
+                continue
+            value = data[key]
+            cleaned[key] = None if value in ("N/A", "") else value
+        cleaned["recv_at"] = cls._coerce_recv_at(data.get("recv_at"))
+        return MinerData(**cleaned)
+
+    def append_data(self, data: dict[str, Any]) -> int:
+        return self.model.append(self.miner_from_data(data))
+
+    def populate_data(
+        self,
+        data: dict[str, Any],
+        row: int | None = None,
+        dedupe_key: str | None = None,
+    ) -> int:
+        """Insert or update miner data and return its source-model row."""
+        logger.info("populate_data : write table data.")
+        miner = self.miner_from_data(data)
+        if row is not None:
+            self.model.update_row(row, miner)
+            return row
+
+        before = self.model.rowCount()
+        source_row = (
+            self.model.upsert(miner, key=dedupe_key)
+            if dedupe_key
+            else self.model.append(miner)
+        )
+        if self.model.rowCount() > before:
+            self._table.scrollToBottom()
+        return source_row
+
+    def miner_at(self, source_row: int) -> MinerData:
+        return self.model.miner_at(source_row)
+
+    def miner_target(self, source_row: int) -> tuple[str, MinerType, MinerFirmware]:
+        miner = self.miner_at(source_row)
+        miner_type = (
+            miner.type
+            if isinstance(miner.type, MinerType)
+            else MinerType.from_value(str(miner.type or ""))
+        )
+        firmware = (
+            miner.firmware
+            if isinstance(miner.firmware, MinerFirmware)
+            else MinerFirmware.from_value(str(miner.firmware or ""))
+        )
+        if firmware == MinerFirmware.LUX_OS:
+            miner_type = MinerType.LUX_OS
+        elif firmware == MinerFirmware.VNISH:
+            miner_type = MinerType.VNISH
+        return str(miner.ip or ""), miner_type, firmware
+
+    def export_csv(self) -> str | None:
+        """Serialize visible proxy rows in their current display order."""
+        rows = self.proxy.rowCount()
+        if not rows:
+            return None
+        columns = range(1, self.proxy.columnCount())
+        header = ",".join(
+            str(
+                self.model.headerData(
+                    column,
+                    Qt.Orientation.Horizontal,
+                    Qt.ItemDataRole.DisplayRole,
+                )
+            ).replace(" ", "_")
+            for column in columns
+        )
+        output = f"{header}\n"
+        for row in range(rows):
+            output += ",".join(
+                str(self.proxy.index(row, column).data()) for column in columns
+            )
+            output += ",\n"
+        return output
+
+    def action_anchor(self, source_row: int) -> QPoint:
+        source_index = self.model.index(source_row, COL_ACTION)
+        proxy_index = self.proxy.mapFromSource(source_index)
+        rect = self._table.visualRect(proxy_index)
+        return self._table.viewport().mapToGlobal(rect.bottomLeft())
 
     def selected_source_rows(self, column: int | None = None) -> list[int]:
         if not self.proxy.rowCount():

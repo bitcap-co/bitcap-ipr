@@ -78,6 +78,7 @@ from ui.widgets import (
     IPRMessage,
     IPRPresetSelector,
     IPRTableController,
+    IPRTableWidgets,
     IPRTitlebar,
     MinerControlPopup,
 )
@@ -260,41 +261,31 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         self.table_controller: IPRTableController = IPRTableController(
             parent=self,
-            table=self.tableIPRID,
-            text_filter=self.lineIDTableFilter,
-            sort_column=self.comboSortColumn,
-            sort_order=self.btnSortOrder,
-            reset_view=self.btnResetView,
+            widgets=IPRTableWidgets(
+                table=self.tableIPRID,
+                text_filter=self.lineIDTableFilter,
+                sort_column=self.comboSortColumn,
+                sort_order=self.btnSortOrder,
+                reset_view=self.btnResetView,
+            ),
             dashboard_url=self.dashboard_url,
         )
-        # Temporary compatibility aliases for data population and miner actions;
-        # later extraction stages will use the controller API directly.
-        self.id_model = self.table_controller.model
-        self.id_proxy = self.table_controller.proxy
-        self.id_context_menu = self.table_controller.context_menu
         self.table_controller.notification_requested.connect(self.notify)
         self.table_controller.dashboard_requested.connect(self.open_dashboard)
         self.table_controller.row_action_requested.connect(self.handle_widget_action)
 
-        self.id_context_menu.contextActionRefreshMiners.triggered.connect(
+        table_menu = self.table_controller.context_menu
+        table_menu.contextActionRefreshMiners.triggered.connect(
             self.bulk_refresh_miners
         )
-        self.id_context_menu.contextActionLocateMiners.triggered.connect(
-            self.bulk_locate_miners
-        )
-        self.id_context_menu.contextActionTableImport.triggered.connect(
-            self.import_table
-        )
-        self.id_context_menu.contextActionTableExport.triggered.connect(
-            self.export_table
-        )
-        self.id_context_menu.contextActionConfiguratorShowHide.toggled.connect(
+        table_menu.contextActionLocateMiners.triggered.connect(self.bulk_locate_miners)
+        table_menu.contextActionTableImport.triggered.connect(self.import_table)
+        table_menu.contextActionTableExport.triggered.connect(self.export_table)
+        table_menu.contextActionConfiguratorShowHide.toggled.connect(
             self.toggle_configurator
         )
-        self.id_context_menu.contextActionConfigutorGetPool.triggered.connect(
-            self.get_miner_pool
-        )
-        self.id_context_menu.contextActionConfiguratorSetPools.triggered.connect(
+        table_menu.contextActionConfigutorGetPool.triggered.connect(self.get_miner_pool)
+        table_menu.contextActionConfiguratorSetPools.triggered.connect(
             self.update_miner_pools
         )
 
@@ -1509,8 +1500,7 @@ Statistics:
                         MinerData().as_dict(),
                         dict(zip(included_headers, line.split(","))),
                     )
-                    miner = self._miner_from_data(row)
-                    self.id_model.append(miner)
+                    self.table_controller.append_data(row)
         else:
             logger.error(f"import_table : failed to read file {file_name}.")
             self.notify("Status :: Failed to import table.", 5000)
@@ -1518,17 +1508,9 @@ Statistics:
 
     def export_table(self):
         logger.info("export table.")
-        rows = self.id_proxy.rowCount()
-        cols = self.id_proxy.columnCount()
-        if not rows:
+        out = self.table_controller.export_csv()
+        if out is None:
             return
-        out = "RECV_AT,IP,MAC,TYPE,SUBTYPE,SERIAL,ALGORITHM,HOSTNAME,STRATUM_URL,USERNAME,WORKER_NAME,FIRMWARE,FW_VERSION,PLATFORM\n"
-        for i in range(rows):
-            # skip the action column; write data columns in display order
-            for j in range(1, cols):
-                out += str(self.id_proxy.index(i, j).data())
-                out += ","
-            out += "\n"
 
         # .csv
         logger.info("export_table : write table to csv.")
@@ -1556,9 +1538,10 @@ Statistics:
         self._toggling_configurator = True
         try:
             self.menu_bar.actionShowConfigurator.setChecked(enabled)
-            self.id_context_menu.contextActionConfiguratorShowHide.setChecked(enabled)
-            self.id_context_menu.contextActionConfigutorGetPool.setEnabled(enabled)
-            self.id_context_menu.contextActionConfiguratorSetPools.setEnabled(enabled)
+            table_menu = self.table_controller.context_menu
+            table_menu.contextActionConfiguratorShowHide.setChecked(enabled)
+            table_menu.contextActionConfigutorGetPool.setEnabled(enabled)
+            table_menu.contextActionConfiguratorSetPools.setEnabled(enabled)
             if enabled == (not self.configurator.isHidden()):
                 return  # already in the requested state; nothing to resize
             # grow/shrink the window by exactly the configurator's own height so
@@ -1586,7 +1569,7 @@ Statistics:
             return self.notify("Status :: Failed action: no selected IPs.", 5000)
         if not self._validate_passwd_fields():
             return
-        selected_types = {self.retrieve_miner_from_table(row)[1] for row in rows}
+        selected_types = {self.table_controller.miner_target(row)[1] for row in rows}
         if len(selected_types) > 1:
             confirm = IPRMessage(
                 self,
@@ -2031,9 +2014,9 @@ Statistics:
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
             logger.info("show_confirmation : populate ID table.")
             if self.menu_bar.actionEnableLiveCapture.isChecked():
-                self.populate_table_row(result)
+                self.table_controller.populate_data(result)
             else:
-                self.populate_table_row(result, dedupe_key="mac")
+                self.table_controller.populate_data(result, dedupe_key="mac")
             self.activateWindow()
         else:
             confirm = IPRConfirmation(self.menu_bar.actionConfirmsStayOnTop.isChecked())
@@ -2088,88 +2071,6 @@ Statistics:
                 return None
         return client_auth
 
-    @staticmethod
-    def _coerce_recv_at(value: Any) -> int | None:
-        """Normalize a recv_at value (epoch int, numeric string, or a CSV
-        datetime string) to an epoch int for the typed MinerData field."""
-        if value is None:
-            return None
-        if isinstance(value, int):
-            return value
-        text = str(value)
-        if text.isdigit():
-            return int(text)
-        # datetime string produced by a previous export
-        recv_at_datetime = QDateTime.fromString(text)
-        return (
-            recv_at_datetime.toSecsSinceEpoch() if recv_at_datetime.isValid() else None
-        )
-
-    def _miner_from_data(self, data: dict[str, Any]) -> MinerData:
-        """Build a MinerData from a stringified dict (the "N/A"-filled
-        as_dict() shape used throughout the listener/import pipeline)."""
-        cleaned: dict[str, Any] = {}
-        for key in MinerData.model_fields:
-            if key not in data:
-                continue
-            value = data[key]
-            cleaned[key] = None if value in ("N/A", "") else value
-        cleaned["recv_at"] = self._coerce_recv_at(data.get("recv_at"))
-        return MinerData(**cleaned)
-
-    def populate_table_row(
-        self,
-        data: dict[str, Any],
-        row: int | None = None,
-        dedupe_key: str | None = None,
-    ) -> None:
-        """
-        Arguments:
-            data (dict[str, Any]): stringified MinerData.
-            row (int | None): optional source row to update in place.
-            dedupe_key (str | None): when set (and row is None), refresh an
-                existing row whose MinerData field matches instead of
-                appending a duplicate (e.g. "mac" for repeat IP reports).
-        """
-        logger.info("populate_table : write table data.")
-        miner = self._miner_from_data(data)
-        if row is not None:
-            self.id_model.update_row(row, miner)
-        elif dedupe_key:
-            before = self.id_model.rowCount()
-            self.id_model.upsert(miner, key=dedupe_key)
-            # only follow the view to the bottom when a new row was appended
-            if self.id_model.rowCount() > before:
-                self.tableIPRID.scrollToBottom()
-        else:
-            self.id_model.append(miner)
-            self.tableIPRID.scrollToBottom()
-
-    def retrieve_miner_from_table(
-        self, row: int
-    ) -> tuple[str, MinerType, MinerFirmware]:
-        miner = self.id_model.miner_at(row)
-        ip_addr = miner.ip
-        miner_type = (
-            miner.type
-            if isinstance(miner.type, MinerType)
-            else MinerType.from_value(str(miner.type or ""))
-        )
-        fw_type = (
-            miner.firmware
-            if isinstance(miner.firmware, MinerFirmware)
-            else MinerFirmware.from_value(str(miner.firmware or ""))
-        )
-
-        match fw_type:
-            case MinerFirmware.LUX_OS:
-                miner_type = MinerType.LUX_OS
-            case MinerFirmware.VNISH:
-                miner_type = MinerType.VNISH
-            case _:
-                pass
-        return ip_addr, miner_type, fw_type
-
     def handle_widget_action(self, col: int, row: int) -> None:
         # col/row come from IPRActionDelegate.action_clicked (source row)
         match col:
@@ -2185,10 +2086,7 @@ Statistics:
             lambda key, r=row: self._dispatch_miner_control(r, key)
         )
         self.id_control_popup = popup
-        proxy_index = self.id_proxy.mapFromSource(self.id_model.index(row, COL_ACTION))
-        rect = self.tableIPRID.visualRect(proxy_index)
-        anchor = self.tableIPRID.viewport().mapToGlobal(rect.bottomLeft())
-        popup.show_at(anchor)
+        popup.show_at(self.table_controller.action_anchor(row))
 
     def _dispatch_miner_control(self, row: int, key: str) -> None:
         match key:
@@ -2202,7 +2100,7 @@ Statistics:
                 logger.warning(f"_dispatch_miner_control : unknown action '{key}'.")
 
     async def _control_miner(self, row: int, key: str) -> None:
-        ip_addr, miner_type, _ = self.retrieve_miner_from_table(row)
+        ip_addr, miner_type, _ = self.table_controller.miner_target(row)
         logger.info(f"_control_miner : '{key}' requested for {ip_addr}.")
         alt_pwd = self.get_client_auth(miner_type.value)
         operation = getattr(self.asic, f"{key}_miner")
@@ -2281,7 +2179,7 @@ Statistics:
         task_rows: list[int] = []
         tasks = []
         for row in rows:
-            ip_addr, miner_type, fw_type = self.retrieve_miner_from_table(row)
+            ip_addr, miner_type, fw_type = self.table_controller.miner_target(row)
             alt_pwd = self.get_client_auth(miner_type.value)
             coro = coro_factory(row, ip_addr, miner_type, fw_type, alt_pwd)
             if coro is None:
@@ -2375,7 +2273,7 @@ Statistics:
         await self._start_locate(rows)
 
     async def refresh_miner(self, row: int):
-        ip_addr, miner_type, _ = self.retrieve_miner_from_table(row)
+        ip_addr, miner_type, _ = self.table_controller.miner_target(row)
         logger.info(f" refresh miner {ip_addr}.")
         # check for updated miner type from HTTP, catching firmware/type change
         update_type = await self.asic._parse_http_type(ip_addr)
@@ -2397,7 +2295,7 @@ Statistics:
         miner_data["mac"] = (
             miner_data["mac"].lower() if miner_data["mac"] != "N/A" else "N/A"
         )
-        self.populate_table_row(miner_data, row)
+        self.table_controller.populate_data(miner_data, row)
         self.notify(f"Status :: Successfully refreshed {ip_addr} miner data.", 3000)
 
     @asyncSlot()
@@ -2432,7 +2330,7 @@ Statistics:
             miner_data["mac"] = (
                 miner_data["mac"].lower() if miner_data["mac"] != "N/A" else "N/A"
             )
-            self.populate_table_row(miner_data, row)
+            self.table_controller.populate_data(miner_data, row)
 
         await self._run_bulk_action("Refresh", rows, make_coro, on_success=on_success)
 
@@ -2442,7 +2340,7 @@ Statistics:
         if not rows:
             return self.notify("Status :: Failed action: no selected IPs.", 5000)
         source_row = rows[0]
-        ip_addr, miner_type, _ = self.retrieve_miner_from_table(source_row)
+        ip_addr, miner_type, _ = self.table_controller.miner_target(source_row)
         alt_pwd = self.get_client_auth(miner_type.value)
         res = await self.asic.get_miner_pool_conf(miner_type, ip_addr, alt_pwd=alt_pwd)
         if isinstance(res.error, UnknownClientError):
@@ -2502,7 +2400,7 @@ Statistics:
         ):
             users = base_users.copy()
             if self.checkAutomaticWorkerNames.isChecked():
-                miner = self.id_model.miner_at(row)
+                miner = self.table_controller.miner_at(row)
                 worker_name = ""
                 if miner.serial and miner.serial not in ("N/A", "Unknown"):
                     worker_name = f".{miner.serial[-5:]}"
