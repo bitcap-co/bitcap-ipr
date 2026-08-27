@@ -303,7 +303,7 @@ class IPRTableController(QObject):
 
         self.clear()
         for miner in miners:
-            self.append_miner(miner)
+            _ = self.append_miner(miner)
 
     def export_table(self, *_args: object) -> None:
         logger.info("export_table : export table.")
@@ -383,7 +383,7 @@ class IPRTableController(QObject):
         action = self._context_menu.contextActionConfiguratorShowHide
         was_blocked = action.blockSignals(True)
         action.setChecked(enabled)
-        action.blockSignals(was_blocked)
+        _ = action.blockSignals(was_blocked)
         self._context_menu.contextActionConfigutorGetPool.setEnabled(enabled)
         self._context_menu.contextActionConfiguratorSetPools.setEnabled(enabled)
 
@@ -432,8 +432,10 @@ class IPRTableController(QObject):
             f"{action} : running action for {len(source_rows)} ({scope}) miners..."
         )
         self.notification_requested.emit(
-            f"Status :: Running action: {action} for "
-            f"{len(source_rows)} ({scope}) miners...",
+            (
+                f"Status :: Running action: {action} for "
+                f"{len(source_rows)} ({scope}) miners..."
+            ),
             3000,
         )
         return source_rows
@@ -575,4 +577,4 @@ class IPRTableController(QObject):
         self.model.clear()
 
     def show_context_menu(self, _position: QPoint | None = None) -> None:
-        self._context_menu.exec(QCursor.pos())
+        _ = self._context_menu.exec(QCursor.pos())

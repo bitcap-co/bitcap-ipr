@@ -3,16 +3,20 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
+from typing import override
+
 from PySide6.QtCore import (
+    QAbstractItemModel,
     QEvent,
     QModelIndex,
+    QObject,
     QPersistentModelIndex,
     QRect,
     QSize,
     Qt,
     Signal,
 )
-from PySide6.QtGui import QHelpEvent, QPixmap
+from PySide6.QtGui import QHelpEvent, QPainter, QPixmap
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QStyledItemDelegate,
@@ -37,15 +41,18 @@ _ICON_MAX = QSize(15, 15)
 
 class IPRActionDelegate(QStyledItemDelegate):
     # emitted with the action column (COL_ACTION) and source row
-    action_clicked = Signal(int, int)
+    action_clicked: Signal = Signal(int, int)
 
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
-        self._pixmaps = {col: QPixmap(path) for col, path in _ICONS.items()}
+        self._pixmaps: dict[int, QPixmap] = {
+            col: QPixmap(path) for col, path in _ICONS.items()
+        }
 
+    @override
     def paint(
         self,
-        painter,
+        painter: QPainter,
         option: QStyleOptionViewItem,
         index: QModelIndex | QPersistentModelIndex,
     ) -> None:
@@ -60,10 +67,11 @@ class IPRActionDelegate(QStyledItemDelegate):
         target.moveCenter(option.rect.center())
         painter.drawPixmap(target, pixmap)
 
+    @override
     def editorEvent(
         self,
         event: QEvent,
-        model,
+        model: QAbstractItemModel,
         option: QStyleOptionViewItem,
         index: QModelIndex | QPersistentModelIndex,
     ) -> bool:
@@ -80,6 +88,7 @@ class IPRActionDelegate(QStyledItemDelegate):
             return True
         return super().editorEvent(event, model, option, index)
 
+    @override
     def helpEvent(
         self,
         event: QHelpEvent,

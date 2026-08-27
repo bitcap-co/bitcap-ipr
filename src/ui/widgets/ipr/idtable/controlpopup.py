@@ -14,9 +14,11 @@ An icon sits beside a label when its ``ACTIONS`` entry carries an icon path
 (icons are optional for now — leave the path ``None`` to render text only).
 """
 
-from PySide6.QtCore import QEvent, QPoint, QRect, QSize, Qt, Signal
-from PySide6.QtGui import QGuiApplication, QIcon, QKeyEvent
-from PySide6.QtWidgets import QFrame, QPushButton, QVBoxLayout
+from typing import override
+
+from PySide6.QtCore import QPoint, QRect, QSize, Qt, Signal
+from PySide6.QtGui import QGuiApplication, QHideEvent, QIcon, QKeyEvent
+from PySide6.QtWidgets import QFrame, QPushButton, QVBoxLayout, QWidget
 
 # (key, label, icon resource path | None) — the order here is the display order
 ACTIONS: list[tuple[str, str, str | None]] = [
@@ -32,9 +34,9 @@ _ICON_SIZE = QSize(15, 15)
 
 
 class MinerControlPopup(QFrame):
-    action_selected = Signal(str)  # the chosen action key (see ACTIONS)
+    action_selected: Signal = Signal(str)  # the chosen action key (see ACTIONS)
 
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent, Qt.WindowType.Popup)
         self.setObjectName("minerControlPopup")
         self.setFrameShape(QFrame.Shape.StyledPanel)
@@ -56,7 +58,7 @@ class MinerControlPopup(QFrame):
 
     def _on_action(self, key: str) -> None:
         self.action_selected.emit(key)
-        self.close()
+        _ = self.close()
 
     def show_at(self, global_pos: QPoint) -> None:
         self.adjustSize()
@@ -92,13 +94,15 @@ class MinerControlPopup(QFrame):
         y = max(y, rect.top())
         return QPoint(x, y)
 
+    @override
     def keyPressEvent(self, event: QKeyEvent) -> None:
         if event.key() == Qt.Key.Key_Escape:
-            self.close()
+            _ = self.close()
             return
         super().keyPressEvent(event)
 
-    def hideEvent(self, event: QEvent) -> None:
+    @override
+    def hideEvent(self, event: QHideEvent) -> None:
         # single-use popup: any dismissal (selection/Esc/outside-click) disposes
         # of it, matching ColumnFilterPopup's lifecycle
         super().hideEvent(event)
