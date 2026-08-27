@@ -4,8 +4,14 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 import unittest
+from unittest.mock import Mock, patch
+
+from pydantic import ValidationError
 
 from mod.updater import (
+    IPRReleaseInfo,
+    ReleaseAsset,
+    fetch_latest_release,
     is_newer,
     is_prerelease,
     parse_version,
@@ -14,8 +20,8 @@ from mod.updater import (
 )
 
 
-def _asset(name: str) -> dict:
-    return {"name": name, "url": f"https://example.com/{name}", "size": 1}
+def _asset(name: str) -> ReleaseAsset:
+    return ReleaseAsset(name=name, url=f"https://example.com/{name}", size=1)
 
 
 # mirrors the asset names published on a real release.
@@ -31,6 +37,89 @@ RELEASE_ASSETS = [
     _asset("BitCapIPR-v1.3.1-win-x64-portable.zip"),
     _asset("BitCapIPR-v1.3.1-win-x64-setup.exe"),
 ]
+
+
+class TestReleaseModels(unittest.TestCase):
+    def test_models_accept_python_field_names(self):
+        asset = ReleaseAsset(name="release.deb", url="https://example.com/release.deb")
+        release = IPRReleaseInfo(
+            tag="v1.2.3",
+            url="https://example.com/releases/v1.2.3",
+            assets=[asset],
+        )
+
+        self.assertEqual(release.tag, "v1.2.3")
+        self.assertEqual(release.url, "https://example.com/releases/v1.2.3")
+        self.assertEqual(release.assets[0].url, "https://example.com/release.deb")
+
+    def test_github_aliases_and_nullable_text_are_normalized(self):
+        release = IPRReleaseInfo.model_validate(
+            {
+                "tag_name": "v1.2.3",
+                "name": None,
+                "html_url": "https://example.com/releases/v1.2.3",
+                "body": None,
+                "assets": [
+                    {
+                        "name": "release.deb",
+                        "browser_download_url": "https://example.com/release.deb",
+                        "size": 10,
+                    }
+                ],
+            }
+        )
+
+        self.assertEqual(release.name, "v1.2.3")
+        self.assertEqual(release.body, "")
+        self.assertEqual(release.assets[0].url, "https://example.com/release.deb")
+
+
+class TestFetchLatestRelease(unittest.TestCase):
+    @patch("mod.updater.updater.requests.get")
+    def test_latest_release_is_parsed(self, get: Mock):
+        response = get.return_value
+        response.json.return_value = {
+            "tag_name": "v2.0.0",
+            "name": "Version 2",
+            "html_url": "https://example.com/releases/v2.0.0",
+            "assets": [],
+        }
+
+        release = fetch_latest_release()
+
+        response.raise_for_status.assert_called_once_with()
+        self.assertEqual(release.tag, "v2.0.0")
+        self.assertEqual(release.name, "Version 2")
+
+    @patch("mod.updater.updater.requests.get")
+    def test_prerelease_fetch_ignores_drafts_and_selects_highest_version(
+        self, get: Mock
+    ):
+        get.return_value.json.return_value = [
+            {"tag_name": "v3.0.0", "draft": True},
+            {"tag_name": "v2.1.0-rp-preview", "prerelease": True},
+            {"tag_name": "v2.0.0"},
+        ]
+
+        release = fetch_latest_release(include_prereleases=True)
+
+        self.assertEqual(release.tag, "v2.1.0-rp-preview")
+        self.assertTrue(release.prerelease)
+
+    @patch("mod.updater.updater.requests.get")
+    def test_empty_release_list_returns_empty_release(self, get: Mock):
+        get.return_value.json.return_value = []
+
+        release = fetch_latest_release(include_prereleases=True)
+
+        self.assertEqual(release.tag, "")
+
+    @patch("mod.updater.updater.requests.get")
+    def test_invalid_release_list_raises_validation_error(self, get: Mock):
+        get.return_value.json.return_value = {"not": "a release list"}
+
+        with self.assertRaises(ValidationError):
+            fetch_latest_release(include_prereleases=True)
 
 
 class TestParseVersion(unittest.TestCase):
@@ -130,31 +219,38 @@ class TestVersionKey(unittest.TestCase):
 class TestSelectAsset(unittest.TestCase):
     def test_windows_picks_setup_exe(self):
         asset = select_asset(RELEASE_ASSETS, "windows", False)
-        self.assertEqual(asset["name"], "BitCapIPR-v1.3.1-win-x64-setup.exe")
+        assert asset is not None
+        self.assertEqual(asset.name, "BitCapIPR-v1.3.1-win-x64-setup.exe")
 
     def test_windows_portable_when_not_prefer_installer(self):
         asset = select_asset(RELEASE_ASSETS, "windows", False, prefer_installer=False)
-        self.assertEqual(asset["name"], "BitCapIPR-v1.3.1-win-x64-portable.zip")
+        assert asset is not None
+        self.assertEqual(asset.name, "BitCapIPR-v1.3.1-win-x64-portable.zip")
 
     def test_windows_arm_has_no_match(self):
         self.assertIsNone(select_asset(RELEASE_ASSETS, "windows", True))
 
     def test_macos_intel_picks_intel_dmg(self):
         asset = select_asset(RELEASE_ASSETS, "macos", False)
-        self.assertEqual(asset["name"], "BitCapIPR-v1.3.1-macos-15-intel-x64-setup.dmg")
+        assert asset is not None
+        self.assertEqual(asset.name, "BitCapIPR-v1.3.1-macos-15-intel-x64-setup.dmg")
 
     def test_macos_arm_picks_arm_dmg(self):
         asset = select_asset(RELEASE_ASSETS, "macos", True)
-        self.assertEqual(asset["name"], "BitCapIPR-v1.3.1-macos-latest-arm64-setup.dmg")
+        assert asset is not None
+        self.assertEqual(asset.name, "BitCapIPR-v1.3.1-macos-latest-arm64-setup.dmg")
 
     def test_linux_picks_a_deb(self):
         asset = select_asset(RELEASE_ASSETS, "linux", False)
-        self.assertTrue(asset["name"].endswith(".deb"))
+        assert asset is not None
+        self.assertTrue(asset.name.endswith(".deb"))
 
     def test_linux_selection_is_deterministic(self):
         first = select_asset(RELEASE_ASSETS, "linux", False)
         second = select_asset(list(reversed(RELEASE_ASSETS)), "linux", False)
-        self.assertEqual(first["name"], second["name"])
+        assert first is not None
+        assert second is not None
+        self.assertEqual(first.name, second.name)
 
     def test_no_assets(self):
         self.assertIsNone(select_asset([], "linux", False))

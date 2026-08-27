@@ -9,8 +9,18 @@ import os
 import platform
 import re
 import subprocess
+from typing import ClassVar, override
 
 import requests
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    TypeAdapter,
+    ValidationError,
+    ValidationInfo,
+    field_validator,
+)
 from PySide6.QtCore import QObject, QThread, Signal
 
 from utils import CURR_PLATFORM
@@ -123,29 +133,44 @@ _GITHUB_HEADERS = {
 }
 
 
-def _release_info(data: dict) -> dict:
-    """Normalize a GitHub release payload into our release info shape."""
-    tag = data.get("tag_name", "")
-    return {
-        "tag": tag,
-        "name": data.get("name") or tag,
-        "url": data.get("html_url", ""),
-        "body": data.get("body") or "",
-        "prerelease": bool(data.get("prerelease")),
-        "assets": [
-            {
-                "name": asset.get("name", ""),
-                "url": asset.get("browser_download_url", ""),
-                "size": asset.get("size", 0),
-            }
-            for asset in data.get("assets", [])
-        ],
-    }
+class ReleaseAsset(BaseModel):
+    model_config: ClassVar[ConfigDict] = ConfigDict(validate_by_name=True)
+
+    url: str = Field(default="", validation_alias="browser_download_url")
+    name: str = Field(default="")
+    size: int = Field(default=0)
+
+
+class IPRReleaseInfo(BaseModel):
+    model_config: ClassVar[ConfigDict] = ConfigDict(
+        validate_by_name=True, validate_default=True
+    )
+
+    tag: str = Field(default="", validation_alias="tag_name")
+    name: str = ""
+    url: str = Field(default="", validation_alias="html_url")
+    assets: list[ReleaseAsset] = Field(default_factory=list)
+    body: str = ""
+    prerelease: bool = False
+    draft: bool = False
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def _normalize_name(cls, value: object, info: ValidationInfo) -> str:
+        if value:
+            return str(value)
+        tag = info.data.get("tag")
+        return tag if isinstance(tag, str) else ""
+
+    @field_validator("body", mode="before")
+    @classmethod
+    def _normalize_body(cls, value: object) -> str:
+        return str(value) if value else ""
 
 
 def fetch_latest_release(
     include_prereleases: bool = False, timeout: int = REQUEST_TIMEOUT
-) -> dict:
+) -> IPRReleaseInfo:
     """Fetch the latest release from the GitHub repository.
 
     By default only published, non-pre-release versions are considered (the
@@ -158,28 +183,34 @@ def fetch_latest_release(
         timeout (int): request timeout in seconds.
 
     Returns:
-        dict: release info with keys 'tag', 'name', 'url', 'body',
-        'prerelease' and 'assets'. Empty 'tag' when nothing is found.
+        IPRReleaseInfo: normalized release information. Its ``tag`` is empty
+        when no release is found.
 
     Raises:
-        requests.RequestException: on network or HTTP errors.
+        requests.RequestException: on network, HTTP, or JSON decoding errors.
+        ValidationError: when GitHub returns an unexpected payload shape.
     """
     if not include_prereleases:
         resp = requests.get(
             LATEST_RELEASE_URL, headers=_GITHUB_HEADERS, timeout=timeout
         )
         resp.raise_for_status()
-        return _release_info(resp.json())
+        return IPRReleaseInfo.model_validate(resp.json(), by_alias=True)
 
     resp = requests.get(RELEASES_URL, headers=_GITHUB_HEADERS, timeout=timeout)
     resp.raise_for_status()
     # GitHub returns releases newest-first; max() keeps the first of any tie,
     # so competing previews of the same base resolve to the most recent one.
-    releases = [release for release in resp.json() if not release.get("draft")]
+    releases = TypeAdapter(list[IPRReleaseInfo])
+    releases = [
+        release
+        for release in releases.validate_python(resp.json())
+        if not release.draft
+    ]
     if not releases:
-        return _release_info({})
-    latest = max(releases, key=lambda r: version_key(r.get("tag_name", "")))
-    return _release_info(latest)
+        return IPRReleaseInfo()
+    latest = max(releases, key=lambda r: version_key(r.tag))
+    return latest
 
 
 def get_platform() -> tuple[str, bool]:
@@ -218,11 +249,11 @@ def _matches_arch(name: str, is_arm: bool) -> bool:
 
 
 def select_asset(
-    assets: list[dict],
+    assets: list[ReleaseAsset],
     os_name: str,
     is_arm: bool,
     prefer_installer: bool = True,
-) -> dict | None:
+) -> ReleaseAsset | None:
     """Pick the best release asset for the given platform.
 
     Filters assets to those matching the platform and architecture, then
@@ -231,28 +262,28 @@ def select_asset(
     selection is deterministic.
 
     Args:
-        assets (list[dict]): release assets with 'name', 'url' and 'size'.
+        assets (list[ReleaseAsset]): release assets with 'name', 'url' and 'size'.
         os_name (str): platform name ('windows', 'macos' or 'linux').
         is_arm (bool): whether the target machine is ARM-based.
         prefer_installer (bool): prefer an installer over a portable archive.
 
     Returns:
-        dict | None: the chosen asset, or None if nothing matches.
+        ReleaseAsset | None: the chosen asset, or None if nothing matches.
     """
     ext = INSTALLER_EXTS.get(os_name, "")
     candidates = [
         asset
         for asset in assets
-        if asset.get("name")
-        and _matches_os(asset["name"], os_name)
-        and _matches_arch(asset["name"], is_arm)
+        if asset.name
+        and _matches_os(asset.name, os_name)
+        and _matches_arch(asset.name, is_arm)
     ]
     if not candidates:
         return None
 
-    def rank(asset: dict) -> tuple[int, str]:
-        is_installer = bool(ext) and asset["name"].lower().endswith(ext)
-        return (1 if is_installer == prefer_installer else 0, asset["name"].lower())
+    def rank(asset: ReleaseAsset) -> tuple[int, str]:
+        is_installer = bool(ext) and asset.name.lower().endswith(ext)
+        return (1 if is_installer == prefer_installer else 0, asset.name.lower())
 
     return max(candidates, key=rank)
 
@@ -270,15 +301,15 @@ class UpdateChecker(QThread):
         parent (QObject) : parent object.
 
     Signals:
-        update_available (dict): emits release info when a newer version exists.
+        update_available (IPRReleaseInfo): emits release info when a newer version exists.
         up_to_date (str): emits the current version when already up to date.
         error (str): emits the error message when the check fails.
     """
 
     # Signals
-    update_available = Signal(dict)
-    up_to_date = Signal(str)
-    error = Signal(str)
+    update_available: Signal = Signal(IPRReleaseInfo)
+    up_to_date: Signal = Signal(str)
+    error: Signal = Signal(str)
 
     def __init__(
         self,
@@ -287,22 +318,24 @@ class UpdateChecker(QThread):
         parent: QObject | None = None,
     ) -> None:
         super().__init__(parent)
-        self._current = current_version
-        self._include_prereleases = include_prereleases
+        self._current: str = current_version
+        self._include_prereleases: bool = include_prereleases
 
+    @override
     def __repr__(self, /) -> str:
         return f"{self.__class__.__name__}"
 
-    def run(self) -> None:
+    @override
+    def run(self, /) -> None:
         logger.info(" checking for updates...")
         try:
             release = fetch_latest_release(self._include_prereleases)
-        except requests.RequestException as exc:
+        except (requests.RequestException, ValidationError) as exc:
             logger.error(f" update check failed: {exc}")
             self.error.emit(str(exc))
             return
-        if is_newer(release["tag"], self._current):
-            logger.info(f" update available: {release['tag']}")
+        if is_newer(release.tag, self._current):
+            logger.info(f" update available: {release.tag}")
             self.update_available.emit(release)
         else:
             logger.info(" no update available.")
@@ -328,16 +361,17 @@ class UpdateDownloader(QThread):
     """
 
     # Signals
-    progress = Signal(int, int)
-    completed = Signal(str)
-    error = Signal(str)
+    progress: Signal = Signal(int, int)
+    completed: Signal = Signal(str)
+    error: Signal = Signal(str)
 
     def __init__(self, url: str, dest_path: str, parent: QObject | None = None) -> None:
         super().__init__(parent)
-        self._url = url
-        self._dest = dest_path
-        self._cancelled = False
+        self._url: str = url
+        self._dest: str = dest_path
+        self._cancelled: bool = False
 
+    @override
     def __repr__(self, /) -> str:
         return f"{self.__class__.__name__}"
 
@@ -352,6 +386,7 @@ class UpdateDownloader(QThread):
         except OSError as exc:
             logger.warning(f" failed to remove partial download: {exc}")
 
+    @override
     def run(self) -> None:
         logger.info(f" downloading update from {self._url}")
         try:
@@ -399,16 +434,17 @@ class DebInstaller(QThread):
         error (str): emits the error message when the install fails.
     """
 
-    PACKAGE_NAME = "bitcap-ipr"
+    PACKAGE_NAME: str = "bitcap-ipr"
 
     # Signals
-    completed = Signal(str)
-    error = Signal(str)
+    completed: Signal = Signal(str)
+    error: Signal = Signal(str)
 
     def __init__(self, deb_path: str, parent: QObject | None = None) -> None:
         super().__init__(parent)
-        self._deb = deb_path
+        self._deb: str = deb_path
 
+    @override
     def __repr__(self, /) -> str:
         return f"{self.__class__.__name__}"
 
@@ -420,6 +456,7 @@ class DebInstaller(QThread):
             return ""
         return proc.stdout.strip() if proc.returncode == 0 else ""
 
+    @override
     def run(self) -> None:
         logger.info(f" installing {self._deb} via pkexec dpkg")
         # version the package will install to (read from the .deb, no root).

@@ -5,6 +5,8 @@
 
 from .updater import (
     DebInstaller,
+    IPRReleaseInfo,
+    ReleaseAsset,
     UpdateChecker,
     UpdateDownloader,
     fetch_latest_release,
@@ -18,6 +20,8 @@ from .updater import (
 
 __all__ = [
     "DebInstaller",
+    "IPRReleaseInfo",
+    "ReleaseAsset",
     "UpdateChecker",
     "UpdateDownloader",
     "fetch_latest_release",
