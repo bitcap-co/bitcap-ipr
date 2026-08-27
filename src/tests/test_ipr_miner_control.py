@@ -89,14 +89,16 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
         run_bulk_action = AsyncMock()
         subject: Any = SimpleNamespace(
             asic=facade,
-            get_action_target_rows=Mock(return_value=[2, 5]),
+            table_controller=SimpleNamespace(
+                action_target_rows=Mock(return_value=[2, 5])
+            ),
             _run_bulk_action=run_bulk_action,
             notify=Mock(),
         )
 
         await IPR._bulk_control_miners(subject, "reboot")
 
-        subject.get_action_target_rows.assert_called_once_with("Reboot")
+        subject.table_controller.action_target_rows.assert_called_once_with("Reboot")
         run_bulk_action.assert_awaited_once()
         await_args = run_bulk_action.await_args
         if await_args is None:
@@ -127,7 +129,7 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
         run_bulk_action = AsyncMock()
         subject: Any = SimpleNamespace(
             asic=asic,
-            get_action_target_rows=Mock(return_value=[3]),
+            table_controller=SimpleNamespace(action_target_rows=Mock(return_value=[3])),
             get_client_auth=Mock(return_value="antminer-secret"),
             _run_bulk_action=run_bulk_action,
             notify=Mock(),
@@ -163,9 +165,6 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
     async def test_update_pools_uses_shared_bulk_engine(self):
         result = MinerResult(data={"success": True})
         asic = SimpleNamespace(update_miner_pools=AsyncMock(return_value=result))
-        selected_index = Mock()
-        source_index = Mock()
-        source_index.row.return_value = 7
         run_bulk_action = AsyncMock()
 
         def field(value):
@@ -175,8 +174,9 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
 
         subject: Any = SimpleNamespace(
             asic=asic,
-            get_selected_indexes_for_action=Mock(return_value=[selected_index]),
-            id_proxy=Mock(),
+            table_controller=SimpleNamespace(
+                selected_source_rows_for_action=Mock(return_value=[7])
+            ),
             id_model=Mock(),
             linePoolURL=field("stratum://pool-1"),
             linePoolURL_2=field("stratum://pool-2"),
@@ -191,7 +191,6 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
             _run_bulk_action=run_bulk_action,
             notify=Mock(),
         )
-        subject.id_proxy.mapToSource.return_value = source_index
         subject.id_model.miner_at.return_value = SimpleNamespace(
             serial="ANTMINER12345",
             mac="aa:bb:cc:dd:ee:ff",
@@ -200,8 +199,8 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
 
         await IPR.update_miner_pools(subject)
 
-        subject.get_selected_indexes_for_action.assert_called_once_with(
-            "update_miner_pools", section=COL_IP
+        subject.table_controller.selected_source_rows_for_action.assert_called_once_with(
+            "update_miner_pools", column=COL_IP
         )
         run_bulk_action.assert_awaited_once()
         await_args = run_bulk_action.await_args
@@ -232,7 +231,7 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
     async def test_bulk_control_reports_empty_target_set(self):
         subject: Any = SimpleNamespace(
             asic=_ControlFacade(),
-            get_action_target_rows=Mock(return_value=[]),
+            table_controller=SimpleNamespace(action_target_rows=Mock(return_value=[])),
             _run_bulk_action=AsyncMock(),
             notify=Mock(),
         )

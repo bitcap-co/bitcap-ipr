@@ -17,6 +17,7 @@ from .idtable import (
     IPRActionDelegate,
     IPRFilterProxyModel,
     IPRTableContextMenu,
+    IPRTableController,
     IPRTableModel,
     MinerControlPopup,
 )
@@ -44,6 +45,7 @@ __all__ = [
     "IPRPresetSelector",
     "IPRProgress",
     "IPRTableContextMenu",
+    "IPRTableController",
     "IPRTableModel",
     "IPRTitlebar",
     "MinerControlPopup",

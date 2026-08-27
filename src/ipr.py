@@ -22,8 +22,6 @@ from PySide6.QtCore import (
     QEvent,
     QFile,
     QIODevice,
-    QItemSelectionModel,
-    QModelIndex,
     QObject,
     QPoint,
     Qt,
@@ -45,7 +43,6 @@ from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
     QFileDialog,
-    QHeaderView,
     QLineEdit,
     QMainWindow,
     QMenu,
@@ -76,22 +73,11 @@ from mod.updater import UpdateController
 from ui import Ui_MainWindow
 from ui.widgets import (
     COL_ACTION,
-    COL_FWVERSION,
     COL_IP,
-    COL_RECV_AT,
-    COL_SERIAL,
-    COL_URL,
-    COL_USER,
-    FILTERABLE_COLUMNS,
-    ColumnFilterPopup,
-    FilterHeaderView,
-    IPRActionDelegate,
-    IPRFilterProxyModel,
     IPRMenubar,
     IPRMessage,
     IPRPresetSelector,
-    IPRTableContextMenu,
-    IPRTableModel,
+    IPRTableController,
     IPRTitlebar,
     MinerControlPopup,
 )
@@ -272,6 +258,46 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         self.update_controller.quit_requested.connect(self.quit)
 
+        self.table_controller: IPRTableController = IPRTableController(
+            parent=self,
+            table=self.tableIPRID,
+            text_filter=self.lineIDTableFilter,
+            sort_column=self.comboSortColumn,
+            sort_order=self.btnSortOrder,
+            reset_view=self.btnResetView,
+            dashboard_url=self.dashboard_url,
+        )
+        # Temporary compatibility aliases for data population and miner actions;
+        # later extraction stages will use the controller API directly.
+        self.id_model = self.table_controller.model
+        self.id_proxy = self.table_controller.proxy
+        self.id_context_menu = self.table_controller.context_menu
+        self.table_controller.notification_requested.connect(self.notify)
+        self.table_controller.dashboard_requested.connect(self.open_dashboard)
+        self.table_controller.row_action_requested.connect(self.handle_widget_action)
+
+        self.id_context_menu.contextActionRefreshMiners.triggered.connect(
+            self.bulk_refresh_miners
+        )
+        self.id_context_menu.contextActionLocateMiners.triggered.connect(
+            self.bulk_locate_miners
+        )
+        self.id_context_menu.contextActionTableImport.triggered.connect(
+            self.import_table
+        )
+        self.id_context_menu.contextActionTableExport.triggered.connect(
+            self.export_table
+        )
+        self.id_context_menu.contextActionConfiguratorShowHide.toggled.connect(
+            self.toggle_configurator
+        )
+        self.id_context_menu.contextActionConfigutorGetPool.triggered.connect(
+            self.get_miner_pool
+        )
+        self.id_context_menu.contextActionConfiguratorSetPools.triggered.connect(
+            self.update_miner_pools
+        )
+
         # IPR_Menubar signals
         self.menu_bar.actionAbout.triggered.connect(self.about)
         self.menu_bar.actionOpenLog.triggered.connect(self.open_log)
@@ -285,11 +311,19 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.menuOptions.triggered.connect(self.update_settings)
         self.menu_bar.actionEnableIDTable.triggered.connect(self.update_stacked_widget)
         self.menu_bar.actionEnableIDTable.toggled.connect(self.toggle_table_settings)
-        self.menu_bar.actionOpenSelectedIPs.triggered.connect(self.open_selected_ips)
-        self.menu_bar.actionCopySelectedElements.triggered.connect(self.copy_selected)
-        self.menu_bar.actionResetSort.triggered.connect(self.reset_sort)
-        self.menu_bar.actionResetView.triggered.connect(self.reset_view)
-        self.menu_bar.actionClearTable.triggered.connect(self.clear_table)
+        self.menu_bar.actionOpenSelectedIPs.triggered.connect(
+            self.table_controller.open_selected_ips
+        )
+        self.menu_bar.actionCopySelectedElements.triggered.connect(
+            self.table_controller.copy_selected
+        )
+        self.menu_bar.actionResetSort.triggered.connect(
+            self.table_controller.reset_sort
+        )
+        self.menu_bar.actionResetView.triggered.connect(
+            self.table_controller.reset_view
+        )
+        self.menu_bar.actionClearTable.triggered.connect(self.table_controller.clear)
         self.menu_bar.actionImport.triggered.connect(self.import_table)
         self.menu_bar.actionExport.triggered.connect(self.export_table)
         self.menu_bar.actionShowConfigurator.toggled.connect(
@@ -447,113 +481,6 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         # set logo
         self.labelIPRLogo.setPixmap(QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg"))
-
-        # initialize ID Table (headers are provided by IPRTableModel)
-        self.id_model: IPRTableModel = IPRTableModel(self)
-        self.id_proxy: IPRFilterProxyModel = IPRFilterProxyModel(self)
-        self.id_proxy.setSourceModel(self.id_model)
-        self.tableIPRID.setModel(self.id_proxy)
-        # custom header: funnel dropdowns on low-cardinality columns, alongside
-        # the existing click-to-select-column behaviour on the header text.
-        # Installed before the setColumnWidth calls below so the widths apply to
-        # this header rather than being reset when it replaces the default one.
-        self.id_header: FilterHeaderView = FilterHeaderView(self.tableIPRID)
-        self.tableIPRID.setHorizontalHeader(self.id_header)
-        # restore the section-size config setupUi applied to the default header
-        # (a fresh header defaults to a larger minimum, which would clamp the
-        # 15px action columns wider and upscale their icons)
-        self.id_header.setMinimumSectionSize(15)
-        self.id_header.setDefaultSectionSize(150)
-        # action-column icons (refresh / locate) painted by a delegate
-        self.id_action_delegate: IPRActionDelegate = IPRActionDelegate(self.tableIPRID)
-        self.tableIPRID.setItemDelegateForColumn(COL_ACTION, self.id_action_delegate)
-        self.id_action_delegate.action_clicked.connect(self.handle_widget_action)
-        self.tableIPRID.setColumnWidth(COL_ACTION, 15)
-        self.tableIPRID.setColumnWidth(COL_RECV_AT, 180)
-        self.tableIPRID.setColumnWidth(COL_SERIAL, 180)
-        self.tableIPRID.setColumnWidth(COL_URL, 400)
-        self.tableIPRID.setColumnWidth(COL_USER, 300)
-        self.tableIPRID.setColumnWidth(COL_FWVERSION, 180)
-        self.tableIPRID.doubleClicked.connect(self.double_click_item)
-        # sorting is driven by the toolbar controls, not header clicks, so a
-        # header click is free to select the column without sorting it
-        self.tableIPRID.setSortingEnabled(False)
-        self.id_header.setSortIndicatorShown(False)
-        self.id_header.set_filterable_columns(FILTERABLE_COLUMNS)
-        # right-click a header to toggle highlighting its column (left-click is
-        # reserved for the funnel filter and no longer highlights)
-        self.id_header.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.id_header.customContextMenuRequested.connect(self.toggle_column_at)
-        self.id_header.filter_clicked.connect(self.open_column_filter)
-        self.id_filter_popup: ColumnFilterPopup | None = None
-        # vertical header: 1-based row-count column on the left. Left-click a
-        # row number to select that row (default behaviour); right-click to
-        # toggle highlighting the whole row (add/remove without clearing others).
-        v_header = self.tableIPRID.verticalHeader()
-        v_header.setVisible(True)
-        v_header.setSectionsClickable(True)
-        # fixed, non-resizable row height for a consistent table layout
-        v_header.setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
-        v_header.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        v_header.customContextMenuRequested.connect(self.toggle_row_at)
-        self.lineIDTableFilter.textChanged.connect(self.id_proxy.set_filter_text)
-        # sort controls: column combo + asc/desc toggle (next to the filter)
-        for col in range(self.id_model.columnCount()):
-            header = self.id_model.headerData(
-                col, Qt.Orientation.Horizontal, Qt.ItemDataRole.DisplayRole
-            )
-            if header:  # skip the icon-only action columns (empty header)
-                self.comboSortColumn.addItem(header, col)
-        self.comboSortColumn.currentIndexChanged.connect(self.apply_sort)
-        self.btnSortOrder.toggled.connect(self.apply_sort)
-        self.btnResetView.setIcon(QIcon(":theme/icons/rc/clear.png"))
-        self.btnResetView.clicked.connect(self.reset_view)
-        # asc/desc glyphs for the sort order toggle (keyed by "is descending")
-        self.id_sort_icons: dict[bool, QIcon] = {
-            False: QIcon(":theme/icons/rc/arrow_up.png"),
-            True: QIcon(":theme/icons/rc/arrow_down.png"),
-        }
-        # default sort: oldest -> newest by RECV AT (new arrivals at the bottom)
-        self.reset_sort()
-
-        # id table context menu
-        self.id_context_menu: IPRTableContextMenu = IPRTableContextMenu(self)
-        self.id_context_menu.contextActionOpenSelectedIPs.triggered.connect(
-            self.open_selected_ips
-        )
-        self.id_context_menu.contextActionCopySelected.triggered.connect(
-            self.copy_selected
-        )
-        self.id_context_menu.contextActionClearTable.triggered.connect(self.clear_table)
-        self.id_context_menu.contextActionRefreshMiners.triggered.connect(
-            self.bulk_refresh_miners
-        )
-        self.id_context_menu.contextActionLocateMiners.triggered.connect(
-            self.bulk_locate_miners
-        )
-        self.id_context_menu.contextActionTableImport.triggered.connect(
-            self.import_table
-        )
-        self.id_context_menu.contextActionTableExport.triggered.connect(
-            self.export_table
-        )
-        self.id_context_menu.contextActionTableResetSortOrder.triggered.connect(
-            self.reset_sort
-        )
-        self.id_context_menu.contextActionTableResetView.triggered.connect(
-            self.reset_view
-        )
-        self.id_context_menu.contextActionConfiguratorShowHide.toggled.connect(
-            self.toggle_configurator
-        )
-        self.id_context_menu.contextActionConfigutorGetPool.triggered.connect(
-            self.get_miner_pool
-        )
-        self.id_context_menu.contextActionConfiguratorSetPools.triggered.connect(
-            self.update_miner_pools
-        )
-        self.tableIPRID.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.tableIPRID.customContextMenuRequested.connect(self.show_table_context)
 
         # action center
         self.id_control_popup: MinerControlPopup | None = None
@@ -1560,212 +1487,6 @@ Statistics:
     def open_dashboard(self, host: str, miner_type: MinerType | str | None = None):
         webbrowser.open(self.dashboard_url(host, miner_type), new=2)
 
-    def show_table_context(self):
-        self.id_context_menu.exec(QCursor.pos())
-
-    def double_click_item(self, model_index: QModelIndex):
-        # model_index is a proxy index
-        column = model_index.column()
-        if column == COL_IP:
-            source_row = self.id_proxy.mapToSource(model_index).row()
-            miner = self.id_model.miner_at(source_row)
-            self.open_dashboard(model_index.data(), miner.type)
-        elif column == COL_SERIAL:
-            self.tableIPRID.edit(model_index)
-
-    def get_selected_indexes_for_action(
-        self, action: str, section: int | None = None
-    ) -> list[QModelIndex] | None:
-        rows = self.id_proxy.rowCount()
-        if not rows:
-            return
-        selected = self.tableIPRID.selectionModel().selectedIndexes()
-        if section is not None and section != 0:
-            selected = [x for x in selected if x.column() == section]
-        if not len(selected):
-            return
-        selected_text = [x.data() for x in selected]
-        logger.info(f"{action} : running action for {selected_text}...")
-        status_msg = f"Status :: Running action: {action} for [{','.join(selected_text[0:3])}...]..."
-        self.notify(status_msg, 3000)
-        return selected
-
-    def get_action_target_rows(self, action: str) -> list[int]:
-        """Resolve the source rows a bulk action should operate on.
-
-        Uses the current IP-column selection, or falls back to every
-        currently visible (filtered) row when nothing is selected. Returns
-        an empty list when the table has no rows. This is the seam the
-        future Global Action Center toolbar will call.
-        """
-        rows = self.id_proxy.rowCount()
-        if not rows:
-            return []
-        selected = [
-            x
-            for x in self.tableIPRID.selectionModel().selectedIndexes()
-            if x.column() == COL_IP
-        ]
-        if selected:
-            source_rows = [self.id_proxy.mapToSource(x).row() for x in selected]
-        else:
-            source_rows = [
-                self.id_proxy.mapToSource(self.id_proxy.index(r, COL_IP)).row()
-                for r in range(rows)
-            ]
-        scope = "selected" if selected else "all"
-        logger.info(
-            f"{action} : running action for {len(source_rows)} ({scope}) miners..."
-        )
-        self.notify(
-            f"Status :: Running action: {action} for {len(source_rows)} ({scope}) miners...",
-            3000,
-        )
-        return source_rows
-
-    def open_selected_ips(self):
-        if not self.id_proxy.rowCount():
-            return
-        selected_ips = [
-            x
-            for x in self.tableIPRID.selectionModel().selectedIndexes()
-            if x.column() == COL_IP
-        ]
-        for index in selected_ips:
-            source_row = self.id_proxy.mapToSource(index).row()
-            miner = self.id_model.miner_at(source_row)
-            self.open_dashboard(index.data(), miner.type)
-
-    def copy_selected(self):
-        logger.info(" copy selected elements.")
-        rows = self.id_proxy.rowCount()
-        if not rows:
-            return
-        out = ""
-        selected_indexes = self.tableIPRID.selectionModel().selectedIndexes()
-        for r in range(rows):
-            selected_indexes_in_row = [x for x in selected_indexes if x.row() == r]
-            if len(selected_indexes_in_row) == 0:
-                continue
-            for index in range(len(selected_indexes_in_row)):
-                sep = ""
-                if len(selected_indexes_in_row) > 1:
-                    sep = ","
-                cell = selected_indexes_in_row[index]
-                column = cell.column()
-                if column == COL_ACTION:
-                    continue
-                if column == COL_IP:
-                    source_row = self.id_proxy.mapToSource(cell).row()
-                    miner = self.id_model.miner_at(source_row)
-                    out += f"{self.dashboard_url(cell.data(), miner.type)}{sep}"
-                else:
-                    out += f"{cell.data()}{sep}"
-                continue
-            out += "\n"
-        logger.info("copy_selected : copy elements to clipboard.")
-        cb = QApplication.clipboard()
-        cb.clear(mode=cb.Mode.Clipboard)
-        cb.setText(out.strip(), mode=cb.Mode.Clipboard)
-        self.notify("Status :: Copied elements to clipboard.", 3000)
-
-    def _toggle_selection(self, indexes: list[QModelIndex]):
-        """Select every index, or clear them if all are already selected.
-
-        Giving an explicit un-highlight and letting rows/columns stay
-        highlighted independently.
-        """
-        if not indexes:
-            return
-        selection_model = self.tableIPRID.selectionModel()
-        fully_selected = all(selection_model.isSelected(index) for index in indexes)
-        flag = (
-            QItemSelectionModel.SelectionFlag.Deselect
-            if fully_selected
-            else QItemSelectionModel.SelectionFlag.Select
-        )
-        for index in indexes:
-            selection_model.select(index, flag)
-
-    def toggle_column_at(self, pos: QPoint):
-        """Right-click a column header to toggle highlighting that column."""
-        section = self.id_header.logicalIndexAt(pos)
-        # skip invalid hits and the icon-only action columns (no cell content)
-        if section < COL_RECV_AT:
-            return
-        rows = self.id_proxy.rowCount()
-        self._toggle_selection(
-            [self.id_proxy.index(row, section) for row in range(rows)]
-        )
-
-    def toggle_row_at(self, pos: QPoint):
-        """Right-click a row header to toggle highlighting that whole row."""
-        row = self.tableIPRID.verticalHeader().logicalIndexAt(pos)
-        if row < 0:
-            return
-        columns = self.id_proxy.columnCount()
-        self._toggle_selection(
-            [self.id_proxy.index(row, col) for col in range(columns)]
-        )
-
-    def open_column_filter(self, section: int):
-        """Pop up the value checklist for a filterable header column."""
-        title = self.id_model.headerData(
-            section, Qt.Orientation.Horizontal, Qt.ItemDataRole.DisplayRole
-        )
-        values = self.id_model.distinct_values(section)
-        popup = ColumnFilterPopup(
-            str(title), values, self.id_proxy.column_filter(section), self
-        )
-        popup.applied.connect(
-            lambda labels, col=section, choices=values: self._apply_column_filter(
-                col, labels, choices
-            )
-        )
-        popup.cleared.connect(lambda col=section: self._apply_column_filter(col, None))
-        self.id_filter_popup = popup
-        popup.show_at(self.id_header.filter_anchor(section))
-
-    def _apply_column_filter(
-        self, section: int, labels: list[str] | None, choices: list[str] | None = None
-    ):
-        # all values checked is equivalent to no filter; keep the header glyph
-        # indicator in sync with what the proxy is actually filtering on.
-        if labels is not None and choices is not None and len(labels) == len(choices):
-            labels = None
-        self.id_proxy.set_column_filter(section, labels)
-        self.id_header.set_active_columns(self.id_proxy.active_filter_columns())
-
-    def apply_sort(self, *_args):
-        """Sort the proxy from the current toolbar control state."""
-        col = self.comboSortColumn.currentData()
-        if col is None:
-            return
-        descending = self.btnSortOrder.isChecked()
-        order = (
-            Qt.SortOrder.DescendingOrder if descending else Qt.SortOrder.AscendingOrder
-        )
-        self.btnSortOrder.setIcon(self.id_sort_icons[descending])
-        self.id_proxy.sort(col, order)
-
-    def reset_sort(self):
-        # reset to the default sort: RECV AT ascending
-        self.comboSortColumn.setCurrentIndex(self.comboSortColumn.findData(COL_RECV_AT))
-        self.btnSortOrder.setChecked(False)
-        self.apply_sort()
-
-    def reset_view(self):
-        # clear the text filter and every per-column filter, then return the
-        # sort to its default
-        self.lineIDTableFilter.clear()
-        self.id_proxy.clear_column_filters()
-        self.id_header.set_active_columns(self.id_proxy.active_filter_columns())
-        self.reset_sort()
-
-    def clear_table(self):
-        self.reset_view()
-        return self.id_model.clear()
-
     def import_table(self):
         logger.info(" import table.")
         file_name, _ = QFileDialog.getOpenFileName(
@@ -1774,7 +1495,7 @@ Statistics:
             Path(Path.home(), "Documents", "ipr").resolve().__str__(),
             ".CSV Files (*.csv)",
         )
-        self.clear_table()
+        self.table_controller.clear()
         csv = QFile(file_name)
         if csv.open(QFile.OpenModeFlag.ReadOnly | QFile.OpenModeFlag.Text):
             data_stream = QTextStream(csv)
@@ -1860,18 +1581,11 @@ Statistics:
             self._toggling_configurator = False
 
     def update_alternative_passwds(self) -> None:
-        if not self.id_proxy.rowCount():
-            return
-        selected_ips = [
-            x
-            for x in self.tableIPRID.selectionModel().selectedIndexes()
-            if x.column() == COL_IP
-        ]
-        if not selected_ips:
+        rows = self.table_controller.selected_source_rows(COL_IP)
+        if not rows:
             return self.notify("Status :: Failed action: no selected IPs.", 5000)
         if not self._validate_passwd_fields():
             return
-        rows = [self.id_proxy.mapToSource(index).row() for index in selected_ips]
         selected_types = {self.retrieve_miner_from_table(row)[1] for row in rows}
         if len(selected_types) > 1:
             confirm = IPRMessage(
@@ -2036,7 +1750,7 @@ Statistics:
             self.menu_bar.actionEnableIDTable.isChecked()
             and self.menu_bar.actionClearTableAfterStopListen.isChecked()
         ):
-            self.clear_table()
+            self.table_controller.clear()
         # ensure lm is stopped
         self.lm.stop()
         # always stop iprd: during a reconnect loop active is False but the retry
@@ -2527,7 +2241,7 @@ Statistics:
 
     async def _bulk_control_miners(self, key: str) -> None:
         action = key.capitalize()
-        rows = self.get_action_target_rows(action)
+        rows = self.table_controller.action_target_rows(action)
         if not rows:
             return self.notify(
                 f"Status :: Failed action: no miners to {key}.",
@@ -2655,7 +2369,7 @@ Statistics:
 
     @asyncSlot()
     async def bulk_locate_miners(self):
-        rows = self.get_action_target_rows("Locate")
+        rows = self.table_controller.action_target_rows("Locate")
         if not rows:
             return self.notify("Status :: Failed action: no miners to locate.", 5000)
         await self._start_locate(rows)
@@ -2688,7 +2402,7 @@ Statistics:
 
     @asyncSlot()
     async def bulk_refresh_miners(self):
-        rows = self.get_action_target_rows("Refresh")
+        rows = self.table_controller.action_target_rows("Refresh")
         if not rows:
             return self.notify("Status :: Failed action: no miners to refresh.", 5000)
 
@@ -2724,17 +2438,10 @@ Statistics:
 
     @asyncSlot()
     async def get_miner_pool(self):
-        if not self.id_proxy.rowCount():
-            return
-        selected_ips = [
-            x
-            for x in self.tableIPRID.selectionModel().selectedIndexes()
-            if x.column() == COL_IP
-        ]
-        if not selected_ips:
+        rows = self.table_controller.selected_source_rows(COL_IP)
+        if not rows:
             return self.notify("Status :: Failed action: no selected IPs.", 5000)
-        index = selected_ips[0]
-        source_row = self.id_proxy.mapToSource(index).row()
+        source_row = rows[0]
         ip_addr, miner_type, _ = self.retrieve_miner_from_table(source_row)
         alt_pwd = self.get_client_auth(miner_type.value)
         res = await self.asic.get_miner_pool_conf(miner_type, ip_addr, alt_pwd=alt_pwd)
@@ -2765,13 +2472,11 @@ Statistics:
 
     @asyncSlot()
     async def update_miner_pools(self):
-        selected_ips = self.get_selected_indexes_for_action(
-            "update_miner_pools", section=COL_IP
+        rows = self.table_controller.selected_source_rows_for_action(
+            "update_miner_pools", column=COL_IP
         )
-        if selected_ips is None:
+        if not rows:
             return self.notify("Status :: Failed action: no selected IPs.", 5000)
-
-        rows = [self.id_proxy.mapToSource(index).row() for index in selected_ips]
         urls: list[str] = [
             self.linePoolURL.text(),
             self.linePoolURL_2.text(),
@@ -2822,13 +2527,11 @@ Statistics:
 
     @asyncSlot()
     async def update_miner_passwds(self):
-        selected_ips = self.get_selected_indexes_for_action(
-            "update_miner_passwds", section=COL_IP
+        rows = self.table_controller.selected_source_rows_for_action(
+            "update_miner_passwds", column=COL_IP
         )
-        if selected_ips is None:
+        if not rows:
             return self.notify("Status :: Failed action: no selected IPs.", 5000)
-
-        rows = [self.id_proxy.mapToSource(index).row() for index in selected_ips]
 
         curr_passwd_text = self.linePasswdCurrent.text()
         new_passwd_text = self.linePasswdNew.text()

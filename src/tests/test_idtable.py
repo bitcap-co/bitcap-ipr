@@ -11,13 +11,13 @@ from unittest.mock import Mock, patch
 from PySide6.QtCore import QItemSelectionModel, Qt
 
 import config  # noqa: F401  # initialize Pydantic before importing PySide-backed IPR
-from ipr import IPR
 from mod.ipr_asic.data import MinerData, MinerType
 from ui.widgets import (
     COL_ACTION,
     COL_IP,
     COL_SERIAL,
     IPRFilterProxyModel,
+    IPRTableController,
     IPRTableModel,
 )
 
@@ -107,31 +107,74 @@ class TestIPRTableProxy(unittest.TestCase):
         header = Mock()
         reset_sort = Mock()
         subject: Any = SimpleNamespace(
-            lineIDTableFilter=line_filter,
-            id_proxy=self.proxy,
-            id_header=header,
+            _text_filter=line_filter,
+            proxy=self.proxy,
+            header=header,
             reset_sort=reset_sort,
         )
 
-        IPR.reset_view(subject)
+        IPRTableController.reset_view(subject)
 
         line_filter.clear.assert_called_once_with()
         self.assertEqual(self.proxy.active_filter_columns(), set())
         header.set_active_columns.assert_called_once_with(set())
         reset_sort.assert_called_once_with()
 
+    def test_selected_source_rows_map_from_sorted_proxy(self) -> None:
+        self.proxy.sort(COL_IP, Qt.SortOrder.DescendingOrder)
+        selection = QItemSelectionModel(self.proxy)
+        selection.select(
+            self.proxy.index(0, COL_IP),
+            QItemSelectionModel.SelectionFlag.Select,
+        )
+        subject: Any = SimpleNamespace(
+            proxy=self.proxy,
+            _table=SimpleNamespace(selectionModel=lambda: selection),
+        )
+
+        rows = IPRTableController.selected_source_rows(subject, COL_IP)
+
+        self.assertEqual(rows, [2])
+
+    def test_selected_source_rows_for_action_notifies_and_maps_rows(self) -> None:
+        self.proxy.sort(COL_IP, Qt.SortOrder.DescendingOrder)
+        selection = QItemSelectionModel(self.proxy)
+        selection.select(
+            self.proxy.index(1, COL_IP),
+            QItemSelectionModel.SelectionFlag.Select,
+        )
+        notification = Mock()
+        subject: Any = SimpleNamespace(
+            proxy=self.proxy,
+            _table=SimpleNamespace(selectionModel=lambda: selection),
+            notification_requested=notification,
+        )
+
+        rows = IPRTableController.selected_source_rows_for_action(
+            subject, "update_miner_pools", COL_IP
+        )
+
+        self.assertEqual(rows, [1])
+        notification.emit.assert_called_once_with(
+            "Status :: Running action: update_miner_pools for [10.0.0.2...]...",
+            3000,
+        )
+
     def test_action_targets_use_selection_or_all_visible_rows(self) -> None:
         self.proxy.sort(COL_IP, Qt.SortOrder.DescendingOrder)
         selection = QItemSelectionModel(self.proxy)
         table = SimpleNamespace(selectionModel=lambda: selection)
         subject: Any = SimpleNamespace(
-            id_proxy=self.proxy,
-            tableIPRID=table,
-            notify=Mock(),
+            proxy=self.proxy,
+            _table=table,
+            notification_requested=Mock(),
+        )
+        subject.selected_source_rows = lambda column=None: (
+            IPRTableController.selected_source_rows(subject, column)
         )
 
         self.assertEqual(
-            IPR.get_action_target_rows(subject, "Refresh"),
+            IPRTableController.action_target_rows(subject, "Refresh"),
             [2, 1, 0],
         )
 
@@ -139,13 +182,13 @@ class TestIPRTableProxy(unittest.TestCase):
             self.proxy.index(1, COL_IP),
             QItemSelectionModel.SelectionFlag.Select,
         )
-        self.assertEqual(IPR.get_action_target_rows(subject, "Refresh"), [1])
+        self.assertEqual(IPRTableController.action_target_rows(subject, "Refresh"), [1])
 
         selection.clearSelection()
         self.proxy.set_filter_text("10.0.0.2")
-        self.assertEqual(IPR.get_action_target_rows(subject, "Refresh"), [1])
+        self.assertEqual(IPRTableController.action_target_rows(subject, "Refresh"), [1])
 
-    @patch("ipr.QApplication")
+    @patch("ui.widgets.ipr.idtable.controller.QApplication")
     def test_copy_selected_preserves_display_row_and_column_order(
         self, application: Mock
     ) -> None:
@@ -160,20 +203,20 @@ class TestIPRTableProxy(unittest.TestCase):
 
         clipboard = application.clipboard.return_value
         subject: Any = SimpleNamespace(
-            id_proxy=self.proxy,
-            id_model=self.model,
-            tableIPRID=SimpleNamespace(selectionModel=lambda: selection),
-            dashboard_url=Mock(side_effect=lambda host, _type: f"http://{host}"),
-            notify=Mock(),
+            proxy=self.proxy,
+            model=self.model,
+            _table=SimpleNamespace(selectionModel=lambda: selection),
+            _dashboard_url=Mock(side_effect=lambda host, _type: f"http://{host}"),
+            notification_requested=Mock(),
         )
 
-        IPR.copy_selected(subject)
+        IPRTableController.copy_selected(subject)
 
         clipboard.setText.assert_called_once_with(
             "http://10.0.0.1,SERIAL-1,\nSERIAL-2",
             mode=clipboard.Mode.Clipboard,
         )
-        subject.notify.assert_called_once_with(
+        subject.notification_requested.emit.assert_called_once_with(
             "Status :: Copied elements to clipboard.", 3000
         )
 

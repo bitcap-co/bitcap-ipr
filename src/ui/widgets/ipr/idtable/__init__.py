@@ -4,6 +4,7 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 from .contextmenu import IPRTableContextMenu
+from .controller import IPRTableController
 from .controlpopup import MinerControlPopup
 from .delegate import IPRActionDelegate
 from .filterpopup import ColumnFilterPopup
@@ -35,6 +36,7 @@ __all__ = [
     "IPRActionDelegate",
     "IPRFilterProxyModel",
     "IPRTableContextMenu",
+    "IPRTableController",
     "IPRTableModel",
     "MinerControlPopup",
 ]
