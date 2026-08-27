@@ -4,23 +4,29 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 import logging
+import time
 from collections.abc import Callable
+from datetime import datetime
+from pathlib import Path
 from typing import Any, ClassVar
 
 from pydantic import BaseModel, ConfigDict
 from PySide6.QtCore import (
-    QDateTime,
+    QFile,
+    QIODevice,
     QItemSelectionModel,
     QModelIndex,
     QObject,
     QPoint,
     Qt,
+    QTextStream,
     Signal,
 )
 from PySide6.QtGui import QCursor, QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
+    QFileDialog,
     QHeaderView,
     QLineEdit,
     QTableView,
@@ -31,6 +37,7 @@ from PySide6.QtWidgets import (
 from mod.ipr_asic.data import MinerData, MinerFirmware, MinerType
 
 from .contextmenu import IPRTableContextMenu
+from .csv import MinerCSVError, miner_from_mapping, parse_miner_csv, serialize_csv
 from .delegate import IPRActionDelegate
 from .filterpopup import ColumnFilterPopup
 from .header import FilterHeaderView
@@ -73,8 +80,6 @@ class IPRTableController(QObject):
     pool_retrieval_requested: Signal = Signal(int)
     pool_update_requested: Signal = Signal(object)
     configurator_visibility_requested: Signal = Signal(bool)
-    import_requested: Signal = Signal()
-    export_requested: Signal = Signal()
 
     def __init__(
         self,
@@ -179,12 +184,8 @@ class IPRTableController(QObject):
         self._context_menu.contextActionConfiguratorSetPools.triggered.connect(
             self.request_pool_update
         )
-        self._context_menu.contextActionTableImport.triggered.connect(
-            self.request_import
-        )
-        self._context_menu.contextActionTableExport.triggered.connect(
-            self.request_export
-        )
+        self._context_menu.contextActionTableImport.triggered.connect(self.import_table)
+        self._context_menu.contextActionTableExport.triggered.connect(self.export_table)
         self._context_menu.contextActionTableResetSortOrder.triggered.connect(
             self.reset_sort
         )
@@ -201,31 +202,8 @@ class IPRTableController(QObject):
         elif column == COL_SERIAL:
             self._table.edit(index)
 
-    @staticmethod
-    def _coerce_recv_at(value: Any) -> int | None:
-        if value is None:
-            return None
-        if isinstance(value, int):
-            return value
-        text = str(value)
-        if text.isdigit():
-            return int(text)
-        recv_at = QDateTime.fromString(text)
-        return recv_at.toSecsSinceEpoch() if recv_at.isValid() else None
-
-    @classmethod
-    def miner_from_data(cls, data: dict[str, Any]) -> MinerData:
-        cleaned: dict[str, Any] = {}
-        for key in MinerData.model_fields:
-            if key not in data:
-                continue
-            value = data[key]
-            cleaned[key] = None if value in ("N/A", "") else value
-        cleaned["recv_at"] = cls._coerce_recv_at(data.get("recv_at"))
-        return MinerData(**cleaned)
-
-    def append_data(self, data: dict[str, Any]) -> int:
-        return self.model.append(self.miner_from_data(data))
+    def append_miner(self, miner: MinerData) -> int:
+        return self.model.append(miner)
 
     def populate_data(
         self,
@@ -235,7 +213,7 @@ class IPRTableController(QObject):
     ) -> int:
         """Insert or update miner data and return its source-model row."""
         logger.info("populate_data : write table data.")
-        miner = self.miner_from_data(data)
+        miner = miner_from_mapping(data)
         if row is not None:
             self.model.update_row(row, miner)
             return row
@@ -271,13 +249,16 @@ class IPRTableController(QObject):
             miner_type = MinerType.VNISH
         return str(miner.ip or ""), miner_type, firmware
 
+    def has_rows(self) -> bool:
+        return self.proxy.rowCount() > 0
+
     def export_csv(self) -> str | None:
         """Serialize visible proxy rows in their current display order."""
         rows = self.proxy.rowCount()
         if not rows:
             return None
         columns = range(1, self.proxy.columnCount())
-        header = ",".join(
+        headers = [
             str(
                 self.model.headerData(
                     column,
@@ -286,14 +267,69 @@ class IPRTableController(QObject):
                 )
             ).replace(" ", "_")
             for column in columns
+        ]
+        data_rows = (
+            [str(self.proxy.index(row, column).data()) for column in columns]
+            for row in range(rows)
         )
-        output = f"{header}\n"
-        for row in range(rows):
-            output += ",".join(
-                str(self.proxy.index(row, column).data()) for column in columns
-            )
-            output += ",\n"
-        return output
+        return serialize_csv(headers, data_rows)
+
+    def import_table(self, *_args: object) -> None:
+        logger.info("import_table : import table.")
+        directory = Path(Path.home(), "Documents", "ipr").resolve()
+        file_name, _ = QFileDialog.getOpenFileName(
+            self._window,
+            "Open .CSV",
+            str(directory),
+            ".CSV Files (*.csv)",
+        )
+        if not file_name:
+            return
+
+        csv_file = QFile(file_name)
+        if not csv_file.open(QFile.OpenModeFlag.ReadOnly | QFile.OpenModeFlag.Text):
+            logger.error(f"import_table : failed to read file {file_name}.")
+            self.notification_requested.emit("Status :: Failed to import table.", 5000)
+            return
+
+        try:
+            miners = parse_miner_csv(QTextStream(csv_file).readAll())
+        except MinerCSVError as error:
+            logger.error(f"import_table : failed to parse {file_name}: {error!s}")
+            self.notification_requested.emit("Status :: Failed to import table.", 5000)
+            return
+        finally:
+            csv_file.close()
+
+        self.clear()
+        for miner in miners:
+            self.append_miner(miner)
+
+    def export_table(self, *_args: object) -> None:
+        logger.info("export_table : export table.")
+        output = self.export_csv()
+        if output is None:
+            return
+
+        directory = Path(Path.home(), "Documents", "ipr").resolve()
+        directory.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now().astimezone().strftime("%Y-%m-%d")
+        file_path = directory / f"id_table-{timestamp}-{int(time.time())}.csv"
+        csv_file = QFile(str(file_path))
+        if not csv_file.open(
+            QIODevice.OpenModeFlag.WriteOnly | QIODevice.OpenModeFlag.Truncate
+        ):
+            logger.error(f"export_table : failed to write file {file_path}.")
+            self.notification_requested.emit("Status :: Failed to export table.", 5000)
+            return
+
+        stream = QTextStream(csv_file)
+        stream << output
+        stream.flush()
+        csv_file.close()
+        self.notification_requested.emit(
+            f"Status :: Wrote table as .CSV to {directory}.", 3000
+        )
 
     def action_anchor(self, source_row: int) -> QPoint:
         source_index = self.model.index(source_row, COL_ACTION)
@@ -342,12 +378,6 @@ class IPRTableController(QObject):
 
     def request_configurator_visibility(self, enabled: bool) -> None:
         self.configurator_visibility_requested.emit(enabled)
-
-    def request_import(self, *_args: object) -> None:
-        self.import_requested.emit()
-
-    def request_export(self, *_args: object) -> None:
-        self.export_requested.emit()
 
     def set_configurator_visible(self, enabled: bool) -> None:
         action = self._context_menu.contextActionConfiguratorShowHide

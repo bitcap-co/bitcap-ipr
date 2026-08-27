@@ -250,10 +250,10 @@ class Main:
         logger.info("exception_hook : store any unsaved data.")
         if (
             self.main_window.menu_bar.actionEnableIDTable.isChecked()
-            and self.main_window.tableIPRID.model().rowCount() > 0
+            and self.main_window.table_controller.has_rows()
         ):
             logger.info("exception_hook: export current table.")
-            self.main_window.export_table()
+            self.main_window.table_controller.export_table()
 
         # Keep the window and its actions alive until all error handling that
         # reads them has completed. Closing it first can delete its C++ objects.

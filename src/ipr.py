@@ -5,14 +5,11 @@
 
 import asyncio
 import logging
-import os
 import time
 import webbrowser
 from collections.abc import Callable
-from datetime import datetime
 from enum import Enum, auto
 from logging.handlers import RotatingFileHandler
-from pathlib import Path
 from typing import Any, override
 
 from pydantic import ValidationError
@@ -20,12 +17,9 @@ from PySide6.QtCore import (
     QCoreApplication,
     QDateTime,
     QEvent,
-    QFile,
-    QIODevice,
     QObject,
     QPoint,
     Qt,
-    QTextStream,
     QTimer,
     QUrl,
 )
@@ -42,7 +36,6 @@ from PySide6.QtWidgets import (
     QButtonGroup,
     QComboBox,
     QDialog,
-    QFileDialog,
     QLineEdit,
     QMainWindow,
     QMenu,
@@ -84,7 +77,6 @@ from ui.widgets import (
 from utils import (
     CURR_PLATFORM,
     IPR_METADATA,
-    deep_update,
     get_log_dir,
     normalize_datetime,
 )
@@ -280,8 +272,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.table_controller.configurator_visibility_requested.connect(
             self.toggle_configurator_settings
         )
-        self.table_controller.import_requested.connect(self.import_table)
-        self.table_controller.export_requested.connect(self.export_table)
 
         # IPR_Menubar signals
         self.menu_bar.actionAbout.triggered.connect(self.about)
@@ -309,8 +299,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.table_controller.reset_view
         )
         self.menu_bar.actionClearTable.triggered.connect(self.table_controller.clear)
-        self.menu_bar.actionImport.triggered.connect(self.import_table)
-        self.menu_bar.actionExport.triggered.connect(self.export_table)
+        self.menu_bar.actionImport.triggered.connect(self.table_controller.import_table)
+        self.menu_bar.actionExport.triggered.connect(self.table_controller.export_table)
         self.menu_bar.actionShowConfigurator.toggled.connect(
             self.table_controller.request_configurator_visibility
         )
@@ -1471,58 +1461,6 @@ Statistics:
 
     def open_dashboard(self, host: str, miner_type: MinerType | str | None = None):
         webbrowser.open(self.dashboard_url(host, miner_type), new=2)
-
-    def import_table(self):
-        logger.info(" import table.")
-        file_name, _ = QFileDialog.getOpenFileName(
-            self,
-            "Open .CSV",
-            Path(Path.home(), "Documents", "ipr").resolve().__str__(),
-            ".CSV Files (*.csv)",
-        )
-        self.table_controller.clear()
-        csv = QFile(file_name)
-        if csv.open(QFile.OpenModeFlag.ReadOnly | QFile.OpenModeFlag.Text):
-            data_stream = QTextStream(csv)
-            header_line = data_stream.readLine()
-            included_headers = [x.strip().lower() for x in header_line.split(",")]
-            data_stream.seek(len(header_line) + 1)
-            while not data_stream.atEnd():
-                line = data_stream.readLine()
-                if line:
-                    row = deep_update(
-                        MinerData().as_dict(),
-                        dict(zip(included_headers, line.split(","))),
-                    )
-                    self.table_controller.append_data(row)
-        else:
-            logger.error(f"import_table : failed to read file {file_name}.")
-            self.notify("Status :: Failed to import table.", 5000)
-            return
-
-    def export_table(self):
-        logger.info("export table.")
-        out = self.table_controller.export_csv()
-        if out is None:
-            return
-
-        # .csv
-        logger.info("export_table : write table to csv.")
-        p = Path(Path.home(), "Documents", "ipr").resolve()
-        Path.mkdir(p, exist_ok=True)
-        file = QFile(
-            os.path.join(
-                p,
-                f"id_table-{datetime.now().strftime('%Y-%m-%d')}-{time.time().__floor__()}.csv",
-            )
-        )
-        if not file.open(
-            QIODevice.OpenModeFlag.WriteOnly | QIODevice.OpenModeFlag.Truncate
-        ):
-            return
-        outfile = QTextStream(file)
-        outfile << out << "\n"
-        self.notify(f"Status :: Wrote table as .CSV to {p}.", 3000)
 
     def toggle_configurator(self, enabled: bool = False):
         # setChecked() below re-emits toggled and re-enters this slot; the guard

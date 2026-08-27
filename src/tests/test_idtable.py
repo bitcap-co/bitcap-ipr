@@ -4,6 +4,8 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from typing import Any, override
 from unittest.mock import Mock, patch
@@ -125,7 +127,6 @@ class TestIPRTableProxy(unittest.TestCase):
         subject: Any = SimpleNamespace(
             model=self.model,
             _table=table,
-            miner_from_data=IPRTableController.miner_from_data,
         )
         self.model.clear()
 
@@ -193,6 +194,76 @@ class TestIPRTableProxy(unittest.TestCase):
                 "10.0.0.2",
                 "10.0.0.1",
             ],
+        )
+
+    def test_import_table_parses_before_replacing_model(self) -> None:
+        subject: Any = SimpleNamespace(
+            _window=Mock(),
+            clear=Mock(),
+            append_miner=Mock(),
+            notification_requested=Mock(),
+        )
+        with TemporaryDirectory() as directory:
+            file_path = Path(directory, "miners.csv")
+            file_path.write_text(
+                'IP,HOSTNAME,TYPE\n10.0.0.1,"rack, west",antminer\n',
+                encoding="utf-8",
+            )
+            with patch(
+                "ui.widgets.ipr.idtable.controller.QFileDialog.getOpenFileName",
+                return_value=(str(file_path), ".CSV Files (*.csv)"),
+            ):
+                IPRTableController.import_table(subject)
+
+        subject.clear.assert_called_once_with()
+        imported = subject.append_miner.call_args.args[0]
+        self.assertEqual(imported.ip, "10.0.0.1")
+        self.assertEqual(imported.hostname, "rack, west")
+
+    def test_import_table_preserves_model_when_csv_is_invalid(self) -> None:
+        subject: Any = SimpleNamespace(
+            _window=Mock(),
+            clear=Mock(),
+            append_miner=Mock(),
+            notification_requested=Mock(),
+        )
+        with TemporaryDirectory() as directory:
+            file_path = Path(directory, "invalid.csv")
+            file_path.write_text("NAME,VALUE\nexample,1\n", encoding="utf-8")
+            with patch(
+                "ui.widgets.ipr.idtable.controller.QFileDialog.getOpenFileName",
+                return_value=(str(file_path), ".CSV Files (*.csv)"),
+            ):
+                IPRTableController.import_table(subject)
+
+        subject.clear.assert_not_called()
+        subject.append_miner.assert_not_called()
+        subject.notification_requested.emit.assert_called_once_with(
+            "Status :: Failed to import table.", 5000
+        )
+
+    def test_export_table_writes_serialized_output(self) -> None:
+        notification = Mock()
+        subject: Any = SimpleNamespace(
+            export_csv=Mock(return_value="IP,HOSTNAME\n10.0.0.1,rack-west\n"),
+            notification_requested=notification,
+        )
+        with TemporaryDirectory() as directory:
+            home = Path(directory)
+            with patch(
+                "ui.widgets.ipr.idtable.controller.Path.home", return_value=home
+            ):
+                IPRTableController.export_table(subject)
+            output_dir = home / "Documents" / "ipr"
+            output_files = list(output_dir.glob("id_table-*.csv"))
+            self.assertEqual(len(output_files), 1)
+            self.assertEqual(
+                output_files[0].read_text(encoding="utf-8"),
+                "IP,HOSTNAME\n10.0.0.1,rack-west\n",
+            )
+
+        notification.emit.assert_called_once_with(
+            f"Status :: Wrote table as .CSV to {output_dir.resolve()}.", 3000
         )
 
     def test_selected_source_rows_map_from_sorted_proxy(self) -> None:
