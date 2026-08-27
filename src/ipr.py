@@ -6,9 +6,6 @@
 import asyncio
 import logging
 import os
-import shlex
-import shutil
-import subprocess
 import time
 import webbrowser
 from collections.abc import Callable
@@ -75,13 +72,7 @@ from mod.lm import (
     ListenerManager,
 )
 from mod.powermonitor import PowerMonitor
-from mod.updater import (
-    DebInstaller,
-    UpdateChecker,
-    UpdateDownloader,
-    get_platform,
-    select_asset,
-)
+from mod.updater import UpdateController
 from ui import Ui_MainWindow
 from ui.widgets import (
     COL_ACTION,
@@ -94,7 +85,6 @@ from ui.widgets import (
     IPRMenubar,
     IPRMessage,
     IPRPresetSelector,
-    IPRProgress,
     IPRTableContextMenu,
     IPRTableModel,
     IPRTitlebar,
@@ -104,7 +94,6 @@ from utils import (
     CURR_PLATFORM,
     IPR_METADATA,
     deep_update,
-    get_download_dir,
     get_log_dir,
     normalize_datetime,
 )
@@ -160,12 +149,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         self._snapping_enabled: bool = False
 
         self.config: IPRConfig = stored
-        self.update_checker: UpdateChecker | None = None
-        self._update_check_silent: bool = False
-        self.downloader: UpdateDownloader | None = None
-        self.download_dialog: IPRProgress | None = None
-        self.installer: DebInstaller | None = None
-        self.install_dialog: IPRProgress | None = None
         self.aboutDialog: IPRAbout | None = None
         self.confirms: list[IPRConfirmation] = []
         self.sys_tray: QSystemTrayIcon = QSystemTrayIcon(
@@ -270,12 +253,28 @@ class IPR(QMainWindow, Ui_MainWindow):
         if menu_bar_widget:
             menu_bar_widget.addWidget(self.menu_bar)
 
+        self.update_controller: UpdateController = UpdateController(
+            self,
+            IPR_METADATA["appversion"],
+            lambda: self.config.general.include_prereleases,
+        )
+        self.update_controller.notification_requested.connect(self.notify)
+        self.update_controller.status_clear_requested.connect(
+            self.iprStatusBar.clearMessage
+        )
+        self.update_controller.check_enabled_changed.connect(
+            self.menu_bar.actionCheckForUpdates.setEnabled
+        )
+        self.update_controller.quit_requested.connect(self.quit)
+
         # IPR_Menubar signals
         self.menu_bar.actionAbout.triggered.connect(self.about)
         self.menu_bar.actionOpenLog.triggered.connect(self.open_log)
         self.menu_bar.actionReportIssue.triggered.connect(self.open_issues)
         self.menu_bar.actionSourceCode.triggered.connect(self.open_source)
-        self.menu_bar.actionCheckForUpdates.triggered.connect(self.check_for_updates)
+        self.menu_bar.actionCheckForUpdates.triggered.connect(
+            self.update_controller.check_for_updates
+        )
         self.menu_bar.actionKillAllConfirmations.triggered.connect(self.killall)
         self.menu_bar.actionQuit.triggered.connect(self.quit)
         self.menu_bar.menuOptions.triggered.connect(self.update_settings)
@@ -599,7 +598,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.start_listen()
 
         if self.config.general.check_updates_on_startup:
-            self.check_for_updates(silent=True)
+            self.update_controller.check_for_updates(silent=True)
 
     # logger
     def set_logger_level(self):
@@ -1543,206 +1542,6 @@ Statistics:
 
     def open_source(self):
         webbrowser.open(f"{IPR_METADATA['source']}", new=2)
-
-    def check_for_updates(self, silent: bool = False):
-        if self.update_checker and self.update_checker.isRunning():
-            return
-        self._update_check_silent = silent
-        self.menu_bar.actionCheckForUpdates.setEnabled(False)
-        self.update_checker = UpdateChecker(
-            IPR_METADATA["appversion"],
-            self.config.general.include_prereleases,
-            self,
-        )
-        self.update_checker.update_available.connect(self.on_update_available)
-        self.update_checker.up_to_date.connect(self.on_up_to_date)
-        self.update_checker.error.connect(self.on_update_error)
-        self.update_checker.finished.connect(
-            lambda: self.menu_bar.actionCheckForUpdates.setEnabled(True)
-        )
-        self.notify("Status :: Checking for updates...", 3000)
-        self.update_checker.start()
-
-    def on_update_available(self, release: dict[str, Any]):
-        self.iprStatusBar.clearMessage()
-        is_prerelease = release.get("prerelease", False)
-        kind = "pre-release" if is_prerelease else "version"
-        self.notify(
-            f"Status :: {'Pre-release' if is_prerelease else 'Update'} available!",
-            3000,
-        )
-        dialog = IPRMessage(
-            self,
-            "Update Available",
-            f"A new {kind} of {IPR_METADATA['name']} is available: {release['name']}\n"
-            f"You are currently running {IPR_METADATA['appversion']}.",
-            action_text="Download",
-        )
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            self.download_update(release)
-
-    def download_update(self, release: dict[str, Any]):
-        os_name, is_arm = get_platform()
-        asset = select_asset(release.get("assets", []), os_name, is_arm)
-        if not asset:
-            # no binary matches this platform; fall back to the release page.
-            logger.warning(" no matching release asset; opening release page.")
-            webbrowser.open(
-                release["url"] or f"{IPR_METADATA['source']}/releases/latest", new=2
-            )
-            return
-
-        dest = Path(get_download_dir(), asset["name"])
-        logger.info(f" downloading update asset {asset['name']} to {dest}")
-        self.download_dialog = IPRProgress(
-            self, "Downloading Update", f"Downloading {asset['name']}..."
-        )
-        self.download_dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
-        self.downloader = UpdateDownloader(asset["url"], str(dest), self)
-        self.downloader.progress.connect(self.download_dialog.set_progress)
-        self.downloader.completed.connect(self.on_download_complete)
-        self.downloader.error.connect(self.on_download_error)
-        self.download_dialog.cancelled.connect(self.downloader.cancel)
-        self.notify("Status :: Downloading update...", 3000)
-        self.downloader.start()
-        self.download_dialog.show()
-
-    def _close_download_dialog(self):
-        if self.download_dialog:
-            self.download_dialog.close()
-            self.download_dialog = None
-
-    def on_download_complete(self, path: str):
-        self._close_download_dialog()
-        self.notify("Status :: Update downloaded.", 3000)
-        dialog = IPRMessage(
-            self,
-            "Download Complete",
-            f"The update was saved to:\n{path}\n\n"
-            "Install now? The application will close to complete installation.",
-            action_text="Install",
-        )
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            self.install_update(path)
-
-    def on_download_error(self, error: str):
-        self._close_download_dialog()
-        logger.error(f" failed to download update: {error}")
-        self.notify("Status :: Download failed.", 5000)
-        IPRMessage(
-            self,
-            "Download Failed",
-            f"Could not download the update. Please try again later.\n\n{error}",
-        ).exec()
-
-    def install_update(self, path: str):
-        logger.info(f" installing update from {path}")
-        if CURR_PLATFORM.startswith("win") and path.lower().endswith(".exe"):
-            self._install_windows(path)
-        elif (
-            CURR_PLATFORM.startswith("linux")
-            and path.lower().endswith(".deb")
-            and shutil.which("pkexec")
-            and shutil.which("apt-get")
-        ):
-            self._install_deb(path)
-        else:
-            # hand the file to the OS default handler (e.g. a macOS .dmg, or
-            # when no silent install path is available for this platform).
-            QDesktopServices.openUrl(QUrl.fromLocalFile(path))
-            self.quit()
-
-    def _install_windows(self, path: str):
-        # silent install: the Inno Setup installer shows only a progress
-        # window, closes the running app via Restart Manager and relaunches
-        # it once the files are replaced.
-        subprocess.Popen(
-            [path, "/SILENT", "/SUPPRESSMSGBOXES", "/NORESTART"],
-            close_fds=True,
-        )
-        # quit so the installer can replace the running application.
-        self.quit()
-
-    def _install_deb(self, path: str):
-        self.install_dialog = IPRProgress(
-            self,
-            "Installing Update",
-            "Installing update... You may be prompted for your password.",
-            cancellable=False,
-        )
-        self.install_dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
-        self.installer = DebInstaller(path, self)
-        self.installer.completed.connect(self.on_install_complete)
-        self.installer.error.connect(self.on_install_error)
-        self.notify("Status :: Installing update...", 3000)
-        self.installer.start()
-        self.install_dialog.show()
-
-    def _close_install_dialog(self):
-        if self.install_dialog:
-            self.install_dialog.close()
-            self.install_dialog = None
-
-    def on_install_complete(self, version: str):
-        self._close_install_dialog()
-        self.notify("Status :: Update installed.", 3000)
-        installed = f" (version {version})" if version else ""
-        dialog = IPRMessage(
-            self,
-            "Update Installed",
-            f"The update was installed successfully{installed}.\n\n"
-            "Restart now to use the new version?",
-            action_text="Restart",
-        )
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            self._relaunch()
-            self.quit()
-
-    def on_install_error(self, error: str):
-        self._close_install_dialog()
-        logger.error(f" failed to install update: {error}")
-        self.notify("Status :: Install failed.", 5000)
-        IPRMessage(
-            self,
-            "Install Failed",
-            f"Could not install the update.\n\n{error}",
-        ).exec()
-
-    def _relaunch(self):
-        # relaunch the installed binary after a short delay so the running
-        # instance releases its single-instance lock before the new one starts.
-        bin_path = "/opt/bitcap-ipr/BitCapIPR"
-        if not os.path.exists(bin_path):
-            logger.info(" installed binary not found; skipping relaunch.")
-            return
-        try:
-            subprocess.Popen(
-                ["sh", "-c", f"sleep 1; exec {shlex.quote(bin_path)}"],
-                close_fds=True,
-            )
-        except OSError as exc:
-            logger.warning(f" failed to relaunch app: {exc}")
-
-    def on_up_to_date(self, current: str) -> None:
-        self.iprStatusBar.clearMessage()
-        self.notify("Status :: Up to date.", 3000)
-        if not self._update_check_silent:
-            IPRMessage(
-                self,
-                "No Updates",
-                f"You are running the latest version ({current}).",
-            ).exec()
-
-    def on_update_error(self, error: str) -> None:
-        self.iprStatusBar.clearMessage()
-        self.notify("Status :: Failed to check for updates.", 5000)
-        logger.error(f" failed to check for updates: {error}")
-        if not self._update_check_silent:
-            IPRMessage(
-                self,
-                "Update Check Failed",
-                f"Could not check for updates. Please try again later.\n\n{error}",
-            ).exec()
 
     def dashboard_url(
         self, host: str, miner_type: MinerType | str | None = None
@@ -3097,33 +2896,11 @@ Statistics:
         self.confirms = []
         self.notify("Status :: Killed all confirmations.", 3000)
 
-    def _stop_update_threads(self):
-        # stop any in-flight update check/download so their QThreads do not
-        # outlive the application and abort the process on exit.
-        if self.downloader and self.downloader.isRunning():
-            logger.info(" cancelling in-progress update download.")
-            self.downloader.cancel()
-            if not self.downloader.wait(5000):
-                self.downloader.terminate()
-                self.downloader.wait()
-        if self.update_checker and self.update_checker.isRunning():
-            logger.info(" waiting for update check to finish.")
-            if not self.update_checker.wait(3000):
-                self.update_checker.terminate()
-                self.update_checker.wait()
-        if self.installer and self.installer.isRunning():
-            # let the install finish; the underlying apt-get child outlives a
-            # terminated thread and completes on its own.
-            logger.info(" waiting for update install to finish.")
-            if not self.installer.wait(3000):
-                self.installer.terminate()
-                self.installer.wait()
-
     def quit(self):
         if self.is_minimized_to_tray():
             self.toggle_visibility()
         self.sys_tray.hide()
-        self._stop_update_threads()
+        self.update_controller.stop()
         self.iprd_discovery.close()
         self.iprd.close()
         self.iprd.error.disconnect(self.show_iprd_error)

@@ -3,6 +3,7 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
+from .controller import UpdateController
 from .updater import (
     DebInstaller,
     IPRReleaseInfo,
@@ -23,6 +24,7 @@ __all__ = [
     "IPRReleaseInfo",
     "ReleaseAsset",
     "UpdateChecker",
+    "UpdateController",
     "UpdateDownloader",
     "fetch_latest_release",
     "get_platform",
