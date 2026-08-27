@@ -64,11 +64,17 @@ class IPRTableWidgets(BaseModel):
 
 
 class IPRTableController(QObject):
-    """Owns passive ID-table presentation and interaction behavior."""
+    """Owns ID-table presentation, data access, and UI action routing."""
 
     notification_requested: Signal = Signal(str, int)
     dashboard_requested: Signal = Signal(str, object)
-    row_action_requested: Signal = Signal(int, int)
+    miner_action_requested: Signal = Signal(int)
+    bulk_miner_action_requested: Signal = Signal(str, object)
+    pool_retrieval_requested: Signal = Signal(int)
+    pool_update_requested: Signal = Signal(object)
+    configurator_visibility_requested: Signal = Signal(bool)
+    import_requested: Signal = Signal()
+    export_requested: Signal = Signal()
 
     def __init__(
         self,
@@ -90,7 +96,7 @@ class IPRTableController(QObject):
         self.proxy.setSourceModel(self.model)
         self.header: FilterHeaderView = FilterHeaderView(self._table)
         self.action_delegate: IPRActionDelegate = IPRActionDelegate(self._table)
-        self.context_menu: IPRTableContextMenu = IPRTableContextMenu(self._window)
+        self._context_menu: IPRTableContextMenu = IPRTableContextMenu(self._window)
         self.filter_popup: ColumnFilterPopup | None = None
         self._sort_icons: dict[bool, QIcon] = {
             False: QIcon(":theme/icons/rc/arrow_up.png"),
@@ -138,7 +144,7 @@ class IPRTableController(QObject):
         self._reset_view_button.setIcon(QIcon(":theme/icons/rc/clear.png"))
 
     def _connect_signals(self) -> None:
-        self.action_delegate.action_clicked.connect(self.row_action_requested.emit)
+        self.action_delegate.action_clicked.connect(self._request_miner_action)
         self._table.doubleClicked.connect(self._on_double_click)
         self.header.customContextMenuRequested.connect(self.toggle_column_at)
         self.header.filter_clicked.connect(self.open_column_filter)
@@ -151,17 +157,40 @@ class IPRTableController(QObject):
         self._reset_view_button.clicked.connect(self.reset_view)
         self._table.customContextMenuRequested.connect(self.show_context_menu)
 
-        self.context_menu.contextActionOpenSelectedIPs.triggered.connect(
+        self._context_menu.contextActionOpenSelectedIPs.triggered.connect(
             self.open_selected_ips
         )
-        self.context_menu.contextActionCopySelected.triggered.connect(
+        self._context_menu.contextActionCopySelected.triggered.connect(
             self.copy_selected
         )
-        self.context_menu.contextActionClearTable.triggered.connect(self.clear)
-        self.context_menu.contextActionTableResetSortOrder.triggered.connect(
+        self._context_menu.contextActionClearTable.triggered.connect(self.clear)
+        self._context_menu.contextActionRefreshMiners.triggered.connect(
+            self.request_bulk_refresh
+        )
+        self._context_menu.contextActionLocateMiners.triggered.connect(
+            self.request_bulk_locate
+        )
+        self._context_menu.contextActionConfiguratorShowHide.toggled.connect(
+            self.request_configurator_visibility
+        )
+        self._context_menu.contextActionConfigutorGetPool.triggered.connect(
+            self.request_pool_retrieval
+        )
+        self._context_menu.contextActionConfiguratorSetPools.triggered.connect(
+            self.request_pool_update
+        )
+        self._context_menu.contextActionTableImport.triggered.connect(
+            self.request_import
+        )
+        self._context_menu.contextActionTableExport.triggered.connect(
+            self.request_export
+        )
+        self._context_menu.contextActionTableResetSortOrder.triggered.connect(
             self.reset_sort
         )
-        self.context_menu.contextActionTableResetView.triggered.connect(self.reset_view)
+        self._context_menu.contextActionTableResetView.triggered.connect(
+            self.reset_view
+        )
 
     def _on_double_click(self, index: QModelIndex) -> None:
         column = index.column()
@@ -271,6 +300,62 @@ class IPRTableController(QObject):
         proxy_index = self.proxy.mapFromSource(source_index)
         rect = self._table.visualRect(proxy_index)
         return self._table.viewport().mapToGlobal(rect.bottomLeft())
+
+    def _request_miner_action(self, column: int, source_row: int) -> None:
+        if column == COL_ACTION:
+            self.miner_action_requested.emit(source_row)
+
+    def request_bulk_action(self, key: str) -> None:
+        action = key.capitalize()
+        rows = self.action_target_rows(action)
+        if not rows:
+            self.notification_requested.emit(
+                f"Status :: Failed action: no miners to {key}.",
+                5000,
+            )
+            return
+        self.bulk_miner_action_requested.emit(key, rows)
+
+    def request_bulk_refresh(self, *_args: object) -> None:
+        self.request_bulk_action("refresh")
+
+    def request_bulk_locate(self, *_args: object) -> None:
+        self.request_bulk_action("locate")
+
+    def request_pool_retrieval(self, *_args: object) -> None:
+        rows = self.selected_source_rows(COL_IP)
+        if not rows:
+            self.notification_requested.emit(
+                "Status :: Failed action: no selected IPs.", 5000
+            )
+            return
+        self.pool_retrieval_requested.emit(rows[0])
+
+    def request_pool_update(self, *_args: object) -> None:
+        rows = self.selected_source_rows_for_action("update_miner_pools", column=COL_IP)
+        if not rows:
+            self.notification_requested.emit(
+                "Status :: Failed action: no selected IPs.", 5000
+            )
+            return
+        self.pool_update_requested.emit(rows)
+
+    def request_configurator_visibility(self, enabled: bool) -> None:
+        self.configurator_visibility_requested.emit(enabled)
+
+    def request_import(self, *_args: object) -> None:
+        self.import_requested.emit()
+
+    def request_export(self, *_args: object) -> None:
+        self.export_requested.emit()
+
+    def set_configurator_visible(self, enabled: bool) -> None:
+        action = self._context_menu.contextActionConfiguratorShowHide
+        was_blocked = action.blockSignals(True)
+        action.setChecked(enabled)
+        action.blockSignals(was_blocked)
+        self._context_menu.contextActionConfigutorGetPool.setEnabled(enabled)
+        self._context_menu.contextActionConfiguratorSetPools.setEnabled(enabled)
 
     def selected_source_rows(self, column: int | None = None) -> list[int]:
         if not self.proxy.rowCount():
@@ -460,4 +545,4 @@ class IPRTableController(QObject):
         self.model.clear()
 
     def show_context_menu(self, _position: QPoint | None = None) -> None:
-        self.context_menu.exec(QCursor.pos())
+        self._context_menu.exec(QCursor.pos())

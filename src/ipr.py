@@ -72,7 +72,6 @@ from mod.powermonitor import PowerMonitor
 from mod.updater import UpdateController
 from ui import Ui_MainWindow
 from ui.widgets import (
-    COL_ACTION,
     COL_IP,
     IPRMenubar,
     IPRMessage,
@@ -272,22 +271,17 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         self.table_controller.notification_requested.connect(self.notify)
         self.table_controller.dashboard_requested.connect(self.open_dashboard)
-        self.table_controller.row_action_requested.connect(self.handle_widget_action)
-
-        table_menu = self.table_controller.context_menu
-        table_menu.contextActionRefreshMiners.triggered.connect(
-            self.bulk_refresh_miners
+        self.table_controller.miner_action_requested.connect(self.open_miner_control)
+        self.table_controller.bulk_miner_action_requested.connect(
+            self._dispatch_bulk_control
         )
-        table_menu.contextActionLocateMiners.triggered.connect(self.bulk_locate_miners)
-        table_menu.contextActionTableImport.triggered.connect(self.import_table)
-        table_menu.contextActionTableExport.triggered.connect(self.export_table)
-        table_menu.contextActionConfiguratorShowHide.toggled.connect(
-            self.toggle_configurator
+        self.table_controller.pool_retrieval_requested.connect(self.get_miner_pool)
+        self.table_controller.pool_update_requested.connect(self.update_miner_pools)
+        self.table_controller.configurator_visibility_requested.connect(
+            self.toggle_configurator_settings
         )
-        table_menu.contextActionConfigutorGetPool.triggered.connect(self.get_miner_pool)
-        table_menu.contextActionConfiguratorSetPools.triggered.connect(
-            self.update_miner_pools
-        )
+        self.table_controller.import_requested.connect(self.import_table)
+        self.table_controller.export_requested.connect(self.export_table)
 
         # IPR_Menubar signals
         self.menu_bar.actionAbout.triggered.connect(self.about)
@@ -318,13 +312,13 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionImport.triggered.connect(self.import_table)
         self.menu_bar.actionExport.triggered.connect(self.export_table)
         self.menu_bar.actionShowConfigurator.toggled.connect(
-            self.toggle_configurator_settings
+            self.table_controller.request_configurator_visibility
         )
         self.menu_bar.actionConfiguratorGetPoolConfig.triggered.connect(
-            self.get_miner_pool
+            self.table_controller.request_pool_retrieval
         )
         self.menu_bar.actionConfiguratorSetPoolFromPreset.triggered.connect(
-            self.update_miner_pools
+            self.table_controller.request_pool_update
         )
         self.menu_bar.actionSettings.triggered.connect(
             lambda: self.update_stacked_widget(view_index=2)
@@ -476,9 +470,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         # action center
         self.id_control_popup: MinerControlPopup | None = None
         self.btnBulkRefresh.setIcon(QIcon(":theme/icons/rc/refresh.png"))
-        self.btnBulkRefresh.clicked.connect(self.bulk_refresh_miners)
+        self.btnBulkRefresh.clicked.connect(self.table_controller.request_bulk_refresh)
         self.btnBulkLocate.setIcon(QIcon(":theme/icons/rc/flash.png"))
-        self.btnBulkLocate.clicked.connect(self.bulk_locate_miners)
+        self.btnBulkLocate.clicked.connect(self.table_controller.request_bulk_locate)
         self.btnBulkControl.setIcon(QIcon(":theme/icons/rc/wrench.png"))
         self.btnBulkControl.clicked.connect(self.open_bulk_control)
         self.btnBulkConfig.setIcon(QIcon(":theme/icons/rc/edit.png"))
@@ -1538,10 +1532,7 @@ Statistics:
         self._toggling_configurator = True
         try:
             self.menu_bar.actionShowConfigurator.setChecked(enabled)
-            table_menu = self.table_controller.context_menu
-            table_menu.contextActionConfiguratorShowHide.setChecked(enabled)
-            table_menu.contextActionConfigutorGetPool.setEnabled(enabled)
-            table_menu.contextActionConfiguratorSetPools.setEnabled(enabled)
+            self.table_controller.set_configurator_visible(enabled)
             if enabled == (not self.configurator.isHidden()):
                 return  # already in the requested state; nothing to resize
             # grow/shrink the window by exactly the configurator's own height so
@@ -1628,7 +1619,7 @@ Statistics:
     def apply_configuration(self) -> None:
         match self.tabConfigurator.currentIndex():
             case 0:  # pools
-                self.update_miner_pools()
+                self.table_controller.request_pool_update()
             case 1:  # passwd
                 if not self._validate_passwd_fields():
                     return
@@ -2071,14 +2062,6 @@ Statistics:
                 return None
         return client_auth
 
-    def handle_widget_action(self, col: int, row: int) -> None:
-        # col/row come from IPRActionDelegate.action_clicked (source row)
-        match col:
-            case _ if col == COL_ACTION:
-                self.open_miner_control(row)
-            case _:
-                return
-
     def open_miner_control(self, row: int) -> None:
         # single-use control popup anchored under the clicked action cell
         popup = MinerControlPopup(self)
@@ -2120,32 +2103,25 @@ Statistics:
         # same control popup as the per-row glyph, anchored under the toolbar
         # button; actions apply to the selection (or all visible rows)
         popup = MinerControlPopup(self)
-        popup.action_selected.connect(self._dispatch_bulk_control)
+        popup.action_selected.connect(self.table_controller.request_bulk_action)
         self.id_control_popup = popup
         btn = self.btnBulkControl
         anchor = btn.mapToGlobal(btn.rect().bottomLeft())
         popup.show_at(anchor)
 
-    def _dispatch_bulk_control(self, key: str) -> None:
+    def _dispatch_bulk_control(self, key: str, rows: list[int]) -> None:
         match key:
             case "refresh":
-                self.bulk_refresh_miners()
+                self.bulk_refresh_miners(rows)
             case "locate":
-                self.bulk_locate_miners()
+                self.bulk_locate_miners(rows)
             case "start" | "stop" | "restart" | "reboot":
-                asyncio.ensure_future(self._bulk_control_miners(key))
+                asyncio.ensure_future(self._bulk_control_miners(key, rows))
             case _:
                 logger.warning(f"_dispatch_bulk_control : unknown action '{key}'.")
 
-    async def _bulk_control_miners(self, key: str) -> None:
+    async def _bulk_control_miners(self, key: str, rows: list[int]) -> None:
         action = key.capitalize()
-        rows = self.table_controller.action_target_rows(action)
-        if not rows:
-            return self.notify(
-                f"Status :: Failed action: no miners to {key}.",
-                5000,
-            )
-
         operation = getattr(self.asic, f"{key}_miner")
 
         def make_coro(
@@ -2265,11 +2241,8 @@ Statistics:
         # single-row locate is the N=1 case of the shared locate engine
         await self._start_locate([row])
 
-    @asyncSlot()
-    async def bulk_locate_miners(self):
-        rows = self.table_controller.action_target_rows("Locate")
-        if not rows:
-            return self.notify("Status :: Failed action: no miners to locate.", 5000)
+    @asyncSlot(object)
+    async def bulk_locate_miners(self, rows: list[int]):
         await self._start_locate(rows)
 
     async def refresh_miner(self, row: int):
@@ -2298,12 +2271,8 @@ Statistics:
         self.table_controller.populate_data(miner_data, row)
         self.notify(f"Status :: Successfully refreshed {ip_addr} miner data.", 3000)
 
-    @asyncSlot()
-    async def bulk_refresh_miners(self):
-        rows = self.table_controller.action_target_rows("Refresh")
-        if not rows:
-            return self.notify("Status :: Failed action: no miners to refresh.", 5000)
-
+    @asyncSlot(object)
+    async def bulk_refresh_miners(self, rows: list[int]):
         async def make_coro(
             row: int,
             ip_addr: str,
@@ -2334,12 +2303,8 @@ Statistics:
 
         await self._run_bulk_action("Refresh", rows, make_coro, on_success=on_success)
 
-    @asyncSlot()
-    async def get_miner_pool(self):
-        rows = self.table_controller.selected_source_rows(COL_IP)
-        if not rows:
-            return self.notify("Status :: Failed action: no selected IPs.", 5000)
-        source_row = rows[0]
+    @asyncSlot(int)
+    async def get_miner_pool(self, source_row: int):
         ip_addr, miner_type, _ = self.table_controller.miner_target(source_row)
         alt_pwd = self.get_client_auth(miner_type.value)
         res = await self.asic.get_miner_pool_conf(miner_type, ip_addr, alt_pwd=alt_pwd)
@@ -2368,13 +2333,8 @@ Statistics:
             3000,
         )
 
-    @asyncSlot()
-    async def update_miner_pools(self):
-        rows = self.table_controller.selected_source_rows_for_action(
-            "update_miner_pools", column=COL_IP
-        )
-        if not rows:
-            return self.notify("Status :: Failed action: no selected IPs.", 5000)
+    @asyncSlot(object)
+    async def update_miner_pools(self, rows: list[int]):
         urls: list[str] = [
             self.linePoolURL.text(),
             self.linePoolURL_2.text(),

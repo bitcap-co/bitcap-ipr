@@ -15,7 +15,6 @@ from ipr import IPR
 from mod.ipr_asic import MinerResult
 from mod.ipr_asic.data import MinerFirmware, MinerType
 from mod.ipr_asic.errors import APIError
-from ui.widgets import COL_IP
 
 
 class _ControlFacade:
@@ -93,16 +92,12 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
         run_bulk_action = AsyncMock()
         subject: Any = SimpleNamespace(
             asic=facade,
-            table_controller=SimpleNamespace(
-                action_target_rows=Mock(return_value=[2, 5])
-            ),
             _run_bulk_action=run_bulk_action,
             notify=Mock(),
         )
 
-        await IPR._bulk_control_miners(subject, "reboot")
+        await IPR._bulk_control_miners(subject, "reboot", [2, 5])
 
-        subject.table_controller.action_target_rows.assert_called_once_with("Reboot")
         run_bulk_action.assert_awaited_once()
         await_args = run_bulk_action.await_args
         if await_args is None:
@@ -133,13 +128,13 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
         run_bulk_action = AsyncMock()
         subject: Any = SimpleNamespace(
             asic=asic,
-            table_controller=SimpleNamespace(action_target_rows=Mock(return_value=[3])),
+            table_controller=SimpleNamespace(),
             get_client_auth=Mock(return_value="antminer-secret"),
             _run_bulk_action=run_bulk_action,
             notify=Mock(),
         )
 
-        await IPR.bulk_refresh_miners(subject)
+        await IPR.bulk_refresh_miners(subject, [3])
 
         run_bulk_action.assert_awaited_once()
         await_args = run_bulk_action.await_args
@@ -178,10 +173,7 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
 
         subject: Any = SimpleNamespace(
             asic=asic,
-            table_controller=SimpleNamespace(
-                selected_source_rows_for_action=Mock(return_value=[7]),
-                miner_at=Mock(),
-            ),
+            table_controller=SimpleNamespace(miner_at=Mock()),
             linePoolURL=field("stratum://pool-1"),
             linePoolURL_2=field("stratum://pool-2"),
             linePoolURL_3=field(""),
@@ -201,11 +193,8 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
         )
         subject.checkAutomaticWorkerNames.isChecked.return_value = True
 
-        await IPR.update_miner_pools(subject)
+        await IPR.update_miner_pools(subject, [7])
 
-        subject.table_controller.selected_source_rows_for_action.assert_called_once_with(
-            "update_miner_pools", column=COL_IP
-        )
         run_bulk_action.assert_awaited_once()
         await_args = run_bulk_action.await_args
         if await_args is None:
@@ -230,22 +219,6 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
             ["account.worker.12345", "backup.12345", ""],
             ["x", "y", ""],
             alt_pwd="secret",
-        )
-
-    async def test_bulk_control_reports_empty_target_set(self):
-        subject: Any = SimpleNamespace(
-            asic=_ControlFacade(),
-            table_controller=SimpleNamespace(action_target_rows=Mock(return_value=[])),
-            _run_bulk_action=AsyncMock(),
-            notify=Mock(),
-        )
-
-        await IPR._bulk_control_miners(subject, "stop")
-
-        subject._run_bulk_action.assert_not_awaited()
-        subject.notify.assert_called_once_with(
-            "Status :: Failed action: no miners to stop.",
-            5000,
         )
 
 

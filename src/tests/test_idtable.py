@@ -263,6 +263,85 @@ class TestIPRTableProxy(unittest.TestCase):
         self.proxy.set_filter_text("10.0.0.2")
         self.assertEqual(IPRTableController.action_target_rows(subject, "Refresh"), [1])
 
+    def test_single_miner_action_emits_source_row(self) -> None:
+        signal = Mock()
+        subject: Any = SimpleNamespace(miner_action_requested=signal)
+
+        IPRTableController._request_miner_action(subject, COL_ACTION, 4)
+
+        signal.emit.assert_called_once_with(4)
+
+    def test_bulk_action_emits_action_and_source_rows(self) -> None:
+        signal = Mock()
+        subject: Any = SimpleNamespace(
+            action_target_rows=Mock(return_value=[2, 0]),
+            bulk_miner_action_requested=signal,
+            notification_requested=Mock(),
+        )
+
+        IPRTableController.request_bulk_action(subject, "refresh")
+
+        subject.action_target_rows.assert_called_once_with("Refresh")
+        signal.emit.assert_called_once_with("refresh", [2, 0])
+
+    def test_bulk_action_reports_empty_target_set(self) -> None:
+        notification = Mock()
+        subject: Any = SimpleNamespace(
+            action_target_rows=Mock(return_value=[]),
+            bulk_miner_action_requested=Mock(),
+            notification_requested=notification,
+        )
+
+        IPRTableController.request_bulk_action(subject, "locate")
+
+        subject.bulk_miner_action_requested.emit.assert_not_called()
+        notification.emit.assert_called_once_with(
+            "Status :: Failed action: no miners to locate.", 5000
+        )
+
+    def test_pool_actions_emit_selected_source_rows(self) -> None:
+        retrieval = Mock()
+        update = Mock()
+        subject: Any = SimpleNamespace(
+            selected_source_rows=Mock(return_value=[5, 3]),
+            selected_source_rows_for_action=Mock(return_value=[5, 3]),
+            pool_retrieval_requested=retrieval,
+            pool_update_requested=update,
+            notification_requested=Mock(),
+        )
+
+        IPRTableController.request_pool_retrieval(subject)
+        IPRTableController.request_pool_update(subject)
+
+        retrieval.emit.assert_called_once_with(5)
+        update.emit.assert_called_once_with([5, 3])
+
+    def test_configurator_visibility_is_routed_and_synchronized(self) -> None:
+        visibility = Mock()
+        IPRTableController.request_configurator_visibility(
+            SimpleNamespace(configurator_visibility_requested=visibility), True
+        )
+        visibility.emit.assert_called_once_with(True)
+
+        show_hide = Mock()
+        show_hide.blockSignals.side_effect = [False, None]
+        get_pool = Mock()
+        set_pools = Mock()
+        subject: Any = SimpleNamespace(
+            _context_menu=SimpleNamespace(
+                contextActionConfiguratorShowHide=show_hide,
+                contextActionConfigutorGetPool=get_pool,
+                contextActionConfiguratorSetPools=set_pools,
+            )
+        )
+
+        IPRTableController.set_configurator_visible(subject, True)
+
+        self.assertEqual(show_hide.blockSignals.call_args_list[0].args, (True,))
+        show_hide.setChecked.assert_called_once_with(True)
+        get_pool.setEnabled.assert_called_once_with(True)
+        set_pools.setEnabled.assert_called_once_with(True)
+
     @patch("ui.widgets.ipr.idtable.controller.QApplication")
     def test_copy_selected_preserves_display_row_and_column_order(
         self, application: Mock
