@@ -76,7 +76,12 @@ from mod.updater import UpdateController
 from ui import Ui_MainWindow
 from ui.widgets import (
     COL_ACTION,
+    COL_FWVERSION,
+    COL_IP,
     COL_RECV_AT,
+    COL_SERIAL,
+    COL_URL,
+    COL_USER,
     FILTERABLE_COLUMNS,
     ColumnFilterPopup,
     FilterHeaderView,
@@ -463,12 +468,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.id_action_delegate: IPRActionDelegate = IPRActionDelegate(self.tableIPRID)
         self.tableIPRID.setItemDelegateForColumn(COL_ACTION, self.id_action_delegate)
         self.id_action_delegate.action_clicked.connect(self.handle_widget_action)
-        self.tableIPRID.setColumnWidth(0, 15)
-        self.tableIPRID.setColumnWidth(1, 180)
-        self.tableIPRID.setColumnWidth(6, 180)
-        self.tableIPRID.setColumnWidth(9, 400)
-        self.tableIPRID.setColumnWidth(10, 300)
-        self.tableIPRID.setColumnWidth(13, 180)
+        self.tableIPRID.setColumnWidth(COL_ACTION, 15)
+        self.tableIPRID.setColumnWidth(COL_RECV_AT, 180)
+        self.tableIPRID.setColumnWidth(COL_SERIAL, 180)
+        self.tableIPRID.setColumnWidth(COL_URL, 400)
+        self.tableIPRID.setColumnWidth(COL_USER, 300)
+        self.tableIPRID.setColumnWidth(COL_FWVERSION, 180)
         self.tableIPRID.doubleClicked.connect(self.double_click_item)
         # sorting is driven by the toolbar controls, not header clicks, so a
         # header click is free to select the column without sorting it
@@ -1319,17 +1324,15 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
         presets.append(preset)
         selector_conf.selected_preset = append_index
-        self.config.write()
-
         selector.create_preset(preset.preset_name, append_index)
+        self.config.write()
 
     def update_iprd_preset_name(self, preset_name: str) -> None:
         selector = self.socket_selector
         presets = self.config.listener.iprd.socket_presets
         presets[selector.index].preset_name = preset_name
-        self.config.write()
-
         selector.update_selected_preset_name(preset_name)
+        self.config.write()
 
     def remove_iprd_preset(self) -> None:
         selector = self.socket_selector
@@ -1562,15 +1565,13 @@ Statistics:
 
     def double_click_item(self, model_index: QModelIndex):
         # model_index is a proxy index
-        match model_index.column():
-            case 2:  # ip column
-                source_row = self.id_proxy.mapToSource(model_index).row()
-                miner = self.id_model.miner_at(source_row)
-                self.open_dashboard(model_index.data(), miner.type)
-            case 6:  # serial column
-                self.tableIPRID.edit(model_index)
-            case _:
-                return
+        column = model_index.column()
+        if column == COL_IP:
+            source_row = self.id_proxy.mapToSource(model_index).row()
+            miner = self.id_model.miner_at(source_row)
+            self.open_dashboard(model_index.data(), miner.type)
+        elif column == COL_SERIAL:
+            self.tableIPRID.edit(model_index)
 
     def get_selected_indexes_for_action(
         self, action: str, section: int | None = None
@@ -1603,13 +1604,13 @@ Statistics:
         selected = [
             x
             for x in self.tableIPRID.selectionModel().selectedIndexes()
-            if x.column() == 2
+            if x.column() == COL_IP
         ]
         if selected:
             source_rows = [self.id_proxy.mapToSource(x).row() for x in selected]
         else:
             source_rows = [
-                self.id_proxy.mapToSource(self.id_proxy.index(r, 2)).row()
+                self.id_proxy.mapToSource(self.id_proxy.index(r, COL_IP)).row()
                 for r in range(rows)
             ]
         scope = "selected" if selected else "all"
@@ -1628,7 +1629,7 @@ Statistics:
         selected_ips = [
             x
             for x in self.tableIPRID.selectionModel().selectedIndexes()
-            if x.column() == 2
+            if x.column() == COL_IP
         ]
         for index in selected_ips:
             source_row = self.id_proxy.mapToSource(index).row()
@@ -1651,15 +1652,15 @@ Statistics:
                 if len(selected_indexes_in_row) > 1:
                     sep = ","
                 cell = selected_indexes_in_row[index]
-                match cell.column():
-                    case 0:  # ignore action column
-                        continue
-                    case 2:  # ip
-                        source_row = self.id_proxy.mapToSource(cell).row()
-                        miner = self.id_model.miner_at(source_row)
-                        out += f"{self.dashboard_url(cell.data(), miner.type)}{sep}"
-                    case _:
-                        out += f"{cell.data()}{sep}"
+                column = cell.column()
+                if column == COL_ACTION:
+                    continue
+                if column == COL_IP:
+                    source_row = self.id_proxy.mapToSource(cell).row()
+                    miner = self.id_model.miner_at(source_row)
+                    out += f"{self.dashboard_url(cell.data(), miner.type)}{sep}"
+                else:
+                    out += f"{cell.data()}{sep}"
                 continue
             out += "\n"
         logger.info("copy_selected : copy elements to clipboard.")
@@ -1864,7 +1865,7 @@ Statistics:
         selected_ips = [
             x
             for x in self.tableIPRID.selectionModel().selectedIndexes()
-            if x.column() == 2
+            if x.column() == COL_IP
         ]
         if not selected_ips:
             return self.notify("Status :: Failed action: no selected IPs.", 5000)
@@ -2728,7 +2729,7 @@ Statistics:
         selected_ips = [
             x
             for x in self.tableIPRID.selectionModel().selectedIndexes()
-            if x.column() == 2
+            if x.column() == COL_IP
         ]
         if not selected_ips:
             return self.notify("Status :: Failed action: no selected IPs.", 5000)
@@ -2765,7 +2766,7 @@ Statistics:
     @asyncSlot()
     async def update_miner_pools(self):
         selected_ips = self.get_selected_indexes_for_action(
-            "update_miner_pools", section=2
+            "update_miner_pools", section=COL_IP
         )
         if selected_ips is None:
             return self.notify("Status :: Failed action: no selected IPs.", 5000)
@@ -2822,7 +2823,7 @@ Statistics:
     @asyncSlot()
     async def update_miner_passwds(self):
         selected_ips = self.get_selected_indexes_for_action(
-            "update_miner_passwds", section=2
+            "update_miner_passwds", section=COL_IP
         )
         if selected_ips is None:
             return self.notify("Status :: Failed action: no selected IPs.", 5000)

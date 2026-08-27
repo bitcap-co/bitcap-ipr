@@ -15,6 +15,7 @@ from ipr import IPR
 from mod.ipr_asic import MinerResult
 from mod.ipr_asic.data import MinerFirmware, MinerType
 from mod.ipr_asic.errors import APIError
+from ui.widgets import COL_IP
 
 
 class _ControlFacade:
@@ -200,7 +201,7 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
         await IPR.update_miner_pools(subject)
 
         subject.get_selected_indexes_for_action.assert_called_once_with(
-            "update_miner_pools", section=2
+            "update_miner_pools", section=COL_IP
         )
         run_bulk_action.assert_awaited_once()
         await_args = run_bulk_action.await_args

@@ -10,7 +10,12 @@ from .filterpopup import ColumnFilterPopup
 from .header import FilterHeaderView
 from .model import (
     COL_ACTION,
+    COL_FWVERSION,
+    COL_IP,
     COL_RECV_AT,
+    COL_SERIAL,
+    COL_URL,
+    COL_USER,
     FILTERABLE_COLUMNS,
     IPRTableModel,
 )
@@ -18,7 +23,12 @@ from .proxy import IPRFilterProxyModel
 
 __all__ = [
     "COL_ACTION",
+    "COL_FWVERSION",
+    "COL_IP",
     "COL_RECV_AT",
+    "COL_SERIAL",
+    "COL_URL",
+    "COL_USER",
     "FILTERABLE_COLUMNS",
     "ColumnFilterPopup",
     "FilterHeaderView",

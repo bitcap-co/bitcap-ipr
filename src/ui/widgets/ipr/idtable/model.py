@@ -78,10 +78,25 @@ COLUMNS: list[Column] = [
     Column(header="PLATFORM", field="platform", filterable=True),
 ]
 
-# full header row including the two action columns
+# full header row including the action column
 HEADERS = [""] + [c.header for c in COLUMNS]
 ACTION_COLUMN_COUNT = 1
 COLUMN_COUNT = len(HEADERS)
+
+
+def _field_column(field: str) -> int:
+    return next(
+        index + ACTION_COLUMN_COUNT
+        for index, column in enumerate(COLUMNS)
+        if column.field == field
+    )
+
+
+COL_IP = _field_column("ip")
+COL_SERIAL = _field_column("serial")
+COL_URL = _field_column("stratum_url")
+COL_USER = _field_column("username")
+COL_FWVERSION = _field_column("fw_version")
 
 # view column indices that expose a header filter dropdown
 FILTERABLE_COLUMNS: set[int] = {

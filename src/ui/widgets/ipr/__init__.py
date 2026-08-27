@@ -5,7 +5,12 @@
 
 from .idtable import (
     COL_ACTION,
+    COL_FWVERSION,
+    COL_IP,
     COL_RECV_AT,
+    COL_SERIAL,
+    COL_URL,
+    COL_USER,
     FILTERABLE_COLUMNS,
     ColumnFilterPopup,
     FilterHeaderView,
@@ -23,7 +28,12 @@ from .titlebar import IPRTitlebar
 
 __all__ = [
     "COL_ACTION",
+    "COL_FWVERSION",
+    "COL_IP",
     "COL_RECV_AT",
+    "COL_SERIAL",
+    "COL_URL",
+    "COL_USER",
     "FILTERABLE_COLUMNS",
     "ColumnFilterPopup",
     "FilterHeaderView",
