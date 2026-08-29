@@ -165,13 +165,13 @@ class ListenerManager(QObject):
             return False
         for ent in self.record.items():
             key, data = ent
-            if key == result.src_ip:
-                if data.src_mac != result.src_mac:
+            if key == result.ip:
+                if data.mac != result.mac:
                     return False
                 else:
                     # check record age
                     if time.time() - data.updated_at <= RECORD_MIN_AGE:
-                        logger.warning(f" [{result.src_ip}] : duplicate packet.")
+                        logger.warning(f" [{result.ip}] : duplicate packet.")
                         return True
                     return False
         return False
@@ -181,7 +181,7 @@ class ListenerManager(QObject):
         if not self._is_duplicate_record(result):
             logger.info(" listen_complete signal result.")
             result.updated_at = time.time()
-            self.record[result.src_ip] = result
+            self.record[result.ip] = result
             self.listen_complete.emit(result)
 
     def emit_listen_error(self, error: str) -> None:

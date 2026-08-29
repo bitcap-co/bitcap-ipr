@@ -1855,26 +1855,22 @@ Statistics:
         if self.inactive.isActive():
             self.inactive.start()
         logger.debug(
-            f"process_result : got {result.src_ip}, {result.src_mac}, {result.miner_sn}, {result.miner_type} from listener."
+            f"process_result : got {result.ip}, {result.mac}, {result.serial}, {result.miner_hint} from listener."
         )
         # identify miner type from src ip
-        miner_type = await self.asic.identify(
-            ip=result.src_ip, miner_hint=result.port_type
-        )
+        miner_type = await self.asic.identify(ip=result.ip, miner_hint=result.hint)
         error: Exception | None = None
         if miner_type == MinerType.UNKNOWN:
             miner_data = MinerData(
                 recv_at=int(result.updated_at),
-                ip=result.src_ip,
-                mac=result.src_mac,
+                ip=result.ip,
+                mac=result.mac,
                 type=miner_type,
             ).as_dict()
         else:
             # get miner data from src ip
             alt_pwd = self.get_client_auth(miner_type=miner_type.value)
-            res = await self.asic.get_miner_data(
-                miner_type, result.src_ip, alt_pwd=alt_pwd
-            )
+            res = await self.asic.get_miner_data(miner_type, result.ip, alt_pwd=alt_pwd)
             miner_data = res.data
             # an unsupported backend is non-fatal; still surface partial data
             if isinstance(res.error, UnknownClientError):
@@ -1884,7 +1880,7 @@ Statistics:
 
         # in the event of an unsupported miner, return miner type hint from IP Report
         if miner_data["type"] == "N/A":
-            miner_data["type"] = result.miner_type
+            miner_data["type"] = result.miner_hint
 
         # check versus current listen configuration if listen filter is enabled
         if self.checkEnableListenFilter.isChecked() and miner_data["type"] not in [
@@ -1901,19 +1897,19 @@ Statistics:
             )
 
         miner_data["recv_at"] = int(result.updated_at)
-        miner_data["ip"] = result.src_ip
+        miner_data["ip"] = result.ip
         miner_data["mac"] = (
-            miner_data["mac"].lower() if miner_data["mac"] != "N/A" else result.src_mac
+            miner_data["mac"].lower() if miner_data["mac"] != "N/A" else result.mac
         )
         # update serial if IPReport has one
-        if result.miner_sn:
-            miner_data["serial"] = result.miner_sn
+        if result.serial:
+            miner_data["serial"] = result.serial
         # append IPReport data
         miner_data["ip_report"] = result.model_dump()
         # let user know that we got an error and may not have complete data
         if error:
             self.notify(
-                f"Status :: Failed to get complete miner data {result.src_ip}: {error!s}",
+                f"Status :: Failed to get complete miner data {result.ip}: {error!s}",
                 5000,
             )
             return self.show_confirmation(miner_data)

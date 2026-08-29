@@ -50,7 +50,8 @@ class Column(BaseModel):
 def _ip_sort_key(m: MinerData) -> int:
     if not m.ip:
         return -1
-    return QHostAddress(m.ip).toIPv4Address()
+    ipv4 = QHostAddress(m.ip).toIPv4Address()
+    return ipv4[0] if isinstance(ipv4, tuple) else ipv4
 
 
 # index in this list == column index - 1 (the action column occupies 0)

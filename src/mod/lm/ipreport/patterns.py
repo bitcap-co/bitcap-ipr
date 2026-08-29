@@ -5,18 +5,22 @@
 
 import re
 from enum import IntEnum
-from typing import Annotated, Any
+from typing import Any, ClassVar, override
 
-from pydantic import BaseModel, Field, RootModel, TypeAdapter
+from pydantic import BaseModel, ConfigDict, Field, RootModel
 
-ZLIB_DEFAULT_MAGIC = b"\x78\x9c"
-IP_PATTERN = (
+ZLIB_MAGIC = b"\x78"
+_ZLIB_SEALMINER_OFFSET: int = 8
+ZLIB_OFFSETS: list[int] = [0, _ZLIB_SEALMINER_OFFSET]
+
+_IP_PATTERN = (
     r"((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.)){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)"
 )
-MAC_PATTERN = r"([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})"
+_MAC_PATTERN = r"([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})"
 
 
 class MinerTypeHint(IntEnum):
+    UNKNOWN = 0
     COMMON = 14235
     ICERIVER = 11503
     WHATSMINER = 8888
@@ -26,110 +30,165 @@ class MinerTypeHint(IntEnum):
     AURADINE = 12345
     IPOLLO = 54321
     HIVEGPU = 42069
-    UNKNOWN = 0
+
+    @override
+    def __str__(self) -> str:
+        # return "antminer" as generic name
+        if self == MinerTypeHint.COMMON:
+            return "antminer"
+        return str(self.name.lower())
+
+    @property
+    def display_name(self) -> str:
+        return self.__str__().capitalize()
 
     @classmethod
     def from_port(cls, port: int):
+        """Create a MinerTypeHint from a port number.
+
+        Raises:
+            ValueError: If the port is not a valid miner port.
+        """
         return cls(port)
 
 
-# IP Report Models
-msg_patterns = {
-    "common": re.compile(f"^{IP_PATTERN},{MAC_PATTERN}"),
-    "iceriver": re.compile(f"^addr:{IP_PATTERN}"),
-    "whatsminer": re.compile(f"^IP:{IP_PATTERN}MAC:{MAC_PATTERN}"),
-    "elphapex": re.compile("^DG_IPREPORT_ONLY"),
-    "ipollo": re.compile(
-        f"^IP Addr:\\[(?P<IP>{IP_PATTERN})\\].*?MAC Addr:\\[(?P<MAC>{MAC_PATTERN})\\]"
+_MSG_PATTERNS = {
+    MinerTypeHint.COMMON: re.compile(f"^(?P<IP>{_IP_PATTERN}),(?P<MAC>{_MAC_PATTERN})"),
+    MinerTypeHint.ICERIVER: re.compile(f"^addr:(?P<IP>{_IP_PATTERN})"),
+    MinerTypeHint.WHATSMINER: re.compile(
+        f"^IP:(?P<IP>{_IP_PATTERN})MAC:(?P<MAC>{_MAC_PATTERN})"
     ),
-    "hivegpu": re.compile(f"^HiveOS {IP_PATTERN}"),
+    MinerTypeHint.ELPHAPEX: re.compile("^DG_IPREPORT_ONLY"),
+    MinerTypeHint.IPOLLO: re.compile(
+        f"^IP Addr:\\[(?P<IP>{_IP_PATTERN})\\].*?MAC Addr:\\[(?P<MAC>{_MAC_PATTERN})\\]"
+    ),
+    MinerTypeHint.HIVEGPU: re.compile(f"^HiveOS (?P<IP>{_IP_PATTERN})"),
 }
 
 
-class GoldshellIPReport(BaseModel):
+def get_msg_pattern(hint: MinerTypeHint) -> tuple[re.Pattern[str], bool]:
+    """Get the message pattern for the given miner type hint.
+    Returns a tuple of the pattern and a boolean indicating if the pattern was found.
+    """
+    if hint in _MSG_PATTERNS:
+        return _MSG_PATTERNS[hint], True
+    return re.compile(""), False
+
+
+def parse_match(match: re.Match[str]) -> tuple[str, str]:
+    """Parse a match object from a message pattern.
+    Returns the extracted IP and MAC as a tuple.
+    """
+    ip = mac = ""
+    for name, value in match.groupdict().items():
+        if name == "IP":
+            ip = value
+        elif name == "MAC":
+            mac = value
+    return ip, mac
+
+
+class IPReportModel(BaseModel):
+    model_config: ClassVar[ConfigDict] = ConfigDict(validate_assignment=True)
+    ip: str = Field(default="", pattern=rf"^{_IP_PATTERN}$")
+    mac: str = Field(default="", pattern=rf"^{_MAC_PATTERN}$")
+    serial: str = ""
+
+    @property
+    def ip_report(self) -> tuple[str, str, str]:
+        """Returns the IP, MAC, and serial as a tuple."""
+        return self.ip, self.mac, self.serial
+
+
+class GoldshellIPReport(IPReportModel):
     version: str
-    ip: Annotated[str, Field(pattern=rf"^{IP_PATTERN}$")]
     dhcp: str
     model: str
     ctrlsn: str
-    mac: Annotated[str, Field(pattern=rf"^{MAC_PATTERN}$")]
     mask: str
     gateway: str
     cpbsn: list[str | None]
-    dns: Any
-    boxsn: str
+    serial: str = Field(default="", validation_alias="boxsn")
     time: str
     ledstatus: bool
 
 
-class BoardSN(BaseModel):
-    sn: Annotated[str, Field(validation_alias="SN")] = ""
-    bin_ver: Annotated[int, Field(validation_alias="BinVer")] = 0
-    bin_num: Annotated[int, Field(validation_alias="BinNum")] = 0
+class BoardInfo(BaseModel):
+    sn: str = Field("", validation_alias="SN")
+    bin_ver: int = Field(0, validation_alias="BinVer")
+    bin_num: int = Field(0, validation_alias="BinNum")
 
 
-class MinerInfo(BaseModel):
-    mac: Annotated[
-        str, Field(pattern=rf"^{MAC_PATTERN}$"), Field(validation_alias="MAC")
-    ]
-    type: Annotated[str, Field(validation_alias="Type")]
-    firmware: Annotated[str, Field(validation_alias="Firmware")]
-    ctrl_board: Annotated[str, Field(validation_alias="CtrlBoardVersion")]
-    iface_count: Annotated[int, Field(validation_alias="NetInterfaceCnt")]
-    upgrade: Annotated[int, Field(validation_alias="UpgradeStatus")]
-    serial: Annotated[str, Field(validation_alias="MainBoardSN")]
-    rated_power: Annotated[int, Field(validation_alias="RatedInputPower")]
-    power_limit: Annotated[int, Field(validation_alias="InputPowerLimit")]
-    board_serials: Annotated[list[BoardSN], Field(validation_alias="BoardSnArray")]
+class Info(BaseModel):
+    mac: str = Field(validation_alias="MAC")
+    type: str = Field(validation_alias="Type")
+    firmware: str = Field(validation_alias="Firmware")
+    ctrl_board_version: str = Field(validation_alias="CtrlBoardVersion")
+    net_interface_cnt: int = Field(validation_alias="NetInterfaceCnt")
+    upgrade_status: int = Field(validation_alias="UpgradeStatus")
+    main_board_sn: str = Field(validation_alias="MainBoardSN")
+    rated_input_power: int = Field(validation_alias="RatedInputPower")
+    input_power_limit: int = Field(validation_alias="InputPowerLimit")
+    board_sn_array: list[BoardInfo] = Field(validation_alias="BoardSnArray")
 
 
 class Interface(BaseModel):
-    iface: Annotated[str, Field(validation_alias="Interface")]
-    active: Annotated[bool, Field(validation_alias="Active")]
-    dhcp: Annotated[bool, Field(validation_alias="DHCP")]
-    ipv4: Annotated[
-        str, Field(pattern=rf"^{IP_PATTERN}$"), Field(validation_alias="IPV4")
-    ]
-    netmask: Annotated[str, Field(validation_alias="Netmask")]
-    gateway: Annotated[str, Field(validation_alias="Gateway")]
-    dns1: Annotated[str, Field(validation_alias="DNS1")]
-    dns2: Annotated[str, Field(validation_alias="DNS2")]
-    auto_reboot: Annotated[bool, Field(validation_alias="AutoReboot")]
+    interface: str = Field(validation_alias="Interface")
+    active: bool = Field(validation_alias="Active")
+    dhcp: bool = Field(validation_alias="DHCP")
+    ipv4: str = Field(validation_alias="IPV4")
+    netmask: str = Field(validation_alias="Netmask")
+    gateway: str = Field(validation_alias="Gateway")
+    dns1: str = Field(validation_alias="DNS1")
+    dns2: str = Field(validation_alias="DNS2")
+    auto_reboot: bool = Field(validation_alias="AutoReboot")
 
 
-class InterfaceList(RootModel):
+class InterfaceList(RootModel[list[Interface]]):
     root: list[Interface]
 
 
-class SealMinerIPReport:
-    def __init__(self, payload: Any) -> None:
-        self._data = payload
-        self._validate_model()
+class SealMinerIPReport(IPReportModel):
+    def __init__(self) -> None:
+        super().__init__()
 
-    @property
-    def info(self) -> MinerInfo:
-        return self._info
-
-    @property
-    def interfaces(self) -> list[Interface]:
-        return self._interfaces
-
-    def _validate_model(self) -> None:
-        if not isinstance(self._data, list):
+    @override
+    @classmethod
+    def model_validate(cls, obj: Any, *args, **kwargs) -> "SealMinerIPReport":
+        if not isinstance(obj, list):
             raise TypeError
-        if not len(self._data) or len(self._data) != 7:
+        if not len(obj) or len(obj) != 7:
             raise ValueError
-        self._info = MinerInfo.model_validate(self._data[1])
-        iface_list = TypeAdapter(list[Interface])
-        self._interfaces = iface_list.validate_python(self._data[2:4])
+        info = Info.model_validate(obj[1])
+        interfaces = InterfaceList.model_validate(obj[2 : 2 + info.net_interface_cnt])
+        self = cls()
+        active_interfaces = [i for i in interfaces.root if i.active]
+        if active_interfaces:
+            self.ip = active_interfaces[0].ipv4
+        self.mac = info.mac
+        return self
 
 
-class AuradineIPReport(BaseModel):
+class AuradineIPReport(IPReportModel):
     command: str
-    serial: str = Field(validation_alias="SerialNo")
-    ip: Annotated[str, Field(pattern=rf"^{IP_PATTERN}$")]
-    mac: Annotated[str, Field(pattern=rf"^{MAC_PATTERN}$")]
+    serial_no: str = Field(validation_alias="SerialNo")
     model: str
     version: str
     hostname: str
     internal_type: str | None = Field(None, validation_alias="InternalType")
+
+
+_OBJ_MODELS = {
+    MinerTypeHint.AURADINE: AuradineIPReport,
+    MinerTypeHint.GOLDSHELL: GoldshellIPReport,
+    MinerTypeHint.SEALMINER: SealMinerIPReport,
+}
+
+
+def get_ip_model(hint: MinerTypeHint) -> tuple[type[IPReportModel], bool]:
+    """Get the IP report model for the given miner type hint.
+    Returns a tuple of the model and a boolean indicating if the model was found.
+    """
+    if hint in _OBJ_MODELS:
+        return _OBJ_MODELS[hint], True
+    return IPReportModel, False

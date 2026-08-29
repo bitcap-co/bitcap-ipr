@@ -209,23 +209,23 @@ class IPRDListener(QObject):
 
     def emit_result(self, result: IPRDPacketData) -> None:
         logger.info(f"{self.__repr__()} : emit result.")
-        port_type = MinerTypeHint.UNKNOWN
+        hint = MinerTypeHint.UNKNOWN
         try:
-            port_type = MinerTypeHint.from_port(result.dst_port)
+            hint = MinerTypeHint.from_port(result.dst_port)
         except ValueError:
             pass
-        miner_type = port_type.name.lower()
+        miner_hint = str(hint)
         addr_result = QHostAddress(result.src_ip).toIPv4Address()
         addr = addr_result[0] if isinstance(addr_result, tuple) else addr_result
         ip_report = IPReport(
             created_at=float(result.timestamp),
             updated_at=time.time(),
-            port_type=port_type,
-            src_addr=addr,
-            src_ip=result.src_ip,
-            src_mac=result.src_mac,
-            miner_type=miner_type,
-            miner_sn="",
+            hint=hint,
+            sort_ip=addr,
+            ip=result.src_ip,
+            mac=result.src_mac,
+            miner_hint=miner_hint,
+            serial="",
         )
         self.result.emit(ip_report)
 
