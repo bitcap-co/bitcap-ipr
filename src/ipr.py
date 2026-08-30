@@ -32,7 +32,6 @@ from PySide6.QtWidgets import (
     QApplication,
     QButtonGroup,
     QComboBox,
-    QDialog,
     QLineEdit,
     QMainWindow,
     QMenu,
@@ -48,7 +47,7 @@ from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
 from mod.ipr_asic import ASICClient
 from mod.ipr_asic import settings as api_settings
-from mod.ipr_asic.data import MinerData, MinerFirmware, MinerType
+from mod.ipr_asic.data import MinerData, MinerType
 from mod.ipr_asic.errors import UnknownClientError
 from mod.lm import (
     IPRDListener,
@@ -63,7 +62,6 @@ from mod.powermonitor import PowerMonitor
 from mod.updater import UpdateController
 from ui import Ui_MainWindow
 from ui.widgets import (
-    COL_IP,
     IPRMenubar,
     IPRMessage,
     IPRPresetSelector,
@@ -72,6 +70,11 @@ from ui.widgets import (
     IPRTitlebar,
     MinerActionController,
     MinerActionDependencies,
+    MinerConfiguratorController,
+    MinerConfiguratorDependencies,
+    MinerConfiguratorWidgets,
+    PasswordConfiguratorWidgets,
+    PoolConfiguratorWidgets,
 )
 from utils import (
     CURR_PLATFORM,
@@ -277,11 +280,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.table_controller.bulk_miner_action_requested.connect(
             self.action_controller.dispatch_bulk_control
         )
-        self.table_controller.pool_retrieval_requested.connect(self.get_miner_pool)
-        self.table_controller.pool_update_requested.connect(self.update_miner_pools)
-        self.table_controller.configurator_visibility_requested.connect(
-            self.toggle_configurator_settings
-        )
 
         # IPR_Menubar signals
         self.menu_bar.actionAbout.triggered.connect(self.about)
@@ -419,10 +417,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.toolIPRDSocketStatus.pressed.connect(self.show_iprd_socket_status)
 
         # configurator
-        self._toggling_configurator: bool = False
         self.configurator.hide()
-        self.btnConfiguratorCancel.clicked.connect(self.toggle_configurator_settings)
-        self.btnConfiguratorApply.clicked.connect(self.apply_configuration)
         # pool configurator
         self.actionTogglePoolPasswd: QAction = self.create_passwd_toggle_action(
             self.linePoolPasswd
@@ -460,8 +455,76 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.checkUseNonDefaultPasswd.isChecked()
             )
         )
+        self.configurator_controller: MinerConfiguratorController = (
+            MinerConfiguratorController(
+                parent=self,
+                widgets=MinerConfiguratorWidgets(
+                    panel=self.configurator,
+                    tabs=self.tabConfigurator,
+                    show_action=self.menu_bar.actionShowConfigurator,
+                    get_pool_action=self.menu_bar.actionConfiguratorGetPoolConfig,
+                    set_pool_action=self.menu_bar.actionConfiguratorSetPoolFromPreset,
+                    pools=PoolConfiguratorWidgets(
+                        preset=self.comboPoolPreset,
+                        urls=(self.linePoolURL, self.linePoolURL_2, self.linePoolURL_3),
+                        users=(
+                            self.linePoolUser,
+                            self.linePoolUser_2,
+                            self.linePoolUser_3,
+                        ),
+                        passwords=(
+                            self.linePoolPasswd,
+                            self.linePoolPasswd_2,
+                            self.linePoolPasswd_3,
+                        ),
+                        automatic_worker_names=self.checkAutomaticWorkerNames,
+                    ),
+                    passwords=PasswordConfiguratorWidgets(
+                        current=self.linePasswdCurrent,
+                        new=self.linePasswdNew,
+                        confirm=self.linePasswdConfirm,
+                        use_non_default=self.checkUseNonDefaultPasswd,
+                        use_antminer_login=self.checkUseAntminerLogin,
+                        alternatives={
+                            MinerType.ANTMINER: self.lineAntminerPasswd,
+                            MinerType.WHATSMINER: self.lineWhatsminerPasswd,
+                            MinerType.GOLDSHELL: self.lineGoldshellPasswd,
+                            MinerType.VOLCMINER: self.lineVolcminerPasswd,
+                            MinerType.SEALMINER: self.lineSealminerPasswd,
+                            MinerType.ICERIVER: self.lineIceriverPasswd,
+                            MinerType.ELPHAPEX: self.lineElphapexPasswd,
+                            MinerType.AURADINE: self.lineAuradinePasswd,
+                            MinerType.VNISH: self.lineVnishPasswd,
+                        },
+                    ),
+                ),
+                dependencies=MinerConfiguratorDependencies(
+                    table_controller=self.table_controller,
+                    action_controller=self.action_controller,
+                    asic=self.asic,
+                    auth_provider=self.get_client_auth,
+                    write_pool_preset=self.write_pool_preset,
+                ),
+            )
+        )
+        self.configurator_controller.notification_requested.connect(self.notify)
+        self.table_controller.pool_retrieval_requested.connect(
+            self.configurator_controller.get_miner_pool
+        )
+        self.table_controller.pool_update_requested.connect(
+            self.configurator_controller.update_miner_pools
+        )
+        self.table_controller.configurator_visibility_requested.connect(
+            self.configurator_controller.set_enabled
+        )
+        self.btnConfiguratorCancel.clicked.connect(
+            self.configurator_controller.set_enabled
+        )
+        self.btnConfiguratorApply.clicked.connect(
+            self.configurator_controller.apply_configuration
+        )
         self.actionIPRStoreAsAlternative.clicked.connect(
-            self.update_alternative_passwds
+            self.configurator_controller.update_alternative_passwords
         )
 
         # set logo
@@ -476,7 +539,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.btnBulkControl.clicked.connect(self.action_controller.open_bulk_control)
         self.btnBulkConfig.setIcon(QIcon(":theme/icons/rc/edit.png"))
         self.btnBulkConfig.clicked.connect(
-            lambda: self.toggle_configurator_settings(True)
+            lambda: self.configurator_controller.set_enabled(True)
         )
 
         # configuration control signals
@@ -508,7 +571,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.toggle_table_settings(True)
 
         if self.menu_bar.actionShowConfigurator.isChecked():
-            self.toggle_configurator_settings(True)
+            self.configurator_controller.set_enabled(True)
 
         if self.menu_bar.actionAutoStartOnLaunch.isChecked():
             self.start_listen()
@@ -1028,7 +1091,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "autoReconnect": self.checkIPRDAutoReconnect.isChecked(),
                 "maxReconnectAttempts": self.spinIPRDMaxRetries.value(),
                 "selectedSocketPreset": self.comboIPRDPreset.currentIndex(),
-                "socketPresets": self.dump_selected_preset(PresetType.SOCKET),
+                "socketPresets": self._dump_selected_preset(PresetType.SOCKET),
             },
         }
         settings["api"] = {
@@ -1050,7 +1113,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "vnishAltPasswd": self.lineVnishPasswd.text(),
             },
         }
-        pool_presets = self.dump_selected_preset(PresetType.POOL)
+        pool_presets = self._dump_selected_preset(PresetType.POOL)
         settings["poolConfigurator"] = {
             "autoSetWorkers": self.checkAutomaticWorkerNames.isChecked(),
             "selectedPoolPreset": self.comboPoolPreset.currentIndex(),
@@ -1090,7 +1153,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         if ok == QMessageBox.StandardButton.Ok:
             logger.info(" reset settings.")
             self.config.write_default()
-            self.toggle_configurator()
+            self.configurator_controller.set_visible(False)
             # reset pool presets
             self.clear_pool_preset()
             self.comboPoolPreset.clear()
@@ -1102,7 +1165,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.update_stacked_widget()
             self.notify("Status :: Successfully restored to default settings.", 5000)
 
-    def dump_selected_preset(self, preset_type: PresetType) -> list[dict[str, str]]:
+    def _dump_selected_preset(self, preset_type: PresetType) -> list[dict[str, str]]:
         saved = self.config.dump_stored_presets(preset_type)
         match preset_type:
             case PresetType.POOL:
@@ -1404,11 +1467,6 @@ Statistics:
             self.menu_bar.actionShowConfigurator.setChecked(enabled)
         self.menu_bar.actionShowConfigurator.setEnabled(enabled)
 
-    def toggle_configurator_settings(self, enabled: bool):
-        self.menu_bar.actionConfiguratorGetPoolConfig.setEnabled(enabled)
-        self.menu_bar.actionConfiguratorSetPoolFromPreset.setEnabled(enabled)
-        self.toggle_configurator(enabled)
-
     def toggle_all_listeners(self, enabled: bool):
         for button in self.listenerConfig.buttons():
             button.setChecked(enabled)
@@ -1471,117 +1529,6 @@ Statistics:
 
     def open_dashboard(self, host: str, miner_type: MinerType | str | None = None):
         webbrowser.open(self.dashboard_url(host, miner_type), new=2)
-
-    def toggle_configurator(self, enabled: bool = False):
-        # setChecked() below re-emits toggled and re-enters this slot; the guard
-        # keeps the one-off window resize from being applied more than once.
-        if self._toggling_configurator:
-            return
-        self._toggling_configurator = True
-        try:
-            self.menu_bar.actionShowConfigurator.setChecked(enabled)
-            self.table_controller.set_configurator_visible(enabled)
-            if enabled == (not self.configurator.isHidden()):
-                return  # already in the requested state; nothing to resize
-            # grow/shrink the window by exactly the configurator's own height so
-            # the rest of the layout keeps its size
-            delta = self.configurator.sizeHint().height()
-            self.configurator.setVisible(enabled)
-            # Only resize for a live user toggle. During start-up the window
-            # isn't shown yet and a restored geometry already accounts for the
-            # configurator, so growing again would double-count. When
-            # maximized/snapped, leave the size to the OS and let the layout
-            # absorb the configurator instead of fighting the state.
-            if self.isVisible() and not (self.isMaximized() or self.isFullScreen()):
-                if enabled:
-                    available = self.screen().availableGeometry().height()
-                    height = min(self.height() + delta, available)
-                else:
-                    height = max(self.height() - delta, self.minimumHeight())
-                self.resize(self.width(), height)
-        finally:
-            self._toggling_configurator = False
-
-    def update_alternative_passwds(self) -> None:
-        rows = self.table_controller.selected_source_rows(COL_IP)
-        if not rows:
-            return self.notify("Status :: Failed action: no selected IPs.", 5000)
-        if not self._validate_passwd_fields():
-            return
-        selected_types = {self.table_controller.miner_target(row)[1] for row in rows}
-        if len(selected_types) > 1:
-            confirm = IPRMessage(
-                self,
-                "Confirm Alternative Password Update",
-                f"Update alternative password for selected {', '.join(selected_types)} miner types?",
-                action_text="Update",
-            )
-            if confirm.exec() != QDialog.DialogCode.Accepted:
-                return
-        new_passwd = self.linePasswdNew.text()
-        for mtype in selected_types:
-            match mtype:
-                case MinerType.ANTMINER:
-                    self.lineAntminerPasswd.setText(new_passwd)
-                case MinerType.WHATSMINER:
-                    self.lineWhatsminerPasswd.setText(new_passwd)
-                case MinerType.GOLDSHELL:
-                    self.lineGoldshellPasswd.setText(new_passwd)
-                case MinerType.VOLCMINER:
-                    self.lineVolcminerPasswd.setText(new_passwd)
-                case MinerType.SEALMINER:
-                    self.lineSealminerPasswd.setText(new_passwd)
-                case MinerType.ICERIVER:
-                    self.lineIceriverPasswd.setText(new_passwd)
-                case MinerType.ELPHAPEX:
-                    self.lineElphapexPasswd.setText(new_passwd)
-                case MinerType.AURADINE:
-                    self.lineAuradinePasswd.setText(new_passwd)
-                # firmwares: respect antminer login setting if ANTMINER is present in set
-                case MinerType.VNISH:
-                    if (
-                        MinerType.ANTMINER in selected_types
-                        and self.checkUseAntminerLogin.isChecked()
-                    ):
-                        continue
-                    elif self.checkUseAntminerLogin.isChecked():
-                        self.checkUseAntminerLogin.setChecked(False)
-                    self.lineVnishPasswd.setText(new_passwd)
-                case _:
-                    pass
-
-        return self.notify(
-            f"Status :: updated alternative password for {', '.join(selected_types)} in settings.",
-            3000,
-        )
-
-    def _validate_passwd_fields(self) -> bool:
-        if not self.linePasswdNew.text() or not self.linePasswdConfirm.text():
-            self.notify("Status :: Failed action: Password fields are required", 5000)
-            return False
-        if self.linePasswdConfirm.text() != self.linePasswdNew.text():
-            self.notify("Status :: Failed action: Password fields do not match", 5000)
-            return False
-        return True
-
-    def apply_configuration(self) -> None:
-        match self.tabConfigurator.currentIndex():
-            case 0:  # pools
-                self.table_controller.request_pool_update()
-            case 1:  # passwd
-                if not self._validate_passwd_fields():
-                    return
-                if (
-                    self.checkUseNonDefaultPasswd.isChecked()
-                    and self.linePasswdCurrent.text() == self.linePasswdNew.text()
-                ):
-                    return self.notify(
-                        "Status :: Failed action: Current password cannot be the same as the new password",
-                        5000,
-                    )
-                self.update_miner_passwds()
-            case _:
-                return
 
     # listener
     def _update_listen_controls(self):
@@ -2031,135 +1978,6 @@ Statistics:
             case _:
                 return None
         return client_auth
-
-    @asyncSlot(int)
-    async def get_miner_pool(self, source_row: int):
-        ip_addr, miner_type, _ = self.table_controller.miner_target(source_row)
-        alt_pwd = self.get_client_auth(miner_type.value)
-        res = await self.asic.get_miner_pool_conf(miner_type, ip_addr, alt_pwd=alt_pwd)
-        if isinstance(res.error, UnknownClientError):
-            logger.error(f"get_miner_pool : {res.error!s}")
-            return self.notify(f"Status :: Failed action: {res.error!s}", 5000)
-        if res.error:
-            return self.notify(
-                f"Status :: Failed to get pool config: {res.error!s}",
-                5000,
-            )
-        urls, users, passwds = res.data.urls, res.data.users, res.data.passwds
-
-        self.linePoolURL.setText(urls[0])
-        self.linePoolUser.setText(users[0])
-        self.linePoolPasswd.setText(passwds[0])
-        self.linePoolURL_2.setText(urls[1])
-        self.linePoolUser_2.setText(users[1])
-        self.linePoolPasswd_2.setText(passwds[1])
-        self.linePoolURL_3.setText(urls[2])
-        self.linePoolUser_3.setText(users[2])
-        self.linePoolPasswd_3.setText(passwds[2])
-        self.write_pool_preset()
-        self.notify(
-            f"Status :: Updated {self.comboPoolPreset.currentText()} preset from {ip_addr}.",
-            3000,
-        )
-
-    @asyncSlot(object)
-    async def update_miner_pools(self, rows: list[int]):
-        urls: list[str] = [
-            self.linePoolURL.text(),
-            self.linePoolURL_2.text(),
-            self.linePoolURL_3.text(),
-        ]
-        base_users: list[str] = [
-            self.linePoolUser.text(),
-            self.linePoolUser_2.text(),
-            self.linePoolUser_3.text(),
-        ]
-        passwds: list[str] = [
-            self.linePoolPasswd.text(),
-            self.linePoolPasswd_2.text(),
-            self.linePoolPasswd_3.text(),
-        ]
-
-        def make_coro(
-            row: int,
-            ip_addr: str,
-            miner_type: MinerType,
-            fw_type: MinerFirmware,
-            alt_pwd: str | None,
-        ):
-            users = base_users.copy()
-            if self.checkAutomaticWorkerNames.isChecked():
-                miner = self.table_controller.miner_at(row)
-                worker_name = ""
-                if miner.serial and miner.serial not in ("N/A", "Unknown"):
-                    worker_name = f".{miner.serial[-5:]}"
-                elif miner.mac and miner.mac != "N/A":
-                    worker_name = f".{miner.mac.replace(':', '')[-5:]}"
-                if worker_name:
-                    users = [user + worker_name if user else user for user in users]
-                else:
-                    logger.warning(
-                        "update_miner_pools : failed to find applicable worker name. Continuing.."
-                    )
-            return self.asic.update_miner_pools(
-                miner_type,
-                ip_addr,
-                urls.copy(),
-                users,
-                passwds.copy(),
-                alt_pwd=alt_pwd,
-            )
-
-        await self.action_controller.run_bulk_action("Update Pools", rows, make_coro)
-
-    @asyncSlot()
-    async def update_miner_passwds(self):
-        rows = self.table_controller.selected_source_rows_for_action(
-            "update_miner_passwds", column=COL_IP
-        )
-        if not rows:
-            return self.notify("Status :: Failed action: no selected IPs.", 5000)
-
-        curr_passwd_text = self.linePasswdCurrent.text()
-        new_passwd_text = self.linePasswdNew.text()
-
-        def make_coro(
-            row: int,
-            ip_addr: str,
-            miner_type: MinerType,
-            fw_type: MinerFirmware,
-            alt_pwd: str | None,
-        ):
-            if miner_type in (
-                MinerType.HAMMER,
-                MinerType.GOLDSHELL,
-                MinerType.VOLCMINER,
-                MinerType.HIVEGPU,
-            ):
-                logger.error(
-                    f"update_passwd : {miner_type.value} is currently not supported."
-                )
-                self.notify(
-                    f"Status :: Skipping {ip_addr}: {miner_type.value.capitalize()} update password is not supported.",
-                    5000,
-                )
-                return None
-
-            curr_passwd = (
-                curr_passwd_text
-                if self.checkUseNonDefaultPasswd.isChecked()
-                else api_settings.get_auth(miner_type.value).default
-            )
-            new_passwd = new_passwd_text
-
-            # use current passwd as alt_pwd for authentication
-            return self.asic.update_miner_passwd(
-                miner_type, ip_addr, curr_passwd, curr_passwd, new_passwd
-            )
-
-        await self.action_controller.run_bulk_action(
-            "Update Passwords", rows, make_coro
-        )
 
     # exit
     def close_to_tray_or_exit(self):

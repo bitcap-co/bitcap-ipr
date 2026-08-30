@@ -22,7 +22,12 @@ from .idtable import (
     IPRTableWidgets,
     MinerActionController,
     MinerActionDependencies,
+    MinerConfiguratorController,
+    MinerConfiguratorDependencies,
+    MinerConfiguratorWidgets,
     MinerControlPopup,
+    PasswordConfiguratorWidgets,
+    PoolConfiguratorWidgets,
 )
 from .menubar import IPRMenubar
 from .message import IPRMessage
@@ -54,5 +59,10 @@ __all__ = [
     "IPRTitlebar",
     "MinerActionController",
     "MinerActionDependencies",
+    "MinerConfiguratorController",
+    "MinerConfiguratorDependencies",
+    "MinerConfiguratorWidgets",
     "MinerControlPopup",
+    "PasswordConfiguratorWidgets",
+    "PoolConfiguratorWidgets",
 ]

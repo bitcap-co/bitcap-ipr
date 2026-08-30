@@ -27,7 +27,12 @@ from .ipr import (
     IPRTitlebar,
     MinerActionController,
     MinerActionDependencies,
+    MinerConfiguratorController,
+    MinerConfiguratorDependencies,
+    MinerConfiguratorWidgets,
     MinerControlPopup,
+    PasswordConfiguratorWidgets,
+    PoolConfiguratorWidgets,
 )
 from .svglabel import SvgLabel
 
@@ -55,6 +60,11 @@ __all__ = [
     "IPRTitlebar",
     "MinerActionController",
     "MinerActionDependencies",
+    "MinerConfiguratorController",
+    "MinerConfiguratorDependencies",
+    "MinerConfiguratorWidgets",
     "MinerControlPopup",
+    "PasswordConfiguratorWidgets",
+    "PoolConfiguratorWidgets",
     "SvgLabel",
 ]

@@ -12,11 +12,10 @@ from typing import Any
 from unittest.mock import AsyncMock, Mock, call
 
 import config  # noqa: F401  # initialize Pydantic before importing PySide-backed IPR
-from ipr import IPR
 from mod.ipr_asic import MinerResult
 from mod.ipr_asic.data import MinerFirmware, MinerType
 from mod.ipr_asic.errors import APIError
-from ui.widgets import MinerActionController
+from ui.widgets import MinerActionController, MinerConfiguratorController
 
 
 class _ControlFacade:
@@ -311,7 +310,7 @@ class TestMinerActionController(unittest.IsolatedAsyncioTestCase):
         )
 
 
-class TestIPRPoolActionBridge(unittest.IsolatedAsyncioTestCase):
+class TestMinerConfiguratorController(unittest.IsolatedAsyncioTestCase):
     async def test_update_pools_uses_action_controller_bulk_engine(self):
         result = MinerResult(data={"success": True})
         asic = SimpleNamespace(update_miner_pools=AsyncMock(return_value=result))
@@ -322,29 +321,29 @@ class TestIPRPoolActionBridge(unittest.IsolatedAsyncioTestCase):
             widget.text.return_value = value
             return widget
 
-        subject: Any = SimpleNamespace(
-            asic=asic,
-            action_controller=SimpleNamespace(run_bulk_action=run_bulk_action),
-            table_controller=SimpleNamespace(miner_at=Mock()),
-            linePoolURL=field("stratum://pool-1"),
-            linePoolURL_2=field("stratum://pool-2"),
-            linePoolURL_3=field(""),
-            linePoolUser=field("account.worker"),
-            linePoolUser_2=field("backup"),
-            linePoolUser_3=field(""),
-            linePoolPasswd=field("x"),
-            linePoolPasswd_2=field("y"),
-            linePoolPasswd_3=field(""),
-            checkAutomaticWorkerNames=Mock(),
-            notify=Mock(),
+        pool_widgets = SimpleNamespace(
+            urls=(
+                field("stratum://pool-1"),
+                field("stratum://pool-2"),
+                field(""),
+            ),
+            users=(field("account.worker"), field("backup"), field("")),
+            passwords=(field("x"), field("y"), field("")),
+            automatic_worker_names=Mock(),
         )
-        subject.table_controller.miner_at.return_value = SimpleNamespace(
+        subject: Any = SimpleNamespace(
+            _asic=asic,
+            _action_controller=SimpleNamespace(run_bulk_action=run_bulk_action),
+            _table_controller=SimpleNamespace(miner_at=Mock()),
+            _widgets=SimpleNamespace(pools=pool_widgets),
+        )
+        subject._table_controller.miner_at.return_value = SimpleNamespace(
             serial="ANTMINER12345",
             mac="aa:bb:cc:dd:ee:ff",
         )
-        subject.checkAutomaticWorkerNames.isChecked.return_value = True
+        pool_widgets.automatic_worker_names.isChecked.return_value = True
 
-        await IPR.update_miner_pools(subject, [7])
+        await MinerConfiguratorController._update_miner_pools(subject, [7])
 
         awaited = run_bulk_action.await_args
         if awaited is None:
@@ -370,6 +369,96 @@ class TestIPRPoolActionBridge(unittest.IsolatedAsyncioTestCase):
             ["x", "y", ""],
             alt_pwd="secret",
         )
+
+    async def test_get_pool_populates_fields_and_writes_preset(self):
+        def fields():
+            return tuple(Mock() for _ in range(3))
+
+        urls = fields()
+        users = fields()
+        passwords = fields()
+        pools = SimpleNamespace(
+            preset=Mock(),
+            urls=urls,
+            users=users,
+            passwords=passwords,
+        )
+        pools.preset.currentText.return_value = "Production"
+        result = SimpleNamespace(
+            error=None,
+            data=SimpleNamespace(
+                urls=["url-1", "url-2", "url-3"],
+                users=["user-1", "user-2", "user-3"],
+                passwds=["pass-1", "pass-2", "pass-3"],
+            ),
+        )
+        subject: Any = SimpleNamespace(
+            _table_controller=SimpleNamespace(
+                miner_target=Mock(
+                    return_value=(
+                        "10.0.0.20",
+                        MinerType.ANTMINER,
+                        MinerFirmware.STOCK,
+                    )
+                )
+            ),
+            _auth_provider=Mock(return_value="secret"),
+            _asic=SimpleNamespace(get_miner_pool_conf=AsyncMock(return_value=result)),
+            _widgets=SimpleNamespace(pools=pools),
+            _write_pool_preset=Mock(),
+            notification_requested=Mock(),
+        )
+
+        await MinerConfiguratorController._get_miner_pool(subject, 3)
+
+        for field, value in zip(urls, result.data.urls):
+            field.setText.assert_called_once_with(value)
+        for field, value in zip(users, result.data.users):
+            field.setText.assert_called_once_with(value)
+        for field, value in zip(passwords, result.data.passwds):
+            field.setText.assert_called_once_with(value)
+        subject._write_pool_preset.assert_called_once_with()
+        subject.notification_requested.emit.assert_called_once_with(
+            "Status :: Updated Production preset from 10.0.0.20.", 3000
+        )
+
+    def test_password_validation_rejects_mismatched_fields(self):
+        new = Mock()
+        confirm = Mock()
+        new.text.return_value = "new-password"
+        confirm.text.return_value = "different-password"
+        subject: Any = SimpleNamespace(
+            _widgets=SimpleNamespace(
+                passwords=SimpleNamespace(new=new, confirm=confirm)
+            ),
+            notification_requested=Mock(),
+        )
+
+        valid = MinerConfiguratorController.validate_password_fields(subject)
+
+        self.assertFalse(valid)
+        subject.notification_requested.emit.assert_called_once_with(
+            "Status :: Failed action: Password fields do not match", 5000
+        )
+
+    def test_update_pools_is_scheduled_by_action_controller(self):
+        scheduled = []
+
+        def schedule(coroutine):
+            scheduled.append(coroutine)
+
+        async def update(rows):
+            return None
+
+        subject: Any = SimpleNamespace(
+            _action_controller=SimpleNamespace(schedule=schedule),
+            _update_miner_pools=update,
+        )
+
+        MinerConfiguratorController.update_miner_pools(subject, [1, 4])
+
+        self.assertEqual(len(scheduled), 1)
+        scheduled[0].close()
 
 
 if __name__ == "__main__":

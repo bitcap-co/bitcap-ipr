@@ -4,6 +4,13 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 from .action_controller import MinerActionController, MinerActionDependencies
+from .configurator_controller import (
+    MinerConfiguratorController,
+    MinerConfiguratorDependencies,
+    MinerConfiguratorWidgets,
+    PasswordConfiguratorWidgets,
+    PoolConfiguratorWidgets,
+)
 from .contextmenu import IPRTableContextMenu
 from .controller import IPRTableController, IPRTableWidgets
 from .controlpopup import MinerControlPopup
@@ -42,5 +49,10 @@ __all__ = [
     "IPRTableWidgets",
     "MinerActionController",
     "MinerActionDependencies",
+    "MinerConfiguratorController",
+    "MinerConfiguratorDependencies",
+    "MinerConfiguratorWidgets",
     "MinerControlPopup",
+    "PasswordConfiguratorWidgets",
+    "PoolConfiguratorWidgets",
 ]

@@ -91,25 +91,25 @@ class MinerActionController(QObject):
 
     def dispatch_miner_control(self, source_row: int, key: str) -> None:
         if key == "refresh":
-            self._schedule(self.refresh_miner(source_row))
+            self.schedule(self.refresh_miner(source_row))
         elif key == "locate":
-            self._schedule(self.locate_miner(source_row))
+            self.schedule(self.locate_miner(source_row))
         elif key in _CONTROL_ACTIONS:
-            self._schedule(self.control_miner(source_row, key))
+            self.schedule(self.control_miner(source_row, key))
         else:
             logger.warning(f"dispatch_miner_control : unknown action '{key}'.")
 
     def dispatch_bulk_control(self, key: str, rows: list[int]) -> None:
         if key == "refresh":
-            self._schedule(self.bulk_refresh_miners(rows))
+            self.schedule(self.bulk_refresh_miners(rows))
         elif key == "locate":
-            self._schedule(self.bulk_locate_miners(rows))
+            self.schedule(self.bulk_locate_miners(rows))
         elif key in _CONTROL_ACTIONS:
-            self._schedule(self.bulk_control_miners(key, rows))
+            self.schedule(self.bulk_control_miners(key, rows))
         else:
             logger.warning(f"dispatch_bulk_control : unknown action '{key}'.")
 
-    def _schedule(self, coroutine: Coroutine[Any, Any, None]) -> None:
+    def schedule(self, coroutine: Coroutine[Any, Any, None]) -> None:
         if self._stopping:
             coroutine.close()
             return
