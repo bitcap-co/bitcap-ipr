@@ -33,6 +33,10 @@ from .ipr import (
     MinerControlPopup,
     PasswordConfiguratorWidgets,
     PoolConfiguratorWidgets,
+    PoolPresetController,
+    PoolPresetWidgets,
+    SocketPresetController,
+    SocketPresetWidgets,
 )
 from .svglabel import SvgLabel
 
@@ -66,5 +70,9 @@ __all__ = [
     "MinerControlPopup",
     "PasswordConfiguratorWidgets",
     "PoolConfiguratorWidgets",
+    "PoolPresetController",
+    "PoolPresetWidgets",
+    "SocketPresetController",
+    "SocketPresetWidgets",
     "SvgLabel",
 ]

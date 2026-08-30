@@ -31,6 +31,12 @@ from .idtable import (
 )
 from .menubar import IPRMenubar
 from .message import IPRMessage
+from .preset_controller import (
+    PoolPresetController,
+    PoolPresetWidgets,
+    SocketPresetController,
+    SocketPresetWidgets,
+)
 from .preset_selector import IPRPresetSelector
 from .progress import IPRProgress
 from .titlebar import IPRTitlebar
@@ -65,4 +71,8 @@ __all__ = [
     "MinerControlPopup",
     "PasswordConfiguratorWidgets",
     "PoolConfiguratorWidgets",
+    "PoolPresetController",
+    "PoolPresetWidgets",
+    "SocketPresetController",
+    "SocketPresetWidgets",
 ]

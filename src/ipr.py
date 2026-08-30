@@ -42,7 +42,7 @@ from PySide6.QtWidgets import (
 from qasync import asyncSlot
 
 import ui.resources  # noqa F401
-from config import IPRConfig, PoolPreset, PresetType, SocketPreset
+from config import IPRConfig
 from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
 from mod.ipr_asic import ASICClient
@@ -75,6 +75,10 @@ from ui.widgets import (
     MinerConfiguratorWidgets,
     PasswordConfiguratorWidgets,
     PoolConfiguratorWidgets,
+    PoolPresetController,
+    PoolPresetWidgets,
+    SocketPresetController,
+    SocketPresetWidgets,
 )
 from utils import (
     CURR_PLATFORM,
@@ -393,8 +397,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.checkEnableIPRDBackend.toggled.connect(self.restart_listen)
         self.checkEnableIPRDAutoDiscover.toggled.connect(self.toggle_iprd_settings)
         self.checkEnableIPRDAutoDiscover.toggled.connect(self.restart_listen)
-        self.lineIPRDSocketAddress.editingFinished.connect(self.write_iprd_preset)
-        self.lineIPRDSocketAddress.editingFinished.connect(self.restart_listen)
+
         self.checkIPRDAutoReconnect.toggled.connect(self.update_iprd_reconnect_settings)
         self.checkIPRDAutoReconnect.toggled.connect(self.restart_listen)
         self.spinIPRDMaxRetries.valueChanged.connect(self.restart_listen)
@@ -406,12 +409,21 @@ class IPR(QMainWindow, Ui_MainWindow):
         socket_selector_layout = self.socketSelector.layout()
         if socket_selector_layout:
             socket_selector_layout.addWidget(self.socket_selector)
-        # alias the combo so the preset handlers read like the pool ones
         self.comboIPRDPreset: QComboBox = self.socket_selector.combo
-        self.comboIPRDPreset.currentIndexChanged.connect(self.read_iprd_preset)
-        self.comboIPRDPreset.editTextChanged.connect(self.update_iprd_preset_name)
-        self.socket_selector.create_requested.connect(self.create_iprd_preset)
-        self.socket_selector.remove_requested.connect(self.remove_iprd_preset)
+        self.socket_preset_controller: SocketPresetController = SocketPresetController(
+            parent=self,
+            config=self.config,
+            widgets=SocketPresetWidgets(
+                selector=self.socket_selector,
+                address=self.lineIPRDSocketAddress,
+                auto_discover=self.checkEnableIPRDAutoDiscover,
+            ),
+            restart_listener=self.restart_listen,
+        )
+        self.lineIPRDSocketAddress.editingFinished.connect(
+            self.socket_preset_controller.save
+        )
+        self.lineIPRDSocketAddress.editingFinished.connect(self.restart_listen)
 
         self.toolIPRDSocketStatus.setIcon(QIcon(":theme/icons/rc/info.png"))
         self.toolIPRDSocketStatus.pressed.connect(self.show_iprd_socket_status)
@@ -432,14 +444,26 @@ class IPR(QMainWindow, Ui_MainWindow):
         pool_preset_layout = self.poolSelector.layout()
         if pool_preset_layout:
             pool_preset_layout.addWidget(self.pool_selector)
-        # alias the combo so the existing pool-preset handlers are unchanged
         self.comboPoolPreset: QComboBox = self.pool_selector.combo
-        self.comboPoolPreset.currentIndexChanged.connect(self.read_pool_preset)
-        self.comboPoolPreset.editTextChanged.connect(self.update_pool_preset_name)
-        self.pool_selector.create_requested.connect(self.create_pool_preset)
-        self.pool_selector.remove_requested.connect(self.remove_pool_preset)
-        self.actionIPRSavePreset.clicked.connect(self.write_pool_preset)
-        self.actionIPRClearPreset.clicked.connect(self.clear_pool_preset)
+        self.pool_preset_controller: PoolPresetController = PoolPresetController(
+            parent=self,
+            config=self.config,
+            widgets=PoolPresetWidgets(
+                selector=self.pool_selector,
+                urls=(self.linePoolURL, self.linePoolURL_2, self.linePoolURL_3),
+                users=(self.linePoolUser, self.linePoolUser_2, self.linePoolUser_3),
+                passwords=(
+                    self.linePoolPasswd,
+                    self.linePoolPasswd_2,
+                    self.linePoolPasswd_3,
+                ),
+            ),
+        )
+        self.pool_preset_controller.notification_requested.connect(self.notify)
+        self.actionIPRSavePreset.clicked.connect(self.pool_preset_controller.save)
+        self.actionIPRClearPreset.clicked.connect(
+            self.pool_preset_controller.clear_fields
+        )
         # password configurator
         self.actionToggleConfigCurrentPasswd: QAction = (
             self.create_passwd_toggle_action(self.linePasswdCurrent)
@@ -503,7 +527,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                     action_controller=self.action_controller,
                     asic=self.asic,
                     auth_provider=self.get_client_auth,
-                    write_pool_preset=self.write_pool_preset,
+                    write_pool_preset=self.pool_preset_controller.save,
                 ),
             )
         )
@@ -565,7 +589,6 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         self.update_stacked_widget()
         self._show_base_status()
-        self.update_preset_names()
 
         if self.menu_bar.actionEnableIDTable.isChecked():
             self.toggle_table_settings(True)
@@ -893,20 +916,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self.configurator.setVisible(False)
             self.stackedWidget.setCurrentIndex(view_index)
 
-    def update_preset_names(self):
-        # pool presets
-        for idx in range(len(self.config.pool_config.pool_presets)):
-            self.comboPoolPreset.insertItem(
-                idx, self.config.pool_config.pool_presets[idx].preset_name
-            )
-        self.comboPoolPreset.setCurrentIndex(self.config.pool_config.selected_preset)
-        # iprd presets
-        for idx in range(len(self.config.listener.iprd.socket_presets)):
-            self.comboIPRDPreset.insertItem(
-                idx, self.config.listener.iprd.socket_presets[idx].preset_name
-            )
-        self.comboIPRDPreset.setCurrentIndex(self.config.listener.iprd.selected_preset)
-
     # configuration
     def read_settings(self):
         logger.info(" read settings.")
@@ -970,40 +979,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.comboOnMaxLogSize.setCurrentIndex(self.config.logs.on_max_log_size)
         self.checkFlushOnClose.setChecked(self.config.logs.flush_on_close)
 
-        # pools
-        self.comboPoolPreset.setCurrentIndex(self.config.pool_config.selected_preset)
+        # presets
         self.checkAutomaticWorkerNames.setChecked(
             self.config.pool_config.auto_set_workers
         )
-        preset_idx = self.comboPoolPreset.currentIndex()
-        if len(self.config.pool_config.pool_presets):
-            self.linePoolURL.setText(
-                self.config.pool_config.pool_presets[preset_idx].pool1
-            )
-            self.linePoolURL_2.setText(
-                self.config.pool_config.pool_presets[preset_idx].pool2
-            )
-            self.linePoolURL_3.setText(
-                self.config.pool_config.pool_presets[preset_idx].pool3
-            )
-            self.linePoolUser.setText(
-                self.config.pool_config.pool_presets[preset_idx].user1
-            )
-            self.linePoolUser_2.setText(
-                self.config.pool_config.pool_presets[preset_idx].user2
-            )
-            self.linePoolUser_3.setText(
-                self.config.pool_config.pool_presets[preset_idx].user3
-            )
-            self.linePoolPasswd.setText(
-                self.config.pool_config.pool_presets[preset_idx].passwd1
-            )
-            self.linePoolPasswd_2.setText(
-                self.config.pool_config.pool_presets[preset_idx].passwd2
-            )
-            self.linePoolPasswd_3.setText(
-                self.config.pool_config.pool_presets[preset_idx].passwd3
-            )
+        self.pool_preset_controller.reload()
+        self.socket_preset_controller.reload()
 
         # instance
         window_geometry = self.config.instance.geometry
@@ -1090,8 +1071,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "socketAddress": self.lineIPRDSocketAddress.text(),
                 "autoReconnect": self.checkIPRDAutoReconnect.isChecked(),
                 "maxReconnectAttempts": self.spinIPRDMaxRetries.value(),
-                "selectedSocketPreset": self.comboIPRDPreset.currentIndex(),
-                "socketPresets": self._dump_selected_preset(PresetType.SOCKET),
+                "selectedSocketPreset": self.socket_preset_controller.index,
+                "socketPresets": self.socket_preset_controller.snapshot(),
             },
         }
         settings["api"] = {
@@ -1113,11 +1094,10 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "vnishAltPasswd": self.lineVnishPasswd.text(),
             },
         }
-        pool_presets = self._dump_selected_preset(PresetType.POOL)
         settings["poolConfigurator"] = {
             "autoSetWorkers": self.checkAutomaticWorkerNames.isChecked(),
-            "selectedPoolPreset": self.comboPoolPreset.currentIndex(),
-            "poolPresets": pool_presets,
+            "selectedPoolPreset": self.pool_preset_controller.index,
+            "poolPresets": self.pool_preset_controller.snapshot(),
         }
         settings["logs"] = {
             "logLevel": self.comboLogLevel.currentText(),
@@ -1154,197 +1134,11 @@ class IPR(QMainWindow, Ui_MainWindow):
             logger.info(" reset settings.")
             self.config.write_default()
             self.configurator_controller.set_visible(False)
-            # reset pool presets
-            self.clear_pool_preset()
-            self.comboPoolPreset.clear()
-            # reset iprd socket presets
-            self.comboIPRDPreset.clear()
             self.read_settings()
             self.update_inactive_timer()
             self.update_miner_locate_duration()
             self.update_stacked_widget()
             self.notify("Status :: Successfully restored to default settings.", 5000)
-
-    def _dump_selected_preset(self, preset_type: PresetType) -> list[dict[str, str]]:
-        saved = self.config.dump_stored_presets(preset_type)
-        match preset_type:
-            case PresetType.POOL:
-                selector = self.pool_selector
-                if not len(saved):
-                    return []
-                index = selector.index
-                saved[index]["preset_name"] = selector.preset_name
-                saved[index]["pool1"] = self.linePoolURL.text()
-                saved[index]["pool2"] = self.linePoolURL_2.text()
-                saved[index]["pool3"] = self.linePoolURL_3.text()
-                saved[index]["user1"] = self.linePoolUser.text()
-                saved[index]["user2"] = self.linePoolUser_2.text()
-                saved[index]["user3"] = self.linePoolUser_3.text()
-                saved[index]["passwd1"] = self.linePoolPasswd.text()
-                saved[index]["passwd2"] = self.linePoolPasswd_2.text()
-                saved[index]["passwd3"] = self.linePoolPasswd_3.text()
-            case PresetType.SOCKET:
-                selector = self.socket_selector
-                if (
-                    self.checkEnableIPRDAutoDiscover.isChecked()
-                    or not len(saved)
-                    or selector.index < 0
-                ):
-                    return saved
-                saved[selector.index]["preset_name"] = selector.preset_name
-                saved[selector.index]["socket_addr"] = self.lineIPRDSocketAddress.text()
-        return saved
-
-    def create_pool_preset(self, *_, preset: PoolPreset | None = None) -> None:
-        selector = self.pool_selector
-        selector_conf = self.config.pool_config
-        presets = selector_conf.pool_presets
-        append_index = len(presets)
-        if preset is None:
-            preset = PoolPreset(preset_name="New Preset")
-        presets.append(preset)
-        selector_conf.selected_preset = append_index
-        selector.create_preset(preset.preset_name, append_index)
-        self.config.write()
-
-    def update_pool_preset_name(self, preset_name: str) -> None:
-        selector = self.pool_selector
-        presets = self.config.pool_config.pool_presets
-        presets[selector.index].preset_name = preset_name
-        selector.update_selected_preset_name(preset_name)
-        self.config.write()
-
-    def remove_pool_preset(self) -> None:
-        selector = self.pool_selector
-        selector_conf = self.config.pool_config
-        presets = selector_conf.pool_presets
-        if selector.index < 0 or not len(presets):
-            return
-        presets.pop(selector.index)
-        selector.remove_selected_preset()
-        selector_conf.selected_preset = selector.index
-        if selector.index == -1:
-            self.clear_pool_preset()
-        self.config.write()
-
-    def read_pool_preset(self, index: int) -> None:
-        self.config.read()
-        presets = self.config.pool_config.pool_presets
-        if index < 0 or index >= len(presets):
-            return
-        pool_preset = presets[index]
-        self.linePoolURL.setText(pool_preset.pool1)
-        self.linePoolURL_2.setText(pool_preset.pool2)
-        self.linePoolURL_3.setText(pool_preset.pool3)
-        self.linePoolUser.setText(pool_preset.user1)
-        self.linePoolUser_2.setText(pool_preset.user2)
-        self.linePoolUser_3.setText(pool_preset.user3)
-        self.linePoolPasswd.setText(pool_preset.passwd1)
-        self.linePoolPasswd_2.setText(pool_preset.passwd2)
-        self.linePoolPasswd_3.setText(pool_preset.passwd3)
-
-    def write_pool_preset(self):
-        selector = self.pool_selector
-        index = selector.index
-        if index == -1:
-            # no existing presets, create a new one
-            preset_name = selector.preset_name
-            if not preset_name:
-                preset_name = "New Preset"
-            new_preset = PoolPreset(
-                preset_name=preset_name,
-                pool1=self.linePoolURL.text(),
-                pool2=self.linePoolURL_2.text(),
-                pool3=self.linePoolURL_3.text(),
-                user1=self.linePoolUser.text(),
-                user2=self.linePoolUser_2.text(),
-                user3=self.linePoolUser_3.text(),
-                passwd1=self.linePoolPasswd.text(),
-                passwd2=self.linePoolPasswd_2.text(),
-                passwd3=self.linePoolPasswd_3.text(),
-            )
-            self.create_pool_preset(new_preset)
-        else:
-            self.config.pool_config.selected_preset = index
-            preset = self.config.pool_config.pool_presets[index]
-            preset.preset_name = selector.preset_name
-            preset.pool1 = self.linePoolURL.text()
-            preset.pool2 = self.linePoolURL_2.text()
-            preset.pool3 = self.linePoolURL_3.text()
-            preset.user1 = self.linePoolUser.text()
-            preset.user2 = self.linePoolUser_2.text()
-            preset.user3 = self.linePoolUser_3.text()
-            preset.passwd1 = self.linePoolPasswd.text()
-            preset.passwd2 = self.linePoolPasswd_2.text()
-            preset.passwd3 = self.linePoolPasswd_3.text()
-        self.config.write()
-        self.notify("Status :: successfully wrote pool preset.", 3000)
-
-    def clear_pool_preset(self):
-        for child in self.poolConfigurator.children():
-            if isinstance(child, QWidget):
-                for line in child.children():
-                    if isinstance(line, QLineEdit):
-                        line.clear()
-
-    def create_iprd_preset(self, *_, preset: SocketPreset | None = None) -> None:
-        selector = self.socket_selector
-        selector_conf = self.config.listener.iprd
-        presets = selector_conf.socket_presets
-        append_index = len(presets)
-        if preset is None:
-            preset = SocketPreset(
-                preset_name="New Preset", socket_addr=self.lineIPRDSocketAddress.text()
-            )
-        presets.append(preset)
-        selector_conf.selected_preset = append_index
-        selector.create_preset(preset.preset_name, append_index)
-        self.config.write()
-
-    def update_iprd_preset_name(self, preset_name: str) -> None:
-        selector = self.socket_selector
-        presets = self.config.listener.iprd.socket_presets
-        presets[selector.index].preset_name = preset_name
-        selector.update_selected_preset_name(preset_name)
-        self.config.write()
-
-    def remove_iprd_preset(self) -> None:
-        selector = self.socket_selector
-        selector_conf = self.config.listener.iprd
-        presets = selector_conf.socket_presets
-        if selector.index < 0 or not len(presets):
-            return
-        presets.pop(selector.index)
-        selector.remove_selected_preset()
-        selector_conf.selected_preset = selector.index
-        if selector.index == -1:
-            self.lineIPRDSocketAddress.clear()
-        self.config.write()
-
-    def read_iprd_preset(self, index: int) -> None:
-        presets = self.config.listener.iprd.socket_presets
-        if index < 0 or index >= len(presets):
-            return
-        self.lineIPRDSocketAddress.setText(presets[index].socket_addr)
-        # switch the live connection over to the newly selected instance.
-        self.restart_listen()
-
-    def write_iprd_preset(self) -> None:
-        selector = self.socket_selector
-        selector_conf = self.config.listener.iprd
-        presets = selector_conf.socket_presets
-        index = selector.index
-        if index < 0 or index >= len(presets):
-            return
-        preset = presets[index]
-        new_addr = self.lineIPRDSocketAddress.text()
-        new_name = selector.preset_name
-        if preset.socket_addr == new_addr and preset.preset_name == new_name:
-            return
-        preset.socket_addr = new_addr
-        preset.preset_name = new_name
-        selector_conf.selected_preset = index
-        self.config.write()
 
     def update_inactive_timer(self):
         self.groupInactiveTimer.setEnabled(
