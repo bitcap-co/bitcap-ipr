@@ -5,7 +5,7 @@
 
 from .iprd import IPRDListener, IPRDService, IPRDServiceListener, IPRDSocket
 from .ipreport import IPReport
-from .listener import Listener
+from .listener import Listener, ListenerError
 from .listenermanager import ListenerManager, Record
 
 __all__ = [
@@ -15,6 +15,7 @@ __all__ = [
     "IPRDSocket",
     "IPReport",
     "Listener",
+    "ListenerError",
     "ListenerManager",
     "Record",
 ]

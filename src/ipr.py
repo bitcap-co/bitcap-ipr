@@ -59,6 +59,7 @@ from mod.lm import (
     IPRDServiceListener,
     IPRDSocket,
     IPReport,
+    ListenerError,
     ListenerManager,
 )
 from mod.powermonitor import PowerMonitor
@@ -165,9 +166,9 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         logger.info(" init mod lm.")
         self.lm: ListenerManager = ListenerManager(self)
-        self.lm.listen_complete.connect(self.process_result)
-        # restart listeners on fail
-        self.lm.listen_error.connect(self.restart_listen)
+        self.lm.error_received.connect(self.show_listener_error)
+        self.lm.bind_failed.connect(self.show_listener_bind_error)
+        self.lm.report_received.connect(self.process_result)
         self.iprd_socket: IPRDSocket = IPRDSocket(self)
         self.iprd_socket.error.connect(self.show_iprd_socket_error)
         # init iprd listener
@@ -1582,14 +1583,15 @@ Statistics:
         self.pushIPRListenStop.setEnabled(listening)
         self.actionSysStopListen.setEnabled(listening)
 
+    def _has_configured_listener(self) -> bool:
+        return (
+            any(option.isChecked() for option in self.listenerConfig.buttons())
+            or self.checkEnableIPRDBackend.isChecked()
+        )
+
     def start_listen(self):
         logger.info(" start listeners.")
-        if (
-            not any(
-                listenFor.isChecked() for listenFor in self.listenerConfig.buttons()
-            )
-            and not self.checkEnableIPRDBackend.isChecked()
-        ):
+        if not self._has_configured_listener():
             logger.error(
                 "start_listen : no listeners configured. at least one listener needs to be checked."
             )
@@ -1600,14 +1602,14 @@ Statistics:
         if not self.checkEnableIPRDBackend.isChecked():
             self._iprd_listening = False
             self._last_iprd_error = ""
-            self.lm.start(self.listenerConfig)
-            if self.lm.count <= 0:
-                logger.error(
-                    "start_listen : no UDP listeners started; bind failed or configuration has no local listener."
-                )
+            started = self.lm.start(self.listenerConfig)
+            if not started:
                 self.inactive.stop()
                 self.set_listen_state(ListenState.READY)
                 self._update_listen_controls()
+                logger.error(
+                    "start_listen : no UDP listeners started; bind failed or configuration has no local listener."
+                )
                 self.notify(
                     "Status :: Failed to start listeners: Failed to bind or invalid configuration"
                 )
@@ -1700,6 +1702,31 @@ Statistics:
             logger.info(" restart listeners.")
             self.stop_listen()
             self.start_listen()
+
+    def show_listener_bind_error(self, error: ListenerError) -> None:
+        self.notify(
+            f"Status :: Failed to start listening for {error.port_name}: "
+            f"{error.message}; {error.port_name} reports will be excluded."
+        )
+
+    def show_listener_error(self, error: ListenerError) -> None:
+        if self.lm.count:
+            # refresh the persistent status with the remaining listeners.
+            self.set_listen_state(ListenState.LISTENING)
+            message = (
+                f"Status :: Listener for {error.port_name} stopped: "
+                f"{error.message}; continuing without."
+            )
+        else:
+            # no UDP listeners remain
+            self.inactive.stop()
+            self.set_listen_state(ListenState.READY)
+            message = (
+                f"Status :: Listener for {error.port_name} stopped: "
+                f"{error.message}; no more active listeners."
+            )
+        self._update_listen_controls()
+        self.notify(message)
 
     def _selected_iprd_service(self) -> IPRDService | None:
         if self._discovered_iprd_service_name is not None:
@@ -2407,8 +2434,9 @@ Statistics:
         self.power.aboutToSuspend.disconnect(self.on_suspend)
         self.power.resumed.disconnect(self.on_resume)
         self.lm.stop()
-        self.lm.listen_complete.disconnect(self.process_result)
-        self.lm.listen_error.disconnect(self.restart_listen)
+        self.lm.report_received.disconnect(self.process_result)
+        self.lm.error_received.disconnect(self.show_listener_error)
+        self.lm.bind_failed.disconnect(self.show_listener_bind_error)
         self.killall()
         logger.info(" write settings to disk.")
         self.write_settings()

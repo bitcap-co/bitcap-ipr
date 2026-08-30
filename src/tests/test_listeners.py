@@ -13,9 +13,10 @@ from typing import Any
 
 from pydantic import BaseModel
 from PySide6.QtCore import QCoreApplication, QMetaMethod
+from PySide6.QtNetwork import QAbstractSocket
 from PySide6.QtTest import QSignalSpy, QTest
 
-from mod.lm import IPReport, Listener
+from mod.lm import IPReport, Listener, ListenerError
 
 app = QCoreApplication.instance() or QCoreApplication(sys.argv)
 
@@ -249,6 +250,27 @@ class TestListeners(unittest.TestCase):
             payload=test.payload,
             expected_result=test.expected_result.model_dump(),
         )
+
+
+class TestListenerLifecycle(unittest.TestCase):
+    def test_zero_valued_socket_error_is_included_in_message(self) -> None:
+        error = ListenerError(
+            listener="Listener[Antminer:14235]",
+            port=14235,
+            port_name="Antminer",
+            error_name=QAbstractSocket.SocketError.ConnectionRefusedError,
+            message="Connection refused",
+        )
+
+        self.assertIn("ConnectionRefusedError", str(error))
+        self.assertIn("Connection refused", str(error))
+
+    def test_close_is_idempotent(self) -> None:
+        listener = Listener(port=0)
+        self.assertTrue(listener.bound)
+
+        listener.close()
+        listener.close()
 
 
 if __name__ == "__main__":

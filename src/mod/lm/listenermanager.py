@@ -6,12 +6,13 @@
 import logging
 import time
 from collections import OrderedDict
+from typing import override
 
 from PySide6.QtCore import QObject, Signal, Slot
 from PySide6.QtWidgets import QButtonGroup
 
-from mod.lm.ipreport import IPReport
-from mod.lm.listener import Listener
+from mod.lm.ipreport import IPReport, MinerTypeHint
+from mod.lm.listener import Listener, ListenerError
 
 logger = logging.getLogger(__name__)
 
@@ -20,170 +21,210 @@ RECORD_MIN_AGE = 10.0
 
 class Record(OrderedDict[str, IPReport]):
     """
-    Record is a OrderedDict with a set size of record entries in FIFO order.
+    Record is a OrderedDict with a set size of IPReport entries. Entries are removed in FIFO order.
+    Serves as a cache of recently seen IPReports to avoid re-emitting duplicate IP reports.
+
+    Args:
+        capacity (int): The maximum number of stored entries in the record.
+
+    Raises:
+        ValueError: If capacity is not a positive integer.
     """
 
     def __init__(self, capacity: int) -> None:
         super().__init__()
-        self._record_cap = capacity
-        self._check_size()
-
-    def __setitem__(self, key: str, value: IPReport, /) -> None:
-        super().__setitem__(key, value)
-        self._check_size()
-
-    def _check_size(self) -> None:
-        while len(self) > self._record_cap:
-            self.popitem(last=False)
+        if capacity <= 0:
+            raise ValueError("capacity must be a positive integer")
+        self._capacity: int = capacity
 
     @property
     def capacity(self) -> int:
-        return self._record_cap
+        """Returns the maximum capacity of the record."""
+        return self._capacity
 
     @property
     def size(self) -> int:
+        """Returns the current number of stored IP reports in the record."""
         return len(self)
+
+    def _truncate(self) -> None:
+        while len(self) > self._capacity:
+            _ = self.popitem(last=False)
+
+    @override
+    def __setitem__(self, key: str, value: IPReport, /) -> None:
+        super().__setitem__(key, value)
+        self.move_to_end(key)
+        self._truncate()
+
+    def is_duplicate(self, value: IPReport) -> bool:
+        """Returns True if the given IPReport is a duplicate of an existing entry.
+        Existing entries can be re-emitted if they are older than RECORD_MIN_AGE.
+        """
+        previous = self.get(value.ip)
+        if previous is None:
+            return False
+        if previous.mac != value.mac:  # MAC mismatch; update existing entry
+            return False
+        if time.time() - previous.updated_at <= RECORD_MIN_AGE:
+            logger.warning(f" [{value.ip}] : duplicate packet.")
+            return True
+        return False
+
+    def add(self, value: IPReport) -> bool:
+        """Adds the given IPReport to the record. Returns False if IPReport is a duplicate."""
+        if ok := not self.is_duplicate(value):
+            self.__setitem__(value.ip, value)
+        return ok
 
 
 class ListenerManager(QObject):
     """
-    Listener Manager class
-
-    Manages a configurable list of Listeners to facilitate IP Report listening
-    for supported ASIC types.
+    ListenerManager is a UDP listener manager.
+    It manages a configurable set of Listeners for supported ASIC cryptominers and forwards validated IP reports.
 
     Args:
-        parent (QObject) : parent object.
+        parent (QObject) : The parent object.
 
     Signals:
-        listen_complete (IPReport) : emits IPReport result from Listener.result signal.
-        listen_error (str): emits error from Listener.error signal.
+        report_received (IPReport) : emits on a Listener.result signal with validated IP report data.
+        error_received (ListenerError) : emits on a Listener.error signal with error.
+        bind_failed (ListenerError) : emits when a Listener fails to bind with error.
     """
 
     # Signals
-    listen_complete = Signal(IPReport)
-    listen_error = Signal(str)
+    report_received: Signal = Signal(IPReport)
+    error_received: Signal = Signal(ListenerError)
+    bind_failed: Signal = Signal(ListenerError)
 
     def __init__(self, parent: QObject) -> None:
         super().__init__(parent)
-        self.record: Record = Record(capacity=10)
-        self.listen_for: QButtonGroup
         self._listeners: list[Listener] = []
+        self._listen_for: QButtonGroup
+        self.record: Record = Record(capacity=10)
 
+    @override
     def __repr__(self, /) -> str:
         return f"{self.__class__.__name__}"
 
+    def _get_common_listener(self) -> Listener | None:
+        return next(
+            (l for l in self._listeners if l.port == int(MinerTypeHint.COMMON)), None
+        )
+
     @property
     def enabled(self) -> list[str]:
-        """Get all enabled listener names from listener configuration.
-
-        Returns:
-            list[str]: list of enabled listener names.
-        """
+        """Returns the list of enabled button names from listen_for configuration."""
         return [
-            btn.text().lower() for btn in self.listen_for.buttons() if btn.isChecked()
+            btn.text().lower() for btn in self._listen_for.buttons() if btn.isChecked()
         ]
 
     @property
     def status(self) -> str:
-        """Get the current status message of active listeners.
-
-        Returns:
-            str: string of active listener names. Empty if no active listeners.
-        """
+        """Returns the concatenated string of active listener names. Empty if no listeners are active."""
+        status = ""
         if len(self._listeners):
-            return ", ".join(
-                btn.text() for btn in self.listen_for.buttons() if btn.isChecked()
-            )
-        return ""
+            enabled_listeners = [
+                l.port_name
+                for l in self._listeners
+                if l.port != int(MinerTypeHint.COMMON)
+            ]
+            enabled_common = []
+            if self._get_common_listener():
+                enabled_common = [
+                    b.text()
+                    for b in self._listen_for.buttons()
+                    if self._listen_for.id(b) in [1, 4, 5] and b.isChecked()
+                ]
+                status = ", ".join(enabled_common)
+            if status and len(enabled_listeners):
+                status += ", "
+            status += ", ".join(enabled_listeners)
+        return status
 
     @property
     def count(self) -> int:
-        """Get the number of active listeners.
-
-        Returns:
-            int: the number of active listeners.
-        """
+        """Returns the number of currently active listeners."""
         return len(self._listeners)
 
     def _append_listener(self, port: int) -> None:
+        # guard: don't try and bind to the common port if it's already bound
+        if int(port) == int(MinerTypeHint.COMMON) and self._get_common_listener():
+            return
         listener = Listener(port=port, parent=self)
         if listener.bound:
-            logger.info(
-                f" start listening on {listener.addr.toString()}:{listener.port}"
-            )
-            return self._listeners.append(listener)
-        return logger.warning(
-            f" failed to bind on {listener.addr.toString()}[{listener.port}]. Maybe someone is already listening on this port?"
-        )
+            logger.info(f" start listening on {listener}")
+            self._listeners.append(listener)
+            return
+
+        error = listener.listen_error
+        if error is None:
+            error = listener.set_listen_error("Failed to bind")
+        logger.warning(f" failed to bind on {listener}: {error}")
+        listener.close()
+        listener.deleteLater()
+        self.bind_failed.emit(error)
 
     def _start_listeners(self) -> None:
-        for btn in [btn for btn in self.listen_for.buttons() if btn.isChecked()]:
-            match self.listen_for.id(btn):
+        for btn in [btn for btn in self._listen_for.buttons() if btn.isChecked()]:
+            match self._listen_for.id(btn):
                 case 1 | 4 | 5:  # antminer | volcminer | hammer
-                    self._append_listener(14235)
+                    self._append_listener(MinerTypeHint.COMMON)
                 case 2:  # iceriver
-                    self._append_listener(11503)
+                    self._append_listener(MinerTypeHint.ICERIVER)
                 case 3:  # whatsminer
-                    self._append_listener(8888)
+                    self._append_listener(MinerTypeHint.WHATSMINER)
                 case 6:  # goldshell
-                    self._append_listener(1314)
+                    self._append_listener(MinerTypeHint.GOLDSHELL)
                 case 7:  # sealminer
-                    self._append_listener(18650)
+                    self._append_listener(MinerTypeHint.SEALMINER)
                 case 8:  # elphapex
-                    self._append_listener(9999)
+                    self._append_listener(MinerTypeHint.ELPHAPEX)
                 case 9:  # auradine
-                    self._append_listener(12345)
+                    self._append_listener(MinerTypeHint.AURADINE)
                 case 10:  # ipollo
-                    self._append_listener(54321)
+                    self._append_listener(MinerTypeHint.IPOLLO)
                 case _:
                     continue
         for listener in self._listeners:
-            listener.error.connect(self.emit_listen_error)
-            listener.result.connect(self.emit_listen_complete)
+            listener.error.connect(self.emit_error_received)
+            listener.result.connect(self.emit_report_received)
 
     def _stop_listeners(self) -> None:
         logger.info(" close listeners")
         if len(self._listeners):
             for listener in self._listeners:
-                listener.result.disconnect(self.emit_listen_complete)
-                listener.error.disconnect(self.emit_listen_error)
+                listener.result.disconnect(self.emit_report_received)
+                listener.error.disconnect(self.emit_error_received)
                 listener.close()
-        self._listeners = []
+        self._listeners.clear()
 
     @Slot()
-    def start(self, listen_for: QButtonGroup) -> None:
-        self.listen_for = listen_for
+    def start(self, listen_for: QButtonGroup) -> bool:
+        """Starts listeners for all selected buttons in listen_for configuration.
+        Returns False if no listeners were started."""
+        self._listen_for = listen_for
         self._start_listeners()
+        return bool(self._listeners)
 
     def stop(self) -> None:
+        """Stops all active listeners and clears IP report record."""
         self._stop_listeners()
         self.record.clear()
 
-    def _is_duplicate_record(self, result: IPReport) -> bool:
-        if not self.record.size:
-            return False
-        for ent in self.record.items():
-            key, data = ent
-            if key == result.ip:
-                if data.mac != result.mac:
-                    return False
-                else:
-                    # check record age
-                    if time.time() - data.updated_at <= RECORD_MIN_AGE:
-                        logger.warning(f" [{result.ip}] : duplicate packet.")
-                        return True
-                    return False
-        return False
+    def emit_report_received(self, result: IPReport) -> None:
+        logger.debug(f" got listener result: {result}")
+        result.updated_at = time.time()
+        if self.record.add(result):
+            logger.info(" received IP Report result.")
+            self.report_received.emit(result)
 
-    def emit_listen_complete(self, result: IPReport) -> None:
-        logger.debug(f" got listen_complete result: {result}")
-        if not self._is_duplicate_record(result):
-            logger.info(" listen_complete signal result.")
-            result.updated_at = time.time()
-            self.record[result.ip] = result
-            self.listen_complete.emit(result)
+    def emit_error_received(self, error: ListenerError) -> None:
+        listener = self.sender()
+        if isinstance(listener, Listener) and listener in self._listeners:
+            listener.result.disconnect(self.emit_report_received)
+            listener.error.disconnect(self.emit_error_received)
+            self._listeners.remove(listener)
 
-    def emit_listen_error(self, error: str) -> None:
-        logger.error(" listen_error signal result!")
-        self.listen_error.emit(error)
+        logger.error(f" emit listen error! {error}")
+        self.error_received.emit(error)
