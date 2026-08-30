@@ -93,10 +93,9 @@ class IPReportDatagram:
 
     def _decompress_payload(self) -> bool:
         zlib_offset: int = -1
+        magic = QByteArray(ZLIB_MAGIC)
         for offset in ZLIB_OFFSETS:
-            if offset < self.data.size() and self.data.at(offset) == str(
-                ZLIB_MAGIC, "utf-8"
-            ):
+            if self.data.mid(offset, magic.size()) == magic:
                 zlib_offset = offset
                 break
         if zlib_offset == -1:
@@ -106,7 +105,7 @@ class IPReportDatagram:
             out = zlib.decompress(candidate.data())
         except zlib.error as ex:
             logger.warning(f"{self.__repr__()}: failed to decompress payload - ignore")
-            logger.debug(f"{self.__repr__()}: {ex} - {self.data.toStdString()}")
+            logger.debug(f"{self.__repr__()}: {ex} - {self.data.data().hex()}")
             return False
         if self.report.hint == MinerTypeHint.SEALMINER:
             # wrap the decompressed data in JSON array to be able to fully parse

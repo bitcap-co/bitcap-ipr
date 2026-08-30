@@ -111,6 +111,20 @@ class TestIPReportParsingRegressions(unittest.TestCase):
         self.assertFalse(parsed._decompress_payload())
         self.assertEqual(parsed.data, payload)
 
+    def test_invalid_utf8_datagrams_are_rejected_without_raising(self) -> None:
+        for payload in (b"\xd0", b"x\xd0"):
+            with self.subTest(payload=payload):
+                datagram = QNetworkDatagram(
+                    QByteArray(payload),
+                    QHostAddress("127.0.0.1"),
+                    MinerTypeHint.ELPHAPEX,
+                )
+                datagram.setSender(QHostAddress("192.168.1.23"), 9999)
+
+                parsed = IPReportDatagram(datagram)
+
+                self.assertFalse(parsed.valid)
+
     def test_sealminer_checks_every_reported_interface(self) -> None:
         payload_path = Path(__file__).parent / "payloads" / "sealminer_a2.json"
         payload = cast(
