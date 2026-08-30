@@ -3,6 +3,7 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
+from .action_controller import MinerActionController, MinerActionDependencies
 from .contextmenu import IPRTableContextMenu
 from .controller import IPRTableController, IPRTableWidgets
 from .controlpopup import MinerControlPopup
@@ -39,5 +40,7 @@ __all__ = [
     "IPRTableController",
     "IPRTableModel",
     "IPRTableWidgets",
+    "MinerActionController",
+    "MinerActionDependencies",
     "MinerControlPopup",
 ]

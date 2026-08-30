@@ -3,18 +3,20 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-"""Tests for the main-window miner control action bridge."""
+"""Tests for miner action orchestration and the retained pool bridge."""
 
+import asyncio
 import unittest
 from types import SimpleNamespace
 from typing import Any
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, call
 
 import config  # noqa: F401  # initialize Pydantic before importing PySide-backed IPR
 from ipr import IPR
 from mod.ipr_asic import MinerResult
 from mod.ipr_asic.data import MinerFirmware, MinerType
 from mod.ipr_asic.errors import APIError
+from ui.widgets import MinerActionController
 
 
 class _ControlFacade:
@@ -31,12 +33,12 @@ class _ControlFacade:
         return self.result
 
 
-class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
+class TestMinerActionController(unittest.IsolatedAsyncioTestCase):
     async def test_single_control_forwards_target_and_auth(self):
         facade = _ControlFacade()
         subject: Any = SimpleNamespace(
-            asic=facade,
-            table_controller=SimpleNamespace(
+            _asic=facade,
+            _table_controller=SimpleNamespace(
                 miner_target=Mock(
                     return_value=(
                         "10.0.0.1",
@@ -45,19 +47,19 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
                     )
                 )
             ),
-            get_client_auth=Mock(return_value="secret"),
-            notify=Mock(),
+            _auth_provider=Mock(return_value="secret"),
+            notification_requested=Mock(),
         )
 
-        await IPR._control_miner(subject, 4, "start")
+        await MinerActionController.control_miner(subject, 4, "start")
 
-        subject.table_controller.miner_target.assert_called_once_with(4)
-        subject.get_client_auth.assert_called_once_with(MinerType.ANTMINER.value)
+        subject._table_controller.miner_target.assert_called_once_with(4)
+        subject._auth_provider.assert_called_once_with(MinerType.ANTMINER.value)
         self.assertEqual(
             facade.calls,
             [("start", MinerType.ANTMINER, "10.0.0.1", "secret")],
         )
-        subject.notify.assert_called_once_with(
+        subject.notification_requested.emit.assert_called_once_with(
             "Status :: Successfully completed start for 10.0.0.1.",
             3000,
         )
@@ -66,8 +68,8 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
         error = APIError("command failed")
         facade = _ControlFacade(MinerResult(error=error))
         subject: Any = SimpleNamespace(
-            asic=facade,
-            table_controller=SimpleNamespace(
+            _asic=facade,
+            _table_controller=SimpleNamespace(
                 miner_target=Mock(
                     return_value=(
                         "10.0.0.2",
@@ -76,13 +78,13 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
                     )
                 )
             ),
-            get_client_auth=Mock(return_value=None),
-            notify=Mock(),
+            _auth_provider=Mock(return_value=None),
+            notification_requested=Mock(),
         )
 
-        await IPR._control_miner(subject, 1, "start")
+        await MinerActionController.control_miner(subject, 1, "start")
 
-        subject.notify.assert_called_once_with(
+        subject.notification_requested.emit.assert_called_once_with(
             "Status :: Failed to start 10.0.0.2: command failed",
             5000,
         )
@@ -91,18 +93,17 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
         facade = _ControlFacade()
         run_bulk_action = AsyncMock()
         subject: Any = SimpleNamespace(
-            asic=facade,
-            _run_bulk_action=run_bulk_action,
-            notify=Mock(),
+            _asic=facade,
+            run_bulk_action=run_bulk_action,
         )
 
-        await IPR._bulk_control_miners(subject, "reboot", [2, 5])
+        await MinerActionController.bulk_control_miners(subject, "reboot", [2, 5])
 
         run_bulk_action.assert_awaited_once()
-        await_args = run_bulk_action.await_args
-        if await_args is None:
+        awaited = run_bulk_action.await_args
+        if awaited is None:
             self.fail("bulk action was not awaited")
-        action, rows, make_coro = await_args.args
+        action, rows, make_coro = awaited.args
         self.assertEqual(action, "Reboot")
         self.assertEqual(rows, [2, 5])
 
@@ -119,6 +120,157 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
             [("reboot", MinerType.ANTMINER, "10.0.0.3", "secret")],
         )
 
+    async def test_bulk_action_maps_rows_auth_and_results(self):
+        success = MinerResult(data={"success": True})
+        failure = MinerResult(error=APIError("offline"))
+        table_controller = SimpleNamespace(
+            miner_target=Mock(
+                side_effect=[
+                    ("10.0.0.10", MinerType.ANTMINER, MinerFirmware.STOCK),
+                    ("10.0.0.11", MinerType.VNISH, MinerFirmware.VNISH),
+                ]
+            )
+        )
+        auth_provider = Mock(side_effect=["ant-secret", "vnish-secret"])
+        coroutine_factory = Mock(
+            side_effect=[
+                self._result(success),
+                self._result(failure),
+            ]
+        )
+        on_success = Mock()
+        subject: Any = SimpleNamespace(
+            _table_controller=table_controller,
+            _auth_provider=auth_provider,
+            _locate_duration_ms=5000,
+            _stopping=False,
+            notification_requested=Mock(),
+        )
+
+        await MinerActionController.run_bulk_action(
+            subject,
+            "Refresh",
+            [2, 6],
+            coroutine_factory,
+            on_success=on_success,
+        )
+
+        self.assertEqual(
+            table_controller.miner_target.call_args_list,
+            [call(2), call(6)],
+        )
+        self.assertEqual(
+            auth_provider.call_args_list,
+            [
+                call(MinerType.ANTMINER.value),
+                call(MinerType.VNISH.value),
+            ],
+        )
+        on_success.assert_called_once_with(2, "10.0.0.10", success)
+        subject.notification_requested.emit.assert_called_once_with(
+            "Status :: Refresh failed for ['10.0.0.11'].", 5000
+        )
+
+    @staticmethod
+    async def _result(result: MinerResult) -> MinerResult:
+        return result
+
+    async def test_refresh_updates_source_row_and_reports_success(self):
+        result = MinerResult(data={"mac": "AA:BB:CC:DD:EE:FF"})
+        table_controller = SimpleNamespace(
+            miner_target=Mock(
+                return_value=(
+                    "10.0.0.12",
+                    MinerType.VNISH,
+                    MinerFirmware.VNISH,
+                )
+            ),
+            populate_data=Mock(),
+        )
+        asic = SimpleNamespace(
+            _parse_http_type=AsyncMock(return_value=MinerType.ANTMINER),
+            get_miner_data=AsyncMock(return_value=result),
+        )
+        subject: Any = SimpleNamespace(
+            _asic=asic,
+            _table_controller=table_controller,
+            _auth_provider=Mock(return_value="secret"),
+            _update_refreshed_row=lambda row, ip, refreshed: (
+                MinerActionController._update_refreshed_row(subject, row, ip, refreshed)
+            ),
+            notification_requested=Mock(),
+        )
+
+        await MinerActionController.refresh_miner(subject, 8)
+
+        subject._auth_provider.assert_called_once_with(MinerType.ANTMINER.value)
+        asic.get_miner_data.assert_awaited_once_with(
+            MinerType.ANTMINER,
+            "10.0.0.12",
+            alt_pwd="secret",
+        )
+        table_controller.populate_data.assert_called_once()
+        populated_data, source_row = table_controller.populate_data.call_args.args
+        self.assertEqual(source_row, 8)
+        self.assertEqual(populated_data["ip"], "10.0.0.12")
+        self.assertEqual(populated_data["mac"], "aa:bb:cc:dd:ee:ff")
+        self.assertIsInstance(populated_data["recv_at"], int)
+        subject.notification_requested.emit.assert_called_once_with(
+            "Status :: Successfully refreshed 10.0.0.12 miner data.", 3000
+        )
+
+    async def test_unsupported_locate_is_skipped(self):
+        run_bulk_action = AsyncMock()
+        subject: Any = SimpleNamespace(
+            _asic=SimpleNamespace(locate_miner=Mock()),
+            run_bulk_action=run_bulk_action,
+            notification_requested=Mock(),
+        )
+
+        await MinerActionController._locate_rows(subject, [4])
+
+        awaited = run_bulk_action.await_args
+        if awaited is None:
+            self.fail("locate bulk action was not awaited")
+        action, rows, make_coro = awaited.args
+        self.assertEqual(action, "Locate")
+        self.assertEqual(rows, [4])
+        operation = make_coro(
+            4,
+            "10.0.0.13",
+            MinerType.IPOLLO,
+            MinerFirmware.STOCK,
+            None,
+        )
+        self.assertIsNone(operation)
+        subject._asic.locate_miner.assert_not_called()
+        subject.notification_requested.emit.assert_called_once_with(
+            "Status :: Skipping 10.0.0.13: Ipollo locate is not supported.",
+            5000,
+        )
+
+    async def test_stop_cancels_locate_and_scheduled_tasks(self):
+        loop = asyncio.get_running_loop()
+        locate_task = loop.create_task(self._wait_forever())
+        scheduled_task = loop.create_task(self._wait_forever())
+        subject: Any = SimpleNamespace(
+            _stopping=False,
+            _control_popup=None,
+            _locate_task=locate_task,
+            _tasks={scheduled_task},
+        )
+
+        MinerActionController.stop(subject)
+        await asyncio.sleep(0)
+
+        self.assertTrue(subject._stopping)
+        self.assertTrue(locate_task.cancelled())
+        self.assertTrue(scheduled_task.cancelled())
+
+    @staticmethod
+    async def _wait_forever() -> None:
+        await asyncio.Event().wait()
+
     async def test_bulk_refresh_redetects_type_and_auth_before_fetch(self):
         result = MinerResult(data={"type": "antminer", "mac": "N/A"})
         asic = SimpleNamespace(
@@ -127,20 +279,17 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
         )
         run_bulk_action = AsyncMock()
         subject: Any = SimpleNamespace(
-            asic=asic,
-            table_controller=SimpleNamespace(),
-            get_client_auth=Mock(return_value="antminer-secret"),
-            _run_bulk_action=run_bulk_action,
-            notify=Mock(),
+            _asic=asic,
+            _auth_provider=Mock(return_value="antminer-secret"),
+            run_bulk_action=run_bulk_action,
         )
 
-        await IPR.bulk_refresh_miners(subject, [3])
+        await MinerActionController.bulk_refresh_miners(subject, [3])
 
-        run_bulk_action.assert_awaited_once()
-        await_args = run_bulk_action.await_args
-        if await_args is None:
+        awaited = run_bulk_action.await_args
+        if awaited is None:
             self.fail("bulk refresh was not awaited")
-        action, rows, make_coro = await_args.args
+        action, rows, make_coro = awaited.args
         self.assertEqual(action, "Refresh")
         self.assertEqual(rows, [3])
 
@@ -154,14 +303,16 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
 
         self.assertIs(refresh_result, result)
         asic._parse_http_type.assert_awaited_once_with("10.0.0.4")
-        subject.get_client_auth.assert_called_once_with(MinerType.ANTMINER.value)
+        subject._auth_provider.assert_called_once_with(MinerType.ANTMINER.value)
         asic.get_miner_data.assert_awaited_once_with(
             MinerType.ANTMINER,
             "10.0.0.4",
             alt_pwd="antminer-secret",
         )
 
-    async def test_update_pools_uses_shared_bulk_engine(self):
+
+class TestIPRPoolActionBridge(unittest.IsolatedAsyncioTestCase):
+    async def test_update_pools_uses_action_controller_bulk_engine(self):
         result = MinerResult(data={"success": True})
         asic = SimpleNamespace(update_miner_pools=AsyncMock(return_value=result))
         run_bulk_action = AsyncMock()
@@ -173,6 +324,7 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
 
         subject: Any = SimpleNamespace(
             asic=asic,
+            action_controller=SimpleNamespace(run_bulk_action=run_bulk_action),
             table_controller=SimpleNamespace(miner_at=Mock()),
             linePoolURL=field("stratum://pool-1"),
             linePoolURL_2=field("stratum://pool-2"),
@@ -184,7 +336,6 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
             linePoolPasswd_2=field("y"),
             linePoolPasswd_3=field(""),
             checkAutomaticWorkerNames=Mock(),
-            _run_bulk_action=run_bulk_action,
             notify=Mock(),
         )
         subject.table_controller.miner_at.return_value = SimpleNamespace(
@@ -195,11 +346,10 @@ class TestMinerControlBridge(unittest.IsolatedAsyncioTestCase):
 
         await IPR.update_miner_pools(subject, [7])
 
-        run_bulk_action.assert_awaited_once()
-        await_args = run_bulk_action.await_args
-        if await_args is None:
+        awaited = run_bulk_action.await_args
+        if awaited is None:
             self.fail("pool update bulk action was not awaited")
-        action, rows, make_coro = await_args.args
+        action, rows, make_coro = awaited.args
         self.assertEqual(action, "Update Pools")
         self.assertEqual(rows, [7])
 

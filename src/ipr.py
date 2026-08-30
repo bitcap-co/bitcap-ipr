@@ -3,11 +3,8 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-import asyncio
 import logging
-import time
 import webbrowser
-from collections.abc import Callable
 from enum import Enum, auto
 from logging.handlers import RotatingFileHandler
 from typing import Any, override
@@ -49,7 +46,7 @@ import ui.resources  # noqa F401
 from config import IPRConfig, PoolPreset, PresetType, SocketPreset
 from iprabout import IPRAbout
 from iprconfirmation import IPRConfirmation
-from mod.ipr_asic import ASICClient, MinerResult
+from mod.ipr_asic import ASICClient
 from mod.ipr_asic import settings as api_settings
 from mod.ipr_asic.data import MinerData, MinerFirmware, MinerType
 from mod.ipr_asic.errors import UnknownClientError
@@ -73,7 +70,8 @@ from ui.widgets import (
     IPRTableController,
     IPRTableWidgets,
     IPRTitlebar,
-    MinerControlPopup,
+    MinerActionController,
+    MinerActionDependencies,
 )
 from utils import (
     CURR_PLATFORM,
@@ -217,8 +215,6 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         logger.info(" init mod ipr_asic.")
         self.asic: ASICClient = ASICClient(self)
-        # tracks the in-flight locate coroutine to prevent concurrent locates
-        self._locate_task: asyncio.Task | None = None
         logger.info(" init miner locate duration for 10000ms.")
         self.locate_duration_ms: int = api_settings.get("locate_duration_ms")
 
@@ -264,9 +260,22 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         self.table_controller.notification_requested.connect(self.notify)
         self.table_controller.dashboard_requested.connect(self.open_dashboard)
-        self.table_controller.miner_action_requested.connect(self.open_miner_control)
+        self.action_controller: MinerActionController = MinerActionController(
+            parent=self,
+            dependencies=MinerActionDependencies(
+                table_controller=self.table_controller,
+                asic=self.asic,
+                auth_provider=self.get_client_auth,
+                bulk_control_button=self.btnBulkControl,
+                locate_duration_ms=self.locate_duration_ms,
+            ),
+        )
+        self.action_controller.notification_requested.connect(self.notify)
+        self.table_controller.miner_action_requested.connect(
+            self.action_controller.open_miner_control
+        )
         self.table_controller.bulk_miner_action_requested.connect(
-            self._dispatch_bulk_control
+            self.action_controller.dispatch_bulk_control
         )
         self.table_controller.pool_retrieval_requested.connect(self.get_miner_pool)
         self.table_controller.pool_update_requested.connect(self.update_miner_pools)
@@ -459,13 +468,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.labelIPRLogo.setPixmap(QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg"))
 
         # action center
-        self.id_control_popup: MinerControlPopup | None = None
         self.btnBulkRefresh.setIcon(QIcon(":theme/icons/rc/refresh.png"))
         self.btnBulkRefresh.clicked.connect(self.table_controller.request_bulk_refresh)
         self.btnBulkLocate.setIcon(QIcon(":theme/icons/rc/flash.png"))
         self.btnBulkLocate.clicked.connect(self.table_controller.request_bulk_locate)
         self.btnBulkControl.setIcon(QIcon(":theme/icons/rc/wrench.png"))
-        self.btnBulkControl.clicked.connect(self.open_bulk_control)
+        self.btnBulkControl.clicked.connect(self.action_controller.open_bulk_control)
         self.btnBulkConfig.setIcon(QIcon(":theme/icons/rc/edit.png"))
         self.btnBulkConfig.clicked.connect(
             lambda: self.toggle_configurator_settings(True)
@@ -1287,6 +1295,7 @@ class IPR(QMainWindow, Ui_MainWindow):
 
     def update_miner_locate_duration(self):
         self.locate_duration_ms = self.spinLocateDuration.value() * 1000
+        self.action_controller.set_locate_duration_ms(self.locate_duration_ms)
         api_settings.update("locate_duration_ms", self.locate_duration_ms)
         logger.info(f" update miner locate duration: {self.locate_duration_ms}ms.")
 
@@ -2023,247 +2032,6 @@ Statistics:
                 return None
         return client_auth
 
-    def open_miner_control(self, row: int) -> None:
-        # single-use control popup anchored under the clicked action cell
-        popup = MinerControlPopup(self)
-        popup.action_selected.connect(
-            lambda key, r=row: self._dispatch_miner_control(r, key)
-        )
-        self.id_control_popup = popup
-        popup.show_at(self.table_controller.action_anchor(row))
-
-    def _dispatch_miner_control(self, row: int, key: str) -> None:
-        match key:
-            case "refresh":
-                asyncio.ensure_future(self.refresh_miner(row))
-            case "locate":
-                asyncio.ensure_future(self.locate_miner(row))
-            case "start" | "stop" | "restart" | "reboot":
-                asyncio.ensure_future(self._control_miner(row, key))
-            case _:
-                logger.warning(f"_dispatch_miner_control : unknown action '{key}'.")
-
-    async def _control_miner(self, row: int, key: str) -> None:
-        ip_addr, miner_type, _ = self.table_controller.miner_target(row)
-        logger.info(f"_control_miner : '{key}' requested for {ip_addr}.")
-        alt_pwd = self.get_client_auth(miner_type.value)
-        operation = getattr(self.asic, f"{key}_miner")
-        res: MinerResult = await operation(miner_type, ip_addr, alt_pwd=alt_pwd)
-        if res.error:
-            logger.error(f"_control_miner : {key} failed for {ip_addr}: {res.error}")
-            return self.notify(
-                f"Status :: Failed to {key} {ip_addr}: {res.error!s}",
-                5000,
-            )
-        self.notify(
-            f"Status :: Successfully completed {key} for {ip_addr}.",
-            3000,
-        )
-
-    def open_bulk_control(self) -> None:
-        # same control popup as the per-row glyph, anchored under the toolbar
-        # button; actions apply to the selection (or all visible rows)
-        popup = MinerControlPopup(self)
-        popup.action_selected.connect(self.table_controller.request_bulk_action)
-        self.id_control_popup = popup
-        btn = self.btnBulkControl
-        anchor = btn.mapToGlobal(btn.rect().bottomLeft())
-        popup.show_at(anchor)
-
-    def _dispatch_bulk_control(self, key: str, rows: list[int]) -> None:
-        match key:
-            case "refresh":
-                self.bulk_refresh_miners(rows)
-            case "locate":
-                self.bulk_locate_miners(rows)
-            case "start" | "stop" | "restart" | "reboot":
-                asyncio.ensure_future(self._bulk_control_miners(key, rows))
-            case _:
-                logger.warning(f"_dispatch_bulk_control : unknown action '{key}'.")
-
-    async def _bulk_control_miners(self, key: str, rows: list[int]) -> None:
-        action = key.capitalize()
-        operation = getattr(self.asic, f"{key}_miner")
-
-        def make_coro(
-            row: int,
-            ip_addr: str,
-            miner_type: MinerType,
-            fw_type: MinerFirmware,
-            alt_pwd: str | None,
-        ):
-            return operation(miner_type, ip_addr, alt_pwd=alt_pwd)
-
-        await self._run_bulk_action(action, rows, make_coro)
-
-    async def _run_bulk_action(
-        self,
-        action: str,
-        rows: list[int],
-        coro_factory: Callable[[int, str, MinerType, MinerFirmware, str | None], Any],
-        *,
-        on_success: Callable[[int, str, MinerResult], None] | None = None,
-    ) -> None:
-        """Fan a per-miner async operation out over ``rows`` concurrently.
-
-        ``coro_factory(row, ip, miner_type, fw_type, alt_pwd)`` returns the
-        coroutine to run for a row, or ``None`` to skip that row. Results are
-        gathered, classified into passed/failed, and summarised via ``notify``.
-        ``on_success``
-        (if given) runs for each miner whose result carried no error.
-        """
-        ips: list[str] = []
-        task_rows: list[int] = []
-        tasks = []
-        for row in rows:
-            ip_addr, miner_type, fw_type = self.table_controller.miner_target(row)
-            alt_pwd = self.get_client_auth(miner_type.value)
-            coro = coro_factory(row, ip_addr, miner_type, fw_type, alt_pwd)
-            if coro is None:
-                continue
-            ips.append(ip_addr)
-            task_rows.append(row)
-            tasks.append(coro)
-        if not tasks:
-            return
-
-        if action == "Locate":
-            self.notify(
-                f"Status :: {action} started for {self.locate_duration_ms / 1000}s.",
-                self.locate_duration_ms,
-            )
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        passed: list[str] = []
-        failed: list[str] = []
-        for row, ip_addr, res in zip(task_rows, ips, results):
-            if isinstance(res, Exception) or res.error is not None:
-                err = res if isinstance(res, Exception) else res.error
-                logger.error(f"{action} : {ip_addr} : {err!s}")
-                failed.append(ip_addr)
-            else:
-                if on_success is not None:
-                    on_success(row, ip_addr, res)
-                passed.append(ip_addr)
-
-        logger.info(
-            f"status for action '{action}': passed - {passed}, failed - {failed}"
-        )
-        if failed:
-            return self.notify(f"Status :: {action} failed for {failed}.", 5000)
-        self.notify(f"Status :: {action} succeeded for {len(passed)} miners.", 3000)
-
-    async def _locate_rows(self, rows: list[int]) -> None:
-        """Blink the fault light on every miner in ``rows`` concurrently.
-
-        Unsupported miners (Volcminer/HiveGPU) are skipped. The cancel-safe
-        blink-off is handled inside ``ASICClient.locate_miner``'s ``finally``,
-        so cancelling this batch turns every LED back off.
-        """
-
-        def make_coro(
-            row: int,
-            ip_addr: str,
-            miner_type: MinerType,
-            fw_type: MinerFirmware,
-            alt_pwd: str | None,
-        ):
-            if miner_type in (MinerType.VOLCMINER, MinerType.HIVEGPU, MinerType.IPOLLO):
-                logger.error(f"locate : {miner_type.value} is currently not supported.")
-                self.notify(
-                    f"Status :: Skipping {ip_addr}: {miner_type.value.capitalize()} locate is not supported.",
-                    5000,
-                )
-                return None
-            return self.asic.locate_miner(miner_type, ip_addr, alt_pwd=alt_pwd)
-
-        await self._run_bulk_action("Locate", rows, make_coro)
-
-    async def _start_locate(self, rows: list[int]) -> None:
-        """Launch a locate batch, cancelling any locate already in flight.
-
-        A single cancellable ``self._locate_task`` backs both the per-row
-        glyph and the bulk action (cancel-and-replace guard).
-        """
-        if not rows:
-            return
-        if self._locate_task and not self._locate_task.done():
-            self._locate_task.cancel()
-            try:
-                await self._locate_task
-            except asyncio.CancelledError:
-                pass
-        self._locate_task = asyncio.ensure_future(self._locate_rows(rows))
-        try:
-            await self._locate_task
-        except asyncio.CancelledError:
-            return
-
-    async def locate_miner(self, row: int):
-        # single-row locate is the N=1 case of the shared locate engine
-        await self._start_locate([row])
-
-    @asyncSlot(object)
-    async def bulk_locate_miners(self, rows: list[int]):
-        await self._start_locate(rows)
-
-    async def refresh_miner(self, row: int):
-        ip_addr, miner_type, _ = self.table_controller.miner_target(row)
-        logger.info(f" refresh miner {ip_addr}.")
-        # check for updated miner type from HTTP, catching firmware/type change
-        update_type = await self.asic._parse_http_type(ip_addr)
-        if update_type is not None and update_type != miner_type:
-            miner_type = update_type
-        alt_pwd = self.get_client_auth(miner_type.value)
-        res = await self.asic.get_miner_data(miner_type, ip_addr, alt_pwd=alt_pwd)
-        if isinstance(res.error, UnknownClientError):
-            logger.error(f"refresh_miner : {res.error!s}")
-            return self.notify(f"Status :: Failed action: {res.error!s}", 5000)
-        if res.error:
-            return self.notify(
-                f"Status :: Failed to get complete miner data {ip_addr}: {res.error!s}",
-                5000,
-            )
-        miner_data = res.data
-        miner_data["recv_at"] = int(time.time())
-        miner_data["ip"] = ip_addr
-        miner_data["mac"] = (
-            miner_data["mac"].lower() if miner_data["mac"] != "N/A" else "N/A"
-        )
-        self.table_controller.populate_data(miner_data, row)
-        self.notify(f"Status :: Successfully refreshed {ip_addr} miner data.", 3000)
-
-    @asyncSlot(object)
-    async def bulk_refresh_miners(self, rows: list[int]):
-        async def make_coro(
-            row: int,
-            ip_addr: str,
-            miner_type: MinerType,
-            fw_type: MinerFirmware,
-            alt_pwd: str | None,
-        ):
-            # Re-detect each miner before fetching so firmware changes select
-            # the correct client and authentication settings.
-            updated_type = await self.asic._parse_http_type(ip_addr)
-            if updated_type is not None and updated_type != miner_type:
-                miner_type = updated_type
-                alt_pwd = self.get_client_auth(miner_type.value)
-            return await self.asic.get_miner_data(
-                miner_type,
-                ip_addr,
-                alt_pwd=alt_pwd,
-            )
-
-        def on_success(row: int, ip_addr: str, res: MinerResult):
-            miner_data = res.data
-            miner_data["recv_at"] = int(time.time())
-            miner_data["ip"] = ip_addr
-            miner_data["mac"] = (
-                miner_data["mac"].lower() if miner_data["mac"] != "N/A" else "N/A"
-            )
-            self.table_controller.populate_data(miner_data, row)
-
-        await self._run_bulk_action("Refresh", rows, make_coro, on_success=on_success)
-
     @asyncSlot(int)
     async def get_miner_pool(self, source_row: int):
         ip_addr, miner_type, _ = self.table_controller.miner_target(source_row)
@@ -2342,7 +2110,7 @@ Statistics:
                 alt_pwd=alt_pwd,
             )
 
-        await self._run_bulk_action("Update Pools", rows, make_coro)
+        await self.action_controller.run_bulk_action("Update Pools", rows, make_coro)
 
     @asyncSlot()
     async def update_miner_passwds(self):
@@ -2389,7 +2157,9 @@ Statistics:
                 miner_type, ip_addr, curr_passwd, curr_passwd, new_passwd
             )
 
-        await self._run_bulk_action("Update Passwords", rows, make_coro)
+        await self.action_controller.run_bulk_action(
+            "Update Passwords", rows, make_coro
+        )
 
     # exit
     def close_to_tray_or_exit(self):
@@ -2424,6 +2194,7 @@ Statistics:
             self.toggle_visibility()
         self.sys_tray.hide()
         self.update_controller.stop()
+        self.action_controller.stop()
         self.iprd_discovery.close()
         self.iprd.close()
         self.iprd.error.disconnect(self.show_iprd_error)
