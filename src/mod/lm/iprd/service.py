@@ -7,6 +7,7 @@ import ipaddress
 import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor
+from typing import ClassVar, override
 
 from pydantic import BaseModel, ConfigDict
 from PySide6.QtCore import QObject, Signal, Slot
@@ -30,7 +31,7 @@ def _create_zeroconf() -> Zeroconf:
 class IPRDService(BaseModel):
     """Resolved endpoint advertised by an IPR Daemon instance."""
 
-    model_config = ConfigDict(frozen=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
 
     name: str
     instance_name: str
@@ -75,16 +76,16 @@ class IPRDServiceListener(QObject, ServiceListener):
         error (str): emitted when startup or service resolution fails.
     """
 
-    service_found = Signal(IPRDService)
-    service_updated = Signal(IPRDService)
-    service_removed = Signal(str)
-    started = Signal()
-    stopped = Signal()
-    error = Signal(str)
+    service_found: Signal = Signal(IPRDService)
+    service_updated: Signal = Signal(IPRDService)
+    service_removed: Signal = Signal(str)
+    started: Signal = Signal()
+    stopped: Signal = Signal()
+    error: Signal = Signal(str)
 
-    _resolved = Signal(object, int, int, bool)
-    _removed = Signal(str, int, int)
-    _resolution_failed = Signal(str, str, int, int)
+    _resolved: Signal = Signal(object, int, int, bool)
+    _removed: Signal = Signal(str, int, int)
+    _resolution_failed: Signal = Signal(str, str, int, int)
 
     def __init__(
         self,
@@ -95,22 +96,23 @@ class IPRDServiceListener(QObject, ServiceListener):
         if resolve_timeout_ms <= 0:
             raise ValueError("resolve_timeout_ms must be positive")
 
-        self.resolve_timeout_ms = resolve_timeout_ms
+        self.resolve_timeout_ms: int = resolve_timeout_ms
         self._zeroconf: Zeroconf | None = None
         self._browser: ServiceBrowser | None = None
         self._services: dict[str, IPRDService] = {}
         self._revisions: dict[str, int] = {}
-        self._session = 0
-        self._lock = threading.RLock()
-        self._active = False
-        self._power_suspended = False
-        self._resume_after_suspend = False
-        self._resume_refresh_pending = False
+        self._session: int = 0
+        self._lock: threading.RLock = threading.RLock()
+        self._active: bool = False
+        self._power_suspended: bool = False
+        self._resume_after_suspend: bool = False
+        self._resume_refresh_pending: bool = False
 
         self._resolved.connect(self._publish_resolved)
         self._removed.connect(self._publish_removed)
         self._resolution_failed.connect(self._publish_resolution_error)
 
+    @override
     def __repr__(self, /) -> str:
         return f"{self.__class__.__name__}[{IPRD_SERVICE_TYPE}]"
 
@@ -271,12 +273,15 @@ class IPRDServiceListener(QObject, ServiceListener):
     def close(self) -> None:
         self.stop()
 
+    @override
     def add_service(self, zc: Zeroconf, type_: str, name: str) -> None:
         self._queue_resolution(zc, type_, name, is_update=False)
 
+    @override
     def update_service(self, zc: Zeroconf, type_: str, name: str) -> None:
         self._queue_resolution(zc, type_, name, is_update=True)
 
+    @override
     def remove_service(self, zc: Zeroconf, type_: str, name: str) -> None:
         del type_
         with self._lock:

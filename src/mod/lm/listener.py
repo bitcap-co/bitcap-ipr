@@ -42,7 +42,7 @@ class Listener(QObject):
 
     Signals:
         result (IPReport): emits IPReport data on valid IP Report datagram.
-        error (ListenerError) : emits socket error string on socket error.
+        error (ListenerError) : emits a ListenerError on socket runtime error.
     """
 
     # Signals
@@ -51,14 +51,14 @@ class Listener(QObject):
 
     def __init__(self, port: int, parent: QObject | None = None) -> None:
         super().__init__(parent)
+        self._closed: bool = False
+        self.listen_error: ListenerError | None = None
         self.addr: QHostAddress = QHostAddress(QHostAddress.SpecialAddress.AnyIPv4)
         self.port: int = int(port)
         self._port_type: MinerTypeHint = MinerTypeHint.UNKNOWN
         self.port_name: str = ""
         self._get_listener_name()
 
-        self._closed: bool = False
-        self.listen_error: ListenerError | None = None
         self._snap_len: int = 1600
         self._sock: QUdpSocket = QUdpSocket(self)
         self.bound: bool = self._sock.bind(self.addr, self.port)

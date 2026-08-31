@@ -81,15 +81,16 @@ class Record(OrderedDict[str, IPReport]):
 class ListenerManager(QObject):
     """
     ListenerManager is a UDP listener manager.
-    It manages a configurable set of Listeners for supported ASIC cryptominers and forwards validated IP reports.
+    It manages a configurable set of Listeners for supported ASIC cryptominers
+    and forwards validated IP reports.
 
     Args:
         parent (QObject) : The parent object.
 
     Signals:
-        report_received (IPReport) : emits on a Listener.result signal with validated IP report data.
-        error_received (ListenerError) : emits on a Listener.error signal with error.
-        bind_failed (ListenerError) : emits when a Listener fails to bind with error.
+        report_received (IPReport) : emits IPReport when a Listener receives a IP report result.
+        error_received (ListenerError) : emits a ListenerError when a socket error occurred on a Listener.
+        bind_failed (ListenerError) : emits a ListenerError when a Listener fails to bind.
     """
 
     # Signals
@@ -107,17 +108,10 @@ class ListenerManager(QObject):
     def __repr__(self, /) -> str:
         return f"{self.__class__.__name__}"
 
-    def _get_common_listener(self) -> Listener | None:
-        return next(
-            (l for l in self._listeners if l.port == int(MinerTypeHint.COMMON)), None
-        )
-
     @property
-    def enabled(self) -> list[str]:
-        """Returns the list of enabled button names from listen_for configuration."""
-        return [
-            btn.text().lower() for btn in self._listen_for.buttons() if btn.isChecked()
-        ]
+    def count(self) -> int:
+        """Returns the number of currently active listeners."""
+        return len(self._listeners)
 
     @property
     def status(self) -> str:
@@ -143,9 +137,16 @@ class ListenerManager(QObject):
         return status
 
     @property
-    def count(self) -> int:
-        """Returns the number of currently active listeners."""
-        return len(self._listeners)
+    def enabled(self) -> list[str]:
+        """Returns the list of enabled button names from listen_for configuration."""
+        return [
+            btn.text().lower() for btn in self._listen_for.buttons() if btn.isChecked()
+        ]
+
+    def _get_common_listener(self) -> Listener | None:
+        return next(
+            (l for l in self._listeners if l.port == int(MinerTypeHint.COMMON)), None
+        )
 
     def _append_listener(self, port: int) -> None:
         # guard: don't try and bind to the common port if it's already bound

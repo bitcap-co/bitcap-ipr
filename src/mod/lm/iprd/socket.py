@@ -78,8 +78,13 @@ class IPRDResponse(BaseModel):
 class IPRDSocket(QObject):
     """
     TCP socket handler for IPR Daemon.
-
     Facilitates sending commands to a running IPR Daemon instance over TCP.
+
+    Args:
+        parent (QObject | None): Optional parent object.
+
+    Signals:
+        error (str): emits error string on command/socket error.
     """
 
     # signals
@@ -100,20 +105,9 @@ class IPRDSocket(QObject):
     def __repr__(self, /) -> str:
         return f"{self.__class__.__name__}[{self.ip.toString()}:{self.port}]"
 
-    def send_command(self, command: IPRDCommand) -> IPRDResponse | None:
-        return self._send_command(command)
-
-    def status(self) -> IPRDStatus | None:
-        response = self.send_command(IPRDCommand(command=IPRD_CMD_STATUS))
-        if response is None:
-            return None
-        if response.error:
-            self._emit_command_error(response.error)
-            return None
-        if response.type != IPRD_CMD_STATUS or response.status is None:
-            self._emit_command_error("Invalid status response.")
-            return None
-        return response.status
+    def _remaining_timeout(self, started_at: float) -> int:
+        elapsed_ms = int((time.monotonic() - started_at) * 1000)
+        return max(0, self._timeout_ms - elapsed_ms)
 
     def _send_command(self, command: IPRDCommand) -> IPRDResponse | None:
         self.close()
@@ -149,15 +143,9 @@ class IPRDSocket(QObject):
         finally:
             self.close()
 
-    def _remaining_timeout(self, started_at: float) -> int:
-        elapsed_ms = int((time.monotonic() - started_at) * 1000)
-        return max(0, self._timeout_ms - elapsed_ms)
-
-    def _emit_command_error(self, message: str) -> None:
-        logger.error(f"{self.__repr__()} : {message}")
-        self.error.emit(message)
-
     def set_socket_addr(self, ip: str = "127.0.0.1", port: int = 7788) -> bool:
+        """Sets host IP and port for iprd TCP socket connection.
+        Returns False on invalid address/port."""
         host_addr = QHostAddress(ip)
         if host_addr.isNull():
             logger.error(
@@ -172,6 +160,27 @@ class IPRDSocket(QObject):
         self.ip = host_addr
         self.port = port
         return True
+
+    def send_command(self, command: IPRDCommand) -> IPRDResponse | None:
+        """Sends IPRDCommand to iprd TCP socket."""
+        return self._send_command(command)
+
+    def status(self) -> IPRDStatus | None:
+        """Sends 'iprd_status' command to iprd TCP socket and returns response."""
+        response = self.send_command(IPRDCommand(command=IPRD_CMD_STATUS))
+        if response is None:
+            return None
+        if response.error:
+            self._emit_command_error(response.error)
+            return None
+        if response.type != IPRD_CMD_STATUS or response.status is None:
+            self._emit_command_error("Invalid status response.")
+            return None
+        return response.status
+
+    def _emit_command_error(self, message: str) -> None:
+        logger.error(f"{self.__repr__()} : {message}")
+        self.error.emit(message)
 
     def emit_error(self, error: QAbstractSocket.SocketError) -> None:
         if error == QAbstractSocket.SocketError.RemoteHostClosedError:

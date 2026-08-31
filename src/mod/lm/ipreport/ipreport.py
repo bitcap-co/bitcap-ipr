@@ -66,10 +66,7 @@ class IPReportDatagram:
 
     @property
     def ip_report(self) -> IPReport:
-        """
-        Returns:
-            IPReport: the IP Report data from IPRReportDatagram.
-        """
+        """Returns the extracted IP report data from the datagram."""
         if self.report.ip == "":
             self.report.ip = self.src_addr.toString()
         self.report.sort_ip = self._sort_ip()
