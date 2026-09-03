@@ -13,5 +13,5 @@ APP_METADATA: dict[str, str] = {
     "author": "MatthewWertman",
     "source": "https://github.com/bitcap-co/bitcap-ipr",
     "company": "Bit Capital Group",
-    "desc": "Cross-platform IP reporter that listens for AntMiner, IceRiver, and Whatsminer ASICs."
+    "desc": "cross-platform IP reporter that listens for AntMiner, IceRiver, and Whatsminer ASICs."
 }
