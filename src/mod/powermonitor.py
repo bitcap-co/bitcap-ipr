@@ -40,18 +40,18 @@ class PowerMonitor(QObject):
     """
 
     # Signals
-    aboutToSuspend = Signal()
-    resumed = Signal()
+    aboutToSuspend: Signal = Signal()
+    resumed: Signal = Signal()
 
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
-        self._backend = None
+        self._backend: str | None = None
         # Track suspend state so duplicate OS notifications collapse to a single
         # signal. WM_POWERBROADCAST in particular is delivered to every
         # top-level window, so one real event fires the filter several times.
-        self._suspended = False
+        self._suspended: bool = False
         # log an unattended (automatic) wake at most once per suspend period.
-        self._auto_wake_logged = False
+        self._auto_wake_logged: bool = False
         if CURR_PLATFORM.startswith("linux"):
             self._init_linux()
         elif CURR_PLATFORM == "win32":
