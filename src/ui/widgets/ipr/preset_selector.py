@@ -24,8 +24,8 @@ class IPRPresetSelector(QWidget):
     aliases for the button clicks.
     """
 
-    create_requested = Signal()
-    remove_requested = Signal()
+    create_requested: Signal = Signal()
+    remove_requested: Signal = Signal()
 
     def __init__(
         self,
@@ -49,7 +49,7 @@ class IPRPresetSelector(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
 
-        self.combo = QComboBox(self)
+        self.combo: QComboBox = QComboBox(self)
         size_policy = QSizePolicy(
             QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed
         )
@@ -66,10 +66,12 @@ class IPRPresetSelector(QWidget):
         bold = QFont()
         bold.setBold(True)
 
-        self.add_button = self._make_tool_button("＋", add_tooltip, bold)
+        self.add_button: QToolButton = self._make_tool_button("＋", add_tooltip, bold)
         layout.addWidget(self.add_button)
 
-        self.remove_button = self._make_tool_button("−", remove_tooltip, bold)
+        self.remove_button: QToolButton = self._make_tool_button(
+            "−", remove_tooltip, bold
+        )
         layout.addWidget(self.remove_button)
 
         self.add_button.clicked.connect(self.create_requested)

@@ -1295,7 +1295,8 @@ Statistics:
             self.aboutDialog = IPRAbout(
                 self,
                 "About",
-                f"{IPR_METADATA['name']} is a {IPR_METADATA['desc']}\nVersion {IPR_METADATA['appversion']}\nQt Version {IPR_METADATA['qt']}\nPython Version {IPR_METADATA['python']}\n{IPR_METADATA['author']}\nPowered by {IPR_METADATA['company']}\n",
+                f"{IPR_METADATA['name']} is a {IPR_METADATA['desc']}\nVersion {IPR_METADATA['appversion']}\nQt Version {IPR_METADATA['qt']}\n"
+                f"Python Version {IPR_METADATA['python']}\n{IPR_METADATA['author']}\nPowered by {IPR_METADATA['company']}\n",
             )
             self.aboutDialog.show()
 
