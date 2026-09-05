@@ -6,15 +6,17 @@
 import asyncio
 import json
 import re
-from abc import abstractmethod
+from abc import ABC
 from typing import Self
 
 from mod.ipr_asic import settings
 from mod.ipr_asic.errors import APIError, FailedConnectionError
-from mod.ipr_asic.protocol import BaseClient
+from mod.ipr_asic.schemas.models import APIObject
+
+from .base import BaseClient
 
 
-class BaseRPCClient(BaseClient):
+class BaseRPCClient(BaseClient, ABC):
     """Base client for async JSON-RPC (CGMiner-family) APIs over TCP.
 
     Mirrors the synchronous apiv2 transport: a fresh connection is opened per
@@ -25,15 +27,15 @@ class BaseRPCClient(BaseClient):
     def __init__(self, ip: str, port: int = 4028, alt_pwd: str | None = None) -> None:
         super().__init__(ip, port)
 
-        self._timeout = settings.get("rpc_blocking_timeout", 10.0)
+        self._timeout: float = settings.get("rpc_blocking_timeout", 10.0)
         self.connected: bool = False
 
-    def __new__(cls, *args, **kwargs) -> Self:
+    def __new__(cls, ip: str, port: int = 4028, alt_pwd: str | None = None) -> Self:
         if cls is BaseRPCClient:
             raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
         return object.__new__(cls)
 
-    async def _do_rpc(self, command: str) -> dict:
+    async def _do_rpc(self, command: str) -> APIObject:
         try:
             reader, writer = await asyncio.wait_for(
                 asyncio.open_connection(self.ip, self.port), timeout=self._timeout
@@ -62,7 +64,7 @@ class BaseRPCClient(BaseClient):
             except (OSError, asyncio.TimeoutError):
                 pass
 
-    def _load_api_data(self, data: bytes) -> dict:
+    def _load_api_data(self, data: bytes) -> APIObject:
         # some json from the API returns with a null byte (\x00) on the end
         if data.endswith(b"\x00"):
             str_data = data.decode("utf-8", errors="replace")[:-1]
@@ -96,101 +98,14 @@ class BaseRPCClient(BaseClient):
 
     async def send_command(
         self, command: str, parameters: str | int | bool | None = None, **kwargs
-    ) -> dict:
+    ) -> APIObject:
         cmd = {"command": command, **kwargs}
         if parameters:
             cmd["parameter"] = parameters
         return await self._do_rpc(json.dumps(cmd))
 
-    async def send_privileged_command(self, *args, **kwargs) -> dict:
+    async def send_privileged_command(self, *args, **kwargs) -> APIObject:
         return await self.send_command(*args, **kwargs)
-
-    @abstractmethod
-    async def version(self) -> dict:
-        """Get miner version information."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def summary(self) -> dict:
-        """Get miner status information."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def stats(self) -> list[dict]:
-        """Get miner statistics."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def devs(self) -> list[dict]:
-        """Get miner device information."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def devdetails(self) -> list[dict]:
-        """Get miner device details."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def pools(self) -> list[dict]:
-        """Get miner pool status information."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def get_system_info(self) -> dict:
-        """Get miner system information."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def get_pool_conf(self) -> list[dict]:
-        """Get current miner pool configuration."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def get_blink_status(self) -> dict:
-        """Get miner LED blink status."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def blink(self, enabled: bool, *args, **kwargs) -> dict:
-        """Blink miner LEDS for locating."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def set_miner_mode(self, *args, **kwargs) -> dict:
-        """Set mining mode."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def start(self) -> dict:
-        """Start mining."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def stop(self) -> dict:
-        """Stop mining."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def restart(self) -> dict:
-        """Restart mining."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def reboot(self) -> dict:
-        """Reboot miner."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
-        """Update miner password."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def update_pool_conf(
-        self, urls: list[str], users: list[str], passwds: list[str]
-    ) -> dict:
-        """Update the current miner pool configuration."""
-        raise NotImplementedError
 
     @staticmethod
     async def _recv_all(reader: asyncio.StreamReader, buf_size: int) -> bytes | None:
@@ -203,7 +118,3 @@ class BaseRPCClient(BaseClient):
                 return None
             data += packet
         return data
-
-    def _close(self, ex: Exception | None = None) -> None:
-        if ex:
-            self._ex = ex

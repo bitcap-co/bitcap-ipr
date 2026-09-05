@@ -5,10 +5,11 @@
 
 import json
 import logging
+from typing import final, override
 
 import httpx
 from Crypto.Cipher import AES
-from pydantic import BaseModel, Field, RootModel, TypeAdapter, ValidationError
+from pydantic import ValidationError
 
 from mod.ipr_asic import settings
 from mod.ipr_asic.errors import (
@@ -17,83 +18,24 @@ from mod.ipr_asic.errors import (
     AuthenticationError,
     FailedConnectionError,
 )
-from mod.ipr_asic.models import ActionResponse, BlinkStatus, MinerConfPool
 from mod.ipr_asic.protocol import BaseHTTPClient
+from mod.ipr_asic.schemas.goldshell import (
+    AlgoSettings,
+    Devs,
+    MinerPool,
+    PoolsResponse,
+    Settings,
+    Status,
+)
+from mod.ipr_asic.schemas.models import (
+    ActionResultModel,
+    APIObject,
+    BlinkStatus,
+    MinerPoolConfig,
+    PoolConfig,
+)
 
 logger = logging.getLogger(__name__)
-
-
-class PowerPlan(BaseModel):
-    info: str
-    level: int
-
-
-class Settings(BaseModel):
-    ledcontrol: bool
-    manual: bool
-    manual_power_plan: str = Field(alias="manualPowerplan")
-    name: str
-    power_plans: list[PowerPlan] = Field(alias="powerplans")
-    select: int
-    temp_target: int | None = None
-    temp_targets: list[float] | None = None
-    tempcontrol: bool
-    version: str
-
-
-class Status(BaseModel):
-    firmware: str
-    hardware: str
-    mcbversion: str
-    model: str
-
-
-class Pool(BaseModel):
-    url: str = ""
-    user: str = ""
-    passwd: str = Field("", alias="pass")
-    pool_priority: int = Field(alias="pool-priority")
-    legal: bool
-    active: bool
-    dragid: int
-
-
-class PoolSettings(RootModel[list[Pool]]):
-    pass
-
-
-class Algo(BaseModel):
-    name: str
-    id: int
-
-
-class AlgoSettings(BaseModel):
-    algos: list[Algo]
-    version: str
-    algo_select: int
-
-
-class Chain(BaseModel):
-    id: int
-    valid: int
-    time: int
-    powerplan: int
-    av_hashrate: float
-    accepted: int
-    rejected: int
-    hwerrors: int
-    hwerr_ration: float
-    hashrate: float
-    nonces: int
-    temp: str
-    fanspeed: str
-    minerstatus: int
-    adjustpower: int
-
-
-class Devs(BaseModel):
-    status: int
-    data: list[Chain]
 
 
 def zero_pad(data: bytes, block_size: int) -> bytes:
@@ -112,6 +54,7 @@ def encrypt(plain: str) -> str:
     return cipher.encrypt(padded).hex()
 
 
+@final
 class GoldshellHTTPClient(BaseHTTPClient):
     def __init__(
         self,
@@ -125,15 +68,16 @@ class GoldshellHTTPClient(BaseHTTPClient):
         self.username: str = "admin"
         if alt_pwd:
             settings.set_alt_auth("goldshell", alt_pwd)
-        self.passwds = settings.get_auth_list("goldshell")
+        self.passwds: list[str] = settings.get_auth_list("goldshell")
 
-        self.command_path = "mcb/{command}"
-        self.token = None
+        self.command_path: str = "mcb/{command}"
+        self.token: str | None = None
 
+    @override
     async def authenticate(self) -> None:
         try:
             resp = await self._do_http("GET", path="user/logout")
-            resp.raise_for_status()
+            _ = resp.raise_for_status()
         except (httpx.HTTPError, httpx.ConnectError, httpx.TimeoutException):
             raise FailedConnectionError("Failed to connect or timeout occurred.")
         for pwd in self.passwds:
@@ -159,17 +103,11 @@ class GoldshellHTTPClient(BaseHTTPClient):
         if not self.authed:
             raise AuthenticationError("Failed to authenticate.")
 
-    async def get_hostname(self) -> str:
-        return await super().get_hostname()
-
     async def get_mac_addr(self) -> str:
         resp = await self.get_miner_conf()
-        return resp["name"]
+        return resp.name
 
-    async def get_api_version(self) -> str:
-        return await super().get_api_version()
-
-    async def get_system_info(self) -> dict:
+    async def get_system_info(self) -> Status:
         resp = await self.send_command("GET", command="status")
         try:
             resobj = Status.model_validate(obj=resp)
@@ -177,15 +115,9 @@ class GoldshellHTTPClient(BaseHTTPClient):
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump()
+            return resobj
 
-    async def get_network_info(self) -> dict:
-        return await super().get_network_info()
-
-    async def log(self, *args, **kwargs) -> dict:
-        return await super().log(*args, **kwargs)
-
-    async def summary(self) -> dict:
+    async def summary(self) -> Devs:
         resp = await self.send_command(
             "GET", command="cgminer", params={"cgminercmd": "devs"}
         )
@@ -195,9 +127,9 @@ class GoldshellHTTPClient(BaseHTTPClient):
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump()
+            return resobj
 
-    async def get_miner_conf(self) -> dict:
+    async def get_miner_conf(self) -> Settings:
         resp = await self.send_command("GET", command="setting")
         try:
             resobj = Settings.model_validate(obj=resp, by_alias=True)
@@ -205,12 +137,12 @@ class GoldshellHTTPClient(BaseHTTPClient):
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump(by_alias=True, exclude_none=True)
+            return resobj
 
-    async def set_miner_conf(self, conf: dict) -> dict:
+    async def set_miner_conf(self, conf: APIObject) -> APIObject:
         return await self.send_command("PUT", command="setting", payload=conf)
 
-    async def get_algo(self) -> dict:
+    async def get_algo(self) -> AlgoSettings:
         resp = await self.send_command("GET", command="algosetting")
         try:
             resobj = AlgoSettings.model_validate(obj=resp)
@@ -218,60 +150,51 @@ class GoldshellHTTPClient(BaseHTTPClient):
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump()
+            return resobj
 
-    async def pools(self) -> list[dict]:
+    async def pools(self) -> list[MinerPool]:
         resp = await self.send_command("GET", command="pools")
         try:
-            resobj = PoolSettings.model_validate(obj=resp, by_alias=True)
+            resobj = PoolsResponse.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump(by_alias=True)
+            return resobj.root
 
-    async def get_pool_conf(self) -> list[dict]:
+    async def get_pool_conf(self) -> PoolConfig:
         pools = await self.pools()
-        ta = TypeAdapter(list[MinerConfPool])
-        pool_conf = ta.validate_python(pools, by_name=True)
-        return ta.dump_python(pool_conf, by_alias=True)
+        pool_conf: list[MinerPoolConfig] = []
+        for pool in pools:
+            pool_conf.append(
+                MinerPoolConfig(url=pool.url, user=pool.user, pwd=pool.passwd)
+            )
+        return PoolConfig(pool_conf)
 
-    async def get_miner_status(self) -> dict:
-        return await super().get_miner_status()
-
-    async def get_blink_status(self) -> dict:
+    async def get_blink_status(self) -> BlinkStatus:
         resp = await self.get_miner_conf()
-        blink = BlinkStatus(blink=resp["ledcontrol"])
-        return blink.model_dump()
+        blink = BlinkStatus(blink=resp.ledcontrol)
+        return blink
 
-    async def blink(self, enabled: bool, *args, **kwargs) -> dict:
-        resp = await self.get_miner_conf()
-        conf = Settings.model_construct(**resp)
+    @override
+    async def blink(self, enabled: bool) -> APIObject:
+        conf = await self.get_miner_conf()
         conf.ledcontrol = enabled
         payload = conf.model_dump(by_alias=True)
         return await self.set_miner_conf(conf=payload)
 
-    async def set_miner_mode(self, *args, **kwargs) -> dict:
-        return await super().set_miner_mode(*args, **kwargs)
-
-    async def start(self) -> dict:
-        return await super().start()
-
-    async def stop(self) -> dict:
-        return await super().stop()
-
-    async def restart(self) -> dict:
+    @override
+    async def restart(self) -> APIObject:
         return await self.send_command("PUT", command="restart")
 
-    async def reboot(self) -> dict:
-        return await super().reboot()
+    @override
+    async def reboot(self) -> APIObject:
+        return await self.restart()
 
-    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
-        return await super().update_passwd(old_passwd, new_passwd)
-
+    @override
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
-    ) -> dict:
+    ) -> APIObject:
         if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
             raise APIError("Invalid length of arguments")
 
@@ -285,11 +208,11 @@ class GoldshellHTTPClient(BaseHTTPClient):
             }
             resp = await self.send_command("PUT", command="newpool", payload=pool)
             try:
-                PoolSettings.model_validate(obj=resp, by_alias=True)
+                _ = PoolsResponse.model_validate(obj=resp, by_alias=True)
             except ValidationError as e:
                 logger.error(
                     f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}"
                 )
                 raise APIInvalidResponse
-        resobj = ActionResponse(success=True, msg="OK")
+        resobj = ActionResultModel(success=True, msg="OK")
         return resobj.model_dump(mode="json")

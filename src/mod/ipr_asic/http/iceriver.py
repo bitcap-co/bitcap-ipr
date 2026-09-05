@@ -5,10 +5,10 @@
 
 import json
 import logging
-from typing import Any, Literal
+from typing import Literal, final, override
 
 import httpx
-from pydantic import BaseModel, Field, TypeAdapter, ValidationError
+from pydantic import TypeAdapter, ValidationError
 
 from mod.ipr_asic import settings
 from mod.ipr_asic.errors import (
@@ -17,125 +17,25 @@ from mod.ipr_asic.errors import (
     AuthenticationError,
     FailedConnectionError,
 )
-from mod.ipr_asic.models import BlinkStatus
 from mod.ipr_asic.protocol import BaseHTTPClient
+from mod.ipr_asic.schemas.iceriver import (
+    ActionResult,
+    MinerConfig,
+    MinerPool,
+    NetworkInfo,
+    UserPanel,
+)
+from mod.ipr_asic.schemas.models import (
+    APIObject,
+    BlinkStatus,
+    MinerPoolConfig,
+    PoolConfig,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class ActionResponse(BaseModel):
-    error: int
-    message: str
-    data: dict[str, Any] = Field(default_factory=dict)
-
-    def error_(self) -> str | None:
-        if self.error != 0:
-            return f"receieved API Error ({self.error}): {self.message}"
-
-
-class NetInfo(BaseModel):
-    nic: str
-    mac: str
-    ip: str
-    netmask: str
-    host: str
-    dhcp: bool
-    gateway: str
-    dns: str
-
-
-class Pool(BaseModel):
-    no: int
-    addr: str
-    user: str
-    passwd: str = Field(alias="pass")
-    connect: int
-    diff: str
-    priority: int
-    accepted: int
-    rejected: int
-    diffa: int
-    diffr: int
-    state: int
-    lsdiff: int
-    lstime: str
-
-
-class Board(BaseModel):
-    no: int
-    chipnum: int
-    chipsuc: int
-    error: int
-    freq: int
-    rtpow: str
-    avgpow: str
-    idealpow: str
-    pcbtemp: str
-    intmp: int
-    outtmp: int
-    state: bool
-    false: list[int]
-
-
-class MinerConf(BaseModel):
-    pools: list[Pool]
-    ratio: int
-    mode: int
-    locate: int
-
-
-class MinerStatus(BaseModel):
-    netstate: bool
-    powstate: bool
-    tempstate: bool
-    fanstate: bool
-
-
-class UserPanel(BaseModel):
-    nic: str
-    mac: str
-    ip: str
-    netmask: str
-    host: str
-    dhcp: bool
-    gateway: str
-    dns: str
-    model: str
-    algo: str
-    online: bool
-    firmver1: str
-    firmver2: str
-    softver1: str
-    softver2: str
-    firmtype: str
-    locate: bool
-    rtpow: str
-    avgpow: str
-    reject: float
-    runtime: str
-    unit: str
-    netstate: bool
-    powstate: bool
-    tempstate: bool
-    fanstate: bool
-    fans: list[int]
-    pools: list[Pool]
-    boards: list[Board]
-    reftime: str = Field(alias="refTime")
-
-
-class MinerConfPool(BaseModel):
-    addr: str = ""
-    user: str = ""
-    passwd: str = Field(default="", alias="pass")
-
-
-class MinerConfigPasswd(BaseModel):
-    curr_passwd: str = Field(alias="nowpwd")
-    new_passwd: str = Field(alias="newpwd")
-    confirm_passwd: str = Field(alias="compwd")
-
-
+@final
 class IceriverHTTPClient(BaseHTTPClient):
     def __init__(
         self,
@@ -149,10 +49,11 @@ class IceriverHTTPClient(BaseHTTPClient):
         self.username: str = "admin"
         if alt_pwd:
             settings.set_alt_auth("iceriver", alt_pwd)
-        self.passwds = settings.get_auth_list("iceriver")
+        self.passwds: list[str] = settings.get_auth_list("iceriver")
 
-        self.command_path = "user/{command}"
+        self.command_path: str = "user/{command}"
 
+    @override
     async def authenticate(self) -> None:
         for pwd in self.passwds:
             if not pwd:
@@ -163,7 +64,7 @@ class IceriverHTTPClient(BaseHTTPClient):
                         self.base_url + "user/loginpost",
                         data={"post": 6, "user": self.username, "pwd": pwd},
                     )
-                    resp.raise_for_status()
+                    _ = resp.raise_for_status()
             except (
                 httpx.ConnectError,
                 httpx.TimeoutException,
@@ -175,7 +76,7 @@ class IceriverHTTPClient(BaseHTTPClient):
                 if resp.status_code == 200:
                     try:
                         resobj = resp.json()
-                        action_resp = ActionResponse(**resobj)
+                        action_resp = ActionResult(**resobj)
                     except (json.JSONDecodeError, ValidationError):
                         break
                     else:
@@ -190,32 +91,26 @@ class IceriverHTTPClient(BaseHTTPClient):
 
     async def get_hostname(self) -> str:
         resp = await self.get_network_info()
-        return resp["host"]
+        return resp.host
 
     async def get_mac_addr(self) -> str:
         resp = await self.get_network_info()
-        return resp["mac"]
+        return resp.mac
 
-    async def get_api_version(self) -> str:
-        return await super().get_api_version()
-
-    async def get_system_info(self) -> dict:
+    async def get_system_info(self) -> UserPanel:
         return await self.summary()
 
-    async def get_network_info(self) -> dict:
+    async def get_network_info(self) -> NetworkInfo:
         resp = await self.send_command("POST", command="ipconfig", data={"post": 1})
         try:
-            resobj = NetInfo.model_validate(obj=resp["data"])
+            resobj = NetworkInfo.model_validate(obj=resp["data"])
         except (ValidationError, KeyError) as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump()
+            return resobj
 
-    async def log(self, *args, **kwargs) -> dict:
-        return await super().log(*args, **kwargs)
-
-    async def summary(self) -> dict:
+    async def summary(self) -> UserPanel:
         resp = await self.send_command("POST", command="userpanel", data={"post": 4})
         try:
             resobj = UserPanel.model_validate(obj=resp["data"], by_alias=True)
@@ -223,24 +118,24 @@ class IceriverHTTPClient(BaseHTTPClient):
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump()
+            return resobj
 
-    async def get_miner_conf(self) -> dict:
+    async def get_miner_conf(self) -> MinerConfig:
         resp = await self.send_command(
             "POST", command="machineconfig", data={"post": 1}
         )
         try:
-            resobj = MinerConf.model_validate(obj=resp["data"], by_alias=True)
+            resobj = MinerConfig.model_validate(obj=resp["data"], by_alias=True)
         except (ValidationError, KeyError) as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump(by_alias=True)
+            return resobj
 
-    async def set_miner_conf(self, conf: dict) -> dict:
+    async def set_miner_conf(self, conf: APIObject) -> APIObject:
         resp = await self.send_command("POST", command="machineconfig", data=conf)
         try:
-            resobj = ActionResponse.model_validate(obj=resp)
+            resobj = ActionResult.model_validate(obj=resp)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
@@ -251,32 +146,30 @@ class IceriverHTTPClient(BaseHTTPClient):
                 raise APIError("Command failed!")
             return resobj.model_dump()
 
-    async def pools(self) -> list[dict]:
+    async def pools(self) -> list[MinerPool]:
         resp = await self.summary()
-        ta = TypeAdapter(list[Pool])
-        pools = ta.validate_python(resp["pools"], by_name=True)
-        return ta.dump_python(pools, by_alias=True)
+        return resp.pools
 
-    async def get_pool_conf(self) -> list[dict]:
+    async def get_pool_conf(self) -> PoolConfig:
         resp = await self.get_miner_conf()
-        ta = TypeAdapter(list[MinerConfPool])
-        pools = ta.validate_python(resp["pools"], by_name=True)
-        return ta.dump_python(pools, by_alias=True)
+        pool_conf: list[MinerPoolConfig] = []
+        for pool in resp.pools:
+            pool_conf.append(
+                MinerPoolConfig(url=pool.addr, user=pool.user, pwd=pool.passwd)
+            )
+        return PoolConfig(pool_conf)
 
-    async def get_miner_status(self) -> dict:
-        return await super().get_miner_status()
-
-    async def get_blink_status(self) -> dict:
-        resp = await self.summary()
-        user = UserPanel.model_construct(**resp)
+    async def get_blink_status(self) -> BlinkStatus:
+        user = await self.summary()
         blink_status = BlinkStatus(blink=user.locate)
-        return blink_status.model_dump()
+        return blink_status
 
-    async def blink(self, enabled: bool, *args, **kwargs) -> dict:
+    @override
+    async def blink(self, enabled: bool) -> APIObject:
         data = {"post": 5, "locate": 1 if enabled else 0}
         resp = await self.send_command("POST", command="userpanel", data=data)
         try:
-            resobj = ActionResponse.model_validate(obj=resp)
+            resobj = ActionResult.model_validate(obj=resp)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
@@ -287,14 +180,14 @@ class IceriverHTTPClient(BaseHTTPClient):
                 raise APIError("Command failed!")
             return resobj.model_dump()
 
-    async def set_miner_mode(self, mode: Literal["normal", "sleep"] = "normal") -> dict:
-        resp = await self.get_miner_conf()
-        conf = MinerConf.model_construct(**resp)
-        data: dict[str, Any] = {"post": 3}
+    async def set_miner_mode(
+        self, mode: Literal["normal", "sleep"] = "normal"
+    ) -> APIObject:
+        conf = await self.get_miner_conf()
+        data: APIObject = {"post": 3}
         data["fanratio"] = f"{conf.ratio}"
         data["fanmode"] = mode
-        ta = TypeAdapter(list[MinerConfPool])
-        pools = ta.validate_python(resp["pools"], by_name=True)
+        pools = conf.pools
         for i, pool in enumerate(pools):
             idx = i + 1
             data[f"pool{idx}address"] = pool.addr
@@ -302,19 +195,24 @@ class IceriverHTTPClient(BaseHTTPClient):
             data[f"pool{idx}pwd"] = pool.passwd
         return await self.set_miner_conf(conf=data)
 
-    async def start(self) -> dict:
+    @override
+    async def start(self) -> APIObject:
         return await self.set_miner_mode(mode="normal")
 
-    async def stop(self) -> dict:
+    @override
+    async def stop(self) -> APIObject:
         return await self.set_miner_mode(mode="sleep")
 
-    async def restart(self) -> dict:
+    @override
+    async def restart(self) -> APIObject:
         return await self.reboot()
 
-    async def reboot(self) -> dict:
+    @override
+    async def reboot(self) -> APIObject:
         return await self.send_command("POST", command="userpanel", data={"post": 3})
 
-    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
+    @override
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> APIObject:
         data = {
             "post": 2,
             "nowpwd": old_passwd,
@@ -323,7 +221,7 @@ class IceriverHTTPClient(BaseHTTPClient):
         }
         resp = await self.send_command("POST", command="systemconfig", data=data)
         try:
-            resobj = ActionResponse.model_validate(obj=resp)
+            resobj = ActionResult.model_validate(obj=resp)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
@@ -334,30 +232,30 @@ class IceriverHTTPClient(BaseHTTPClient):
                 raise APIError("Command failed!")
             return resobj.model_dump()
 
+    @override
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
-    ) -> dict:
+    ) -> APIObject:
         if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
             raise APIError("Invalid length of arguments")
 
-        resp = await self.get_miner_conf()
-        conf = MinerConf.model_construct(**resp)
-        pool_conf: list[dict[str, str]] = await self.get_pool_conf()
+        conf = await self.get_miner_conf()
+        pool_conf = await self.get_pool_conf()
+        ta = TypeAdapter(list[MinerPoolConfig])
+        pools: list[dict[str, str]] = ta.dump_python(pool_conf.root)
 
-        data: dict[str, Any] = {"post": 2}
+        data: APIObject = {"post": 2}
         data["fanratio"] = f"{conf.ratio}"
         match conf.mode:
             case 0:
                 data["fanmode"] = "sleep"
             case 1:
                 data["fanmode"] = "normal"
+            case _:
+                data["fanmode"] = "normal"
 
         for i in range(len(urls)):
-            if (
-                not any(pool_conf[i].values())
-                and not len(urls[i])
-                and not len(users[i])
-            ):
+            if not any(pools[i].values()) and not len(urls[i]) and not len(users[i]):
                 continue
             idx = i + 1
             data[f"pool{idx}address"] = urls[i]

@@ -7,11 +7,13 @@ import asyncio
 import json
 import logging
 import struct
-from typing import Any, Self
+from typing import Self, override
 
 from mod.ipr_asic import settings
 from mod.ipr_asic.errors import APIError, APIInvalidResponse, FailedConnectionError
-from mod.ipr_asic.protocol import BaseClient
+from mod.ipr_asic.schemas.models import APIObject
+
+from .base import BaseClient
 
 logger = logging.getLogger(__name__)
 
@@ -33,12 +35,16 @@ class BaseTCPClient(BaseClient):
     ) -> None:
         super().__init__(ip, port)
 
-        self._timeout = settings.get("tcp_blocking_timeout", 10.0)
+        self._timeout: float = settings.get("tcp_blocking_timeout", 10.0)
         self.connected: bool = False
         self._reader: asyncio.StreamReader | None = None
         self._writer: asyncio.StreamWriter | None = None
 
-    def __new__(cls, *args, **kwargs) -> Self:
+        self._ex: Exception | None = None
+
+    def __new__(
+        cls, ip: str, port: int, username: str | None = None, alt_pwd: str | None = None
+    ) -> Self:
         if cls is BaseTCPClient:
             raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
         return object.__new__(cls)
@@ -56,8 +62,8 @@ class BaseTCPClient(BaseClient):
         return self.connected
 
     # whatsminer v3 api methods
-    async def btv3_send(self, msg: str, msg_len: int) -> dict[str, Any]:
-        await self.connect()
+    async def btv3_send(self, msg: str, msg_len: int) -> APIObject:
+        _ = await self.connect()
         if self._reader is None or self._writer is None:
             return {}
         packed_size = struct.pack("<I", msg_len)
@@ -109,7 +115,8 @@ class BaseTCPClient(BaseClient):
         self._writer = None
         self.connected = False
 
-    def _close(self, ex: Exception | None = None) -> None:
+    @override
+    def close(self, ex: Exception | None = None) -> None:
         if self._writer is not None:
             try:
                 self._writer.close()

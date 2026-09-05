@@ -5,20 +5,25 @@
 
 import json
 import logging
-from abc import abstractmethod
-from typing import Any
+from abc import ABC, abstractmethod
+from typing import Any, Self
 
 import httpx
 from httpx import Auth, BasicAuth, DigestAuth
 
 from mod.ipr_asic import settings
 from mod.ipr_asic.errors import APIError, AuthenticationError, FailedConnectionError
-from mod.ipr_asic.protocol import BaseClient
+from mod.ipr_asic.schemas.models import (
+    APIObject,
+    ContentResponse,
+)
+
+from .base import BaseClient
 
 logger = logging.getLogger(__name__)
 
 
-class BaseHTTPClient(BaseClient):
+class BaseHTTPClient(BaseClient, ABC):
     """Base client for async HTTP APIs (httpx) for handling requests/commands."""
 
     def __init__(
@@ -29,7 +34,7 @@ class BaseHTTPClient(BaseClient):
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
         super().__init__(ip, port)
-        self.base_url = f"http://{self.ip}:{self.port}/"
+        self.base_url: str = f"http://{self.ip}:{self.port}/"
         # format string for command path, use "{command}" placeholder
         self.command_path: str = "{command}"
 
@@ -38,7 +43,18 @@ class BaseHTTPClient(BaseClient):
         self.cookies: str | None = None
 
         # optional injectable transport (e.g. httpx.MockTransport in tests)
-        self._transport = transport
+        self._transport: httpx.AsyncBaseTransport | None = transport
+
+    def __new__(
+        cls,
+        ip: str,
+        port: int = 80,
+        alt_pwd: str | None = None,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> Self:
+        if cls is BaseHTTPClient:
+            raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
+        return object.__new__(cls)
 
     def _new_client(self, **kwargs: Any) -> httpx.AsyncClient:
         """Build an AsyncClient, injecting the shared transport/timeout.
@@ -46,15 +62,11 @@ class BaseHTTPClient(BaseClient):
         When a transport is injected (tests), it takes precedence over any
         ``verify`` option (httpx ignores verify when a transport is supplied).
         """
-        kwargs.setdefault("timeout", settings.get("api_function_timeout", 5))
+        kwargs.setdefault("timeout", settings.get("api_function_timeout", 5.0))
         if self._transport is not None:
             kwargs["transport"] = self._transport
             kwargs.pop("verify", None)
         return httpx.AsyncClient(**kwargs)
-
-    @abstractmethod
-    async def authenticate(self) -> None:
-        pass
 
     async def _do_http(
         self,
@@ -68,7 +80,7 @@ class BaseHTTPClient(BaseClient):
         verify: bool = True,
     ) -> httpx.Response:
         if timeout is None:
-            timeout = settings.get("api_function_timeout", 5)
+            timeout = settings.get("api_function_timeout", 5.0)
         async with self._new_client(verify=verify, timeout=timeout) as c:
             if self.token:
                 c.headers.update({"Token": self.token})
@@ -101,7 +113,7 @@ class BaseHTTPClient(BaseClient):
         params: dict[str, str] | None = None,
         payload: dict[str, Any] | None = None,
         data: dict[str, Any] | None = None,
-    ) -> dict:
+    ) -> APIObject:
         if not self.authed:
             try:
                 await self.authenticate()
@@ -110,9 +122,9 @@ class BaseHTTPClient(BaseClient):
                 AuthenticationError,
                 httpx.RequestError,
             ) as ex:
-                self._ex = ex
+                self.set_error(ex)
                 raise
-        headers = {}
+        headers: dict[str, str] = {}
         if self.cookies:
             headers.update({"Cookie": self.cookies})
         path = self.command_path.format(command=command)
@@ -125,7 +137,15 @@ class BaseHTTPClient(BaseClient):
                 payload=payload,
                 data=data,
             )
-            resp.raise_for_status()
+            _ = resp.raise_for_status()
+            if resp.status_code == 200:
+                try:
+                    return resp.json()
+                except json.JSONDecodeError:
+                    content = resp.content.decode().strip("\n")
+                    if content == "Socket connect failed: Connection refused":
+                        raise APIError("API not available: connection refused")
+                    return ContentResponse(text=content).model_dump()
         except httpx.HTTPError as ex:
             if isinstance(ex, (httpx.ConnectTimeout, httpx.ReadTimeout)):
                 logger.error(
@@ -141,127 +161,11 @@ class BaseHTTPClient(BaseClient):
                     f"{self.__repr__()} : request {method} {self.base_url + path} failed! {ex!s}"
                 )
             raise APIError("Failed to send command")
-        else:
-            if resp.status_code == 200:
-                try:
-                    return resp.json()
-                except json.JSONDecodeError:
-                    content = resp.content.decode().strip("\n")
-                    if content == "Socket connect failed: Connection refused":
-                        raise APIError("API not available: connection refused")
-                    return {"text": resp.content.decode()}
         logger.error(
             f"{self.__repr__()} : request {method} {self.base_url + path} failed! Unknown error occurred!"
         )
         raise APIError("Unknown error")
 
     @abstractmethod
-    async def get_hostname(self) -> str:
-        """Get miner hostname from network configuration."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def get_mac_addr(self) -> str:
-        """Get miner MAC address."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def get_api_version(self) -> str:
-        """Get miner API version."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def get_system_info(self) -> dict:
-        """Get miner system information."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def get_network_info(self) -> dict:
-        """Get miner network information."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def log(self, *args, **kwargs) -> dict:
-        """Get miner log."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def summary(self) -> dict:
-        """Get miner status information."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def get_miner_conf(self) -> dict:
-        """Get current miner configuration."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def set_miner_conf(self, *args, **kwargs) -> dict:
-        """Set miner configuration."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def pools(self) -> list[dict]:
-        """Get miner pool status information."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def get_pool_conf(self) -> list[dict]:
-        """Get current miner pool configuration."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def get_miner_status(self) -> dict:
-        """Get current miner status"""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def get_blink_status(self) -> dict:
-        """Get miner LED blink status."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def blink(self, enabled: bool, *args, **kwargs) -> dict:
-        """Blink miner LEDS for locating."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def set_miner_mode(self, *args, **kwargs) -> dict:
-        """Set mining mode."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def start(self) -> dict:
-        """Start mining."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def stop(self) -> dict:
-        """Stop mining."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def restart(self) -> dict:
-        """Restart mining."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def reboot(self) -> dict:
-        """Reboot miner."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
-        """Update miner password."""
-        raise NotImplementedError
-
-    @abstractmethod
-    async def update_pool_conf(
-        self, urls: list[str], users: list[str], passwds: list[str]
-    ) -> dict:
-        """Update the current miner pool configuration."""
-        raise NotImplementedError
-
-    def _close(self, ex: Exception | None = None) -> None:
-        if ex:
-            self._ex = ex
+    async def authenticate(self) -> None:
+        pass

@@ -4,9 +4,10 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 import logging
+from typing import final, override
 
 import httpx
-from pydantic import BaseModel, Field, TypeAdapter, ValidationError, field_validator
+from pydantic import TypeAdapter, ValidationError
 
 from mod.ipr_asic import settings
 from mod.ipr_asic.errors import (
@@ -15,148 +16,31 @@ from mod.ipr_asic.errors import (
     AuthenticationError,
     FailedConnectionError,
 )
-from mod.ipr_asic.models import BlinkStatus, MinerConfPool
 from mod.ipr_asic.protocol import BaseHTTPClient
+from mod.ipr_asic.schemas.antminer import (
+    ActionResult,
+    MinerPasswdConfig,
+    NetworkInfo,
+    SystemInfo,
+)
+from mod.ipr_asic.schemas.elphapex import (
+    MinerConfig,
+    MinerPool,
+    MinerSummary,
+    PoolsResponse,
+    SummaryResponse,
+)
+from mod.ipr_asic.schemas.models import (
+    APIObject,
+    BlinkStatus,
+    ContentResponse,
+    PoolConfig,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class ActionResponse(BaseModel):
-    stats: str
-    status: str | None = None
-    code: str
-    msg: str
-
-    def error(self) -> str | None:
-        if self.status != "success" and self.stats != "success" or self.msg == "FAIL!":
-            return f"received API Error ({self.code}): {self.stats} - {self.msg}"
-
-
-class SystemInfo(BaseModel):
-    minertype: str
-    algorithm: str = Field(alias="Algorithm")
-    nettype: str
-    netdevice: str
-    macaddr: str
-    hostname: str
-    ipaddress: str
-    netmask: str
-    gateway: str
-    dnsservers: str
-    system_mode: str
-    system_kernel_version: str
-    system_filesystem_version: str
-    firmware_type: str
-
-
-class NetInfo(BaseModel):
-    nettype: str
-    netdevice: str
-    macaddr: str
-    ipaddress: str
-    netmask: str
-    conf_nettype: str
-    conf_hostname: str
-    conf_ipaddress: str
-    conf_netmask: str
-    conf_gateway: str
-    conf_dnsservers: str
-
-
-class MinerConf(BaseModel):
-    fan_ctrl: bool = Field(alias="fc-fan-ctrl")
-    fan_pwm: str = Field(alias="fc-fan-pwm")
-    freq: str = Field(alias="fc-freq")
-    freq_level: str = Field(alias="fc-freq-level")
-    voltage: str = Field(alias="fc-voltage")
-    miner_mode: int = Field(alias="fc-work-mode")
-    algo: str
-    pools: list[MinerConfPool]
-
-
-class APIInfoResponse(BaseModel):
-    miner_version: str
-    compile_time: str = Field(alias="CompileTime")
-    dev_sn: str
-    type: str
-    hw_version: str
-
-
-class APIStatusResponse(BaseModel):
-    status: str = Field(alias="STATUS")
-    when: int
-    timestamp: int
-    api_version: str
-    msg: str = Field(alias="Msg")
-
-
-class MinerStatus(BaseModel):
-    status: str
-    type: str
-    msg: str
-    code: int
-
-
-class MinerSummary(BaseModel):
-    elapsed: int
-    rate_5s: float
-    rate_30m: float
-    rate_avg: float
-    rate_ideal: float
-    rate_unit: str
-    bestshare: int
-    hw_all: float
-    status: list[MinerStatus]
-
-
-class PoolInfo(BaseModel):
-    index: int
-    url: str
-    user: str
-    status: str
-    priority: int
-    getworks: int
-    accepted: int
-    rejected: int
-    discarded: int | None = None
-    stale: int
-    diff: str
-    diff1: int
-    diffa: int
-    diffr: int
-    diffs: int
-    lsdiff: int
-    lstime: str
-
-
-class Summary(BaseModel):
-    status: APIStatusResponse = Field(alias="STATUS")
-    info: APIInfoResponse = Field(alias="INFO")
-    summary: list[MinerSummary] = Field(alias="SUMMARY", default_factory=list)
-
-    @field_validator("summary", mode="before")
-    @classmethod
-    def ensure_summary_length(cls, v: list) -> list:
-        if len(v) != 1:
-            raise ValueError
-        return v
-
-
-class Pools(BaseModel):
-    status: APIStatusResponse = Field(alias="STATUS")
-    info: APIInfoResponse = Field(alias="INFO")
-    rejected_per: float = Field(alias="Device Rejected%")
-    rejected_total: int = Field(alias="Device Total Rejected")
-    total_work: int = Field(alias="Device Total Work")
-    pools: list[PoolInfo] = Field(alias="POOLS")
-
-
-class MinerConfigPasswd(BaseModel):
-    curr_passwd: str = Field(serialization_alias="curPwd")
-    new_passwd: str = Field(serialization_alias="newPwd")
-    confirm_passwd: str = Field(serialization_alias="confirmPwd")
-
-
+@final
 class ElphapexHTTPClient(BaseHTTPClient):
     def __init__(
         self,
@@ -170,10 +54,11 @@ class ElphapexHTTPClient(BaseHTTPClient):
         self.username: str = "root"
         if alt_pwd:
             settings.set_alt_auth("elphapex", alt_pwd)
-        self.passwds = settings.get_auth_list("elphapex")
+        self.passwds: list[str] = settings.get_auth_list("elphapex")
 
-        self.command_path = "cgi-bin/{command}.cgi"
+        self.command_path: str = "cgi-bin/{command}.cgi"
 
+    @override
     async def authenticate(self) -> None:
         for pwd in self.passwds:
             if not pwd:
@@ -182,7 +67,7 @@ class ElphapexHTTPClient(BaseHTTPClient):
             try:
                 async with self._new_client(auth=digest) as client:
                     resp = await client.get(self.base_url)
-                    resp.raise_for_status()
+                    _ = resp.raise_for_status()
             except (
                 httpx.ConnectError,
                 httpx.TimeoutException,
@@ -201,16 +86,13 @@ class ElphapexHTTPClient(BaseHTTPClient):
 
     async def get_hostname(self) -> str:
         resp = await self.get_system_info()
-        return resp["hostname"]
+        return resp.hostname
 
     async def get_mac_addr(self) -> str:
         resp = await self.get_system_info()
-        return resp["macaddr"]
+        return resp.macaddr
 
-    async def get_api_version(self) -> str:
-        return await super().get_api_version()
-
-    async def get_system_info(self) -> dict:
+    async def get_system_info(self) -> SystemInfo:
         resp = await self.send_command("GET", command="get_system_info")
         try:
             resobj = SystemInfo.model_validate(obj=resp, by_alias=True)
@@ -218,52 +100,59 @@ class ElphapexHTTPClient(BaseHTTPClient):
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump()
+            return resobj
 
-    async def get_network_info(self) -> dict:
+    async def get_network_info(self) -> NetworkInfo:
         resp = await self.send_command("GET", command="get_network_info")
         try:
-            resobj = NetInfo.model_validate(obj=resp)
+            resobj = NetworkInfo.model_validate(obj=resp)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump()
+            return resobj
 
-    async def log(self, num: int = -1) -> dict:
+    async def log(self, num: int = -1) -> ContentResponse:
         """Get miner log
 
         Args:
         num: get history log number. -1 is current log
         """
-        return await self.send_command(
+        resp = await self.send_command(
             "GET", command="hlog", payload={"key": "log", "body": {"num": num}}
         )
-
-    async def summary(self) -> dict:
-        resp = await self.send_command("GET", command="summary")
         try:
-            resobj = Summary.model_validate(obj=resp, by_alias=True)
-        except (ValidationError, ValueError) as e:
-            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
-            raise APIInvalidResponse
-        else:
-            return resobj.model_dump(by_alias=True)
-
-    async def get_miner_conf(self) -> dict:
-        resp = await self.send_command("GET", command="get_miner_conf")
-        try:
-            resobj = MinerConf.model_validate(obj=resp, by_alias=True)
+            resobj = ContentResponse.model_validate(obj=resp)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump(exclude_none=True)
+            return resobj
 
-    async def set_miner_conf(self, conf: dict) -> dict:
+    async def summary(self) -> MinerSummary:
+        resp = await self.send_command("GET", command="summary")
+        try:
+            resobj = SummaryResponse.model_validate(obj=resp, by_alias=True)
+        except (ValidationError, ValueError) as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        else:
+            return resobj.summary[0]
+
+    async def get_miner_conf(self) -> MinerConfig:
+        resp = await self.send_command("GET", command="get_miner_conf")
+        try:
+            resobj = MinerConfig.model_validate(obj=resp, by_alias=True)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        else:
+            return resobj
+
+    async def set_miner_conf(self, conf: APIObject) -> APIObject:
         resp = await self.send_command("POST", command="set_miner_conf", payload=conf)
         try:
-            resobj = ActionResponse.model_validate(obj=resp)
+            resobj = ActionResult.model_validate(obj=resp)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
@@ -274,28 +163,21 @@ class ElphapexHTTPClient(BaseHTTPClient):
                 raise APIError("Command failed!")
             return resobj.model_dump(exclude_none=True)
 
-    async def pools(self) -> list[dict]:
+    async def pools(self) -> list[MinerPool]:
         resp = await self.send_command("GET", command="pools")
         try:
-            resobj = Pools.model_validate(obj=resp, by_alias=True)
+            resobj = PoolsResponse.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            ta = TypeAdapter(list[PoolInfo])
-            pools = ta.validate_python(resobj.pools)
-            return ta.dump_python(pools, by_alias=True)
+            return resobj.pools
 
-    async def get_pool_conf(self) -> list[dict]:
+    async def get_pool_conf(self) -> PoolConfig:
         resp = await self.get_miner_conf()
-        ta = TypeAdapter(list[MinerConfPool])
-        pools = ta.validate_python(resp["pools"], by_name=True)
-        return ta.dump_python(pools, by_alias=True)
+        return resp.pools
 
-    async def get_miner_status(self) -> dict:
-        return await super().get_miner_status()
-
-    async def get_blink_status(self) -> dict:
+    async def get_blink_status(self) -> BlinkStatus:
         resp = await self.send_command("GET", command="get_blink_status")
         try:
             resobj = BlinkStatus.model_validate(obj=resp)
@@ -303,30 +185,25 @@ class ElphapexHTTPClient(BaseHTTPClient):
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump()
+            return resobj
 
-    async def blink(self, enabled: bool) -> dict:
+    @override
+    async def blink(self, enabled: bool) -> APIObject:
         blink = BlinkStatus(blink=enabled)
         payload = blink.model_dump(mode="json")
         return await self.send_command("POST", command="blink", payload=payload)
 
-    async def set_miner_mode(self, *args, **kwargs) -> dict:
-        return await super().set_miner_mode(*args, **kwargs)
-
-    async def start(self) -> dict:
-        return await super().start()
-
-    async def stop(self) -> dict:
-        return await super().stop()
-
-    async def restart(self) -> dict:
+    @override
+    async def restart(self) -> APIObject:
         return await self.reboot()
 
-    async def reboot(self) -> dict:
+    @override
+    async def reboot(self) -> APIObject:
         return await self.send_command("POST", command="reboot")
 
-    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
-        pw_conf = MinerConfigPasswd(
+    @override
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> APIObject:
+        pw_conf = MinerPasswdConfig(
             curr_passwd=old_passwd, new_passwd=new_passwd, confirm_passwd=new_passwd
         )
         return await self.send_command(
@@ -346,15 +223,15 @@ class ElphapexHTTPClient(BaseHTTPClient):
         #         raise APIError("Command failed!")
         #     return resobj.model_dump(exclude_none=True)
 
+    @override
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
-    ) -> dict:
+    ) -> APIObject:
         if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
             raise APIError("Invalid length of arguments")
 
-        resp = await self.get_miner_conf()
-        conf = MinerConf.model_construct(**resp)
-        ta = TypeAdapter(list[MinerConfPool])
+        conf = await self.get_miner_conf()
+        ta = TypeAdapter(PoolConfig)
         pool_conf: list[dict[str, str]] = ta.dump_python(conf.pools, by_alias=True)
 
         for i in range(len(urls)):
