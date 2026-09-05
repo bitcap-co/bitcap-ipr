@@ -130,13 +130,10 @@ class VolcminerHTTPClient(BaseHTTPClient):
         resp = await self.send_command(method="GET", command="get_network_infoV1")
         cleaned = self._clean_response(resp)
         try:
-            if match := (re.search(_DATA_RESPONSE_RE, cleaned)):
-                data = match.group(1)
-            else:
-                raise APIError("Failed to get valid response.")
+            data = re.search(_DATA_RESPONSE_RE, cleaned).group(1)
             net_info = from_json(f"{{{data}}}")
             resobj = NetworkInfoV1.model_validate(obj=net_info)
-        except (ValueError, ValidationError) as e:
+        except (AttributeError, ValueError, ValidationError) as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
@@ -157,19 +154,16 @@ class VolcminerHTTPClient(BaseHTTPClient):
         resp = await self.send_command(method="GET", command="get_miner_confV1")
         cleaned = self._clean_response(resp)
         try:
-            if match := re.search(_CONFIG_RESPONSE_RE, cleaned):
-                parts = match.groups()
-                cfgs = parts[0]
-                keep_power = parts[1]
-                debug = parts[2]
-                extra = parts[3]
-            else:
-                raise APIError("Failed to get valid response.")
+            parts = re.search(_CONFIG_RESPONSE_RE, cleaned).groups()
+            cfgs = parts[0]
+            keep_power = parts[1]
+            debug = parts[2]
+            extra = parts[3]
             miner_conf = from_json(
                 f'{{"miner":{cfgs},{keep_power},"debug":{{{debug}}},{extra}}}'
             )
             resobj = MinerConfigV1.model_validate(obj=miner_conf, by_alias=True)
-        except (ValueError, ValidationError) as e:
+        except (AttributeError, ValueError, ValidationError) as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
@@ -185,15 +179,12 @@ class VolcminerHTTPClient(BaseHTTPClient):
         resp = await self.send_command("GET", command="get_miner_statusV1")
         cleaned = self._clean_response(resp)
         try:
-            if match := re.search(_DATA_RESPONSE_RE, cleaned):
-                data = match.group(1)
-                parts = re.search(_SUMMARY_RESPONSE_RE, data).groups()
-                status = parts[0]
-                pools = parts[1]
-                chains = parts[2]
-                fans = parts[3]
-            else:
-                raise APIError("Failed to get valid response.")
+            data = re.search(_SUMMARY_RESPONSE_RE, cleaned).group(1)
+            parts = re.search(_DATA_RESPONSE_RE, data).groups()
+            status = parts[0]
+            pools = parts[1]
+            chains = parts[2]
+            fans = parts[3]
             miner_status = from_json(
                 f"{{{status},pool_dtls:[{pools}]}},chains:[{chains}],{fans}}}"
             )
