@@ -74,16 +74,17 @@ class MinerAlgorithm(str, Enum):
         return self.value
 
     @classmethod
-    def from_value(cls, algo: str) -> Self | None:
+    def from_value(cls, algo: str | None) -> Self | None:
+        if algo is None:
+            return None
         try:
             return cls(algo)
         except ValueError:
-            if algo is not None:
-                for enum in list(cls):
-                    if algo.lower() == enum.name.lower() or algo.lower().__contains__(
-                        enum.name.lower()
-                    ):
-                        return enum
+            for enum in list(cls):
+                if algo.lower() == enum.name.lower() or algo.lower().__contains__(
+                    enum.name.lower()
+                ):
+                    return enum
             return None
 
 

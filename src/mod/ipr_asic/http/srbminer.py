@@ -4,40 +4,17 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 import logging
+from typing import final, override
 
 import httpx
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
-from mod.ipr_asic.errors import APIError, APIInvalidResponse
+from mod.ipr_asic.errors import APIInvalidResponse
 from mod.ipr_asic.protocol import BaseHTTPClient
+from mod.ipr_asic.schemas.models import PoolConfig, SummaryModel
+from mod.ipr_asic.schemas.srbminer import SRBMinerInfo, SRBPool
 
 logger = logging.getLogger(__name__)
-
-
-class GPUDevice(BaseModel):
-    device: str = ""
-    vendor: str = ""
-    model: str = ""
-
-
-class SRBPool(BaseModel):
-    pool: str = ""
-    wallet: str = ""
-
-
-class SRBAlgorithm(BaseModel):
-    name: str = ""
-    pool: SRBPool = SRBPool()
-
-
-class SRBMinerInfo(BaseModel):
-    rig_name: str = ""
-    miner_version: str = ""
-    mining_time: int = 0
-    total_cpu_workers: int = 0
-    total_gpu_workers: int = 0
-    gpu_devices: list[GPUDevice] = []
-    algorithms: list[SRBAlgorithm] = []
 
 
 class SRBMinerHTTPClient(BaseHTTPClient):
@@ -47,6 +24,7 @@ class SRBMinerHTTPClient(BaseHTTPClient):
     The API is unauthenticated, so requests are issued directly.
     """
 
+    @final
     def __init__(
         self,
         ip: str,
@@ -56,24 +34,25 @@ class SRBMinerHTTPClient(BaseHTTPClient):
     ) -> None:
         super().__init__(ip, port, alt_pwd, transport)
         # SRBMiner's remote API is read-only and unauthenticated.
-        self.authed = True
-        self.command_path = "{command}"
+        self.authed: bool = True
+        self.command_path: str = "{command}"
 
+    @override
     async def authenticate(self) -> None:
         # nothing to authenticate against; the API is open.
         self.authed = True
 
     async def get_hostname(self) -> str:
-        return (await self.get_system_info())["rig_name"]
+        return (await self.get_system_info()).rig_name
 
-    async def get_mac_addr(self) -> str:
-        # not exposed by the SRBMiner API; MAC comes from the IP Report.
-        return await super().get_mac_addr()
+    # async def get_mac_addr(self) -> str:
+    #     # not exposed by the SRBMiner API; MAC comes from the IP Report.
+    #     return await super().get_mac_addr()
 
     async def get_api_version(self) -> str:
-        return (await self.get_system_info())["miner_version"]
+        return (await self.get_system_info()).miner_version
 
-    async def get_system_info(self) -> dict:
+    async def get_system_info(self) -> SRBMinerInfo:
         resp = await self.send_command("GET", command="")
         try:
             info = SRBMinerInfo.model_validate(obj=resp)
@@ -81,64 +60,21 @@ class SRBMinerHTTPClient(BaseHTTPClient):
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return info.model_dump()
+            return info
 
-    async def get_network_info(self) -> dict:
-        return await super().get_network_info()
+    async def summary(self) -> SummaryModel:
+        # not exposed by SRBMiner API
+        return SummaryModel()
 
-    async def log(self, *args, **kwargs) -> dict:
-        return await super().log(*args, **kwargs)
-
-    async def summary(self) -> dict:
-        return await self.get_system_info()
-
-    async def get_miner_conf(self) -> dict:
-        return await super().get_miner_conf()
-
-    async def set_miner_conf(self, *args, **kwargs) -> dict:
-        return await super().set_miner_conf(*args, **kwargs)
-
-    async def pools(self) -> list[dict]:
+    async def pools(self) -> list[SRBPool]:
         info = await self.get_system_info()
-        pools: list[dict] = []
-        for algo in info["algorithms"]:
-            pool = algo["pool"]
-            if pool["pool"]:
-                pools.append({"url": pool["pool"], "user": pool["wallet"]})
+        pools: list[SRBPool] = []
+        for algo in info.algorithms:
+            pool = algo.pool
+            if pool.pool:
+                pools.append(SRBPool(pool=pool.pool, wallet=pool.wallet))
         return pools
 
-    async def get_pool_conf(self) -> list[dict]:
-        return await self.pools()
-
-    async def get_miner_status(self) -> dict:
-        return await super().get_miner_status()
-
-    async def get_blink_status(self) -> dict:
-        return await super().get_blink_status()
-
-    async def blink(self, enabled: bool, *args, **kwargs) -> dict:
-        # GPU rigs have no locate LED to toggle.
-        raise APIError("Locate is not supported for HiveOS GPU rigs")
-
-    async def set_miner_mode(self, *args, **kwargs) -> dict:
-        return await super().set_miner_mode(*args, **kwargs)
-
-    async def start(self) -> dict:
-        raise APIError("Start is not supported for HiveOS GPU rigs")
-
-    async def stop(self) -> dict:
-        raise APIError("Stop is not supported for HiveOS GPU rigs")
-
-    async def restart(self) -> dict:
-        raise APIError("Restart is not supported for HiveOS GPU rigs")
-
-    async def reboot(self) -> dict:
-        raise APIError("Reboot is not supported for HiveOS GPU rigs")
-
-    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
-        raise APIError("Password update is not supported for HiveOS GPU rigs")
-
-    async def update_pool_conf(
-        self, urls: list[str], users: list[str], passwds: list[str]
-    ) -> dict:
-        raise APIError("Pool configuration is not supported for HiveOS GPU rigs")
+    async def get_pool_conf(self) -> PoolConfig:
+        # not exposed by SRBMiner API
+        return PoolConfig(root=[])

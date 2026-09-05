@@ -13,16 +13,16 @@ from mod.ipr_asic.errors import (
     FailedConnectionError,
 )
 from mod.ipr_asic.protocol import BaseHTTPClient
-from src.mod.ipr_asic.schemas.ipollo import (
+from mod.ipr_asic.schemas.ipollo import (
     MinerConfig,
-    MinerConfigPool,
     MinerPasswdConfig,
     MinerPool,
+    MinerPoolConfigForm,
     MinerStatus,
     NetworkInfo,
     SystemInfo,
 )
-from src.mod.ipr_asic.schemas.models import ActionResultModel, APIObject, PoolConfig
+from mod.ipr_asic.schemas.models import ActionResult, APIObject, PoolConfig
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 class _MinerConfigHTMLParser(HTMLParser):
     """Extract LuCI cgminer configuration values from form controls."""
 
-    field_prefix = "cbid.cgminer.default."
+    field_prefix: str = "cbid.cgminer.default."
 
     def __init__(self) -> None:
         super().__init__()
@@ -92,7 +92,7 @@ class IPolloHTTPClient(BaseHTTPClient):
                         data={"luci_username": self.username, "luci_password": pwd},
                         follow_redirects=True,
                     )
-                    resp.raise_for_status()
+                    _ = resp.raise_for_status()
             except (httpx.ConnectError, httpx.TimeoutException):
                 raise FailedConnectionError("Failed to connect or timeout occurred")
             except httpx.HTTPStatusError:
@@ -204,7 +204,7 @@ class IPolloHTTPClient(BaseHTTPClient):
         else:
             return resobj.pool
 
-    async def _parse_pool_conf(self, resp: dict) -> MinerConfigPool:
+    async def _parse_pool_conf(self, resp: APIObject) -> MinerPoolConfigForm:
         html = resp.get("text")
         if not isinstance(html, str):
             raise APIInvalidResponse(
@@ -215,7 +215,7 @@ class IPolloHTTPClient(BaseHTTPClient):
         parser.feed(html)
 
         model_values: dict[str, str] = {}
-        for field_name, field in MinerConfigPool.model_fields.items():
+        for field_name, field in MinerPoolConfigForm.model_fields.items():
             alias = field.serialization_alias
             if isinstance(alias, str) and alias in parser.values:
                 model_values[field_name] = parser.values[alias]
@@ -225,7 +225,7 @@ class IPolloHTTPClient(BaseHTTPClient):
             )
 
         try:
-            config = MinerConfigPool.model_validate(model_values)
+            config = MinerPoolConfigForm.model_validate(model_values)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
@@ -238,41 +238,41 @@ class IPolloHTTPClient(BaseHTTPClient):
 
     @override
     async def start(self) -> APIObject:
-        await self.send_command(
+        _ = await self.send_command(
             method="POST", command="admin/ipollo_main/cgminerstatus/ctrl/start"
         )
-        return ActionResultModel(success=True, msg="OK").model_dump()
+        return ActionResult(success=True, msg="OK").model_dump()
 
     @override
     async def stop(self) -> APIObject:
-        await self.send_command(
+        _ = await self.send_command(
             method="POST", command="admin/ipollo_main/cgminerstatus/ctrl/stop"
         )
-        return ActionResultModel(success=True, msg="OK").model_dump()
+        return ActionResult(success=True, msg="OK").model_dump()
 
     @override
     async def restart(self) -> APIObject:
-        await self.send_command(
+        _ = await self.send_command(
             method="POST", command="admin/ipollo_main/cgminerstatus/ctrl/restart"
         )
-        return ActionResultModel(success=True, msg="OK").model_dump()
+        return ActionResult(success=True, msg="OK").model_dump()
 
     @override
     async def reboot(self) -> APIObject:
-        await self.send_command(
+        _ = await self.send_command(
             method="POST", command="admin/system/reboot", params={"reboot": "1"}
         )
-        return ActionResultModel(success=True, msg="OK").model_dump()
+        return ActionResult(success=True, msg="OK").model_dump()
 
     @override
     async def update_passwd(self, old_passwd: str, new_passwd: str) -> APIObject:
         pw_conf = MinerPasswdConfig(new_passwd=new_passwd, confirm_passwd=new_passwd)
-        await self.send_command(
+        _ = await self.send_command(
             method="POST",
             command="admin/ipollo_main/passwdchange",
             data=pw_conf.model_dump(by_alias=True),
         )
-        return ActionResultModel(success=True, msg="OK").model_dump()
+        return ActionResult(success=True, msg="OK").model_dump()
 
     @override
     async def update_pool_conf(
@@ -297,9 +297,9 @@ class IPolloHTTPClient(BaseHTTPClient):
             setattr(config, f"{coin}_pool{idx}_user", users[i])
             setattr(config, f"{coin}_pool{idx}_pw", passwds[i])
 
-        await self.send_command(
+        _ = await self.send_command(
             method="POST",
             command="admin/ipollo_main/pool",
             data=config.model_dump(mode="json", by_alias=True),
         )
-        return ActionResultModel(success=True, msg="OK").model_dump()
+        return ActionResult(success=True, msg="OK").model_dump()

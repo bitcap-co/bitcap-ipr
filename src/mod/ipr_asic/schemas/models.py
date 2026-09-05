@@ -1,3 +1,8 @@
+# Copyright (C) 2024-2026 Matthew Wertman <matt@bitcap.co>
+#
+# This file is part of bitcap-ipr
+# Licensed under the GNU General Public License v3.0; see LICENSE
+
 from typing import Any, TypeAlias
 
 from pydantic import BaseModel, Field, RootModel
@@ -9,7 +14,7 @@ class ContentResponse(BaseModel):
     text: str
 
 
-class ActionResultModel(BaseModel):
+class ActionResult(BaseModel):
     success: bool
     msg: str = ""
 
@@ -37,6 +42,10 @@ class SystemInfoModel(BaseModel):
 
 
 class NetworkInfoModel(BaseModel):
+    pass
+
+
+class MinerStatusModel(BaseModel):
     pass
 
 

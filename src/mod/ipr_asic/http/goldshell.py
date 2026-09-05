@@ -28,7 +28,7 @@ from mod.ipr_asic.schemas.goldshell import (
     Status,
 )
 from mod.ipr_asic.schemas.models import (
-    ActionResultModel,
+    ActionResult,
     APIObject,
     BlinkStatus,
     MinerPoolConfig,
@@ -214,5 +214,5 @@ class GoldshellHTTPClient(BaseHTTPClient):
                     f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}"
                 )
                 raise APIInvalidResponse
-        resobj = ActionResultModel(success=True, msg="OK")
+        resobj = ActionResult(success=True, msg="OK")
         return resobj.model_dump(mode="json")

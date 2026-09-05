@@ -1,7 +1,12 @@
+# Copyright (C) 2024-2026 Matthew Wertman <matt@bitcap.co>
+#
+# This file is part of bitcap-ipr
+# Licensed under the GNU General Public License v3.0; see LICENSE
+
 from pydantic import BaseModel, Field
 
-from mod.ipr_asic.schemas.cgminer import BaseCGMinerResponse
-from mod.ipr_asic.schemas.models import (
+from .cgminer import BaseCGMinerResponse
+from .models import (
     APIObject,
     BlinkStatusModel,
     MinerConfigModel,

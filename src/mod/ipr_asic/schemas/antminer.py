@@ -1,10 +1,14 @@
+# Copyright (C) 2024-2026 Matthew Wertman <matt@bitcap.co>
+#
+# This file is part of bitcap-ipr
+# Licensed under the GNU General Public License v3.0; see LICENSE
+
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
 from .cgminer import BaseCGMinerResponse
 from .models import (
-    ActionResultModel,
     BlinkStatusModel,
     MinerConfigModel,
     MinerPoolModel,
@@ -15,10 +19,11 @@ from .models import (
 )
 
 
-class ActionResult(ActionResultModel):
+class ActionResult(BaseModel):
     stats: str
     status: str | None = None
     code: str
+    msg: str
 
     def error(self) -> str | None:
         if self.status != "success" and self.stats != "success" or self.msg == "FAIL!":

@@ -3,12 +3,13 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-import json
 import logging
 import re
+from typing import final, override
 
 import httpx
-from pydantic import BaseModel, Field, TypeAdapter, ValidationError
+from pydantic import ValidationError
+from pydantic_core import from_json
 
 from mod.ipr_asic import settings
 from mod.ipr_asic.errors import (
@@ -17,199 +18,30 @@ from mod.ipr_asic.errors import (
     AuthenticationError,
     FailedConnectionError,
 )
-from mod.ipr_asic.models import MinerConfPool
 from mod.ipr_asic.protocol import BaseHTTPClient
+from mod.ipr_asic.schemas.models import APIObject, ContentResponse, PoolConfig
+from mod.ipr_asic.schemas.volcminer import (
+    MinerConfig,
+    MinerConfigV1,
+    MinerPool,
+    MinerStatus,
+    NetworkInfo,
+    NetworkInfoV1,
+    SystemInfo,
+)
 
 logger = logging.getLogger(__name__)
 
-
-class APIResponse(BaseModel):
-    code: int
-    msg: str = ""
-    data: str = ""
-
-
-class SystemInfo(BaseModel):
-    minertype: str
-    nettype: str
-    netdevice: str
-    macaddr: str
-    hostname: str
-    ipaddress: str
-    netmask: str
-    gateway: str
-    dnsservers: str
-    curtime: str
-    uptime: str
-    loadaverage: str
-    mem_total: str
-    mem_used: str
-    mem_free: str
-    mem_buffers: str
-    mem_cached: str
-    system_mode: str
-    bb_hwv: str
-    system_kernel_version: str
-    system_filesystem_version: str
-    cgminer_version: str
+_DATA_RESPONSE_RE = re.compile(r'"data":"\{(.*?)\}"')
+_CONFIG_RESPONSE_RE = re.compile(
+    r'"cfgs":"\[(.*?)\]",(.*?),"debug":"\{(.*?)\}",(.*?)\}'
+)
+_SUMMARY_RESPONSE_RE = re.compile(
+    r'(.*?),"pool_dtls":"\[(.*?)\]"\},"chains":"\[(.*?)\]",(.*?)$'
+)
 
 
-class NetInfo(BaseModel):
-    nettype: str
-    netdevice: str
-    macaddr: str
-    ipaddress: str
-    netmask: str
-    conf_nettype: str
-    conf_hostname: str
-    conf_ipaddress: str
-    conf_netmask: str
-    conf_gateway: str
-    conf_dnsservers: str
-
-
-class NetInfoV1(BaseModel):
-    bb_nettype: str
-    bb_netdevice: str
-    bb_macaddr: str
-    bb_ipaddress: str
-    bb_netmask: str
-    bb_conf_nettype: str
-    bb_conf_hostname: str
-    bb_conf_ipaddress: str
-    bb_conf_netmask: str
-    bb_conf_gateway: str
-    bb_conf_dnsservers: str
-
-
-class MinerConfig(BaseModel):
-    fan_ctrl: bool = Field(False, alias="fan-ctrl")
-    fan_pwm_front: str | None = Field(None, alias="fan-pwn-front")
-    fan_pwm_back: str | None = Field(None, alias="fan-pwn-back")
-    use_vil: bool = Field(alias="use-vil")
-    freq: str
-    sram_voltage: str = Field(alias="sram-voltage")
-    coin_type: str = Field(alias="coin-type")
-    pools: list[MinerConfPool]
-
-
-class DebugConfig(BaseModel):
-    bb_debug_enable: bool
-    tm: str
-    bb_pll_switch_time: int
-    bb_pll_switch_step: int
-    bb_chain0_active_chipnum: int
-    bb_chain1_active_chipnum: int
-    bb_chain2_active_chipnum: int
-    bb_chain3_active_chipnum: int
-    bb_chain4_active_chipnum: int
-    bb_chain5_active_chipnum: int
-    bb_chain6_active_chipnum: int
-    bb_chain7_active_chipnum: int
-    bb_chain0_freq: int
-    bb_chain1_freq: int
-    bb_chain2_freq: int
-    bb_chain3_freq: int
-    bb_chain4_freq: int
-    bb_chain5_freq: int
-    bb_chain6_freq: int
-    bb_chain7_freq: int
-    bb_startup_voltage: int
-    bb_target_voltage: int
-
-
-class MinerConfigV1(BaseModel):
-    miner: MinerConfig
-    debug: DebugConfig = Field(alias="debug")
-    keepower: str
-    runmode: str
-    voltage: str
-
-
-class Pool(BaseModel):
-    index: int
-    url: str
-    user: str
-    status: str
-    diff: float
-    getworks: str
-    priority: int
-    accepted: str
-    nonce: str
-    diffa: str
-    diffr: str
-    diffs: str
-    rejected: str
-    discarded: str
-    stale: str
-    lsdiff: str
-    lstime: str
-
-
-class Chain(BaseModel):
-    index: int
-    chain_acn: int
-    temp: int
-    hw: int
-    chain_rate: float
-    chain_acs: str
-    freq: str
-
-
-class FanInfo(BaseModel):
-    fan1: str
-    fan2: str
-    fan3: str
-    fan4: str
-
-
-class PoolTotal(BaseModel):
-    t_getworks: str
-    t_accepted: str
-    t_nonce: str
-    t_diffa: str
-    t_diffr: str
-    t_diffs: str
-    t_rejected: str
-    t_discarded: str
-    t_stale: str
-
-
-class HwTotal(BaseModel):
-    h_hw: int
-    h_diff1_ratio: float
-    h_diffa_ratio: float
-
-
-class PoolStats(BaseModel):
-    total: PoolTotal
-    hw: HwTotal
-    pool_dtls: list[Pool]
-
-
-class Summary(BaseModel):
-    elapsed: str
-    ghs5s: str
-    ghsav: str
-    localwork: str
-    utility: float
-    wu: str
-    bestshare: int
-
-
-class MinerStatus(BaseModel):
-    elapsed: str
-    ghs5s: str
-    ghsav: str
-    localwork: str
-    utility: float
-    wu: str
-    bestshare: int
-    pools: PoolStats
-    chains: list[Chain]
-    fan: FanInfo
-
-
+@final
 class VolcminerHTTPClient(BaseHTTPClient):
     def __init__(
         self,
@@ -222,10 +54,11 @@ class VolcminerHTTPClient(BaseHTTPClient):
         self.username: str = "root"
         if alt_pwd:
             settings.set_alt_auth("volcminer", alt_pwd)
-        self.passwds = settings.get_auth_list("volcminer")
+        self.passwds: list[str] = settings.get_auth_list("volcminer")
 
-        self.command_path = "cgi-bin/{command}.cgi"
+        self.command_path: str = "cgi-bin/{command}.cgi"
 
+    @override
     async def authenticate(self) -> None:
         for pwd in self.passwds:
             if not pwd:
@@ -234,7 +67,7 @@ class VolcminerHTTPClient(BaseHTTPClient):
             try:
                 async with self._new_client(auth=digest) as client:
                     resp = await client.get(self.base_url)
-                    resp.raise_for_status()
+                    _ = resp.raise_for_status()
             except (
                 httpx.ConnectError,
                 httpx.TimeoutException,
@@ -251,18 +84,28 @@ class VolcminerHTTPClient(BaseHTTPClient):
         if not self.authed:
             raise AuthenticationError("Failed to authenticate")
 
+    def _clean_response(self, resp: APIObject) -> str:
+        try:
+            resobj = ContentResponse.model_validate(obj=resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        else:
+            return re.sub(r"\s{1,}", "", resobj.text)
+
     async def get_hostname(self) -> str:
         resp = await self.get_network_info()
-        return resp["conf_hostname"]
+        return resp.conf_hostname
 
     async def get_mac_addr(self) -> str:
         resp = await self.get_network_info()
-        return resp["macaddr"]
+        return resp.macaddr
 
     async def get_api_version(self) -> str:
-        return await super().get_api_version()
+        resp = await self.get_system_info()
+        return resp.cgminer_version or ""
 
-    async def get_system_info(self) -> dict:
+    async def get_system_info(self) -> SystemInfo:
         resp = await self.send_command("GET", command="get_system_info")
         try:
             resobj = SystemInfo.model_validate(obj=resp)
@@ -270,37 +113,36 @@ class VolcminerHTTPClient(BaseHTTPClient):
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump()
+            return resobj
 
-    async def get_network_info(self) -> dict:
+    async def get_network_info(self) -> NetworkInfo:
         resp = await self.send_command("GET", command="get_network_info")
         try:
-            resobj = NetInfo.model_validate(obj=resp)
+            resobj = NetworkInfo.model_validate(obj=resp)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump()
+            return resobj
 
-    async def get_network_infoV1(self) -> dict:
+    async def get_network_infoV1(self) -> NetworkInfoV1:
         """Volcminer: get network info from 'get_network_infoV1' endpoint"""
         resp = await self.send_command(method="GET", command="get_network_infoV1")
-        cleaned = re.sub(r"\s{1,}", "", resp["text"])
+        cleaned = self._clean_response(resp)
         try:
-            data = re.search(r'"data":"\{(.*?)\}"', cleaned).group(1)
-        except AttributeError as e:
-            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
-            raise APIInvalidResponse
-        net_info = json.loads("{" + data + "}")
-        try:
-            resobj = NetInfoV1.model_validate(obj=net_info)
-        except ValidationError as e:
+            if match := (re.search(_DATA_RESPONSE_RE, cleaned)):
+                data = match.group(1)
+            else:
+                raise APIError("Failed to get valid response.")
+            net_info = from_json(f"{{{data}}}")
+            resobj = NetworkInfoV1.model_validate(obj=net_info)
+        except (ValueError, ValidationError) as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump()
+            return resobj
 
-    async def get_miner_conf(self) -> dict:
+    async def get_miner_conf(self) -> MinerConfig:
         resp = await self.send_command("GET", command="get_miner_conf")
         try:
             resobj = MinerConfig.model_validate(obj=resp, by_alias=True)
@@ -308,140 +150,92 @@ class VolcminerHTTPClient(BaseHTTPClient):
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump(exclude_none=True)
+            return resobj
 
-    async def get_miner_confV1(self) -> dict:
+    async def get_miner_confV1(self) -> MinerConfigV1:
         """Volcminer: get miner config from 'get_miner_confV1' endpoint"""
         resp = await self.send_command(method="GET", command="get_miner_confV1")
-        cleaned = re.sub(r"\s{1,}", "", resp["text"])
+        cleaned = self._clean_response(resp)
         try:
-            parts = re.search(
-                r'"cfgs":"\[(.*?)\]",(.*?),"debug":"\{(.*?)\}",(.*?)\}', cleaned
-            ).groups()
-        except AttributeError as e:
-            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
-            raise APIInvalidResponse
-        cfgs = parts[0]
-        keep_power = parts[1]
-        debug = parts[2]
-        extra = parts[3]
-        try:
-            miner_conf = json.loads(
-                '{"miner":'
-                + cfgs
-                + ","
-                + keep_power
-                + ',"debug":{'
-                + debug
-                + "},"
-                + extra
-                + "}"
+            if match := re.search(_CONFIG_RESPONSE_RE, cleaned):
+                parts = match.groups()
+                cfgs = parts[0]
+                keep_power = parts[1]
+                debug = parts[2]
+                extra = parts[3]
+            else:
+                raise APIError("Failed to get valid response.")
+            miner_conf = from_json(
+                f'{{"miner":{cfgs},{keep_power},"debug":{{{debug}}},{extra}}}'
             )
-        except json.JSONDecodeError:
-            raise APIError("Failed to decode JSON from API response.")
-        try:
             resobj = MinerConfigV1.model_validate(obj=miner_conf, by_alias=True)
-        except ValidationError as e:
+        except (ValueError, ValidationError) as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump(exclude_none=True, by_alias=True)
+            return resobj
 
-    async def set_miner_conf(self, conf: dict) -> dict:
+    async def set_miner_conf(self, conf: APIObject) -> APIObject:
         return await self.send_command("POST", command="set_miner_conf", data=conf)
 
-    async def log(self, *args, **kwargs) -> dict:
-        return await super().log(*args, **kwargs)
+    # async def log(self, *args, **kwargs) -> dict:
+    #     return await super().log(*args, **kwargs)
 
-    async def summary(self) -> dict:
+    async def summary(self) -> MinerStatus:
         resp = await self.send_command("GET", command="get_miner_statusV1")
-        cleaned = re.sub(r"\s{1,}", "", resp["text"])
+        cleaned = self._clean_response(resp)
         try:
-            data = re.search(r'"data":"\{(.*?)\}"', cleaned).group(1)
-            parts = re.search(
-                r'(.*?),"pool_dtls":"\[(.*?)\]"\},"chains":"\[(.*?)\]",(.*?)$', data
-            ).groups()
-        except AttributeError as e:
-            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
-            raise APIInvalidResponse
-        status = parts[0]
-        pools = parts[1]
-        chains = parts[2]
-        fans = parts[3]
-        try:
-            miner_status = json.loads(
-                "{"
-                + status
-                + ',"pool_dtls":['
-                + pools
-                + "]},"
-                + '"chains":['
-                + chains
-                + "],"
-                + fans
-                + "}"
+            if match := re.search(_DATA_RESPONSE_RE, cleaned):
+                data = match.group(1)
+                parts = re.search(_SUMMARY_RESPONSE_RE, data).groups()
+                status = parts[0]
+                pools = parts[1]
+                chains = parts[2]
+                fans = parts[3]
+            else:
+                raise APIError("Failed to get valid response.")
+            miner_status = from_json(
+                f"{{{status},pool_dtls:[{pools}]}},chains:[{chains}],{fans}}}"
             )
-        except json.JSONDecodeError:
-            raise APIError("Failed to decode JSON from API response.")
-        try:
             resobj = MinerStatus.model_validate(obj=miner_status)
-        except ValidationError as e:
+        except (AttributeError, ValueError, ValidationError) as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump()
+            return resobj
 
-    async def pools(self) -> list[dict]:
+    async def pools(self) -> list[MinerPool]:
         resp = await self.summary()
-        ta = TypeAdapter(list[Pool])
-        pools = ta.validate_python(resp["pools"]["pool_dtls"])
-        return ta.dump_python(pools)
+        return resp.pools.pool_dtls
 
-    async def get_pool_conf(self) -> list[dict]:
+    async def get_pool_conf(self) -> PoolConfig:
         resp = await self.get_miner_conf()
-        ta = TypeAdapter(list[MinerConfPool])
-        pools = ta.validate_python(resp["pools"], by_name=True)
-        return ta.dump_python(pools, by_alias=True)
+        return resp.pools
 
-    async def get_miner_status(self) -> dict:
-        return await super().get_miner_status()
-
-    async def get_blink_status(self) -> dict:
-        return await super().get_blink_status()
-
-    async def blink(self, enabled: bool, *args, **kwargs) -> dict:
+    @override
+    async def blink(self, enabled: bool) -> APIObject:
         data = {"_bb_type": "rgOn" if enabled else "rgOff"}
         return await self.send_command("POST", command="post_led_onoff", data=data)
 
-    async def set_miner_mode(self, *args, **kwargs) -> dict:
-        return await super().set_miner_mode(*args, **kwargs)
+    @override
+    async def restart(self) -> APIObject:
+        return await self.reboot()
 
-    async def start(self) -> dict:
-        return await super().start()
-
-    async def stop(self) -> dict:
-        return await super().stop()
-
-    async def restart(self) -> dict:
-        return await super().restart()
-
-    async def reboot(self) -> dict:
+    @override
+    async def reboot(self) -> APIObject:
         return await self.send_command("POST", command="reboot")
 
-    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
-        return await super().update_passwd(old_passwd, new_passwd)
-
+    @override
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
-    ) -> dict:
+    ) -> APIObject:
         if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
             raise APIError("Invalid length of arguments")
 
-        resp = await self.get_miner_confV1()
-        conf = MinerConfigV1.model_construct(**resp)
-        miner = MinerConfig(**resp["miner"])
+        conf = await self.get_miner_confV1()
+        miner = conf.miner
 
-        data = {}
+        data: APIObject = {}
         for i in range(len(urls)):
             if len(urls[i]) and len(users[i]) and passwds[i] == "":
                 passwds[i] = "x"

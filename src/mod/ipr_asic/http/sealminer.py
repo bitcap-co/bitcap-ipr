@@ -8,9 +8,10 @@ import json
 import logging
 import random
 import time
+from typing import final, override
 
 import httpx
-from pydantic import BaseModel, Field, TypeAdapter, ValidationError, field_validator
+from pydantic import TypeAdapter, ValidationError
 
 from mod.ipr_asic import settings
 from mod.ipr_asic.errors import (
@@ -19,148 +20,21 @@ from mod.ipr_asic.errors import (
     AuthenticationError,
     FailedConnectionError,
 )
-from mod.ipr_asic.models import BlinkStatus, MinerConfPool
 from mod.ipr_asic.protocol import BaseHTTPClient
+from mod.ipr_asic.schemas.models import APIObject, BlinkStatus, PoolConfig
+from mod.ipr_asic.schemas.sealminer import (
+    ActionResult,
+    ConfigResult,
+    LoginResponse,
+    MinerConfig,
+    MinerPasswdConfig,
+    MinerPool,
+    NetworkInfo,
+    Summary,
+    SystemInfo,
+)
 
 logger = logging.getLogger(__name__)
-
-
-class ActionResponse(BaseModel):
-    status: int | None = None
-    result: int
-
-    def error(self) -> str | None:
-        if self.result != 0:
-            return f"received API error ({self.result}): non-zero result."
-
-
-class LoginResponse(BaseModel):
-    state: int
-    msg: str
-
-
-class ConfResponse(BaseModel):
-    result: bool
-    api: bool
-    file_write: bool = Field(alias="fileWrite")
-    msg: str
-
-    def error(self) -> str | None:
-        if not self.result or not self.api or not self.file_write:
-            return f"received API Error: result {self.result} - {self.msg}"
-
-
-class NetInfo(BaseModel):
-    nettype: str
-    conf_ipaddress: str
-    conf_netmask: str
-    conf_gateway: str
-    conf_dnsservers: str
-    conf_dnsservers_backup: str
-    name: list[str]
-
-
-class SystemInfo(BaseModel):
-    low_power: int
-    normal: int
-    high_performance: int
-    custom: int
-    firmware_version: str
-    ctrl_version: str
-    miner_type: str
-    brand: str
-    psu_model: str
-    macaddr: str
-    ipaddress: str
-    dhcp: str = Field(alias="DHCP")
-    mining_mode: str = Field(alias="miningMode")
-    rated_hashrate: int = Field(alias="ratedHashrate")
-    crtl_sn: str
-    system_time: str = Field(alias="systemTime")
-    upgrade_result: str
-    tuning_done: int
-    led: str
-
-
-class PoolFormConf(BaseModel):
-    poolurl1: str = ""
-    poolurl2: str = ""
-    poolurl3: str = ""
-    pooluser1: str = ""
-    pooluser2: str = ""
-    pooluser3: str = ""
-    poolpwd1: str = ""
-    poolpwd2: str = ""
-    poolpwd3: str = ""
-
-
-class MinerConf(BaseModel):
-    miner_mode: str = Field(
-        serialization_alias="minerMode", validation_alias="xk-h3x-miningmode"
-    )
-    psu_max_power: str = Field(
-        serialization_alias="psuInputMaxpower",
-        validation_alias="xk-h3x-psu-input-max-power",
-    )
-    # network_hashrate: str = Field(serialization_alias="networkHashrate", validation_alias="xk-h3x-network-hashrate")
-    # block_reward: str = Field(serialization_alias="blockReward", validation_alias="xk-h3x-block-reward")
-    # btc_price: str = Field(serialization_alias="btcPrice", validation_alias="xk-h3x-btc-price")
-    # electric_price: str = Field(serialization_alias="electricPrice", validation_alias="xk-h3x-electric-price")
-    # custom_expect_hashrate: str = Field(serialization_alias="CustomHashExpect", validation_alias="xk-h3x-custom-expect-hashrate")
-    # custom_power_ratio_range: str = Field(serialization_alias="PoTValueRange", validation_alias="xk-h3x-custom-power-ratio-range")
-    pools: list[MinerConfPool]
-
-
-class Summary(BaseModel):
-    elapsed: int | None
-    mhsav: float | None
-    foundblocks: str | None
-    rejected: float | None
-
-    @field_validator("*", mode="before")
-    @classmethod
-    def _empty_to_none(cls, field_value):
-        if field_value == "":
-            return None
-        return field_value
-
-
-class Pool(BaseModel):
-    id: int | None
-    url: str | None
-    user: str | None
-    status: str | None
-    is_active: bool | None = Field(alias="isActive")
-    diff: float | None
-    getworks: int | None
-    priority: int | None
-    accept: int | None
-    rejected: int | None
-    rejected_p: float | None = Field(alias="rejected%")
-    stale: int | None
-    diffa: float | None = Field(alias="diffA")
-    diffr: float | None = Field(alias="diffR")
-    lsdiff: float | None
-    lstime: str | None
-
-    @field_validator("*", mode="before")
-    @classmethod
-    def _emtpy_to_none(cls, field_value):
-        if field_value == "":
-            return None
-        return field_value
-
-
-class MinerStatus(BaseModel):
-    summary: Summary
-    pools: list[Pool]
-
-
-class MinerConfigPasswd(BaseModel):
-    username: str = Field(serialization_alias="user_name")
-    curr_passwd: str = Field(serialization_alias="origin_pwd")
-    new_passwd: str = Field(serialization_alias="new_pwd")
-    confirm_passwd: str = Field(serialization_alias="confirm_pwd")
 
 
 def gen_php_session_id() -> str:
@@ -171,6 +45,7 @@ def gen_php_session_id() -> str:
     return h.hexdigest()[:26]
 
 
+@final
 class SealminerHTTPClient(BaseHTTPClient):
     def __init__(
         self,
@@ -184,10 +59,11 @@ class SealminerHTTPClient(BaseHTTPClient):
         self.username: str = "seal"
         if alt_pwd:
             settings.set_alt_auth("sealminer", alt_pwd)
-        self.passwds = settings.get_auth_list("sealminer")
+        self.passwds: list[str] = settings.get_auth_list("sealminer")
 
-        self.command_path = "cgi-bin/{command}.php"
+        self.command_path: str = "cgi-bin/{command}.php"
 
+    @override
     async def authenticate(self) -> None:
         php_session = gen_php_session_id()
         headers = {"Cookie": "userLanguage=en; PHPSESSID=" + php_session}
@@ -199,7 +75,7 @@ class SealminerHTTPClient(BaseHTTPClient):
                 resp = await self._do_http(
                     method="POST", headers=headers, path="cgi-bin/login.php", data=data
                 )
-                resp.raise_for_status()
+                _ = resp.raise_for_status()
             except (httpx.ConnectError, httpx.TimeoutException):
                 raise FailedConnectionError("Failed to connect or timeout occurred")
             except httpx.HTTPError:
@@ -208,7 +84,7 @@ class SealminerHTTPClient(BaseHTTPClient):
                 if resp.status_code == 200:
                     try:
                         resobj = resp.json()
-                        login_response = LoginResponse(**resobj)
+                        login_response = LoginResponse.model_validate(obj=resobj)
                     except (json.JSONDecodeError, ValidationError):
                         break
                     else:
@@ -223,17 +99,17 @@ class SealminerHTTPClient(BaseHTTPClient):
         if not self.authed:
             raise AuthenticationError("Failed to authenticate")
 
-    async def get_hostname(self) -> str:
-        return await super().get_hostname()
+    # async def get_hostname(self) -> str:
+    #     return await super().get_hostname()
 
     async def get_mac_addr(self) -> str:
         resp = await self.get_system_info()
-        return resp["macaddr"]
+        return resp.macaddr
 
-    async def get_api_version(self) -> str:
-        return await super().get_api_version()
+    # async def get_api_version(self) -> str:
+    #     return await super().get_api_version()
 
-    async def get_system_info(self) -> dict:
+    async def get_system_info(self) -> SystemInfo:
         resp = await self.send_command("GET", command="get_system_info")
         try:
             resobj = SystemInfo.model_validate(obj=resp, by_alias=True)
@@ -241,47 +117,44 @@ class SealminerHTTPClient(BaseHTTPClient):
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump()
+            return resobj
 
-    async def get_network_info(self) -> dict:
+    async def get_network_info(self) -> NetworkInfo:
         resp = await self.send_command("GET", command="get_network_info")
         try:
-            resobj = NetInfo.model_validate(obj=resp)
+            resobj = NetworkInfo.model_validate(obj=resp)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump()
+            return resobj
 
-    async def log(self, *args, **kwargs) -> dict:
-        return await super().log(*args, **kwargs)
-
-    async def summary(self) -> dict:
+    async def summary(self) -> Summary:
         resp = await self.send_command("GET", command="miner-status")
         try:
-            resobj = MinerStatus.model_validate(obj=resp, by_alias=True)
+            resobj = Summary.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump()
+            return resobj
 
-    async def get_miner_conf(self) -> dict:
+    async def get_miner_conf(self) -> MinerConfig:
         resp = await self.send_command("GET", command="get_miner_poolconf")
         try:
-            resobj = MinerConf.model_validate(obj=resp, by_alias=True)
+            resobj = MinerConfig.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj.model_dump(by_alias=True)
+            return resobj
 
-    async def set_miner_conf(self, conf: dict) -> dict:
+    async def set_miner_conf(self, conf: APIObject) -> APIObject:
         resp = await self.send_command(
             "POST", command="set_miner_poolconf", payload=conf
         )
         try:
-            resobj = ConfResponse.model_validate(obj=resp, by_alias=True)
+            resobj = ConfigResult.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
@@ -292,35 +165,29 @@ class SealminerHTTPClient(BaseHTTPClient):
                 raise APIError("Command failed!")
             return resobj.model_dump()
 
-    async def pools(self) -> list[dict]:
+    async def pools(self) -> list[MinerPool]:
         resp = await self.summary()
-        ta = TypeAdapter(list[Pool])
-        pools = ta.validate_python(resp["pools"], by_name=True)
-        return ta.dump_python(pools, by_alias=True)
+        return resp.pools
 
-    async def get_pool_conf(self) -> list[dict]:
+    async def get_pool_conf(self) -> PoolConfig:
         resp = await self.get_miner_conf()
-        ta = TypeAdapter(list[MinerConfPool])
-        pools = ta.validate_python(resp["pools"], by_name=True)
-        return ta.dump_python(pools, by_alias=True)
+        return resp.pools
 
-    async def get_blink_status(self) -> dict:
+    async def get_blink_status(self) -> BlinkStatus:
         resp = await self.get_system_info()
-        blink = BlinkStatus(blink=resp["led"] == "on")
-        return blink.model_dump()
+        blink = BlinkStatus(blink=resp.led == "on")
+        return blink
 
-    async def get_miner_status(self) -> dict:
-        return await super().get_miner_status()
-
-    async def blink(self, enabled: bool, *args, **kwargs) -> dict:
+    @override
+    async def blink(self, enabled: bool) -> APIObject:
         data = f'{{"key":"led","value":"{"on" if enabled else "off"}"}}'
         return await self.send_command("POST", command="led_conf", data=data)
 
-    async def set_miner_mode(self, mode: int = 1) -> dict:
+    async def set_miner_mode(self, mode: int = 1) -> APIObject:
         data = f'{{"params_data":{mode}}}'
         resp = await self.send_command("POST", command="mining_setting", data=data)
         try:
-            resobj = ActionResponse.model_validate(obj=resp)
+            resobj = ActionResult.model_validate(obj=resp)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
@@ -331,20 +198,25 @@ class SealminerHTTPClient(BaseHTTPClient):
                 raise APIError("Command failed!")
             return resobj.model_dump()
 
-    async def start(self) -> dict:
+    @override
+    async def start(self) -> APIObject:
         return await self.set_miner_mode(mode=1)
 
-    async def stop(self) -> dict:
+    @override
+    async def stop(self) -> APIObject:
         return await self.set_miner_mode(mode=0)
 
-    async def restart(self) -> dict:
+    @override
+    async def restart(self) -> APIObject:
         return await self.start()
 
-    async def reboot(self) -> dict:
+    @override
+    async def reboot(self) -> APIObject:
         return await self.send_command("POST", command="reboot")
 
-    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
-        pw_conf = MinerConfigPasswd(
+    @override
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> APIObject:
+        pw_conf = MinerPasswdConfig(
             username=self.username,
             curr_passwd=old_passwd,
             new_passwd=new_passwd,
@@ -354,13 +226,16 @@ class SealminerHTTPClient(BaseHTTPClient):
             "POST", command="update_passwd", payload=pw_conf.model_dump(by_alias=True)
         )
 
+    @override
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
-    ) -> dict:
+    ) -> APIObject:
         if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
             raise APIError("Invalid length of arguments")
 
-        pool_conf: list[dict[str, str]] = await self.get_pool_conf()
+        conf = await self.get_miner_conf()
+        ta = TypeAdapter(PoolConfig)
+        pool_conf: list[dict[str, str]] = ta.dump_python(conf.pools)
 
         new_conf = {
             "poolurl1": "",

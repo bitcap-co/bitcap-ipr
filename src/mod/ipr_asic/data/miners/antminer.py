@@ -14,6 +14,13 @@ from mod.ipr_asic.schemas.antminer import MinerSummary as AntminerSummary
 from mod.ipr_asic.schemas.antminer import SystemInfo as AntminerSystemInfo
 from mod.ipr_asic.schemas.models import ContentResponse as AntminerLog
 
+_PLATFORM_PATTERNS: dict[str, re.Pattern[str]] = {
+    "Xilinx": re.compile(r"Zynq|Xilinx|xil"),
+    "BeagleBone": re.compile(r"BeagleBone"),
+    "AMLogic": re.compile(r"amlogic|aml"),
+    "CVITEK": re.compile(r"cvitek|CVITEK"),
+}
+
 
 class AntminerModels(BaseModel):
     system_info: AntminerSystemInfo
@@ -23,14 +30,6 @@ class AntminerModels(BaseModel):
 
 
 class AntminerParser:
-    def __init__(self) -> None:
-        self.platform_patterns: dict[str, re.Pattern[str]] = {
-            "Xilinx": re.compile(r"Zynq|Xilinx|xil"),
-            "BeagleBone": re.compile(r"BeagleBone"),
-            "AMLogic": re.compile(r"amlogic|aml"),
-            "CVITEK": re.compile(r"cvitek|CVITEK"),
-        }
-
     def parse(self, models: AntminerModels) -> MinerData:
         data = MinerData()
         data.type = MinerType.ANTMINER
@@ -50,7 +49,7 @@ class AntminerParser:
 
         if models.log is not None:
             models.log.text = models.log.text[0 : models.log.text.find("===")]
-            for platform, pattern in self.platform_patterns.items():
+            for platform, pattern in _PLATFORM_PATTERNS.items():
                 if pattern.search(models.log.text):
                     data.platform = platform
                     break

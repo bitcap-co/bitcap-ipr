@@ -1,8 +1,13 @@
+# Copyright (C) 2024-2026 Matthew Wertman <matt@bitcap.co>
+#
+# This file is part of bitcap-ipr
+# Licensed under the GNU General Public License v3.0; see LICENSE
+
 from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from src.mod.ipr_asic.schemas.models import (
+from .models import (
     MinerConfigModel,
     MinerPoolConfig,
     MinerPoolModel,
@@ -104,7 +109,7 @@ class MinerSubmitForm(BaseModel):
     )
 
 
-class MinerNetworkConfig(MinerSubmitForm):
+class MinerNetworkConfigForm(MinerSubmitForm):
     proto: Literal["dhcp", "static"] = Field(
         "dhcp", serialization_alias="cbid.network.lan.proto"
     )
@@ -144,7 +149,7 @@ class MinerConfig(MinerSubmitForm, MinerConfigModel):
     )
 
 
-class MinerConfigPool(MinerSubmitForm):
+class MinerPoolConfigForm(MinerSubmitForm):
     select_coin: Literal["mwc", "grin"] = Field(
         "mwc", serialization_alias="cbid.cgminer.default.select_coin"
     )
