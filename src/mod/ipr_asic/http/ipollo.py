@@ -107,14 +107,16 @@ class IPolloHTTPClient(BaseHTTPClient):
         if not self.authed:
             raise AuthenticationError("Failed to authenticate")
 
-    async def get_hostname(self) -> str:
-        return await super().get_hostname()
-
     async def get_mac_addr(self) -> str:
-        return await super().get_mac_addr()
+        resp = await self.get_network_info()
+        for iface in resp.ifaces:
+            if iface.is_up:
+                return iface.macaddr
+        return ""
 
     async def get_api_version(self) -> str:
-        return await super().get_api_version()
+        resp = await self.summary()
+        return resp.version
 
     async def get_system_info(self) -> SystemInfo:
         resp = await self.send_command(
