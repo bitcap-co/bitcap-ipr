@@ -9,9 +9,13 @@ import re
 from abc import ABC
 from typing import Self
 
+from pydantic_core import from_json
+
 from mod.ipr_asic import settings
 from mod.ipr_asic.errors import APIError, FailedConnectionError
-from mod.ipr_asic.schemas.models import APIObject
+from mod.ipr_asic.schemas.models import (
+    APIObject,
+)
 
 from .base import BaseClient
 
@@ -55,7 +59,7 @@ class BaseRPCClient(BaseClient, ABC):
             if data == b"Socket connect failed: Connection refused\n":
                 raise APIError("Connection Failed: connection refused.")
 
-            resp = self._load_api_data(data)
+            resp = self._unmarshal_data(data)
             return resp
         finally:
             writer.close()
@@ -64,37 +68,37 @@ class BaseRPCClient(BaseClient, ABC):
             except (OSError, asyncio.TimeoutError):
                 pass
 
-    def _load_api_data(self, data: bytes) -> APIObject:
+    def _unmarshal_data(self, raw: bytes) -> APIObject:
         # some json from the API returns with a null byte (\x00) on the end
-        if data.endswith(b"\x00"):
-            str_data = data.decode("utf-8", errors="replace")[:-1]
+        if raw.endswith(b"\x00"):
+            data = raw.decode("utf-8", errors="replace")[:-1]
         else:
-            str_data = data.decode("utf-8", errors="replace")
+            data = raw.decode("utf-8", errors="replace")
         # fix an error with a btminer return having an extra comma that breaks json.loads()
-        str_data = str_data.replace(",}", "}")
+        data = data.replace(",}", "}")
         # fix an error with a btminer return having a newline that breaks json.loads()
-        str_data = str_data.replace("\n", "")
+        data = data.replace("\n", "")
         # fix an error with a bmminer return not having a specific comma that breaks json.loads()
-        str_data = str_data.replace("}{", "},{")
+        data = data.replace("}{", "},{")
         # fix an error with a bmminer return having a specific comma that breaks json.loads()
-        str_data = str_data.replace("[,{", "[{")
+        data = data.replace("[,{", "[{")
         # fix an error with a btminer return having a missing comma. (2023-01-06 version)
-        str_data = str_data.replace('""temp0', '","temp0')
+        data = data.replace('""temp0', '","temp0')
 
         # try to fix an error with overflowing the receive buffer
         # this can happen in cases such as bugged btminers returning arbitrary length error info with 100s of errors.
-        if not str_data.endswith("}"):
-            str_data = ",".join(str_data.split(",")[:-1]) + "}"
+        if not data.endswith("}"):
+            data = ",".join(data.split(",")[:-1]) + "}"
 
         # fix a really nasty bug with whatsminer API v2.0.4 where they return a list structured like a dict
-        if re.search(r"\"error_code\":\[\".+\"\]", str_data):
-            str_data = str_data.replace("[", "{").replace("]", "}")
+        if re.search(r"\"error_code\":\[\".+\"\]", data):
+            data = data.replace("[", "{").replace("]", "}")
 
         try:
-            api_data = json.loads(str_data)
-        except json.JSONDecodeError:
-            raise APIError("Failed to decode JSON from API response")
-        return api_data
+            data_obj = from_json(data)
+        except ValueError:
+            raise APIError("Failed to unmarshal API response")
+        return data_obj
 
     async def send_command(
         self, command: str, parameters: str | int | bool | None = None, **kwargs
