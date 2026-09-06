@@ -3,9 +3,9 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-from typing import Any
+from typing import Any, ClassVar
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Command(BaseModel):
@@ -35,11 +35,30 @@ class Version(BaseModel):
     type: str | None = Field(default=None, alias="Type")
 
 
-class Pool(BaseModel):
+class RawResponse(BaseModel):
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="allow")
+
+
+class BaseSummary(RawResponse):
+    pass
+
+
+class BaseStat(RawResponse):
+    pass
+
+
+class BaseDev(RawResponse):
+    pass
+
+
+class BaseDevDetails(RawResponse):
+    pass
+
+
+class BasePool(RawResponse):
     url: str = Field(alias="URL")
     status: str = Field(alias="Status")
     user: str = Field(alias="User")
-    diff: float | None = Field(None, alias="Diff")
     pool: int = Field(alias="POOL")
     priority: int = Field(alias="Priority")
     quota: int = Field(alias="Quota")
@@ -47,10 +66,11 @@ class Pool(BaseModel):
     accepted: int = Field(alias="Accepted")
     rejected: int = Field(alias="Rejected")
     stale: int = Field(alias="Stale")
-    diffa: float | None = Field(None, alias="Difficulty Accepted")
-    diffr: float | None = Field(None, alias="Difficulty Rejected")
-    stratum_diff: float | None = Field(None, alias="Stratum Difficulty")
-    stratum_active: bool = Field(alias="Stratum Active")
+    # diff: float | None = Field(None, alias="Diff")
+    # diffa: float | None = Field(None, alias="Difficulty Accepted")
+    # diffr: float | None = Field(None, alias="Difficulty Rejected")
+    # stratum_diff: float | None = Field(None, alias="Stratum Difficulty")
+    # stratum_active: bool = Field(alias="Stratum Active")
 
 
 class BaseCGMinerResponse(BaseModel):
@@ -69,9 +89,9 @@ class BaseCGMinerResponse(BaseModel):
                     return None
 
 
-class CGMinerResponse(BaseCGMinerResponse):
-    summary: list[dict[str, Any]] | None = Field(None, alias="SUMMARY")
-    stats: list[dict[str, Any]] | None = Field(None, alias="STATS")
-    devs: list[dict[str, Any]] | None = Field(None, alias="DEVS")
-    dev_details: list[dict[str, Any]] | None = Field(None, alias="DEVDETAILS")
-    pools: list[Pool] | None = Field(None, alias="POOLS")
+# class CGMinerResponse(BaseCGMinerResponse):
+#     summary: list[dict[str, Any]] | None = Field(None, alias="SUMMARY")
+#     stats: list[dict[str, Any]] | None = Field(None, alias="STATS")
+#     devs: list[dict[str, Any]] | None = Field(None, alias="DEVS")
+#     dev_details: list[dict[str, Any]] | None = Field(None, alias="DEVDETAILS")
+#     pools: list[Pool] | None = Field(None, alias="POOLS")

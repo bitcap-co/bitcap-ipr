@@ -4,123 +4,104 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 import logging
+from collections.abc import Sequence
+from typing import TypeVar
 
 from pydantic import TypeAdapter, ValidationError
 
 from mod.ipr_asic.errors import APIError, APIInvalidResponse
-from mod.ipr_asic.models import MinerConfPool, Pool, Response
 from mod.ipr_asic.protocol import BaseRPCClient
+from mod.ipr_asic.schemas.cgminer import (
+    BaseCGMinerResponse,
+    BaseDev,
+    BaseDevDetails,
+    BasePool,
+    BaseStat,
+    BaseSummary,
+    Version,
+)
+from mod.ipr_asic.schemas.models import (
+    APIObject,
+    MinerPoolConfig,
+    PoolConfig,
+    SystemInfoModel,
+)
 
 logger = logging.getLogger(__name__)
 
+T = TypeVar("T")
 
-class CGMinerRPCClient(BaseRPCClient):
-    def __init__(self, ip: str, port: int = 4028, alt_pwd: str | None = None) -> None:
-        super().__init__(ip, port, alt_pwd)
 
-    def _validate_response(self, data: dict) -> Response:
+class CGMinerRPCLayer(BaseRPCClient):
+    def _validate_response(self, data: APIObject) -> str | None:
         try:
-            resobj = Response.model_validate(obj=data, by_alias=True)
+            resobj = BaseCGMinerResponse.model_validate(obj=data, by_alias=True)
         except ValidationError as e:
-            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            logger.error(f"{self.__repr__()}: {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            err = resobj.error()
-            if err:
-                logger.error(f"{self.__repr__()} : {APIError(err)!s}")
-                raise APIError("Command failed!")
-            return resobj
+            return resobj.error()
 
-    async def version(self) -> dict:
-        resp = await self.send_command("version")
-        valid = self._validate_response(resp)
-        if not valid.version or len(valid.version) != 1:
-            raise APIInvalidResponse(reason="malformed")
-        else:
-            return valid.version[0].model_dump(by_alias=True, exclude_none=True)
+    async def _get_one(
+        self, command: str, response_key: str, adapter: TypeAdapter[T]
+    ) -> T:
+        resp = await self.send_command(command)
+        error = self._validate_response(resp)
+        if error is not None:
+            logger.error(f"{self.__repr__()}: {APIError(error)!s}")
+            raise APIError("Command failed")
+        try:
+            values = resp[response_key]
+            if not isinstance(values, list) or len(values) != 1:
+                raise APIInvalidResponse(reason=f"{response_key} must contain one item")
+            return adapter.validate_python(values[0])
+        except (KeyError, TypeError, ValidationError) as e:
+            logger.error(f"{self.__repr__()}: {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
 
-    async def summary(self) -> dict:
-        resp = await self.send_command("summary")
-        valid = self._validate_response(resp)
-        if valid.summary is None or len(valid.summary) != 1:
-            raise APIInvalidResponse(reason="malformed")
-        else:
-            return valid.summary[0]
+    async def _get_many(
+        self, command: str, response_key: str, adapter: TypeAdapter[list[T]]
+    ) -> list[T]:
+        resp = await self.send_command(command)
+        error = self._validate_response(resp)
+        if error is not None:
+            logger.error(f"{self.__repr__()}: {APIError(error)!s}")
+            raise APIError("Command failed")
+        try:
+            return adapter.validate_python(resp[response_key])
+        except (KeyError, TypeError, ValidationError) as e:
+            logger.error(f"{self.__repr__()}: {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
 
-    async def stats(self) -> list[dict]:
-        resp = await self.send_command("stats")
-        valid = self._validate_response(resp)
-        if valid.stats is None:
-            raise APIInvalidResponse(reason="malformed")
-        else:
-            return valid.stats
 
-    async def devs(self) -> list[dict]:
-        resp = await self.send_command("devs")
-        valid = self._validate_response(resp)
-        if valid.devs is None:
-            raise APIInvalidResponse(reason="malformed")
-        else:
-            return valid.devs
+class CGMinerRPCClient(CGMinerRPCLayer):
+    async def version(self) -> Version:
+        return await self._get_one("version", "VERSION", TypeAdapter(Version))
 
-    async def devdetails(self) -> list[dict]:
-        resp = await self.send_command("devdetails")
-        valid = self._validate_response(resp)
-        if valid.dev_details is None:
-            raise APIInvalidResponse(reason="malformed")
-        else:
-            return valid.dev_details
+    async def summary(self) -> BaseSummary:
+        return await self._get_one("summary", "SUMMARY", TypeAdapter(BaseSummary))
 
-    async def pools(self) -> list[dict]:
-        resp = await self.send_command("pools")
-        valid = self._validate_response(resp)
-        if valid.pools is None:
-            raise APIInvalidResponse(reason="malformed")
-        else:
-            ta = TypeAdapter(list[Pool])
-            pools = ta.validate_python(valid.pools, by_alias=True)
-            return ta.dump_python(pools, by_alias=True)
+    async def stats(self) -> Sequence[BaseStat]:
+        return await self._get_many("stats", "STATS", TypeAdapter(list[BaseStat]))
 
-    async def get_system_info(self) -> dict:
+    async def devs(self) -> Sequence[BaseDev]:
+        return await self._get_many("devs", "DEVS", TypeAdapter(list[BaseDev]))
+
+    async def devdetails(self) -> Sequence[BaseDevDetails]:
+        return await self._get_many(
+            "devdetails", "DEVDETAILS", TypeAdapter(list[BaseDevDetails])
+        )
+
+    async def pools(self) -> Sequence[BasePool]:
+        return await self._get_many("pools", "POOLS", TypeAdapter(list[BasePool]))
+
+    async def get_system_info(self) -> SystemInfoModel:
         # generic CGMiner exposes no consolidated system-info command
-        return await super().get_system_info()
+        return SystemInfoModel()
 
-    async def get_pool_conf(self) -> list[dict]:
+    async def get_pool_conf(self) -> PoolConfig:
         pools = await self.pools()
-        pool_conf = []
+        pool_conf: list[MinerPoolConfig] = []
         for pool in pools:
-            pool_conf.append(
-                MinerConfPool(url=pool["URL"], user=pool["User"]).model_dump(
-                    by_alias=True
-                )
-            )
-        return pool_conf
-
-    async def get_blink_status(self) -> dict:
-        return await super().get_blink_status()
-
-    async def blink(self, enabled: bool, *args, **kwargs) -> dict:
-        return await super().blink(enabled, *args, **kwargs)
-
-    async def set_miner_mode(self, *args, **kwargs) -> dict:
-        return await super().set_miner_mode(*args, **kwargs)
-
-    async def start(self) -> dict:
-        return await super().start()
-
-    async def stop(self) -> dict:
-        return await super().stop()
-
-    async def restart(self) -> dict:
-        return await super().restart()
-
-    async def reboot(self) -> dict:
-        return await super().reboot()
-
-    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
-        return await super().update_passwd(old_passwd, new_passwd)
-
-    async def update_pool_conf(
-        self, urls: list[str], users: list[str], passwds: list[str]
-    ) -> dict:
-        return await super().update_pool_conf(urls, users, passwds)
+            pool_conf.append(MinerPoolConfig(url=pool.url, user=pool.user))
+        return PoolConfig(pool_conf)
