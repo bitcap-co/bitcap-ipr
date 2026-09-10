@@ -18,6 +18,8 @@ from mod.ipr_asic.schemas.cgminer import (
     BasePool,
     BaseStat,
     BaseSummary,
+    BaseVersion,
+    Status,
     Version,
 )
 from mod.ipr_asic.schemas.models import (
@@ -42,6 +44,15 @@ class CGMinerRPCLayer(BaseRPCClient):
         else:
             return resobj.error()
 
+    def _unmarshal_status(self, data: APIObject) -> Status:
+        try:
+            resobj = BaseCGMinerResponse.model_validate(obj=data, by_alias=True)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()}: {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        else:
+            return resobj.status[0]
+
     async def _get_one(
         self, command: str, response_key: str, adapter: TypeAdapter[T]
     ) -> T:
@@ -54,7 +65,7 @@ class CGMinerRPCLayer(BaseRPCClient):
             values = resp[response_key]
             if not isinstance(values, list) or len(values) != 1:
                 raise APIInvalidResponse(reason=f"{response_key} must contain one item")
-            return adapter.validate_python(values[0])
+            return adapter.validate_python(values[0], by_alias=True)
         except (KeyError, TypeError, ValidationError) as e:
             logger.error(f"{self.__repr__()}: {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
@@ -68,14 +79,18 @@ class CGMinerRPCLayer(BaseRPCClient):
             logger.error(f"{self.__repr__()}: {APIError(error)!s}")
             raise APIError("Command failed")
         try:
-            return adapter.validate_python(resp[response_key])
+            return adapter.validate_python(resp[response_key], by_alias=True)
         except (KeyError, TypeError, ValidationError) as e:
             logger.error(f"{self.__repr__()}: {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
 
+    async def get_api_version(self) -> int:
+        version = await self._get_one("version", "VERSION", TypeAdapter(Version))
+        return self._parse_api_version(version.api)
+
 
 class CGMinerRPCClient(CGMinerRPCLayer):
-    async def version(self) -> Version:
+    async def version(self) -> BaseVersion:
         return await self._get_one("version", "VERSION", TypeAdapter(Version))
 
     async def summary(self) -> BaseSummary:
