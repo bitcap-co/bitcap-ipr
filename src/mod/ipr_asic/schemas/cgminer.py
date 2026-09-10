@@ -3,12 +3,16 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-from typing import Any, ClassVar
+
+from typing import ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from .models import APIObject, MinerPoolModel, RawModel, SummaryModel, VersionInfoModel
+
 
 class Command(BaseModel):
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="allow")
     command: str
     parameter: str | None = None
 
@@ -17,7 +21,7 @@ class Status(BaseModel):
     status: str = Field(alias="STATUS")
     when: int | None = Field(default=None, alias="When")
     code: int | None = Field(default=None, alias="Code")
-    msg: str | dict[str, Any] = Field(alias="Msg")
+    msg: str | APIObject = Field(alias="Msg")
     description: str | None = Field(default=None, alias="Description")
 
     def error(self) -> str | None:
@@ -25,7 +29,11 @@ class Status(BaseModel):
             return f"API error ({self.code}): {self.msg} - {self.description}"
 
 
-class Version(BaseModel):
+class BaseVersion(VersionInfoModel):
+    pass
+
+
+class Version(BaseVersion):
     api: str = Field(alias="API")
     cgminer: str | None = Field(default=None, alias="CGMiner")
     luxminer: str | None = Field(default=None, alias="LUXMiner")
@@ -35,27 +43,23 @@ class Version(BaseModel):
     type: str | None = Field(default=None, alias="Type")
 
 
-class RawResponse(BaseModel):
-    model_config: ClassVar[ConfigDict] = ConfigDict(extra="allow")
-
-
-class BaseSummary(RawResponse):
+class BaseSummary(SummaryModel):
     pass
 
 
-class BaseStat(RawResponse):
+class BaseStat(RawModel):
     pass
 
 
-class BaseDev(RawResponse):
+class BaseDev(RawModel):
     pass
 
 
-class BaseDevDetails(RawResponse):
+class BaseDevDetails(RawModel):
     pass
 
 
-class BasePool(RawResponse):
+class BasePool(MinerPoolModel):
     url: str = Field(alias="URL")
     status: str = Field(alias="Status")
     user: str = Field(alias="User")
@@ -66,17 +70,17 @@ class BasePool(RawResponse):
     accepted: int = Field(alias="Accepted")
     rejected: int = Field(alias="Rejected")
     stale: int = Field(alias="Stale")
+    stratum_url: str | None = Field(None, alias="Stratum URL")
+    stratum_diff: float | None = Field(None, alias="Stratum Difficulty")
+    stratum_active: bool = Field(alias="Stratum Active")
     # diff: float | None = Field(None, alias="Diff")
     # diffa: float | None = Field(None, alias="Difficulty Accepted")
     # diffr: float | None = Field(None, alias="Difficulty Rejected")
-    # stratum_diff: float | None = Field(None, alias="Stratum Difficulty")
-    # stratum_active: bool = Field(alias="Stratum Active")
 
 
 class BaseCGMinerResponse(BaseModel):
     id: int
     status: list[Status] = Field(alias="STATUS")
-    version: list[Version] | None = Field(None, alias="VERSION")
 
     def error(self) -> str | None:
         for status in self.status:

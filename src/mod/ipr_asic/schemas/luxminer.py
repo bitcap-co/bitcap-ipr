@@ -96,7 +96,6 @@ class Summary(BaseSummary):
 
 
 class MinerPool(BasePool):
-    stratum_url: str = Field(alias="Stratum URL")
     diff: str = Field(alias="Diff")
     diff1_shares: int = Field(alias="Diff1 Shares")
     group: int = Field(alias="GROUP")
@@ -107,8 +106,6 @@ class MinerPool(BasePool):
     diffr: int = Field(alias="Difficulty Rejected")
     diffs: int = Field(alias="Difficulty Stale")
     last_share_diff: int = Field(alias="Last Share Diff")
-    stratum_diff: float = Field(alias="Stratum Difficulty")
-    stratum_active: bool = Field(alias="Stratum Active")
 
 
 class Stat(BaseStat):

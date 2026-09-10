@@ -3,9 +3,9 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-from typing import Any, TypeAlias
+from typing import Any, ClassVar, TypeAlias
 
-from pydantic import BaseModel, Field, RootModel
+from pydantic import BaseModel, ConfigDict, Field, RootModel
 
 APIObject: TypeAlias = dict[str, Any]
 
@@ -37,33 +37,41 @@ class BlinkStatus(BlinkStatusModel):
     blink: bool
 
 
-class SystemInfoModel(BaseModel):
+class RawModel(BaseModel):
+    model_config: ClassVar[ConfigDict] = ConfigDict(extra="allow")
+
+
+class SystemInfoModel(RawModel):
     pass
 
 
-class NetworkInfoModel(BaseModel):
+class VersionInfoModel(RawModel):
     pass
 
 
-class MinerStatusModel(BaseModel):
+class NetworkInfoModel(RawModel):
     pass
 
 
-class SummaryModel(BaseModel):
+class MinerStatusModel(RawModel):
     pass
 
 
-class MinerConfigModel(BaseModel):
+class SummaryModel(RawModel):
     pass
 
 
-class MinerPasswdConfigModel(BaseModel):
+class MinerConfigModel(RawModel):
     pass
 
 
-class MinerPoolModel(BaseModel):
+class MinerPoolModel(RawModel):
     pass
 
 
-class MinerPoolConfigModel(BaseModel):
+class MinerPasswdConfigModel(RawModel):
+    pass
+
+
+class MinerPoolConfigModel(RawModel):
     pass
