@@ -220,7 +220,7 @@ class MinerPoolConfigForm(MinerSubmitForm):
                 {
                     "url": getattr(self, f"{coin}_pool{index}_url"),
                     "user": getattr(self, f"{coin}_pool{index}_user"),
-                    "pass": getattr(self, f"{coin}_pool{index}_pw"),
+                    "pwd": getattr(self, f"{coin}_pool{index}_pw"),
                 }
             )
             for index in range(1, 4)
