@@ -181,6 +181,14 @@ class WhatsminerRPCClient(CGMinerRPCClient):
         self.token = Token(sign=sign, key=key, timestamp=datetime.datetime.now())
         return self.token
 
+    @override
+    def _unmarshal_status(self, data: APIObject) -> Status:
+        try:
+            return Status.model_validate(data, by_alias=True)
+        except ValidationError as e:
+            logger.error(f"{self!r} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse from e
+
     def _unmarshal_msg(self, data: APIObject, adapter: TypeAdapter[T]) -> T:
         resobj = self._unmarshal_status(data)
         err = resobj.error()
