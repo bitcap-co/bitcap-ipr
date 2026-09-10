@@ -5,7 +5,7 @@
 
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Self
+from typing import Any, Self, override
 
 from pydantic import BaseModel, Field
 
@@ -26,6 +26,7 @@ class MinerType(str, Enum):
     VNISH = "vnish"
     HIVEGPU = "hivegpu"
 
+    @override
     def __str__(self) -> str:
         return self.value
 
@@ -43,6 +44,7 @@ class MinerFirmware(str, Enum):
     VNISH = "Vnish"
     LUX_OS = "LuxOS"
 
+    @override
     def __str__(self) -> str:
         return self.value
 
@@ -70,6 +72,7 @@ class MinerAlgorithm(str, Enum):
     PEARLHASH = "Pearlhash"
     CUCKATOO = "Cuckatoo"
 
+    @override
     def __str__(self) -> str:
         return self.value
 
@@ -95,6 +98,7 @@ class MinerPlatform(str, Enum):
     CVITEK = "CVITEK"
     STM = "STM"
 
+    @override
     def __str__(self) -> str:
         return self.value
 
@@ -140,8 +144,3 @@ class MinerData(BaseModel):
             if isinstance(miner_data[key], Enum):
                 miner_data[key] = miner_data[key].__str__()
         return miner_data
-
-
-from .base import BaseParser
-
-__all__ = ["BaseParser"]
