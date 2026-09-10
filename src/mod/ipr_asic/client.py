@@ -5,27 +5,39 @@
 
 import asyncio
 import logging
-from typing import Any
+from typing import Any, ClassVar, Literal, override
 
 import httpx
 from pydantic import BaseModel, ConfigDict, Field
 from PySide6.QtCore import QObject
 
-from mod.ipr_asic import settings
-from mod.ipr_asic.data import BaseParser, MinerData, MinerType
+from mod.ipr_asic.data import MinerData, MinerType
 from mod.ipr_asic.data.miners import (
+    AntminerModels,
     AntminerParser,
+    AuradineModels,
     AuradineParser,
+    ElphapexModels,
     ElphapexParser,
+    GoldshellModels,
     GoldshellParser,
+    IceriverModels,
     IceriverParser,
+    IPolloModels,
     IPolloParser,
+    LuxminerModels,
     LuxminerParser,
+    SealminerModels,
     SealminerParser,
+    SRBMinerModels,
     SRBMinerParser,
+    VnishModels,
     VnishParser,
+    VolcminerModels,
     VolcminerParser,
+    WhatsminerModels,
     WhatsminerParser,
+    WhatsminerV3Models,
     WhatsminerV3Parser,
 )
 from mod.ipr_asic.errors import (
@@ -47,15 +59,18 @@ from mod.ipr_asic.http import (
     VnishHTTPClient,
     VolcminerHTTPClient,
 )
-from mod.ipr_asic.protocol import BaseClient
+from mod.ipr_asic.protocol import MinerClient
 from mod.ipr_asic.rpc import (
     LuxminerRPCClient,
     WhatsminerRPCClient,
     WhatsminerTCPClient,
 )
+from mod.ipr_asic.settings import get as get_setting
 from mod.lm.ipreport import MinerTypeHint
 
 logger = logging.getLogger(__name__)
+
+ControlAction = Literal["start", "stop", "restart", "reboot"]
 
 # client errors that a high-level operation may recover from / report
 _CLIENT_ERRORS = (
@@ -76,7 +91,7 @@ class MinerResult(BaseModel):
     shared active client and is unsafe under concurrent/bulk operations).
     """
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(arbitrary_types_allowed=True)
 
     data: Any = None
     error: Exception | None = None
@@ -107,8 +122,9 @@ class ASICClient(QObject):
 
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
-        self._parent = parent
+        self._parent: QObject | None = parent
 
+    @override
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}"
 
@@ -149,13 +165,13 @@ class ASICClient(QObject):
 
     async def _parse_http_type(self, ip: str) -> MinerType | None:
         url = f"http://{ip}/"
-        timeout = settings.get("api_function_timeout", 5)
+        timeout = float(get_setting("api_function_timeout", 5.0))
         try:
             async with httpx.AsyncClient(timeout=timeout) as c:
                 resp = await c.get(url, follow_redirects=True)
         except httpx.HTTPError:
             return None
-        www_auth = resp.headers.get("www-authenticate", "")
+        www_auth = str(resp.headers.get("www-authenticate", ""))
         if resp.status_code == 401 and 'realm="antMiner' in www_auth:
             return MinerType.ANTMINER
         if resp.status_code == 401 and 'realm="blackMiner' in www_auth:
@@ -173,9 +189,9 @@ class ASICClient(QObject):
         except _CLIENT_ERRORS:
             return None
         finally:
-            client._close()
+            client.close()
         try:
-            return system_info["minertype"]
+            return system_info.minertype
         except (TypeError, LookupError):
             return None
 
@@ -183,10 +199,10 @@ class ASICClient(QObject):
 
     async def _make_client(
         self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
-    ) -> BaseClient:
+    ) -> MinerClient:
         match miner_type:
             case MinerType.ANTMINER:
-                client: BaseClient = AntminerHTTPClient(ip, alt_pwd=alt_pwd)
+                client = AntminerHTTPClient(ip, alt_pwd=alt_pwd)
                 return await self._upgrade_client(client, ip, alt_pwd)
             case MinerType.ELPHAPEX:
                 return ElphapexHTTPClient(ip, alt_pwd=alt_pwd)
@@ -217,58 +233,28 @@ class ASICClient(QObject):
                 )
 
     async def _upgrade_client(
-        self, client: BaseClient, ip: str, alt_pwd: str | None = None
-    ) -> BaseClient:
+        self, client: MinerClient, ip: str, alt_pwd: str | None = None
+    ) -> MinerClient:
         """Probe for firmware variants that need a different backend."""
         try:
             # antminer: old firmware (<= 2020) uses the legacy endpoints
             if isinstance(client, AntminerHTTPClient):
                 sys_info = await client.get_system_info()
                 try:
-                    if int(sys_info["system_filesystem_version"][-4:]) <= 2020:
-                        client._close()
+                    if int(sys_info.system_filesystem_version[-4:]) <= 2020:
+                        client.close()
                         return AntminerOldHTTPClient(ip, alt_pwd=alt_pwd)
                 except ValueError:
                     return client
             # whatsminer: V3 firmware (> 202412) speaks the length-prefixed API
             if isinstance(client, WhatsminerRPCClient):
                 version_info = await client.version()
-                if int(version_info["fw_ver"][:6]) > 202412:
-                    client._close()
+                if int(version_info.fw_ver[:6]) > 202412:
+                    client.close()
                     return WhatsminerTCPClient(ip, alt_pwd=alt_pwd)
         except _CLIENT_ERRORS as e:
             logger.error(f"{client.__repr__()} : client error raised: {e!s}")
         return client
-
-    def _parser_for(self, client: BaseClient) -> BaseParser | None:
-        if isinstance(client, (AntminerHTTPClient, AntminerOldHTTPClient)):
-            return AntminerParser()
-        if isinstance(client, VnishHTTPClient):
-            return VnishParser()
-        if isinstance(client, ElphapexHTTPClient):
-            return ElphapexParser()
-        if isinstance(client, GoldshellHTTPClient):
-            return GoldshellParser()
-        if isinstance(client, IceriverHTTPClient):
-            return IceriverParser()
-        if isinstance(client, SealminerHTTPClient):
-            return SealminerParser()
-        if isinstance(client, VolcminerHTTPClient):
-            return VolcminerParser()
-        if isinstance(client, WhatsminerTCPClient):
-            return WhatsminerV3Parser()
-        if isinstance(client, WhatsminerRPCClient):
-            return WhatsminerParser()
-        if isinstance(client, LuxminerRPCClient):
-            return LuxminerParser()
-        if isinstance(client, AuradineHTTPClient):
-            return AuradineParser()
-        if isinstance(client, SRBMinerHTTPClient):
-            return SRBMinerParser()
-        if isinstance(client, IPolloHTTPClient):
-            return IPolloParser()
-
-        return None
 
     # -- high-level operations ---------------------------------------------
 
@@ -284,58 +270,128 @@ class ASICClient(QObject):
             data = await self._parse_miner_data(client)
             return MinerResult(data=data, error=client.error())
         finally:
-            client._close()
+            client.close()
 
-    async def _parse_miner_data(self, client: BaseClient) -> dict[str, Any]:
-        parser = self._parser_for(client)
-        if parser is None:
-            return MinerData().as_dict()
+    async def _parse_miner_data(self, client: MinerClient) -> dict[str, Any]:
         try:
-            system_info = await client.get_system_info()
-            summary = await client.summary()
-            if isinstance(parser, AntminerParser):
-                parser.parse_summary(summary)
-                system_log = await client.log()
-                parser.parse_platform(system_log)
-                parser.parse_system_info(system_info)
-            elif isinstance(parser, SRBMinerParser):
-                parser.parse_all(system_info)
-                # uptime is not part of the generic parse_all() sequence.
-                parser.parse_summary(system_info)
-            elif isinstance(parser, GoldshellParser):
-                parser.parse_system_info(system_info)
-                miner_conf = await client.get_miner_conf()
-                parser.parse_mac(miner_conf)
-                algo_info = await client.get_algo()
-                parser.parse_algorithm(algo_info)
-            elif isinstance(parser, WhatsminerParser):
-                parser.parse_summary(summary)
-                parser.parse_system_info(system_info)
-                devs = await client.devdetails()
-                parser.parse_subtype(devs)
-                version_info = await client.version()
-                parser.parse_version_info(version_info)
-            elif isinstance(parser, LuxminerParser):
-                parser.parse_summary(summary)
-                parser.parse_system_info(system_info)
-                version_info = await client.version()
-                parser.parse_version_info(version_info)
-            elif isinstance(parser, IPolloParser):
-                parser.parse_summary(summary)
-                parser.parse_system_info(system_info)
-            else:
-                parser.parse_summary(summary)
-                parser.parse_all(system_info)
-            try:
-                pools = await client.pools()
-            except _CLIENT_ERRORS as e:
-                logger.error(f"{client.__repr__()} : client error raised: {e!s}")
-                pools = []
-            parser.parse_pools(pools)
+            if isinstance(client, (AntminerHTTPClient, AntminerOldHTTPClient)):
+                try:
+                    log = await client.log()
+                except _CLIENT_ERRORS as e:
+                    logger.error(f"{client!r} : client error raised: {e!s}")
+                    log = None
+                models = AntminerModels(
+                    system_info=await client.get_system_info(),
+                    summary=await client.summary(),
+                    pools=await client.pools(),
+                    log=log,
+                )
+                return AntminerParser().parse(models).as_dict()
+
+            if isinstance(client, ElphapexHTTPClient):
+                models = ElphapexModels(
+                    system_info=await client.get_system_info(),
+                    summary=await client.summary(),
+                    pools=await client.pools(),
+                )
+                return ElphapexParser().parse(models).as_dict()
+
+            if isinstance(client, GoldshellHTTPClient):
+                models = GoldshellModels(
+                    system_info=await client.get_system_info(),
+                    summary=await client.summary(),
+                    miner_config=await client.get_miner_conf(),
+                    algorithm=await client.get_algo(),
+                    pools=await client.pools(),
+                )
+                return GoldshellParser().parse(models).as_dict()
+
+            if isinstance(client, IceriverHTTPClient):
+                models = IceriverModels(
+                    summary=await client.summary(),
+                    pools=await client.pools(),
+                )
+                return IceriverParser().parse(models).as_dict()
+
+            if isinstance(client, SealminerHTTPClient):
+                models = SealminerModels(
+                    system_info=await client.get_system_info(),
+                    summary=await client.summary(),
+                    pools=await client.pools(),
+                )
+                return SealminerParser().parse(models).as_dict()
+
+            if isinstance(client, VolcminerHTTPClient):
+                models = VolcminerModels(
+                    system_info=await client.get_system_info(),
+                    summary=await client.summary(),
+                    pools=await client.pools(),
+                )
+                return VolcminerParser().parse(models).as_dict()
+
+            if isinstance(client, WhatsminerRPCClient):
+                models = WhatsminerModels(
+                    system_info=await client.get_system_info(),
+                    summary=await client.summary(),
+                    version_info=await client.version(),
+                    pools=await client.pools(),
+                    dev_details=await client.devdetails(),
+                )
+                return WhatsminerParser().parse(models).as_dict()
+
+            if isinstance(client, WhatsminerTCPClient):
+                models = WhatsminerV3Models(
+                    device_info=await client.get_device_info(),
+                    summary=await client.summary(),
+                    pools=await client.pools(),
+                )
+                return WhatsminerV3Parser().parse(models).as_dict()
+
+            if isinstance(client, LuxminerRPCClient):
+                models = LuxminerModels(
+                    system_info=await client.get_system_info(),
+                    summary=await client.summary(),
+                    version_info=await client.version(),
+                    pools=await client.pools(),
+                )
+                return LuxminerParser().parse(models).as_dict()
+
+            if isinstance(client, VnishHTTPClient):
+                models = VnishModels(
+                    system_info=await client.get_system_info(),
+                    summary=await client.summary(),
+                    pools=await client.pools(),
+                )
+                return VnishParser().parse(models).as_dict()
+
+            if isinstance(client, AuradineHTTPClient):
+                models = AuradineModels(
+                    system_info=await client.get_system_info(),
+                    summary=await client.summary(),
+                    pools=await client.pools(),
+                )
+                return AuradineParser().parse(models).as_dict()
+
+            if isinstance(client, SRBMinerHTTPClient):
+                models = SRBMinerModels(
+                    system_info=await client.get_system_info(),
+                    pools=await client.pools(),
+                )
+                return SRBMinerParser().parse(models).as_dict()
+
+            if isinstance(client, IPolloHTTPClient):
+                models = IPolloModels(
+                    system_info=await client.get_system_info(),
+                    summary=await client.summary(),
+                    pools=await client.pools(),
+                    network_info=await client.get_network_info(),
+                )
+                return IPolloParser().parse(models).as_dict()
         except _CLIENT_ERRORS as e:
-            logger.error(f"{client.__repr__()} : client error raised: {e!s}")
-            client._close(e)
-        return parser.get_data()
+            logger.error(f"{client!r} : client error raised: {e!s}")
+            client.close(e)
+
+        return MinerData().as_dict()
 
     async def get_miner_pool_conf(
         self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
@@ -346,20 +402,19 @@ class ASICClient(QObject):
             client = await self._make_client(miner_type, ip, alt_pwd)
         except UnknownClientError as e:
             return MinerResult(data=conf, error=e)
-        pool_conf: list[dict] = []
         error: Exception | None = None
         try:
             pool_conf = await client.get_pool_conf()
         except _CLIENT_ERRORS as e:
-            logger.error(f"{client.__repr__()} : client error raised: {e!s}")
+            logger.error(f"{client!r} : client error raised: {e!s}")
             error = e
+        else:
+            for pool in pool_conf.root:
+                conf.urls.append(pool.url)
+                conf.users.append(pool.user)
+                conf.passwds.append(pool.pwd)
         finally:
-            client._close()
-
-        for pool in pool_conf:
-            conf.urls.append(pool["addr"] if "addr" in pool else pool["url"])
-            conf.users.append(pool["user"])
-            conf.passwds.append(pool["pass"])
+            client.close()
         while len(conf.urls) < 3:
             conf.urls.append("")
             conf.users.append("")
@@ -387,11 +442,11 @@ class ASICClient(QObject):
             logger.error(f"{client.__repr__()} : client error raised: {e!s}")
             return MinerResult(error=e)
         finally:
-            client._close()
+            client.close()
 
     async def _control_miner(
         self,
-        action: str,
+        action: ControlAction,
         miner_type: MinerType,
         ip: str,
         alt_pwd: str | None = None,
@@ -402,18 +457,21 @@ class ASICClient(QObject):
         except UnknownClientError as e:
             return MinerResult(error=e)
         try:
-            operation = getattr(client, action, None)
-            if operation is None:
-                raise NotImplementedError(
-                    f"{action.capitalize()} is not supported for {miner_type.value}"
-                )
-            data = await operation()
+            match action:
+                case "start":
+                    data = await client.start()
+                case "stop":
+                    data = await client.stop()
+                case "restart":
+                    data = await client.restart()
+                case "reboot":
+                    data = await client.reboot()
             return MinerResult(data=data)
         except _CLIENT_ERRORS as e:
-            logger.error(f"{client.__repr__()} : client error raised: {e!s}")
+            logger.error(f"{client!r} : client error raised: {e!s}")
             return MinerResult(error=e)
         finally:
-            client._close()
+            client.close()
 
     async def start_miner(
         self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
@@ -448,6 +506,8 @@ class ASICClient(QObject):
         new_passwd: str | None = None,
     ) -> MinerResult:
         """Update the miner's password."""
+        if old_passwd is None or new_passwd is None:
+            return MinerResult(error=APIError("Old and new passwords are required"))
         try:
             client = await self._make_client(miner_type, ip, alt_pwd)
         except UnknownClientError as e:
@@ -459,7 +519,7 @@ class ASICClient(QObject):
             logger.error(f"{client.__repr__()} : client error raised: {e!s}")
             return MinerResult(error=e)
         finally:
-            client._close()
+            client.close()
 
     async def locate_miner(
         self,
@@ -474,23 +534,23 @@ class ASICClient(QObject):
         back off in the finally block).
         """
         if duration_ms is None:
-            duration_ms = settings.get("locate_duration_ms", 10000)
+            duration_ms = int(get_setting("locate_duration_ms", 10000))
         try:
             client = await self._make_client(miner_type, ip, alt_pwd)
         except UnknownClientError as e:
             return MinerResult(error=e)
         try:
-            await client.blink(enabled=True)
+            _ = await client.blink(enabled=True)
             try:
                 await asyncio.sleep(duration_ms / 1000)
             finally:
                 try:
-                    await client.blink(enabled=False)
+                    _ = await client.blink(enabled=False)
                 except _CLIENT_ERRORS:
                     pass
         except _CLIENT_ERRORS as e:
             logger.error(f"{client.__repr__()} : client error raised: {e!s}")
             return MinerResult(error=e)
         finally:
-            client._close()
+            client.close()
         return MinerResult()

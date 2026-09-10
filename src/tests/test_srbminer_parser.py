@@ -8,8 +8,12 @@ import unittest
 from pathlib import Path
 
 from mod.ipr_asic.data import MinerAlgorithm, MinerType
-from mod.ipr_asic.data.miners.srbminer import SRBMinerParser, _format_gpu_model
-from mod.ipr_asic.http.srbminer import SRBMinerInfo
+from mod.ipr_asic.data.miners.srbminer import (
+    SRBMinerModels,
+    SRBMinerParser,
+    _format_gpu_model,
+)
+from mod.ipr_asic.schemas.srbminer import SRBMinerInfo
 
 
 def read_payload(filename: str) -> dict:
@@ -32,48 +36,37 @@ class TestFormatGPUModel(unittest.TestCase):
 class TestSRBMinerParser(unittest.TestCase):
     def setUp(self):
         self.payload = read_payload("tests/payloads/srbminer.json")
-        # normalize through the client's model the same way the client does
-        self.info = SRBMinerInfo.model_validate(self.payload).model_dump()
-        self.parser = SRBMinerParser()
-        self.parser.parse_all(self.info)
-        self.parser.parse_uptime(self.info)
+        self.info = SRBMinerInfo.model_validate(self.payload)
+        pools = [algo.pool for algo in self.info.algorithms if algo.pool.pool]
+        self.data = SRBMinerParser().parse(
+            SRBMinerModels(system_info=self.info, pools=pools)
+        )
 
     def test_type_and_platform(self):
-        data = self.parser.get_data()
-        self.assertEqual(data["type"], str(MinerType.HIVEGPU))
-        self.assertEqual(data["platform"], "HiveOS")
+        self.assertEqual(self.data.type, MinerType.HIVEGPU)
+        self.assertEqual(self.data.platform, "HiveOS")
 
     def test_subtype_is_count_and_model(self):
-        self.assertEqual(self.parser.get_data()["subtype"], "4x RTX 3070")
+        self.assertEqual(self.data.subtype, "4x RTX 3070")
 
     def test_version_and_hostname_and_uptime(self):
-        data = self.parser.get_data()
         # SRBMiner version is reported as the API version; the rig firmware
         # version is not exposed by the API.
-        self.assertEqual(data["api_version"], "3.3.7")
-        self.assertEqual(data["hostname"], "SRBMiner-Multi-Rig")
-        self.assertEqual(data["uptime"], self.payload["mining_time"])
+        self.assertEqual(self.data.api_version, "3.3.7")
+        self.assertEqual(self.data.hostname, "SRBMiner-Multi-Rig")
+        self.assertEqual(self.data.uptime, self.payload["mining_time"])
 
     def test_algorithm(self):
         # pearlhash resolves to the MinerAlgorithm added for GPU rigs
-        self.assertEqual(
-            self.parser.get_data()["algorithm"], str(MinerAlgorithm.PEARLHASH)
-        )
+        self.assertEqual(self.data.algorithm, MinerAlgorithm.PEARLHASH)
 
     def test_pools(self):
-        pools = [
-            {"url": algo["pool"]["pool"], "user": algo["pool"]["wallet"]}
-            for algo in self.info["algorithms"]
-            if algo["pool"]["pool"]
-        ]
-        self.parser.parse_pools(pools)
-        data = self.parser.get_data()
         self.assertEqual(
-            data["stratum_url"], self.payload["algorithms"][0]["pool"]["pool"]
+            self.data.stratum_url, self.payload["algorithms"][0]["pool"]["pool"]
         )
         # wallet.worker is split into username/worker_name
         wallet = self.payload["algorithms"][0]["pool"]["wallet"]
-        self.assertEqual(data["username"], wallet.split(".", 1)[0])
+        self.assertEqual(self.data.username, wallet.split(".", 1)[0])
 
 
 if __name__ == "__main__":
