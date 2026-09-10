@@ -29,7 +29,7 @@ class BaseTCPClient(BaseClient):
     def __init__(
         self,
         ip: str,
-        port: int,
+        port: int = 4433,
         username: str | None = None,
         alt_pwd: str | None = None,
     ) -> None:
@@ -43,7 +43,11 @@ class BaseTCPClient(BaseClient):
         self._ex: Exception | None = None
 
     def __new__(
-        cls, ip: str, port: int, username: str | None = None, alt_pwd: str | None = None
+        cls,
+        ip: str,
+        port: int = 4433,
+        username: str | None = None,
+        alt_pwd: str | None = None,
     ) -> Self:
         if cls is BaseTCPClient:
             raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
