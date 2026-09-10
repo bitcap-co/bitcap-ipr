@@ -10,7 +10,6 @@ from pydantic import TypeAdapter
 
 from mod.ipr_asic.errors import APIError
 from mod.ipr_asic.rpc.cgminer import CGMinerRPCClient
-from mod.ipr_asic.schemas.cgminer import Version
 from mod.ipr_asic.schemas.luxminer import Config, Dev, Devdetail, MinerPool, Summary
 from mod.ipr_asic.schemas.models import ActionResult, APIObject, BlinkStatus
 
@@ -50,11 +49,6 @@ class LuxminerRPCClient(CGMinerRPCClient):
         except (LookupError, APIError):
             pass
         return None
-
-    @override
-    async def version(self) -> Version:
-        version = await super().version()
-        return Version.model_validate(version)
 
     @override
     async def summary(self) -> Summary:

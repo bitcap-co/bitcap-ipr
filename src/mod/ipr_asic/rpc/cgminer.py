@@ -18,7 +18,6 @@ from mod.ipr_asic.schemas.cgminer import (
     BasePool,
     BaseStat,
     BaseSummary,
-    BaseVersion,
     Status,
     Version,
 )
@@ -90,7 +89,7 @@ class CGMinerRPCLayer(BaseRPCClient):
 
 
 class CGMinerRPCClient(CGMinerRPCLayer):
-    async def version(self) -> BaseVersion:
+    async def version(self) -> Version:
         return await self._get_one("version", "VERSION", TypeAdapter(Version))
 
     async def summary(self) -> BaseSummary:

@@ -23,7 +23,7 @@ from mod.ipr_asic.errors import (
     AuthenticationError,
 )
 from mod.ipr_asic.protocol.tcp import BaseTCPClient
-from mod.ipr_asic.rpc.cgminer import CGMinerRPCClient
+from mod.ipr_asic.rpc.cgminer import CGMinerRPCLayer
 from mod.ipr_asic.schemas.cgminer import Status
 from mod.ipr_asic.schemas.models import (
     ActionResult,
@@ -102,7 +102,7 @@ def parse_priviledge_data(token: Token, data: APIObject) -> APIObject:
 
 
 @final
-class WhatsminerRPCClient(CGMinerRPCClient):
+class WhatsminerRPCClient(CGMinerRPCLayer):
     def __init__(self, ip: str, port: int = 4028, alt_pwd: str | None = None) -> None:
         super().__init__(ip, port, alt_pwd)
 
@@ -212,22 +212,18 @@ class WhatsminerRPCClient(CGMinerRPCClient):
         version = await self.version()
         return self._parse_api_version(version.api_ver)
 
-    @override
     async def version(self) -> BTMinerVersion:
         resp = await self.send_command("get_version")
         return self._unmarshal_msg(resp, TypeAdapter(BTMinerVersion))
 
-    @override
     async def devs(self) -> list[BTMinerDevice]:
         return await self._get_many("edevs", "DEVS", TypeAdapter(list[BTMinerDevice]))
 
-    @override
     async def devdetails(self) -> list[BTMinerDevDetails]:
         return await self._get_many(
-            "devdetails", "DEVS", TypeAdapter(list[BTMinerDevDetails])
+            "devdetails", "DEVDETAILS", TypeAdapter(list[BTMinerDevDetails])
         )
 
-    @override
     async def summary(self) -> BTMinerSummary:
         if await self.get_api_version() <= 205:
             return await self._get_one(
@@ -236,11 +232,16 @@ class WhatsminerRPCClient(CGMinerRPCClient):
         resp = await self.send_command("summary")
         return self._unmarshal_msg(resp, TypeAdapter(BTMinerSummary))
 
-    @override
     async def pools(self) -> list[BTMinerPool]:
         return await self._get_many("pools", "POOLS", TypeAdapter(list[BTMinerPool]))
 
-    @override
+    async def get_pool_conf(self) -> PoolConfig:
+        pools = await self.pools()
+        pool_conf: list[MinerPoolConfig] = []
+        for pool in pools:
+            pool_conf.append(MinerPoolConfig(url=pool.url, user=pool.user))
+        return PoolConfig(pool_conf)
+
     async def get_system_info(self) -> BTMinerSystemInfo:
         resp = await self.send_command("get_miner_info")
         return self._unmarshal_msg(resp, TypeAdapter(BTMinerSystemInfo))
