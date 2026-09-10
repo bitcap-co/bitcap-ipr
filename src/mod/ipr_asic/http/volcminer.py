@@ -11,14 +11,13 @@ import httpx
 from pydantic import ValidationError
 from pydantic_core import from_json
 
-from mod.ipr_asic import settings
 from mod.ipr_asic.errors import (
     APIError,
     APIInvalidResponse,
     AuthenticationError,
     FailedConnectionError,
 )
-from mod.ipr_asic.protocol import BaseHTTPClient
+from mod.ipr_asic.protocol.http import BaseHTTPClient
 from mod.ipr_asic.schemas.models import APIObject, ContentResponse, PoolConfig
 from mod.ipr_asic.schemas.volcminer import (
     MinerConfig,
@@ -29,6 +28,7 @@ from mod.ipr_asic.schemas.volcminer import (
     NetworkInfoV1,
     SystemInfo,
 )
+from mod.ipr_asic.settings import get_auth_list, set_alt_auth
 
 logger = logging.getLogger(__name__)
 
@@ -53,8 +53,8 @@ class VolcminerHTTPClient(BaseHTTPClient):
         super().__init__(ip, port, alt_pwd, transport)
         self.username: str = "root"
         if alt_pwd:
-            settings.set_alt_auth("volcminer", alt_pwd)
-        self.passwds: list[str] = settings.get_auth_list("volcminer")
+            set_alt_auth("volcminer", alt_pwd)
+        self.passwds: list[str] = get_auth_list("volcminer")
 
         self.command_path: str = "cgi-bin/{command}.cgi"
 

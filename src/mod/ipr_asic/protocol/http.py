@@ -11,12 +11,12 @@ from typing import Any, Self
 import httpx
 from httpx import Auth, BasicAuth, DigestAuth
 
-from mod.ipr_asic import settings
 from mod.ipr_asic.errors import APIError, AuthenticationError, FailedConnectionError
 from mod.ipr_asic.schemas.models import (
     APIObject,
     ContentResponse,
 )
+from mod.ipr_asic.settings import get as get_setting
 
 from .base import BaseClient
 
@@ -62,7 +62,7 @@ class BaseHTTPClient(BaseClient, ABC):
         When a transport is injected (tests), it takes precedence over any
         ``verify`` option (httpx ignores verify when a transport is supplied).
         """
-        kwargs.setdefault("timeout", settings.get("api_function_timeout", 5.0))
+        kwargs.setdefault("timeout", get_setting("api_function_timeout", 5.0))
         if self._transport is not None:
             kwargs["transport"] = self._transport
             kwargs.pop("verify", None)
@@ -80,7 +80,7 @@ class BaseHTTPClient(BaseClient, ABC):
         verify: bool = True,
     ) -> httpx.Response:
         if timeout is None:
-            timeout = settings.get("api_function_timeout", 5.0)
+            timeout = get_setting("api_function_timeout", 5.0)
         async with self._new_client(verify=verify, timeout=timeout) as c:
             if self.token:
                 c.headers.update({"Token": self.token})

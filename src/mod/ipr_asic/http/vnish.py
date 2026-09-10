@@ -10,14 +10,13 @@ from typing import Literal, final, override
 import httpx
 from pydantic import TypeAdapter, ValidationError
 
-from mod.ipr_asic import settings
 from mod.ipr_asic.errors import (
     APIError,
     APIInvalidResponse,
     AuthenticationError,
     FailedConnectionError,
 )
-from mod.ipr_asic.protocol import BaseHTTPClient
+from mod.ipr_asic.protocol.http import BaseHTTPClient
 from mod.ipr_asic.schemas.models import (
     APIObject,
     BlinkStatus,
@@ -35,6 +34,7 @@ from mod.ipr_asic.schemas.vnish import (
     Summary,
     VnishError,
 )
+from mod.ipr_asic.settings import get_auth_list, set_alt_auth
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +52,8 @@ class VnishHTTPClient(BaseHTTPClient):
 
         self.username: str = "admin"
         if alt_pwd:
-            settings.set_alt_auth("vnish", alt_pwd)
-        self.passwds: list[str] = settings.get_auth_list("vnish")
+            set_alt_auth("vnish", alt_pwd)
+        self.passwds: list[str] = get_auth_list("vnish")
 
         self.command_path: str = "api/v1/{command}"
 

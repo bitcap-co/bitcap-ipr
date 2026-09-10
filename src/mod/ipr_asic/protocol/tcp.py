@@ -9,9 +9,9 @@ import logging
 import struct
 from typing import Self, override
 
-from mod.ipr_asic import settings
 from mod.ipr_asic.errors import APIError, APIInvalidResponse, FailedConnectionError
 from mod.ipr_asic.schemas.models import APIObject
+from mod.ipr_asic.settings import get as get_setting
 
 from .base import BaseClient
 
@@ -35,7 +35,7 @@ class BaseTCPClient(BaseClient):
     ) -> None:
         super().__init__(ip, port)
 
-        self._timeout: float = settings.get("tcp_blocking_timeout", 10.0)
+        self._timeout: float = get_setting("tcp_blocking_timeout", 10.0)
         self.connected: bool = False
         self._reader: asyncio.StreamReader | None = None
         self._writer: asyncio.StreamWriter | None = None

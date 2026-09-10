@@ -6,8 +6,7 @@
 
 from pydantic import BaseModel
 
-from mod.ipr_asic import MinerData
-from mod.ipr_asic.data import MinerAlgorithm, MinerFirmware, MinerType
+from mod.ipr_asic.data import MinerAlgorithm, MinerData, MinerFirmware, MinerType
 from mod.ipr_asic.schemas.iceriver import MinerPool as IceriverPool
 from mod.ipr_asic.schemas.iceriver import UserPanel as IceriverSummary
 

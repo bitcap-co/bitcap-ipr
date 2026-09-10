@@ -10,7 +10,7 @@ import httpx
 from pydantic import ValidationError
 
 from mod.ipr_asic.errors import APIInvalidResponse
-from mod.ipr_asic.protocol import BaseHTTPClient
+from mod.ipr_asic.protocol.http import BaseHTTPClient
 from mod.ipr_asic.schemas.models import PoolConfig, SummaryModel
 from mod.ipr_asic.schemas.srbminer import SRBMinerInfo, SRBPool
 

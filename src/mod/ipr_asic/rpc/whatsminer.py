@@ -17,14 +17,14 @@ from passlib.hash import md5_crypt
 from pydantic import TypeAdapter, ValidationError
 from pydantic_core import from_json
 
-from mod.ipr_asic import settings
 from mod.ipr_asic.errors import (
     APIError,
     APIInvalidResponse,
     AuthenticationError,
 )
-from mod.ipr_asic.protocol import BaseTCPClient
-from mod.ipr_asic.rpc import CGMinerRPCClient
+from mod.ipr_asic.protocol.tcp import BaseTCPClient
+from mod.ipr_asic.rpc.cgminer import CGMinerRPCClient
+from mod.ipr_asic.schemas.cgminer import Status
 from mod.ipr_asic.schemas.models import (
     ActionResult,
     APIObject,
@@ -53,6 +53,7 @@ from mod.ipr_asic.schemas.whatsminer import (
     Token,
     TokenResponse,
 )
+from mod.ipr_asic.settings import get_auth_list, set_alt_auth
 
 logger = logging.getLogger(__name__)
 
@@ -107,8 +108,8 @@ class WhatsminerRPCClient(CGMinerRPCClient):
 
         self.username: str = "admin"
         if alt_pwd:
-            settings.set_alt_auth("whatsminer", alt_pwd)
-        self.passwds: list[str] = settings.get_auth_list("whatsminer")
+            set_alt_auth("whatsminer", alt_pwd)
+        self.passwds: list[str] = get_auth_list("whatsminer")
 
         self.token: Token | None = None
 
@@ -331,8 +332,8 @@ class WhatsminerTCPClient(BaseTCPClient):
         if not username:
             self.username: str = "super"
         if alt_pwd:
-            settings.set_alt_auth("whatsminer_v3", alt_pwd)
-        self.passwds: list[str] = settings.get_auth_list("whatsminer_v3")
+            set_alt_auth("whatsminer_v3", alt_pwd)
+        self.passwds: list[str] = get_auth_list("whatsminer_v3")
         # force set default password
         self.pwd: str = "super"
         self.salt: str | None = None

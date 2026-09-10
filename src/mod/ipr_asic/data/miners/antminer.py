@@ -7,10 +7,10 @@ import re
 
 from pydantic import BaseModel
 
-from mod.ipr_asic import MinerData, MinerFirmware, MinerType
-from mod.ipr_asic.data import MinerAlgorithm
+from mod.ipr_asic.data import MinerAlgorithm, MinerData, MinerFirmware, MinerType
 from mod.ipr_asic.schemas.antminer import MinerPool as AntminerPool
 from mod.ipr_asic.schemas.antminer import MinerSummary as AntminerSummary
+from mod.ipr_asic.schemas.antminer import OldMinerPool as OldAntminerPool
 from mod.ipr_asic.schemas.antminer import SystemInfo as AntminerSystemInfo
 from mod.ipr_asic.schemas.models import ContentResponse as AntminerLog
 
@@ -25,7 +25,7 @@ _PLATFORM_PATTERNS: dict[str, re.Pattern[str]] = {
 class AntminerModels(BaseModel):
     system_info: AntminerSystemInfo
     summary: AntminerSummary
-    pools: list[AntminerPool]
+    pools: list[AntminerPool] | list[OldAntminerPool]
     log: AntminerLog | None = None
 
 

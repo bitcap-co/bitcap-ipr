@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 
-from mod.ipr_asic import MinerData
-from mod.ipr_asic.data import MinerAlgorithm, MinerFirmware, MinerType
+from mod.ipr_asic.data import MinerAlgorithm, MinerData, MinerFirmware, MinerType
 from mod.ipr_asic.schemas.auradine import IPReport as AuradineSystemInfo
 from mod.ipr_asic.schemas.auradine import Pool as AuradinePool
 from mod.ipr_asic.schemas.auradine import Summary as AuradineSummary

@@ -13,14 +13,13 @@ from typing import final, override
 import httpx
 from pydantic import TypeAdapter, ValidationError
 
-from mod.ipr_asic import settings
 from mod.ipr_asic.errors import (
     APIError,
     APIInvalidResponse,
     AuthenticationError,
     FailedConnectionError,
 )
-from mod.ipr_asic.protocol import BaseHTTPClient
+from mod.ipr_asic.protocol.http import BaseHTTPClient
 from mod.ipr_asic.schemas.models import APIObject, BlinkStatus, PoolConfig
 from mod.ipr_asic.schemas.sealminer import (
     ActionResult,
@@ -33,6 +32,7 @@ from mod.ipr_asic.schemas.sealminer import (
     Summary,
     SystemInfo,
 )
+from mod.ipr_asic.settings import get_auth_list, set_alt_auth
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +58,8 @@ class SealminerHTTPClient(BaseHTTPClient):
 
         self.username: str = "seal"
         if alt_pwd:
-            settings.set_alt_auth("sealminer", alt_pwd)
-        self.passwds: list[str] = settings.get_auth_list("sealminer")
+            set_alt_auth("sealminer", alt_pwd)
+        self.passwds: list[str] = get_auth_list("sealminer")
 
         self.command_path: str = "cgi-bin/{command}.php"
 

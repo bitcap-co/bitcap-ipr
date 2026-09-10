@@ -10,7 +10,7 @@ from typing import TypeVar
 from pydantic import TypeAdapter, ValidationError
 
 from mod.ipr_asic.errors import APIError, APIInvalidResponse
-from mod.ipr_asic.protocol import BaseRPCClient
+from mod.ipr_asic.protocol.rpc import BaseRPCClient
 from mod.ipr_asic.schemas.cgminer import (
     BaseCGMinerResponse,
     BaseDev,

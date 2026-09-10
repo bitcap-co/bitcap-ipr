@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 
-from mod.ipr_asic import MinerData
-from mod.ipr_asic.data import MinerAlgorithm, MinerFirmware, MinerType
+from mod.ipr_asic.data import MinerAlgorithm, MinerData, MinerFirmware, MinerType
 from mod.ipr_asic.schemas.ipollo import MinerPool as IpolloPool
 from mod.ipr_asic.schemas.ipollo import MinerStatus as IpolloSummary
 from mod.ipr_asic.schemas.ipollo import NetworkInfo as IpolloNetworkInfo

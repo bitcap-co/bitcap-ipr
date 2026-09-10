@@ -11,14 +11,13 @@ import httpx
 from Crypto.Cipher import AES
 from pydantic import ValidationError
 
-from mod.ipr_asic import settings
 from mod.ipr_asic.errors import (
     APIError,
     APIInvalidResponse,
     AuthenticationError,
     FailedConnectionError,
 )
-from mod.ipr_asic.protocol import BaseHTTPClient
+from mod.ipr_asic.protocol.http import BaseHTTPClient
 from mod.ipr_asic.schemas.goldshell import (
     AlgoSettings,
     Devs,
@@ -34,6 +33,7 @@ from mod.ipr_asic.schemas.models import (
     MinerPoolConfig,
     PoolConfig,
 )
+from mod.ipr_asic.settings import get_auth_list, set_alt_auth
 
 logger = logging.getLogger(__name__)
 
@@ -67,8 +67,8 @@ class GoldshellHTTPClient(BaseHTTPClient):
 
         self.username: str = "admin"
         if alt_pwd:
-            settings.set_alt_auth("goldshell", alt_pwd)
-        self.passwds: list[str] = settings.get_auth_list("goldshell")
+            set_alt_auth("goldshell", alt_pwd)
+        self.passwds: list[str] = get_auth_list("goldshell")
 
         self.command_path: str = "mcb/{command}"
         self.token: str | None = None

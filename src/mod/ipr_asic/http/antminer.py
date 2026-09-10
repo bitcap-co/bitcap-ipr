@@ -12,14 +12,13 @@ from pydantic import (
     ValidationError,
 )
 
-from mod.ipr_asic import settings
 from mod.ipr_asic.errors import (
     APIError,
     APIInvalidResponse,
     AuthenticationError,
     FailedConnectionError,
 )
-from mod.ipr_asic.protocol import BaseHTTPClient
+from mod.ipr_asic.protocol.http import BaseHTTPClient
 from mod.ipr_asic.schemas.antminer import (
     ActionResult,
     CGMinerResponse,
@@ -42,6 +41,7 @@ from mod.ipr_asic.schemas.models import (
     MinerPoolConfig,
     PoolConfig,
 )
+from mod.ipr_asic.settings import get_auth_list, set_alt_auth
 
 logger = logging.getLogger(__name__)
 
@@ -59,8 +59,8 @@ class AntminerHTTPClient(BaseHTTPClient):
 
         self.username: str = "root"
         if alt_pwd:
-            settings.set_alt_auth("antminer", alt_pwd)
-        self.passwds: list[str] = settings.get_auth_list("antminer")
+            set_alt_auth("antminer", alt_pwd)
+        self.passwds: list[str] = get_auth_list("antminer")
 
         self.command_path: str = "cgi-bin/{command}.cgi"
 
@@ -282,8 +282,8 @@ class AntminerOldHTTPClient(BaseHTTPClient):
 
         self.username: str = "root"
         if alt_pwd:
-            settings.set_alt_auth("antminer", alt_pwd)
-        self.passwds: list[str] = settings.get_auth_list("antminer")
+            set_alt_auth("antminer", alt_pwd)
+        self.passwds: list[str] = get_auth_list("antminer")
 
         self.command_path: str = "cgi-bin/{command}.cgi"
 

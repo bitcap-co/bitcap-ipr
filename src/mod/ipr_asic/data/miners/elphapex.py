@@ -6,8 +6,7 @@
 
 from pydantic import BaseModel
 
-from mod.ipr_asic import MinerData
-from mod.ipr_asic.data import MinerAlgorithm, MinerFirmware, MinerType
+from mod.ipr_asic.data import MinerAlgorithm, MinerData, MinerFirmware, MinerType
 from mod.ipr_asic.schemas.antminer import SystemInfo as ElphapexSystemInfo
 from mod.ipr_asic.schemas.elphapex import MinerPool as ElphapexPool
 from mod.ipr_asic.schemas.elphapex import MinerSummary as ElphapexSummary

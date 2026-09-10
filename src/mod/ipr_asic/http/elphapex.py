@@ -9,14 +9,13 @@ from typing import final, override
 import httpx
 from pydantic import TypeAdapter, ValidationError
 
-from mod.ipr_asic import settings
 from mod.ipr_asic.errors import (
     APIError,
     APIInvalidResponse,
     AuthenticationError,
     FailedConnectionError,
 )
-from mod.ipr_asic.protocol import BaseHTTPClient
+from mod.ipr_asic.protocol.http import BaseHTTPClient
 from mod.ipr_asic.schemas.antminer import (
     ActionResult,
     MinerPasswdConfig,
@@ -36,6 +35,7 @@ from mod.ipr_asic.schemas.models import (
     ContentResponse,
     PoolConfig,
 )
+from mod.ipr_asic.settings import get_auth_list, set_alt_auth
 
 logger = logging.getLogger(__name__)
 
@@ -53,8 +53,8 @@ class ElphapexHTTPClient(BaseHTTPClient):
 
         self.username: str = "root"
         if alt_pwd:
-            settings.set_alt_auth("elphapex", alt_pwd)
-        self.passwds: list[str] = settings.get_auth_list("elphapex")
+            set_alt_auth("elphapex", alt_pwd)
+        self.passwds: list[str] = get_auth_list("elphapex")
 
         self.command_path: str = "cgi-bin/{command}.cgi"
 

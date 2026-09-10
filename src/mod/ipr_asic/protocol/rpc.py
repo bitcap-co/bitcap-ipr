@@ -11,11 +11,11 @@ from typing import Self
 
 from pydantic_core import from_json
 
-from mod.ipr_asic import settings
 from mod.ipr_asic.errors import APIError, FailedConnectionError
 from mod.ipr_asic.schemas.models import (
     APIObject,
 )
+from mod.ipr_asic.settings import get as get_setting
 
 from .base import BaseClient
 
@@ -31,7 +31,7 @@ class BaseRPCClient(BaseClient, ABC):
     def __init__(self, ip: str, port: int = 4028, alt_pwd: str | None = None) -> None:
         super().__init__(ip, port)
 
-        self._timeout: float = settings.get("rpc_blocking_timeout", 10.0)
+        self._timeout: float = get_setting("rpc_blocking_timeout", 10.0)
         self.connected: bool = False
 
     def __new__(cls, ip: str, port: int = 4028, alt_pwd: str | None = None) -> Self:

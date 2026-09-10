@@ -6,8 +6,7 @@
 
 from pydantic import BaseModel
 
-from mod.ipr_asic import MinerData
-from mod.ipr_asic.data import MinerAlgorithm, MinerFirmware, MinerType
+from mod.ipr_asic.data import MinerAlgorithm, MinerData, MinerFirmware, MinerType
 from mod.ipr_asic.schemas.goldshell import AlgoSettings as GoldshellAlgorithm
 from mod.ipr_asic.schemas.goldshell import Devs as GoldshellSummary
 from mod.ipr_asic.schemas.goldshell import MinerPool as GoldshellPool
