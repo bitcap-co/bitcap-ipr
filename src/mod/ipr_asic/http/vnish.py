@@ -5,7 +5,6 @@
 
 import json
 import logging
-import re
 from typing import Literal, final, override
 
 import httpx
@@ -38,17 +37,6 @@ from mod.ipr_asic.schemas.vnish import (
 )
 
 logger = logging.getLogger(__name__)
-
-_VERSION_RE = re.compile(r"(\d+(?:\.\d+)*)")
-
-
-def _parse_version_int(version: str) -> int:
-    if not version:
-        return 0
-    match = _VERSION_RE.match(version)
-    if not match:
-        return 0
-    return int(match.group(1).replace(".", ""))
 
 
 @final
@@ -208,7 +196,7 @@ class VnishHTTPClient(BaseHTTPClient):
     @override
     async def blink(self, enabled: bool) -> APIObject:
         ver = await self.get_api_version()
-        version = _parse_version_int(ver)
+        version = self._parse_api_version(ver)
         if version >= 133:
             return await self.send_command(
                 "POST", command="locate-miner", payload={"is_enabled": enabled}

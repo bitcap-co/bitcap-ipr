@@ -3,12 +3,15 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
+import re
 from abc import ABC
 from ipaddress import IPv4Address
 from typing import Never, Self, override
 
 from mod.ipr_asic.errors import UnsupportedOperationError
 from mod.ipr_asic.schemas.models import APIObject
+
+_API_VERSION_RE = re.compile(r"(\d+(?:\.\d+)*)")
 
 
 class BaseClient(ABC):
@@ -34,6 +37,14 @@ class BaseClient(ABC):
     @override
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}[{self.ip!s}]"
+
+    def _parse_api_version(self, version: str) -> int:
+        if not version:
+            return 0
+        match = _API_VERSION_RE.match(version)
+        if not match:
+            return 0
+        return int(match.group(1).replace(".", ""))
 
     def _unsupported(self, operation: str) -> Never:
         raise UnsupportedOperationError(
