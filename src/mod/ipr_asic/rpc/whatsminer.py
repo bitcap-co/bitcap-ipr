@@ -10,78 +10,54 @@ import hashlib
 import json
 import logging
 import re
-from typing import Any, Literal
+from typing import Literal, TypeVar, final, override
 
 from Crypto.Cipher import AES
 from passlib.hash import md5_crypt
-from pydantic import BaseModel, Field, RootModel, TypeAdapter, ValidationError
+from pydantic import TypeAdapter, ValidationError
+from pydantic_core import from_json
 
-from mod.ipr_asic import settings
 from mod.ipr_asic.errors import (
     APIError,
     APIInvalidResponse,
     AuthenticationError,
 )
-from mod.ipr_asic.models import BlinkStatus, MinerConfPool, Pool, Status
-from mod.ipr_asic.protocol import BaseRPCClient, BaseTCPClient
+from mod.ipr_asic.protocol.tcp import BaseTCPClient
+from mod.ipr_asic.rpc.cgminer import CGMinerRPCLayer
+from mod.ipr_asic.schemas.cgminer import Status
+from mod.ipr_asic.schemas.models import (
+    ActionResult,
+    APIObject,
+    BlinkStatus,
+    MinerPoolConfig,
+    PoolConfig,
+)
+from mod.ipr_asic.schemas.whatsminer import (
+    BTMinerCommand,
+    BTMinerDevDetails,
+    BTMinerDevice,
+    BTMinerEncryptedCommand,
+    BTMinerPool,
+    BTMinerSummary,
+    BTMinerSystemInfo,
+    BTMinerV3Command,
+    BTMinerV3CommandResponse,
+    BTMinerV3DeviceInfo,
+    BTMinerV3NetworkInfo,
+    BTMinerV3Pool,
+    BTMinerV3PoolConfig,
+    BTMinerV3Status,
+    BTMinerV3Summary,
+    BTMinerV3SystemInfo,
+    BTMinerVersion,
+    Token,
+    TokenResponse,
+)
+from mod.ipr_asic.settings import get_auth_list, set_alt_auth
 
 logger = logging.getLogger(__name__)
 
-
-class TokenData(BaseModel):
-    sign: str
-    key: str
-    timestamp: datetime.datetime = Field(default_factory=datetime.datetime.now)
-
-
-class TokenResponse(BaseModel):
-    salt: str
-    time: str
-    newsalt: str
-
-    class Config:
-        extra = "allow"
-
-
-class BTMinerResponse(BaseModel):
-    status: list[Status] = Field(alias="STATUS")
-
-    summary: list[dict[str, Any]] | None = Field(None, alias="SUMMARY")
-    stats: list[dict[str, Any]] | None = Field(None, alias="STATS")
-    devs: list[dict[str, Any]] | None = Field(None, alias="DEVS")
-    dev_details: list[dict[str, Any]] | None = Field(None, alias="DEVDETAILS")
-    pools: list[Pool] | None = Field(None, alias="POOLS")
-
-    def error(self) -> str | None:
-        for status in self.status:
-            match status.status:
-                case "E" | "F":
-                    return f"received API error ({status.code}) {status.msg} - {status.description}"
-                case _:
-                    return None
-
-
-class SystemInfo(BaseModel):
-    ntp: list[str] = Field(default_factory=list)
-    ip: str | None = None
-    proto: str | None = None
-    netmask: str | None = None
-    gateway: str | None = None
-    dns: str | None = None
-    hostname: str | None = None
-    mac: str | None = None
-    ledstat: str | None = None
-    minersn: str = ""
-    powersn: str = ""
-    upfreq_speed: str | None = None
-
-
-class VersionInfo(BaseModel):
-    api_ver: str
-    fw_ver: str
-    platform: str
-    chip: str
-    miner_type: str | None = None
+T = TypeVar("T")
 
 
 def _crypt(word: str, salt: str) -> str:
@@ -99,28 +75,25 @@ def _add_to_16(s: str) -> bytes:
     return str.encode(s)
 
 
-def create_privileged_cmd(token_data: TokenData, command: dict) -> str:
-    command["token"] = token_data.sign
-    aeskey = hashlib.sha256(token_data.key.encode()).hexdigest()
+def create_privileged_cmd(token: Token, command: BTMinerCommand) -> str:
+    command.token = token.sign
+    aeskey = hashlib.sha256(token.key.encode()).hexdigest()
     aeskey = binascii.unhexlify(aeskey.encode())
     aes = AES.new(aeskey, AES.MODE_ECB)
-    cmd_str = json.dumps(command)
-    enc_cmd_str = str(
-        base64.encodebytes(aes.encrypt(_add_to_16(cmd_str))),
+    enc_data = str(
+        base64.encodebytes(aes.encrypt(_add_to_16(command.model_dump_json()))),
         encoding="utf-8",
     ).replace("\n", "")
-    data_enc = {"enc": 1, "data": enc_cmd_str}
-    cmd = json.dumps(data_enc)
-    return cmd
+    return BTMinerEncryptedCommand(data=enc_data).model_dump_json()
 
 
-def parse_priviledge_data(token_data: TokenData, data: dict) -> dict:
+def parse_priviledge_data(token: Token, data: APIObject) -> APIObject:
     if "enc" in data:
         enc_data = data["enc"]
-        aeskey = hashlib.sha256(token_data.key.encode()).hexdigest()
+        aeskey = hashlib.sha256(token.key.encode()).hexdigest()
         aeskey = binascii.unhexlify(aeskey.encode())
         aes = AES.new(aeskey, AES.MODE_ECB)
-        return json.loads(
+        return from_json(
             aes.decrypt(base64.decodebytes(bytes(enc_data, encoding="utf-8")))
             .rstrip(b"\0")
             .decode("utf-8")
@@ -128,19 +101,23 @@ def parse_priviledge_data(token_data: TokenData, data: dict) -> dict:
     return data
 
 
-class WhatsminerRPCClient(BaseRPCClient):
+@final
+class WhatsminerRPCClient(CGMinerRPCLayer):
     def __init__(self, ip: str, port: int = 4028, alt_pwd: str | None = None) -> None:
         super().__init__(ip, port, alt_pwd)
 
         self.username: str = "admin"
         if alt_pwd:
-            settings.set_alt_auth("whatsminer", alt_pwd)
-        self.passwds = settings.get_auth_list("whatsminer")
+            set_alt_auth("whatsminer", alt_pwd)
+        self.passwds: list[str] = get_auth_list("whatsminer")
 
-        self.token: TokenData | None = None
+        self.token: Token | None = None
 
-    async def send_privileged_command(self, command: str, **kwargs) -> dict:
-        cmd = {"cmd": command, **kwargs}
+    @override
+    async def send_privileged_command(
+        self, command: str, **kwargs: str | int
+    ) -> APIObject:
+        cmd: BTMinerCommand = BTMinerCommand(cmd=command, token=None, **kwargs)
         for pwd in self.passwds:
             if not pwd:
                 continue
@@ -152,34 +129,27 @@ class WhatsminerRPCClient(BaseRPCClient):
                 return {}
             try:
                 data = parse_priviledge_data(token_data, data)
-            except json.JSONDecodeError as e:
+            except ValueError as e:
                 logger.error(
                     f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}"
                 )
                 raise APIInvalidResponse
             else:
-                try:
-                    resobj = Status.model_validate(obj=data, by_alias=True)
-                except ValidationError as e:
-                    logger.error(
-                        f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}"
-                    )
-                    raise APIInvalidResponse
-                else:
-                    err = resobj.error()
-                    if err:
-                        if resobj.code == 23:
-                            self.token = None
-                            continue
-                        elif resobj.code != 131:
-                            logger.error(f"{self.__repr__()} : {APIError(err)!s}")
-                            raise APIError("Command failed!")
-            return resobj.model_dump(by_alias=True, exclude_none=True)
+                cmd_resp = self._unmarshal_status(data)
+                cmd_err = cmd_resp.error()
+                if cmd_err is not None:
+                    if cmd_resp.code == 23:
+                        self.token = None
+                        continue
+                    elif cmd_resp.code != 131:
+                        logger.error(f"{self.__repr__()} : {APIError(cmd_err)!s}")
+                        raise APIError("Command failed!")
+            return data
         if not self.token:
             raise AuthenticationError("Failed to authenticate")
         raise APIError("Unknown error occurred")
 
-    async def get_token(self) -> TokenData:
+    async def get_token(self) -> Token:
         """
         Encryption algorithm:
         Ciphertext = aes256(plaintext), ECB mode
@@ -199,122 +169,89 @@ class WhatsminerRPCClient(BaseRPCClient):
             return self.token
 
         data = await self.send_command("get_token")
-        try:
-            resobj = TokenResponse.model_validate(data["Msg"])
-        except ValidationError:
-            raise APIInvalidResponse(reason=f'got "{data["Msg"]}" for token data')
+        token_data = self._unmarshal_msg(data, TypeAdapter(TokenResponse))
 
-        pwd = _crypt(self.pwd, "$1$" + resobj.salt + "$")
+        pwd = _crypt(self.pwd, "$1$" + token_data.salt + "$")
         pwd = pwd.split("$")
         key = pwd[3]
 
-        tmp = _crypt(key + resobj.time, "$1$" + resobj.newsalt + "$")
+        tmp = _crypt(key + token_data.time, "$1$" + token_data.newsalt + "$")
         tmp = tmp.split("$")
         sign = tmp[3]
 
-        self.token = TokenData(sign=sign, key=key, timestamp=datetime.datetime.now())
+        self.token = Token(sign=sign, key=key, timestamp=datetime.datetime.now())
         return self.token
 
-    def _validate_response(self, data: dict) -> BTMinerResponse:
+    @override
+    def _unmarshal_status(self, data: APIObject) -> Status:
         try:
-            resobj = BTMinerResponse.model_validate(obj=data, by_alias=True)
+            return Status.model_validate(data, by_alias=True)
         except ValidationError as e:
-            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
-            raise APIInvalidResponse
-        else:
-            err = resobj.error()
-            if err:
-                logger.error(f"{self.__repr__()} : {APIError(err)!s}")
-                raise APIError("Command failed!")
-            return resobj
+            logger.error(f"{self!r} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse from e
 
-    def _validate_msg(self, data: dict) -> Status:
-        try:
-            resobj = Status.model_validate(obj=data, by_alias=True)
-        except ValidationError as e:
-            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
-            raise APIInvalidResponse
-        else:
-            err = resobj.error()
-            if err:
-                logger.error(f"{self.__repr__()} : {APIError(err)!s}")
-                raise APIError("Command failed!")
-            return resobj
-
-    async def version(self) -> dict:
-        resp = await self.send_command("get_version")
-        resobj = self._validate_msg(resp)
-        try:
-            version = VersionInfo.model_validate(obj=resobj.msg)
-        except ValidationError as e:
-            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
-            raise APIInvalidResponse
-        else:
-            return version.model_dump()
-
-    async def devs(self) -> list[dict]:
-        resp = await self.send_command("edevs")
-        valid = self._validate_response(resp)
-        if valid.devs is None:
-            raise APIInvalidResponse(reason="malformed")
-        return valid.devs
-
-    async def devdetails(self) -> list[dict]:
-        resp = await self.send_command("devdetails")
-        valid = self._validate_response(resp)
-        if valid.dev_details is None:
-            raise APIInvalidResponse(reason="malformed")
-        else:
-            return valid.dev_details
-
-    async def summary(self) -> dict:
-        resp = await self.send_command("summary")
-        valid = self._validate_response(resp)
-        if valid.summary is None or len(valid.summary) != 1:
-            raise APIInvalidResponse(reason="malformed")
-        else:
-            return valid.summary[0]
-
-    async def stats(self) -> list[dict]:
-        raise NotImplementedError
-
-    async def pools(self) -> list[dict]:
-        resp = await self.send_command("pools")
-        valid = self._validate_response(resp)
-        if valid.pools is None:
-            raise APIInvalidResponse(reason="malformed")
-        else:
-            ta = TypeAdapter(list[Pool])
-            pools = ta.validate_python(valid.pools, by_alias=True)
-            return ta.dump_python(pools, by_alias=True)
-
-    async def get_pool_conf(self) -> list[dict]:
-        pools = await self.pools()
-        pool_conf = []
-        for pool in pools:
-            pool_conf.append(
-                MinerConfPool(url=pool["URL"], user=pool["User"]).model_dump(
-                    by_alias=True
-                )
+    def _unmarshal_msg(self, data: APIObject, adapter: TypeAdapter[T]) -> T:
+        resobj = self._unmarshal_status(data)
+        err = resobj.error()
+        if err is not None:
+            logger.error(f"{self.__repr__()} : {APIError(err)!s}")
+            raise APIError("Command failed!")
+        if not isinstance(resobj.msg, dict):
+            logger.error(
+                f"{self.__repr__()} : {APIInvalidResponse(reason='expected API object')!s}"
             )
-        return pool_conf
-
-    async def get_system_info(self) -> dict:
-        resp = await self.send_command("get_miner_info")
-        _ = self._validate_msg(resp)
-        return resp["Msg"]
-
-    async def get_blink_status(self) -> dict:
-        resp = await self.get_system_info()
+            raise APIInvalidResponse()
         try:
-            resobj = SystemInfo.model_validate(obj=resp)
+            return adapter.validate_python(resobj.msg)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
-            raise APIInvalidResponse
-        else:
-            blink = BlinkStatus(blink=bool(resobj.ledstat) and resobj.ledstat != "auto")
-            return blink.model_dump()
+            raise APIInvalidResponse()
 
+    @override
+    async def get_api_version(self) -> int:
+        version = await self.version()
+        return self._parse_api_version(version.api_ver)
+
+    async def version(self) -> BTMinerVersion:
+        resp = await self.send_command("get_version")
+        return self._unmarshal_msg(resp, TypeAdapter(BTMinerVersion))
+
+    async def devs(self) -> list[BTMinerDevice]:
+        return await self._get_many("edevs", "DEVS", TypeAdapter(list[BTMinerDevice]))
+
+    async def devdetails(self) -> list[BTMinerDevDetails]:
+        return await self._get_many(
+            "devdetails", "DEVDETAILS", TypeAdapter(list[BTMinerDevDetails])
+        )
+
+    async def summary(self) -> BTMinerSummary:
+        if await self.get_api_version() <= 205:
+            return await self._get_one(
+                "summary", "SUMMARY", TypeAdapter(BTMinerSummary)
+            )
+        resp = await self.send_command("summary")
+        return self._unmarshal_msg(resp, TypeAdapter(BTMinerSummary))
+
+    async def pools(self) -> list[BTMinerPool]:
+        return await self._get_many("pools", "POOLS", TypeAdapter(list[BTMinerPool]))
+
+    async def get_pool_conf(self) -> PoolConfig:
+        pools = await self.pools()
+        pool_conf: list[MinerPoolConfig] = []
+        for pool in pools:
+            pool_conf.append(MinerPoolConfig(url=pool.url, user=pool.user))
+        return PoolConfig(pool_conf)
+
+    async def get_system_info(self) -> BTMinerSystemInfo:
+        resp = await self.send_command("get_miner_info")
+        return self._unmarshal_msg(resp, TypeAdapter(BTMinerSystemInfo))
+
+    async def get_blink_status(self) -> BlinkStatus:
+        resp = await self.get_system_info()
+        blink = BlinkStatus(blink=bool(resp.ledstat) and resp.ledstat != "auto")
+        return blink
+
+    @override
     async def blink(
         self,
         enabled: bool,
@@ -323,7 +260,7 @@ class WhatsminerRPCClient(BaseRPCClient):
         period: int = 1000,
         duration: int = 500,
         start: int = 0,
-    ) -> dict:
+    ) -> APIObject:
         if enabled:
             auto = False
         if auto:
@@ -333,22 +270,16 @@ class WhatsminerRPCClient(BaseRPCClient):
                 "set_led", color=color, period=period, duration=duration, start=start
             )
 
-    async def set_miner_mode(self, *args, **kwargs) -> dict:
-        return await super().set_miner_mode(*args, **kwargs)
-
-    async def start(self) -> dict:
-        return await super().start()
-
-    async def stop(self) -> dict:
-        return await super().stop()
-
-    async def restart(self) -> dict:
+    @override
+    async def restart(self) -> APIObject:
         return await self.send_privileged_command("restart_btminer")
 
-    async def reboot(self) -> dict:
+    @override
+    async def reboot(self) -> APIObject:
         return await self.send_privileged_command("reboot")
 
-    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
+    @override
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> APIObject:
         # check if password length is greater than 8 bytes.
         if len(new_passwd.encode("utf-8")) > 8:
             raise APIError("Password must be 8 characters or less")
@@ -357,9 +288,10 @@ class WhatsminerRPCClient(BaseRPCClient):
             "update_pwd", old=old_passwd, new=new_passwd
         )
 
+    @override
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
-    ) -> dict:
+    ) -> APIObject:
         if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
             raise APIError("Invalid length of arguments")
 
@@ -378,130 +310,9 @@ class WhatsminerRPCClient(BaseRPCClient):
         return await self.send_privileged_command("update_pools", **params)
 
 
-class BTMinerV3Command(BaseModel):
-    cmd: str
-    param: Any | None = None
-
-    class Config:
-        extra = "forbid"
-
-
-class BTMinerV3PriviledgedCommand(BaseModel):
-    cmd: str
-    param: Any | None = None
-    ts: int
-    account: str
-    token: str
-
-    class Config:
-        extra = "forbid"
-
-
-class BTMinerV3Response(BaseModel):
-    code: int
-    when: int
-    msg: str | dict
-    desc: str
-
-    def error(self) -> str | None:
-        if self.code != 0:
-            return f"received API error ({self.code}) {self.msg} - {self.desc}"
-
-
-class BTMinerV3SystemInfo(BaseModel):
-    api: str
-    platform: str
-    fwversion: str
-    control_board_version: str = Field(alias="control-board-version")
-    btrom: str | None = None
-    apiswitch: str
-    ledstatus: str
-
-
-class BTMinerV3NetworkInfo(BaseModel):
-    ip: str
-    proto: str
-    netmask: str
-    dns: str
-    mac: str
-    gateway: str
-    hostname: str
-
-
-class BTMinerV3MinerInfo(BaseModel):
-    working: str
-    type: str
-    hash_board: str = Field(alias="hash-board")
-    detect_hash_rate: str = Field(alias="detect-hash-rate")
-    cointype: str
-    pool_strategy: str = Field(alias="pool-strategy")
-    heatmode: str
-    hash_percent: str = Field(alias="hash-percent")
-    eeprom_liquid_cooling: str | None = Field(None, alias="eeprom-liquid-cooling")
-    chipdata0: str
-    chipdata1: str
-    chipdata2: str
-    fast_boot: str = Field(alias="fast-boot")
-    board_num: int = Field(alias="board-num")
-    pcbsn0: str
-    pcbsn1: str
-    pcbsn2: str
-    miner_sn: str = Field(alias="miner-sn")
-    power_limit_set: str = Field(alias="power-limit-set")
-    web_pool: int = Field(alias="web-pool")
-
-
-class BTMinerV3PowerInfo(BaseModel):
-    type: str
-    mode: int
-    hwversion: str
-    swversion: str
-    model: str
-    iin: float
-    vin: float
-    vout: int
-    pin: int
-    fanspeed: int
-    temp0: float
-    sn: str
-    vendor: str
-
-
-class BTMinerV3DeviceInfoResponse(BaseModel):
-    network: BTMinerV3NetworkInfo | None = None
-    miner: BTMinerV3MinerInfo | None = None
-    system: BTMinerV3SystemInfo | None = None
-    power: BTMinerV3PowerInfo | None = None
-    salt: str | None = None
-
-
-class BTMinerV3Pool(BaseModel):
-    id: int
-    url: str
-    status: str
-    account: str
-    stratum_active: bool = Field(alias="stratum-active")
-    reject_rate: float = Field(alias="reject-rate")
-    last_share_time: float = Field(alias="last-share-time")
-
-
-class BTMinerV3ConfPool(BaseModel):
-    pool: str
-    worker: str
-    passwd: str
-
-
-class BTMinerV3PoolConf(RootModel[list[BTMinerV3ConfPool]]):
-    pass
-
-
-class BTMinerV3PasswdChange(BaseModel):
-    account: str
-    new: str
-    old: str
-
-
-def _btv3_encrypt_param(token_str: str, param: Any) -> str:
+def _btv3_encrypt_param(
+    token_str: str, param: str | int | APIObject | list[APIObject]
+) -> str:
     param_str = json.dumps(param)
     padding = 16 - len(param_str) % 16
     aligned = param_str + (chr(padding) * padding)
@@ -509,6 +320,7 @@ def _btv3_encrypt_param(token_str: str, param: Any) -> str:
     return base64.b64encode(cipher.encrypt(aligned.encode("utf-8"))).decode("utf-8")
 
 
+@final
 class WhatsminerTCPClient(BaseTCPClient):
     def __init__(
         self,
@@ -521,14 +333,18 @@ class WhatsminerTCPClient(BaseTCPClient):
         if not username:
             self.username: str = "super"
         if alt_pwd:
-            settings.set_alt_auth("whatsminer_v3", alt_pwd)
-        self.passwds = settings.get_auth_list("whatsminer_v3")
+            set_alt_auth("whatsminer_v3", alt_pwd)
+        self.passwds: list[str] = get_auth_list("whatsminer_v3")
         # force set default password
         self.pwd: str = "super"
         self.salt: str | None = None
 
-    async def send_command(self, command: str, param: Any | None = None) -> dict:
-        cmd: BTMinerV3Command | BTMinerV3PriviledgedCommand
+    # def _unmarshal_msg(self, resp: APIObject)
+
+    async def send_command(
+        self, command: str, param: str | int | APIObject | list[APIObject] | None = None
+    ) -> APIObject:
+        cmd: BTMinerV3Command
 
         if command.startswith("set."):
             salt = await self.get_salt()
@@ -541,21 +357,17 @@ class WhatsminerTCPClient(BaseTCPClient):
             b_arr[8] = 0
             str_token = b_arr.split(b"\x00")[0].decode("utf-8")
 
-            cmd = BTMinerV3PriviledgedCommand(
+            cmd = BTMinerV3Command(
                 cmd=command, param=param, ts=ts, account=self.username, token=str_token
             )
             # encrypt param for certain commands (set.miner.pools, set.user.change_passwd)
-            if (
-                command == "set.miner.pools"
-                or command == "set.user.change_passwd"
-                and param
-            ):
+            if command == "set.miner.pools" and param is not None:
                 try:
                     match command:
                         case "set.miner.pools":
-                            BTMinerV3PoolConf.model_validate(param)
-                        case "set.user.change_passwd":
-                            BTMinerV3PasswdChange.model_validate(param)
+                            _ = BTMinerV3PoolConfig.model_validate(param)
+                        # case "set.user.change_passwd":
+                        #     BTMinerV3PasswdChange.model_validate(param)
                 except ValidationError:
                     raise APIError("Invalid param")
                 else:
@@ -567,86 +379,102 @@ class WhatsminerTCPClient(BaseTCPClient):
 
         resp = await self.btv3_send(ser, len(ser))
         try:
-            resobj = BTMinerV3Response.model_validate(obj=resp)
+            resobj = BTMinerV3CommandResponse.model_validate(obj=resp)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
-            raise APIInvalidResponse
+            raise APIInvalidResponse()
         else:
             err = resobj.error()
-            if err:
+            if err is not None:
                 logger.error(f"{self.__repr__()} : {APIError(err)!s}")
                 raise APIError("Command failed!")
-            return resp["msg"]
+            if isinstance(resobj.msg, dict):
+                return resobj.msg
+            return ActionResult(success=True, msg=resobj.msg).model_dump()
 
     async def get_salt(self) -> str:
-        if self.salt is not None:
+        if self.salt:
             return self.salt
-        resp = await self.send_command("get.device.info", "salt")
-        try:
-            resobj = BTMinerV3DeviceInfoResponse.model_validate(obj=resp, by_alias=True)
-        except ValidationError:
-            raise APIInvalidResponse
-        self.salt = resobj.salt
+        resp = await self.get_device_info("salt")
+        if resp.salt is None:
+            logger.error(f"{self.__repr__()} : {APIError('Failed to get salt.')!s}")
+            raise APIError("Failed to get salt.")
+        self.salt = resp.salt
         return self.salt
 
     async def get_hostname(self) -> str:
         resp = await self.get_network_info()
-        return resp["hostname"]
+        return resp.hostname
 
     async def get_mac_addr(self) -> str:
         resp = await self.get_network_info()
-        return resp["mac"]
+        return resp.mac
 
-    async def get_api_version(self) -> str:
+    async def get_api_version(self) -> int:
         resp = await self.get_system_info()
-        return resp["system"]["api"]
+        return self._parse_api_version(resp.api)
 
-    async def get_system_info(self) -> dict:
-        resp = await self.send_command("get.device.info")
+    async def get_device_info(
+        self,
+        param: Literal["system", "network", "miner", "power", "salt", "error-code"]
+        | None = None,
+    ) -> BTMinerV3DeviceInfo:
+        resp = await self.send_command("get.device.info", param)
         try:
-            resobj = BTMinerV3DeviceInfoResponse.model_validate(obj=resp, by_alias=True)
-        except ValidationError:
-            raise APIInvalidResponse
+            resobj = BTMinerV3DeviceInfo.model_validate(obj=resp, by_alias=True)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse()
         else:
-            return resobj.model_dump(by_alias=True, exclude_none=True)
+            return resobj
 
-    async def get_network_info(self) -> dict:
-        resp = await self.send_command("get.device.info", "network")
+    async def get_system_info(self) -> BTMinerV3SystemInfo:
+        resp = await self.get_device_info("system")
+        if resp.system is None:
+            raise APIInvalidResponse()
+        return resp.system
+
+    async def get_network_info(self) -> BTMinerV3NetworkInfo:
+        resp = await self.get_device_info("network")
+        if resp.network is None:
+            raise APIInvalidResponse()
+        return resp.network
+
+    async def summary(self) -> BTMinerV3Summary:
+        resp = await self.send_command("get.miner.status", "summary")
         try:
-            resobj = BTMinerV3NetworkInfo.model_validate(obj=resp)
-        except ValidationError:
-            raise APIInvalidResponse
+            resobj = BTMinerV3Summary.model_validate(obj=resp, by_alias=True)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse()
         else:
-            return resobj.model_dump()
+            return resobj
 
-    async def summary(self) -> dict:
-        return await self.send_command("get.miner.status", "summary")
-
-    async def pools(self) -> list[dict]:
+    async def pools(self) -> list[BTMinerV3Pool]:
         resp = await self.send_command("get.miner.status", "pools")
-        ta = TypeAdapter(list[BTMinerV3Pool])
-        pools = ta.validate_python(resp["pools"], by_alias=True)
-        return ta.dump_python(pools, by_alias=True)
+        try:
+            resobj = BTMinerV3Status.model_validate(obj=resp, by_alias=True)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse()
+        else:
+            if resobj.pools is None:
+                return []
+            return resobj.pools
 
-    async def get_pool_conf(self) -> list[dict]:
+    async def get_pool_conf(self) -> PoolConfig:
         pools = await self.pools()
-        pool_conf = []
+        pool_conf: list[MinerPoolConfig] = []
         for pool in pools:
-            pool_conf.append(
-                MinerConfPool(url=pool["url"], user=pool["account"]).model_dump(
-                    by_alias=True
-                )
-            )
-        return pool_conf
+            pool_conf.append(MinerPoolConfig(url=pool.url, user=pool.account))
+        return PoolConfig(pool_conf)
 
-    async def get_miner_status(self) -> dict:
-        return await self.send_command("get.miner.status", "pools+summary+edevs")
-
-    async def get_blink_status(self) -> dict:
+    async def get_blink_status(self) -> BlinkStatus:
         resp = await self.get_system_info()
-        blink = BlinkStatus(blink=resp["system"]["ledstatus"] == "auto")
-        return blink.model_dump()
+        blink = BlinkStatus(blink=resp.ledstatus == "auto")
+        return blink
 
+    @override
     async def blink(
         self,
         enabled: bool,
@@ -654,13 +482,13 @@ class WhatsminerTCPClient(BaseTCPClient):
         period: int = 1000,
         duration: int = 500,
         start: int = 0,
-    ) -> dict:
+    ) -> APIObject:
         if enabled:
             auto = False
         if auto:
             return await self.send_command("set.system.led", "auto")
         else:
-            param_data = [
+            param_data: list[APIObject] = [
                 {
                     "color": "red",
                     "period": period,
@@ -676,37 +504,35 @@ class WhatsminerTCPClient(BaseTCPClient):
             ]
             return await self.send_command("set.system.led", param_data)
 
-    async def set_miner_mode(self, mode: Literal["start", "stop", "restart"]) -> dict:
+    async def set_miner_mode(
+        self, mode: Literal["start", "stop", "restart"]
+    ) -> APIObject:
         return await self.send_command("set.miner.service", mode)
 
-    async def start(self) -> dict:
+    @override
+    async def start(self) -> APIObject:
         return await self.set_miner_mode("start")
 
-    async def stop(self) -> dict:
+    @override
+    async def stop(self) -> APIObject:
         return await self.set_miner_mode("stop")
 
-    async def restart(self) -> dict:
+    @override
+    async def restart(self) -> APIObject:
         return await self.set_miner_mode("restart")
 
-    async def reboot(self) -> dict:
+    @override
+    async def reboot(self) -> APIObject:
         return await self.send_command("set.system.reboot")
 
-    async def update_passwd(self, old_passwd: str, new_passwd: str) -> dict:
-        # param_data = {
-        #     "account": self.username,
-        #     "new": new_passwd,
-        #     "old": old_passwd,
-        # }
-        # return await self.send_command("set.user.change_passwd", param=param_data)
-        return await super().update_passwd(old_passwd, new_passwd)
-
+    @override
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
-    ) -> dict:
+    ) -> APIObject:
         if len(urls) != 3 or len(users) != 3 or len(passwds) != 3:
             raise APIError("Invalid length of arguments")
 
-        param_data = [
+        param_data: list[APIObject] = [
             {
                 "pool": urls[0],
                 "worker": users[0],

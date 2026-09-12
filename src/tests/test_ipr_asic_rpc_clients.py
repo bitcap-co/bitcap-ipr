@@ -98,13 +98,13 @@ class TestCGMinerClient(unittest.IsolatedAsyncioTestCase):
         async with _RPCDispatchServer(responses) as srv:
             client = CGMinerRPCClient(srv.host, port=srv.port)
             version = await client.version()
-            self.assertEqual(version["API"], "3.7")
+            self.assertEqual(version.api, "3.7")
 
             summary = await client.summary()
-            self.assertEqual(summary["Elapsed"], 60)
+            self.assertEqual(summary.model_dump()["Elapsed"], 60)
 
             pools = await client.pools()
-            self.assertEqual(pools[0]["URL"], "stratum+tcp://pool:3333")
+            self.assertEqual(pools[0].url, "stratum+tcp://pool:3333")
 
     async def test_api_error_status_raises(self):
         responses = {
@@ -128,6 +128,19 @@ class TestCGMinerClient(unittest.IsolatedAsyncioTestCase):
 
 
 class TestLuxminerClient(unittest.IsolatedAsyncioTestCase):
+    async def test_version(self):
+        responses = {
+            "version": {
+                "STATUS": [_status()],
+                "VERSION": [{"API": "3.7", "CGMiner": "1.0.0"}],
+                "id": 1,
+            }
+        }
+        async with _RPCDispatchServer(responses) as srv:
+            client = LuxminerRPCClient(srv.host, port=srv.port)
+            version = await client.version()
+            self.assertEqual(version.api, "3.7")
+
     async def test_authenticate_session_token(self):
         responses = {
             "session": {
@@ -162,15 +175,17 @@ class TestWhatsminerV2Client(unittest.IsolatedAsyncioTestCase):
         async with _RPCDispatchServer(responses) as srv:
             client = WhatsminerRPCClient(srv.host, port=srv.port)
             version = await client.version()
-            self.assertEqual(version["api_ver"], "2.0.4")
-            self.assertEqual(version["platform"], "H6")
+            self.assertEqual(version.api_ver, "2.0.4")
+            self.assertEqual(version.platform, "H6")
 
 
 class _TCPFramedServer:
     """V3 length-prefixed server that returns a canned response frame."""
 
     def __init__(self, msg_obj: dict, code: int = 0):
-        self.frame = self._frame({"code": code, "when": 0, "msg": msg_obj, "desc": "OK"})
+        self.frame = self._frame(
+            {"code": code, "when": 0, "msg": msg_obj, "desc": "OK"}
+        )
         self.server = None
 
     @staticmethod
@@ -223,18 +238,22 @@ class TestWhatsminerV3Client(unittest.IsolatedAsyncioTestCase):
     async def test_get_system_info(self):
         async with _TCPFramedServer(V3_SYSTEM) as srv:
             client = WhatsminerTCPClient(srv.host, port=srv.port)
-            info = await client.get_system_info()
-            self.assertEqual(info["system"]["api"], "3.0")
-            api = await client.get_api_version()
-            self.assertEqual(api, "3.0")
-            client._close()
+            try:
+                info = await client.get_system_info()
+                self.assertEqual(info.api, "3.0")
+                api = await client.get_api_version()
+                self.assertEqual(api, 30)
+            finally:
+                client.close()
 
     async def test_error_code_raises(self):
         async with _TCPFramedServer({"reason": "nope"}, code=0x14) as srv:
             client = WhatsminerTCPClient(srv.host, port=srv.port)
-            with self.assertRaises(APIError):
-                await client.get_system_info()
-            client._close()
+            try:
+                with self.assertRaises(APIError):
+                    await client.get_system_info()
+            finally:
+                client.close()
 
 
 if __name__ == "__main__":

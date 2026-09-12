@@ -17,6 +17,7 @@ import httpx
 
 from mod.ipr_asic.data import MinerType
 from mod.ipr_asic.data.miners import SRBMinerParser
+from mod.ipr_asic.data.miners.srbminer import SRBMinerModels
 from mod.ipr_asic.errors import APIError
 from mod.ipr_asic.http import (
     AntminerHTTPClient,
@@ -24,9 +25,10 @@ from mod.ipr_asic.http import (
     SRBMinerHTTPClient,
 )
 from mod.ipr_asic.http.ipollo import IPolloHTTPClient
+from mod.ipr_asic.schemas.models import APIObject
 
 
-def read_payload(filename: str) -> dict:
+def read_payload(filename: str) -> APIObject:
     with open(Path(filename).resolve(), "r") as f:
         return json.load(f)
 
@@ -45,6 +47,7 @@ ANTMINER_SYSTEM_INFO = {
     "system_mode": "GNU/Linux",
     "system_kernel_version": "Linux 4.6",
     "system_filesystem_version": "2023-05-01",
+    "firmware_type": "release",
     "serinum": "SER123",
 }
 
@@ -58,9 +61,9 @@ class TestAntminerClient(unittest.IsolatedAsyncioTestCase):
         client = AntminerHTTPClient("127.0.0.1", transport=httpx.MockTransport(handler))
         client.authed = True  # bypass the digest handshake for a transport-only test
         info = await client.get_system_info()
-        self.assertEqual(info["hostname"], "antminer")
-        self.assertEqual(info["macaddr"], "AA:BB:CC:DD:EE:FF")
-        self.assertEqual(info["serinum"], "SER123")
+        self.assertEqual(info.hostname, "antminer")
+        self.assertEqual(info.macaddr, "AA:BB:CC:DD:EE:FF")
+        self.assertEqual(info.serinum, "SER123")
 
     async def test_update_passwd_posts_expected_json_payload(self):
         def handler(request: httpx.Request) -> httpx.Response:
@@ -183,15 +186,15 @@ class TestIPolloClient(unittest.IsolatedAsyncioTestCase):
 
         config = await client.get_miner_conf()
 
-        self.assertEqual(config["show_fan"], "fan3")
-        self.assertEqual(config["show_temp"], "temp2")
-        self.assertEqual(config["alarm_temp"], 90)
-        self.assertEqual(config["fan_min"], 60)
-        self.assertEqual(config["fan_max"], 100)
-        self.assertEqual(config["default_pwm"], 60)
-        self.assertEqual(config["fan_ctrl"], 1)
-        self.assertEqual(config["pre_boot_time"], 3)
-        self.assertEqual(config["pre_boot_fan"], 100)
+        self.assertEqual(config.show_fan, "fan3")
+        self.assertEqual(config.show_temp, "temp2")
+        self.assertEqual(config.alarm_temp, 90)
+        self.assertEqual(config.fan_min, 60)
+        self.assertEqual(config.fan_max, 100)
+        self.assertEqual(config.default_pwm, 60)
+        self.assertEqual(config.fan_ctrl, 1)
+        self.assertEqual(config.pre_boot_time, 3)
+        self.assertEqual(config.pre_boot_fan, 100)
 
     async def test_get_pool_conf_returns_selected_coin_pools(self):
         html = """
@@ -228,7 +231,7 @@ class TestIPolloClient(unittest.IsolatedAsyncioTestCase):
         pools = await client.get_pool_conf()
 
         self.assertEqual(
-            pools,
+            [pool.model_dump(by_alias=True) for pool in pools.root],
             [
                 {
                     "url": "grin.example:1",
@@ -306,20 +309,15 @@ class TestSRBMinerClient(unittest.IsolatedAsyncioTestCase):
         client = self._client(payload)
 
         info = await client.get_system_info()
-        self.assertEqual(info["rig_name"], "SRBMiner-Multi-Rig")
+        self.assertEqual(info.rig_name, "SRBMiner-Multi-Rig")
 
         pools = await client.pools()
         self.assertTrue(pools)
-        self.assertEqual(pools[0]["url"], payload["algorithms"][0]["pool"]["pool"])
+        self.assertEqual(pools[0].pool, payload["algorithms"][0]["pool"]["pool"])
 
-        # the async client output feeds the (sync) parser unchanged
-        parser = SRBMinerParser()
-        parser.parse_all(info)
-        parser.parse_uptime(info)
-        parser.parse_pools(pools)
-        data = parser.get_data()
-        self.assertEqual(data["type"], str(MinerType.HIVEGPU))
-        self.assertEqual(data["hostname"], "SRBMiner-Multi-Rig")
+        data = SRBMinerParser().parse(SRBMinerModels(system_info=info, pools=pools))
+        self.assertEqual(data.type, MinerType.HIVEGPU)
+        self.assertEqual(data.hostname, "SRBMiner-Multi-Rig")
 
     async def test_blink_unsupported(self):
         client = self._client(read_payload("tests/payloads/srbminer.json"))

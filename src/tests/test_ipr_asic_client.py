@@ -13,17 +13,30 @@ httpx.MockTransport to exercise the parser dispatch end-to-end.
 
 import json
 import unittest
+from collections.abc import Sequence
 from pathlib import Path
 
 import httpx
 
 from mod.ipr_asic import ASICClient, MinerType
-from mod.ipr_asic.errors import APIError, UnknownClientError
+from mod.ipr_asic.errors import (
+    APIError,
+    UnknownClientError,
+    UnsupportedOperationError,
+)
 from mod.ipr_asic.http import SRBMinerHTTPClient
+from mod.ipr_asic.schemas.models import (
+    APIObject,
+    MinerPoolConfig,
+    MinerPoolModel,
+    PoolConfig,
+    SummaryModel,
+    SystemInfoModel,
+)
 from mod.lm.ipreport import MinerTypeHint
 
 
-def read_payload(filename: str) -> dict:
+def read_payload(filename: str) -> APIObject:
     with open(Path(filename).resolve(), "r") as f:
         return json.load(f)
 
@@ -31,40 +44,59 @@ def read_payload(filename: str) -> dict:
 class _FakeClient:
     """Stand-in client for facade operations that don't need a real transport."""
 
-    def __init__(self, **behaviours):
-        self._behaviours = behaviours
-        self.closed = False
+    def __init__(self, **behaviours: object) -> None:
+        self._behaviours: dict[str, object] = behaviours
+        self.closed: bool = False
         self.blinks: list[bool] = []
         self.controls: list[str] = []
         self.passwd_updates: list[tuple[str, str]] = []
-        self._ex = None
+        self._ex: Exception | None = None
 
-    def error(self):
+    def error(self) -> Exception | None:
         return self._ex
 
-    def _close(self, ex=None):
+    def set_error(self, ex: Exception) -> None:
+        self._ex = ex
+
+    def close(self, ex: Exception | None = None) -> None:
         self.closed = True
         if ex:
             self._ex = ex
 
-    async def get_pool_conf(self):
-        if "pool_conf" in self._behaviours:
-            return self._behaviours["pool_conf"]
-        raise self._behaviours.get("error", APIError("boom"))
+    async def get_system_info(self) -> SystemInfoModel:
+        raise APIError("not used by this fake")
 
-    async def update_pool_conf(self, urls, users, passwds):
-        if "update_error" in self._behaviours:
-            raise self._behaviours["update_error"]
+    async def summary(self) -> SummaryModel:
+        raise APIError("not used by this fake")
+
+    async def pools(self) -> Sequence[MinerPoolModel]:
+        raise APIError("not used by this fake")
+
+    async def get_pool_conf(self) -> PoolConfig:
+        pool_conf = self._behaviours.get("pool_conf")
+        if isinstance(pool_conf, PoolConfig):
+            return pool_conf
+        error = self._behaviours.get("error", APIError("boom"))
+        if isinstance(error, Exception):
+            raise error
+        raise APIError("invalid fake error")
+
+    async def update_pool_conf(
+        self, urls: list[str], users: list[str], passwds: list[str]
+    ) -> APIObject:
+        error = self._behaviours.get("update_error")
+        if isinstance(error, Exception):
+            raise error
         return {"success": True}
 
-    async def blink(self, enabled: bool, *a, **k):
+    async def blink(self, enabled: bool) -> APIObject:
         self.blinks.append(enabled)
         return {}
 
-    async def _control(self, action: str):
+    async def _control(self, action: str) -> APIObject:
         self.controls.append(action)
         error = self._behaviours.get(f"{action}_error")
-        if error is not None:
+        if isinstance(error, Exception):
             raise error
         return {"action": action}
 
@@ -80,10 +112,10 @@ class _FakeClient:
     async def reboot(self):
         return await self._control("reboot")
 
-    async def update_passwd(self, old_passwd: str, new_passwd: str):
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> APIObject:
         self.passwd_updates.append((old_passwd, new_passwd))
         error = self._behaviours.get("update_passwd_error")
-        if error is not None:
+        if isinstance(error, Exception):
             raise error
         return {"success": True}
 
@@ -102,7 +134,7 @@ class TestIdentify(unittest.IsolatedAsyncioTestCase):
         async def fake_probe(ip):
             return MinerType.ANTMINER
 
-        asic._parse_http_type = fake_probe
+        asic.identify_http = fake_probe
         self.assertEqual(
             await asic.identify(MinerTypeHint.COMMON, "1.2.3.4"), MinerType.ANTMINER
         )
@@ -116,8 +148,8 @@ class TestIdentify(unittest.IsolatedAsyncioTestCase):
         async def fake_model(ip):
             return "VolcMiner D1"
 
-        asic._parse_http_type = fake_probe
-        asic._get_volcminer_model = fake_model
+        asic.identify_http = fake_probe
+        asic._get_blackminer_model = fake_model
         self.assertEqual(
             await asic.identify(MinerTypeHint.COMMON, "1.2.3.4"), MinerType.VOLCMINER
         )
@@ -174,7 +206,11 @@ class TestGetMinerData(unittest.IsolatedAsyncioTestCase):
 class TestPoolConf(unittest.IsolatedAsyncioTestCase):
     async def test_get_pool_conf_padded_to_three(self):
         asic = ASICClient()
-        client = _FakeClient(pool_conf=[{"url": "u1", "user": "acct", "pass": "x"}])
+        client = _FakeClient(
+            pool_conf=PoolConfig(
+                [MinerPoolConfig(url="u1", user="acct", **{"pass": "x"})]
+            )
+        )
 
         async def fake_make(miner_type, ip, alt_pwd=None):
             return client
@@ -251,8 +287,9 @@ class TestMinerControl(unittest.IsolatedAsyncioTestCase):
 
     async def test_unsupported_control_returns_error_and_closes_client(self):
         asic = ASICClient()
-        client = _FakeClient()
-        client.start = None
+        client = _FakeClient(
+            start_error=UnsupportedOperationError("start is not supported")
+        )
 
         async def fake_make(miner_type, ip, alt_pwd=None):
             return client
@@ -261,7 +298,7 @@ class TestMinerControl(unittest.IsolatedAsyncioTestCase):
         result = await asic.start_miner(MinerType.LUX_OS, "10.0.0.1")
 
         self.assertFalse(result.ok)
-        self.assertIsInstance(result.error, NotImplementedError)
+        self.assertIsInstance(result.error, UnsupportedOperationError)
         self.assertTrue(client.closed)
 
     async def test_unknown_client_returns_error_result(self):
