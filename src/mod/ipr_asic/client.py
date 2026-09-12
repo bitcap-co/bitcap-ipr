@@ -149,21 +149,24 @@ class ASICClient(QObject):
             case MinerTypeHint.HIVEGPU:
                 return MinerType.HIVEGPU
             case MinerTypeHint.COMMON:
-                miner_type = await self._parse_http_type(ip)
+                miner_type = await self.identify_http(ip)
                 if miner_type is None:
                     return MinerType.UNKNOWN
                 if miner_type == MinerType.HAMMER:
-                    model = await self._get_volcminer_model(ip)
-                    if model is None:
+                    black_model = await self._get_blackminer_model(ip)
+                    if black_model is None:
+                        # fallback to HAMMER if we can't get model
                         return MinerType.HAMMER
-                    if "HAMMER" not in model.upper():
+                    if "HAMMER" in black_model.upper():
+                        return MinerType.HAMMER
+                    else:
                         return MinerType.VOLCMINER
-                    return MinerType.HAMMER
+
                 return miner_type
             case _:
                 return MinerType.UNKNOWN
 
-    async def _parse_http_type(self, ip: str) -> MinerType | None:
+    async def identify_http(self, ip: str) -> MinerType | None:
         url = f"http://{ip}/"
         timeout = float(get_setting("api_function_timeout", 5.0))
         try:
@@ -182,8 +185,10 @@ class ASICClient(QObject):
             return MinerType.VNISH
         return None
 
-    async def _get_volcminer_model(self, ip: str) -> str | None:
-        client = VolcminerHTTPClient(ip)
+    async def _get_blackminer_model(self, ip: str) -> str | None:
+        # we use a volcminer client here which is based off of the blackminer API
+        # we add alt_pwd="root" to try and authenticate with HAMMER
+        client = VolcminerHTTPClient(ip, alt_pwd="root")
         try:
             system_info = await client.get_system_info()
         except _CLIENT_ERRORS:

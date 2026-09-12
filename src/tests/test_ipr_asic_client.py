@@ -134,7 +134,7 @@ class TestIdentify(unittest.IsolatedAsyncioTestCase):
         async def fake_probe(ip):
             return MinerType.ANTMINER
 
-        asic._parse_http_type = fake_probe
+        asic.identify_http = fake_probe
         self.assertEqual(
             await asic.identify(MinerTypeHint.COMMON, "1.2.3.4"), MinerType.ANTMINER
         )
@@ -148,8 +148,8 @@ class TestIdentify(unittest.IsolatedAsyncioTestCase):
         async def fake_model(ip):
             return "VolcMiner D1"
 
-        asic._parse_http_type = fake_probe
-        asic._get_volcminer_model = fake_model
+        asic.identify_http = fake_probe
+        asic._get_blackminer_model = fake_model
         self.assertEqual(
             await asic.identify(MinerTypeHint.COMMON, "1.2.3.4"), MinerType.VOLCMINER
         )

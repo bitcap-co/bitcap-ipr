@@ -272,7 +272,7 @@ class MinerActionController(QObject):
     async def refresh_miner(self, source_row: int) -> None:
         ip_addr, miner_type, _ = self._table_controller.miner_target(source_row)
         logger.info(f"refresh_miner : refresh miner {ip_addr}.")
-        updated_type = await self._asic._parse_http_type(ip_addr)
+        updated_type = await self._asic.identify_http(ip_addr)
         if updated_type is not None and updated_type != miner_type:
             miner_type = updated_type
         alt_pwd = self._auth_provider(miner_type.value)
@@ -303,7 +303,7 @@ class MinerActionController(QObject):
             _firmware: MinerFirmware,
             alt_pwd: str | None,
         ) -> MinerResult:
-            updated_type = await self._asic._parse_http_type(ip_addr)
+            updated_type = await self._asic.identify_http(ip_addr)
             if updated_type is not None and updated_type != miner_type:
                 miner_type = updated_type
                 alt_pwd = self._auth_provider(miner_type.value)
