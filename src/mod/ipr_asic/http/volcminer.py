@@ -27,6 +27,7 @@ from mod.ipr_asic.schemas.volcminer import (
     NetworkInfo,
     NetworkInfoV1,
     SystemInfo,
+    VersionInfo,
 )
 from mod.ipr_asic.settings import get_auth_list, set_alt_auth
 
@@ -93,17 +94,25 @@ class VolcminerHTTPClient(BaseHTTPClient):
         else:
             return re.sub(r"\s{1,}", "", resobj.text)
 
-    async def get_hostname(self) -> str:
+    @override
+    async def hostname(self) -> str:
         resp = await self.get_network_info()
         return resp.conf_hostname
 
-    async def get_mac_addr(self) -> str:
+    @override
+    async def mac_address(self) -> str:
         resp = await self.get_network_info()
         return resp.macaddr
 
-    async def get_api_version(self) -> str:
-        resp = await self.get_system_info()
-        return resp.cgminer_version or ""
+    async def api_version(self) -> tuple[str, VersionInfo]:
+        resp = await self.send_command("GET", command="get_system_info")
+        try:
+            resobj = VersionInfo.model_validate(obj=resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        else:
+            return resobj.fw_version, resobj
 
     async def get_system_info(self) -> SystemInfo:
         resp = await self.send_command("GET", command="get_system_info")

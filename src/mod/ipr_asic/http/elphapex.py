@@ -21,6 +21,7 @@ from mod.ipr_asic.schemas.antminer import (
     MinerPasswdConfig,
     NetworkInfo,
     SystemInfo,
+    VersionInfo,
 )
 from mod.ipr_asic.schemas.elphapex import (
     MinerConfig,
@@ -84,13 +85,25 @@ class ElphapexHTTPClient(BaseHTTPClient):
         if not self.authed:
             raise AuthenticationError("Failed to authenticate")
 
-    async def get_hostname(self) -> str:
+    @override
+    async def hostname(self) -> str:
         resp = await self.get_system_info()
         return resp.hostname
 
-    async def get_mac_addr(self) -> str:
+    @override
+    async def mac_address(self) -> str:
         resp = await self.get_system_info()
         return resp.macaddr
+
+    async def api_version(self) -> tuple[str, VersionInfo]:
+        resp = await self.send_command("GET", command="get_system_info")
+        try:
+            resobj = VersionInfo.model_validate(resp, by_alias=True)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        else:
+            return resobj.fw_version, resobj
 
     async def get_system_info(self) -> SystemInfo:
         resp = await self.send_command("GET", command="get_system_info")

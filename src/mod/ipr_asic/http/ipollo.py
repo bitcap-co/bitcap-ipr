@@ -20,6 +20,7 @@ from mod.ipr_asic.schemas.ipollo import (
     MinerStatus,
     NetworkInfo,
     SystemInfo,
+    VersionInfo,
 )
 from mod.ipr_asic.schemas.models import ActionResult, APIObject, PoolConfig
 from mod.ipr_asic.settings import get_auth_list, set_alt_auth
@@ -107,16 +108,18 @@ class IPolloHTTPClient(BaseHTTPClient):
         if not self.authed:
             raise AuthenticationError("Failed to authenticate")
 
-    async def get_mac_addr(self) -> str:
+    @override
+    async def mac_address(self) -> str:
         resp = await self.get_network_info()
         for iface in resp.ifaces:
             if iface.is_up:
                 return iface.macaddr
         return ""
 
-    async def get_api_version(self) -> str:
+    async def api_version(self) -> tuple[str, VersionInfo]:
         resp = await self.summary()
-        return resp.version
+        version_info = VersionInfo(fw_version=resp.version)
+        return resp.version, version_info
 
     async def get_system_info(self) -> SystemInfo:
         resp = await self.send_command(

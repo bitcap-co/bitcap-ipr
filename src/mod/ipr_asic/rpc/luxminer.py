@@ -51,6 +51,16 @@ class LuxminerRPCClient(CGMinerRPCClient):
         return None
 
     @override
+    async def hostname(self) -> str:
+        resp = await self.get_system_info()
+        return resp.hostname
+
+    @override
+    async def mac_address(self) -> str:
+        resp = await self.get_system_info()
+        return resp.mac_addr
+
+    @override
     async def summary(self) -> Summary:
         return await self._get_one("summary", "SUMMARY", TypeAdapter(Summary))
 

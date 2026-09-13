@@ -14,6 +14,7 @@ from .models import (
     NetworkInfoModel,
     SummaryModel,
     SystemInfoModel,
+    VersionInfoModel,
 )
 
 
@@ -67,6 +68,10 @@ class MinerStatus(SummaryModel):
     algo: str | None
     mmodel: str | None
     hashrate: float | None
+
+
+class VersionInfo(VersionInfoModel):
+    fw_version: str
 
 
 class IPAddresses(BaseModel):

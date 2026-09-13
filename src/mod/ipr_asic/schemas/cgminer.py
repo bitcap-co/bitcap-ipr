@@ -22,7 +22,7 @@ class Status(BaseModel):
     when: int | None = Field(default=None, alias="When")
     code: int | None = Field(default=None, alias="Code")
     msg: str | APIObject = Field(alias="Msg")
-    description: str | None = Field(default=None, alias="Description")
+    description: str = Field(default="", alias="Description")
 
     def error(self) -> str | None:
         if self.status == "E" or self.status == "F":
@@ -34,10 +34,10 @@ class BaseVersion(VersionInfoModel):
 
 
 class Version(BaseVersion):
-    api: str = Field(alias="API")
-    cgminer: str | None = Field(default=None, alias="CGMiner")
-    luxminer: str | None = Field(default=None, alias="LUXMiner")
-    gcminer: str | None = Field(default=None, alias="GCMiner")
+    api: str = Field(default="", alias="API")
+    cgminer: str = Field(default="", alias="CGMiner")
+    luxminer: str = Field(default="", alias="LUXMiner")
+    gcminer: str = Field(default="", alias="GCMiner")
     compile_time: str | None = Field(default=None, alias="CompileTime")
     miner: str | None = Field(default=None, alias="Miner")
     type: str | None = Field(default=None, alias="Type")
@@ -81,6 +81,7 @@ class BasePool(MinerPoolModel):
 class BaseCGMinerResponse(BaseModel):
     id: int
     status: list[Status] = Field(alias="STATUS")
+    version: list[Version] | None = Field(None, alias="VERSION")
 
     def error(self) -> str | None:
         for status in self.status:

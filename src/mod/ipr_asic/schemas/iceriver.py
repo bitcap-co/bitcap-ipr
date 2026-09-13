@@ -13,6 +13,7 @@ from .models import (
     NetworkInfoModel,
     SummaryModel,
     SystemInfoModel,
+    VersionInfoModel,
 )
 
 
@@ -115,6 +116,20 @@ class UserPanel(SummaryModel, SystemInfoModel):
     pools: list[MinerPool]
     boards: list[Board]
     reftime: str = Field(alias="refTime")
+
+
+class VersionInfo(VersionInfoModel):
+    version: str = ""
+    model: str
+    firmver1: str
+    firmver2: str
+    softver1: str
+    softver2: str
+    firmtype: str
+
+
+class Version(BaseModel):
+    version: str
 
 
 class MinerConfigPasswd(BaseModel):

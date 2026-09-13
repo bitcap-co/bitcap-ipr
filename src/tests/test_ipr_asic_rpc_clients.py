@@ -235,13 +235,13 @@ V3_SYSTEM = {
 
 
 class TestWhatsminerV3Client(unittest.IsolatedAsyncioTestCase):
-    async def test_get_system_info(self):
+    async def test_api_version(self):
         async with _TCPFramedServer(V3_SYSTEM) as srv:
             client = WhatsminerTCPClient(srv.host, port=srv.port)
             try:
-                info = await client.get_system_info()
-                self.assertEqual(info.api, "3.0")
-                api = await client.get_api_version()
+                api_ver, _ = await client.api_version()
+                self.assertEqual(api_ver, "3.0")
+                api = client.api_version_number(api_ver)
                 self.assertEqual(api, 30)
             finally:
                 client.close()

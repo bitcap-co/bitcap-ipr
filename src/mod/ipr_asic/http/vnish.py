@@ -32,6 +32,7 @@ from mod.ipr_asic.schemas.vnish import (
     Settings,
     SettingsResponse,
     Summary,
+    VersionInfo,
     VnishError,
 )
 from mod.ipr_asic.settings import get_auth_list, set_alt_auth
@@ -90,17 +91,25 @@ class VnishHTTPClient(BaseHTTPClient):
         if not self.authed:
             raise AuthenticationError("Failed to authenticate")
 
-    async def get_hostname(self) -> str:
+    @override
+    async def hostname(self) -> str:
         resp = await self.get_network_info()
         return resp.hostname
 
-    async def get_mac_addr(self) -> str:
+    @override
+    async def mac_address(self) -> str:
         resp = await self.get_network_info()
         return resp.mac
 
-    async def get_api_version(self) -> str:
-        resp = await self.get_system_info()
-        return resp.fw_version
+    async def api_version(self) -> tuple[str, VersionInfo]:
+        resp = await self.send_command("GET", command="info")
+        try:
+            resobj = VersionInfo.model_validate(obj=resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        else:
+            return resobj.fw_version, resobj
 
     async def get_system_info(self) -> Info:
         resp = await self.send_command("GET", command="info")
@@ -195,9 +204,8 @@ class VnishHTTPClient(BaseHTTPClient):
 
     @override
     async def blink(self, enabled: bool) -> APIObject:
-        ver = await self.get_api_version()
-        version = self._parse_api_version(ver)
-        if version >= 133:
+        api_ver, _ = await self.api_version()
+        if self.api_version_number(api_ver) >= 133:
             return await self.send_command(
                 "POST", command="locate-miner", payload={"is_enabled": enabled}
             )

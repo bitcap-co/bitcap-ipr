@@ -23,6 +23,7 @@ from mod.ipr_asic.schemas.auradine import (
     Pool,
     Summary,
 )
+from mod.ipr_asic.schemas.cgminer import BaseCGMinerResponse, Version
 from mod.ipr_asic.schemas.models import (
     APIObject,
     BlinkStatus,
@@ -52,6 +53,13 @@ class AuradineHTTPClient(BaseHTTPClient):
 
         self.command_path: str = "{command}"
         self.token: str | None = None
+
+    def _unmarshal_response(self, data: APIObject) -> BaseCGMinerResponse:
+        try:
+            return BaseCGMinerResponse.model_validate(obj=data, by_alias=True)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
 
     def _validate_response(self, data: APIObject) -> CGMinerResponse:
         try:
@@ -100,47 +108,54 @@ class AuradineHTTPClient(BaseHTTPClient):
         if not self.authed:
             raise AuthenticationError("Failed to authenticate")
 
-    async def get_hostname(self) -> str:
+    @override
+    async def hostname(self) -> str:
         resp = await self.get_system_info()
         return resp.hostname
 
-    async def get_mac_addr(self) -> str:
+    @override
+    async def mac_address(self) -> str:
         resp = await self.get_system_info()
         return resp.mac
 
-    async def get_api_version(self) -> str:
-        resp = await self.get_system_info()
-        return resp.version
+    async def api_version(self) -> tuple[str, Version]:
+        resp = await self.send_command("GET", command="version")
+        resobj = self._unmarshal_response(resp)
+        api_version = resobj.status[0].description
+        if not isinstance(resobj.version, list) or len(resobj.version) != 1:
+            raise APIInvalidResponse
+        else:
+            return api_version, resobj.version[0]
 
     async def get_system_info(self) -> IPReport:
         resp = await self.send_command("GET", command="ipreport2")
         valid = self._validate_response(resp)
-        if valid.ip_report is None or len(valid.ip_report) != 1:
-            raise APIInvalidResponse(reason="malformed")
+        if not isinstance(valid.ip_report, list) or len(valid.ip_report) != 1:
+            raise APIInvalidResponse
         else:
             return valid.ip_report[0]
 
     async def get_network_info(self) -> NetworkInfo:
         resp = await self.send_command("GET", command="network")
         valid = self._validate_response(resp)
-        if valid.network is None or len(valid.network) != 1:
-            raise APIInvalidResponse(reason="malformed")
+        if not isinstance(valid.network, list) or len(valid.network) != 1:
+            raise APIInvalidResponse
         else:
             return valid.network[0]
 
     async def summary(self) -> Summary:
         resp = await self.send_command("GET", command="summary")
         valid = self._validate_response(resp)
-        if valid.summary is None or len(valid.summary) != 1:
-            raise APIInvalidResponse(reason="malformed")
+        if not isinstance(valid.summary, list) or len(valid.summary) != 1:
+            raise APIInvalidResponse
         else:
             return valid.summary[0]
 
     async def get_miner_conf(self) -> ModeResponse:
         resp = await self.send_command("GET", command="mode")
         valid = self._validate_response(resp)
-        if valid.mode is None or len(valid.mode) != 1:
-            raise APIInvalidResponse(reason="malformed")
+        if not isinstance(valid.mode, list) or len(valid.mode) != 1:
+            raise APIInvalidResponse
         else:
             return valid.mode[0]
 
@@ -156,15 +171,15 @@ class AuradineHTTPClient(BaseHTTPClient):
                 payload=mode.model_dump(by_alias=True, exclude_none=True),
             )
             valid = self._validate_response(resp)
-            if valid.mode is None or len(valid.mode) != 1:
-                raise APIInvalidResponse(reason="malformed")
+            if not isinstance(valid.mode, list) or len(valid.mode) != 1:
+                raise APIInvalidResponse
             return valid.mode[0].model_dump()
 
     async def pools(self) -> list[Pool]:
         resp = await self.send_command("GET", command="pools")
         valid = self._validate_response(resp)
         if valid.pools is None:
-            raise APIInvalidResponse(reason="malformed")
+            raise APIInvalidResponse
         else:
             return valid.pools
 
@@ -180,24 +195,27 @@ class AuradineHTTPClient(BaseHTTPClient):
     async def get_whitelisted_pools(self) -> APIObject:
         resp = await self.send_command("GET", command="whitelistpools")
         valid = self._validate_response(resp)
-        if valid.whitelist_pools is None or len(valid.whitelist_pools) != 1:
-            raise APIInvalidResponse(reason="malformed")
+        if (
+            not isinstance(valid.whitelist_pools, list)
+            or len(valid.whitelist_pools) != 1
+        ):
+            raise APIInvalidResponse
         else:
             return valid.whitelist_pools[0].model_dump()
 
     async def get_miner_status(self) -> APIObject:
         resp = await self.send_command("GET", command="led")
         valid = self._validate_response(resp)
-        if valid.led is None or len(valid.led) != 1:
-            raise APIInvalidResponse(reason="malformed")
+        if not isinstance(valid.led, list) or len(valid.led) != 1:
+            raise APIInvalidResponse
         else:
             return valid.led[0].model_dump(by_alias=True, exclude_none=True)
 
     async def get_blink_status(self) -> BlinkStatus:
         resp = await self.send_command("GET", command="led")
         valid = self._validate_response(resp)
-        if valid.led is None or len(valid.led) != 1:
-            raise APIInvalidResponse(reason="malformed")
+        if not isinstance(valid.led, list) or len(valid.led) != 1:
+            raise APIInvalidResponse
         else:
             blink = BlinkStatus(
                 blink=valid.led[0].code == 3
@@ -277,6 +295,6 @@ class AuradineHTTPClient(BaseHTTPClient):
         pools = {"command": "updatepools", "pools": pool_conf}
         resp = await self.send_command("POST", command="updatepools", payload=pools)
         valid = self._validate_response(resp)
-        if valid.update_pools is None or len(valid.update_pools) != 1:
-            raise APIInvalidResponse(reason="malformed")
+        if not isinstance(valid.update_pools, list) or len(valid.update_pools) != 1:
+            raise APIInvalidResponse
         return resp

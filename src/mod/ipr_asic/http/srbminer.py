@@ -11,7 +11,7 @@ from pydantic import ValidationError
 
 from mod.ipr_asic.errors import APIInvalidResponse
 from mod.ipr_asic.protocol.http import BaseHTTPClient
-from mod.ipr_asic.schemas.models import PoolConfig, SummaryModel
+from mod.ipr_asic.schemas.models import PoolConfig, SummaryModel, VersionInfoModel
 from mod.ipr_asic.schemas.srbminer import SRBMinerInfo, SRBPool
 
 logger = logging.getLogger(__name__)
@@ -42,15 +42,12 @@ class SRBMinerHTTPClient(BaseHTTPClient):
         # nothing to authenticate against; the API is open.
         self.authed = True
 
-    async def get_hostname(self) -> str:
+    @override
+    async def hostname(self) -> str:
         return (await self.get_system_info()).rig_name
 
-    # async def get_mac_addr(self) -> str:
-    #     # not exposed by the SRBMiner API; MAC comes from the IP Report.
-    #     return await super().get_mac_addr()
-
-    async def get_api_version(self) -> str:
-        return (await self.get_system_info()).miner_version
+    async def api_version(self) -> tuple[str, VersionInfoModel]:
+        return (await self.get_system_info()).miner_version, VersionInfoModel()
 
     async def get_system_info(self) -> SRBMinerInfo:
         resp = await self.send_command("GET", command="")

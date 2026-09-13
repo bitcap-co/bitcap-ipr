@@ -103,9 +103,18 @@ class GoldshellHTTPClient(BaseHTTPClient):
         if not self.authed:
             raise AuthenticationError("Failed to authenticate.")
 
-    async def get_mac_addr(self) -> str:
+    @override
+    async def hostname(self) -> str:
+        return await self.mac_address()
+
+    @override
+    async def mac_address(self) -> str:
         resp = await self.get_miner_conf()
         return resp.name
+
+    async def api_version(self) -> tuple[str, Status]:
+        resp = await self.get_system_info()
+        return resp.mcbversion, resp
 
     async def get_system_info(self) -> Status:
         resp = await self.send_command("GET", command="status")

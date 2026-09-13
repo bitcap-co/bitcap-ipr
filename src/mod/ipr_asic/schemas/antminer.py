@@ -16,6 +16,7 @@ from .models import (
     PoolConfig,
     SummaryModel,
     SystemInfoModel,
+    VersionInfoModel,
 )
 
 
@@ -155,11 +156,19 @@ class WarningResponse(BaseModel):
     error_message: str
 
 
-class MinerInfo(BaseModel):
+class MinerTypeInfo(BaseModel):
     miner_type: str
     subtype: str
     fw_version: str
-    product_type: str | None = None
+    product_type: str = ""
+
+
+class VersionInfo(VersionInfoModel):
+    minertype: str
+    fw_version: str = Field(alias="system_filesystem_version")
+    kernel_version: str = Field(alias="system_kernel_version")
+    firmware_type: str
+    cgminer_version: str | None = None
 
 
 class SystemInfo(SystemInfoModel):

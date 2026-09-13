@@ -23,6 +23,7 @@ from mod.ipr_asic.schemas.iceriver import (
     MinerPool,
     NetworkInfo,
     UserPanel,
+    VersionInfo,
 )
 from mod.ipr_asic.schemas.models import (
     APIObject,
@@ -89,13 +90,34 @@ class IceriverHTTPClient(BaseHTTPClient):
         if not self.authed:
             raise AuthenticationError("Failed to authenticate")
 
-    async def get_hostname(self) -> str:
+    @override
+    async def hostname(self) -> str:
         resp = await self.get_network_info()
         return resp.host
 
-    async def get_mac_addr(self) -> str:
+    @override
+    async def mac_address(self) -> str:
         resp = await self.get_network_info()
         return resp.mac
+
+    async def api_version(self) -> tuple[str, VersionInfo]:
+        resp = await self.send_command("POST", command="userpanel", data={"post": 4})
+        try:
+            resobj = VersionInfo.model_validate(obj=resp["data"], by_alias=True)
+        except (ValidationError, KeyError) as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        try:
+            ver_resp = await self.send_command("GET", command="version")
+            resobj.version = ver_resp["version"]
+        except (
+            FailedConnectionError,
+            AuthenticationError,
+            APIError,
+            KeyError,
+        ):
+            pass
+        return resobj.version, resobj
 
     async def get_system_info(self) -> UserPanel:
         return await self.summary()

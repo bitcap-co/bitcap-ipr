@@ -98,20 +98,20 @@ class WhatsminerV3Parser:
         data.firmware = MinerFirmware.STOCK
         data.algorithm = MinerAlgorithm.SHA256
 
-        system = models.device_info.system
-        if system is not None:
-            data.api_version = system.api
-            data.fw_version = system.fwversion
-            data.platform = system.platform
+        version = models.device_info.version
+        if version is not None:
+            data.api_version = version.api
+            data.fw_version = version.fwversion
+            data.platform = version.platform
         data.uptime = models.summary.elapsed
         network = models.device_info.network
         if network is not None:
             data.hostname = network.hostname
             data.mac = network.mac
-        miner = models.device_info.miner
-        if miner is not None:
-            data.serial = miner.miner_sn
-            data.subtype = miner.type
+        system = models.device_info.system
+        if system is not None:
+            data.serial = system.miner_sn
+            data.subtype = system.type
 
         for pool in models.pools:
             if pool.status == "alive":

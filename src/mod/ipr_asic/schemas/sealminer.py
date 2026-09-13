@@ -12,6 +12,7 @@ from .models import (
     PoolConfig,
     SummaryModel,
     SystemInfoModel,
+    VersionInfoModel,
 )
 
 
@@ -70,6 +71,12 @@ class SystemInfo(SystemInfoModel):
     upgrade_result: str
     tuning_done: int
     led: str
+
+
+class VersionInfo(VersionInfoModel):
+    miner_type: str
+    firmware_version: str
+    ctrl_version: str
 
 
 class PoolConfigForm(BaseModel):

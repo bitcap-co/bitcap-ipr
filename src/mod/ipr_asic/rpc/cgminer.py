@@ -91,12 +91,17 @@ class CGMinerRPCLayer(BaseRPCClient, ABC):
             logger.error(f"{self.__repr__()}: {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
 
-    async def get_api_version(self) -> int:
-        version = await self._get_one("version", "VERSION", TypeAdapter(Version))
-        return self._parse_api_version(version.api)
-
 
 class CGMinerRPCClient(CGMinerRPCLayer):
+    async def api_version(self) -> tuple[str, Version]:
+        resp = await self.send_command("version")
+        resobj = self.unmarshal_response(resp)
+        api_ver = resobj.status[0].description
+        version_info = resobj.version
+        if not isinstance(version_info, list) or len(version_info) != 1:
+            raise APIInvalidResponse(reason="version must contain one item")
+        return api_ver, version_info[0]
+
     async def version(self) -> Version:
         return await self._get_one("version", "VERSION", TypeAdapter(Version))
 

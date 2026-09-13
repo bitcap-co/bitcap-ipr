@@ -49,6 +49,7 @@ from mod.ipr_asic.schemas.whatsminer import (
     BTMinerV3Status,
     BTMinerV3Summary,
     BTMinerV3SystemInfo,
+    BTMinerV3VersionInfo,
     BTMinerVersion,
     Token,
     TokenResponse,
@@ -135,7 +136,7 @@ class WhatsminerRPCClient(CGMinerRPCLayer):
                 )
                 raise APIInvalidResponse
             else:
-                cmd_resp = self._unmarshal_status(data)
+                cmd_resp = self.unmarshal_status(data)
                 cmd_err = cmd_resp.error()
                 if cmd_err is not None:
                     if cmd_resp.code == 23:
@@ -183,7 +184,7 @@ class WhatsminerRPCClient(CGMinerRPCLayer):
         return self.token
 
     @override
-    def _unmarshal_status(self, data: APIObject) -> Status:
+    def unmarshal_status(self, data: APIObject) -> Status:
         try:
             return Status.model_validate(data, by_alias=True)
         except ValidationError as e:
@@ -191,7 +192,7 @@ class WhatsminerRPCClient(CGMinerRPCLayer):
             raise APIInvalidResponse from e
 
     def _unmarshal_msg(self, data: APIObject, adapter: TypeAdapter[T]) -> T:
-        resobj = self._unmarshal_status(data)
+        resobj = self.unmarshal_status(data)
         err = resobj.error()
         if err is not None:
             logger.error(f"{self.__repr__()} : {APIError(err)!s}")
@@ -200,17 +201,26 @@ class WhatsminerRPCClient(CGMinerRPCLayer):
             logger.error(
                 f"{self.__repr__()} : {APIInvalidResponse(reason='expected API object')!s}"
             )
-            raise APIInvalidResponse()
+            raise APIInvalidResponse
         try:
             return adapter.validate_python(resobj.msg)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
-            raise APIInvalidResponse()
+            raise APIInvalidResponse
 
     @override
-    async def get_api_version(self) -> int:
+    async def hostname(self) -> str:
+        resp = await self.get_system_info()
+        return resp.hostname or ""
+
+    @override
+    async def mac_address(self) -> str:
+        resp = await self.get_system_info()
+        return resp.mac or ""
+
+    async def api_version(self) -> tuple[str, BTMinerVersion]:
         version = await self.version()
-        return self._parse_api_version(version.api_ver)
+        return version.api_ver, version
 
     async def version(self) -> BTMinerVersion:
         resp = await self.send_command("get_version")
@@ -225,7 +235,9 @@ class WhatsminerRPCClient(CGMinerRPCLayer):
         )
 
     async def summary(self) -> BTMinerSummary:
-        if await self.get_api_version() <= 205:
+        # v2.0.5 and below outputs standard cgminer summary schema
+        api_ver, _ = await self.api_version()
+        if self.api_version_number(api_ver) <= 205:
             return await self._get_one(
                 "summary", "SUMMARY", TypeAdapter(BTMinerSummary)
             )
@@ -382,7 +394,7 @@ class WhatsminerTCPClient(BaseTCPClient):
             resobj = BTMinerV3CommandResponse.model_validate(obj=resp)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
-            raise APIInvalidResponse()
+            raise APIInvalidResponse
         else:
             err = resobj.error()
             if err is not None:
@@ -402,17 +414,21 @@ class WhatsminerTCPClient(BaseTCPClient):
         self.salt = resp.salt
         return self.salt
 
-    async def get_hostname(self) -> str:
+    @override
+    async def hostname(self) -> str:
         resp = await self.get_network_info()
         return resp.hostname
 
-    async def get_mac_addr(self) -> str:
+    @override
+    async def mac_address(self) -> str:
         resp = await self.get_network_info()
         return resp.mac
 
-    async def get_api_version(self) -> int:
-        resp = await self.get_system_info()
-        return self._parse_api_version(resp.api)
+    async def api_version(self) -> tuple[str, BTMinerV3VersionInfo]:
+        resp = await self.get_device_info("system")
+        if resp.version is None:
+            raise APIInvalidResponse
+        return resp.version.api, resp.version
 
     async def get_device_info(
         self,
@@ -424,20 +440,20 @@ class WhatsminerTCPClient(BaseTCPClient):
             resobj = BTMinerV3DeviceInfo.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
-            raise APIInvalidResponse()
+            raise APIInvalidResponse
         else:
             return resobj
 
     async def get_system_info(self) -> BTMinerV3SystemInfo:
-        resp = await self.get_device_info("system")
+        resp = await self.get_device_info("miner")
         if resp.system is None:
-            raise APIInvalidResponse()
+            raise APIInvalidResponse
         return resp.system
 
     async def get_network_info(self) -> BTMinerV3NetworkInfo:
         resp = await self.get_device_info("network")
         if resp.network is None:
-            raise APIInvalidResponse()
+            raise APIInvalidResponse
         return resp.network
 
     async def summary(self) -> BTMinerV3Summary:
@@ -446,7 +462,7 @@ class WhatsminerTCPClient(BaseTCPClient):
             resobj = BTMinerV3Summary.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
-            raise APIInvalidResponse()
+            raise APIInvalidResponse
         else:
             return resobj
 
@@ -456,7 +472,7 @@ class WhatsminerTCPClient(BaseTCPClient):
             resobj = BTMinerV3Status.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
-            raise APIInvalidResponse()
+            raise APIInvalidResponse
         else:
             if resobj.pools is None:
                 return []
@@ -470,8 +486,8 @@ class WhatsminerTCPClient(BaseTCPClient):
         return PoolConfig(pool_conf)
 
     async def get_blink_status(self) -> BlinkStatus:
-        resp = await self.get_system_info()
-        blink = BlinkStatus(blink=resp.ledstatus == "auto")
+        _, version = await self.api_version()
+        blink = BlinkStatus(blink=version.ledstatus == "auto")
         return blink
 
     @override

@@ -15,6 +15,7 @@ from .models import (
     PoolConfig,
     SummaryModel,
     SystemInfoModel,
+    VersionInfoModel,
 )
 
 
@@ -58,6 +59,18 @@ class Info(SystemInfoModel):
     hr_measure: str
     system: SystemInfo
     serial: str
+
+
+class VersionInfo(VersionInfoModel):
+    miner: str
+    model: str
+    fw_name: str
+    fw_version: str
+    build_uuid: str
+    build_name: str
+    build_time: str
+    platform: str
+    install_type: str
 
 
 # factory-info

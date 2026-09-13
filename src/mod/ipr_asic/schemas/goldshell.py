@@ -10,6 +10,7 @@ from .models import (
     MinerPoolModel,
     SummaryModel,
     SystemInfoModel,
+    VersionInfoModel,
 )
 
 
@@ -31,7 +32,7 @@ class Settings(MinerConfigModel):
     version: str
 
 
-class Status(SystemInfoModel):
+class Status(SystemInfoModel, VersionInfoModel):
     firmware: str
     hardware: str
     mcbversion: str

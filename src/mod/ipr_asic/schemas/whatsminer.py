@@ -10,6 +10,7 @@ from .models import (
     NetworkInfoModel,
     SummaryModel,
     SystemInfoModel,
+    VersionInfoModel,
 )
 
 
@@ -155,7 +156,7 @@ class BTMinerV3CommandResponse(BaseModel):
             return f"API error ({self.code}) {self.msg} - {self.desc}"
 
 
-class BTMinerV3SystemInfo(SystemInfoModel):
+class BTMinerV3VersionInfo(VersionInfoModel):
     api: str
     platform: str
     fwversion: str
@@ -175,7 +176,7 @@ class BTMinerV3NetworkInfo(NetworkInfoModel):
     hostname: str
 
 
-class BTMinerV3Miner(BaseModel):
+class BTMinerV3SystemInfo(SystemInfoModel):
     working: str
     type: str
     hash_board: str = Field(alias="hash-board")
@@ -214,10 +215,10 @@ class BTMinerV3PSU(BaseModel):
     vendor: str
 
 
-class BTMinerV3DeviceInfo(SystemInfoModel):
+class BTMinerV3DeviceInfo(BaseModel):
     network: BTMinerV3NetworkInfo | None = None
-    miner: BTMinerV3Miner | None = None
-    system: BTMinerV3SystemInfo | None = None
+    system: BTMinerV3SystemInfo | None = Field(None, alias="miner")
+    version: BTMinerV3VersionInfo | None = Field(None, alias="system")
     power: BTMinerV3PSU | None = None
     salt: str | None = None
 

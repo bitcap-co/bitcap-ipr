@@ -12,6 +12,7 @@ from .models import (
     PoolConfig,
     SummaryModel,
     SystemInfoModel,
+    VersionInfoModel,
 )
 
 
@@ -43,6 +44,14 @@ class SystemInfo(SystemInfoModel):
     bb_hwv: str
     system_kernel_version: str
     system_filesystem_version: str
+    cgminer_version: str
+
+
+class VersionInfo(VersionInfoModel):
+    minertype: str
+    fw_version: str = Field(alias="system_filesystem_version")
+    kernel_version: str = Field(alias="system_kernel_version")
+    bb_hwv: str
     cgminer_version: str
 
 

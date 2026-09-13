@@ -38,13 +38,26 @@ class BaseClient(ABC):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}[{self.ip!s}]"
 
-    def _parse_api_version(self, version: str) -> int:
-        if not version:
-            return 0
-        match = _API_VERSION_RE.match(version)
+    @staticmethod
+    def _parse_api_version(api_version: str = "") -> int:
+        if not api_version:
+            try:
+                return int(api_version)
+            except ValueError:
+                return 0
+        match = _API_VERSION_RE.match(api_version)
         if not match:
             return 0
         return int(match.group(1).replace(".", ""))
+
+    def api_version_number(self, version_str: str) -> int:
+        return self._parse_api_version(version_str)
+
+    async def hostname(self) -> str:
+        return ""
+
+    async def mac_address(self) -> str:
+        return ""
 
     def _unsupported(self, operation: str) -> Never:
         raise UnsupportedOperationError(

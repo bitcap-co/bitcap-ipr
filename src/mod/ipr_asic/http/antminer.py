@@ -4,6 +4,8 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 import logging
+import re
+from datetime import datetime
 from typing import final, override
 
 import httpx
@@ -33,6 +35,7 @@ from mod.ipr_asic.schemas.antminer import (
     PoolsResponse,
     SummaryResponse,
     SystemInfo,
+    VersionInfo,
 )
 from mod.ipr_asic.schemas.models import (
     APIObject,
@@ -87,17 +90,39 @@ class AntminerHTTPClient(BaseHTTPClient):
         if not self.authed:
             raise AuthenticationError("Failed to authenticate")
 
-    async def get_hostname(self) -> str:
+    @override
+    async def hostname(self) -> str:
         resp = await self.get_system_info()
         return resp.hostname
 
-    async def get_mac_addr(self) -> str:
+    @override
+    async def mac_address(self) -> str:
         resp = await self.get_system_info()
         return resp.macaddr
 
-    async def get_api_version(self) -> str:
-        resp = await self.get_system_info()
-        return resp.cgminer_version or ""
+    async def api_version(self) -> tuple[str, VersionInfo]:
+        resp = await self.send_command("GET", command="get_system_info")
+        try:
+            resobj = VersionInfo.model_validate(resp, by_alias=True)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        return resobj.fw_version, resobj
+
+    @override
+    def api_version_number(self, version_str: str) -> int:
+        # api version format: yyyymmdd
+        # FR-1.61(260403-S21-Pro+) -> 20260403
+        if "FR-" in version_str and (match := re.search(r"\d{6}", version_str)):
+            return int("20" + match.group())
+        # Sun Jul 7 16:23:20 CST 2024 -> 20240707
+        try:
+            dt = datetime.strptime(
+                version_str.replace("CST", ""), "%a %b %d %H:%M:%S %Y"
+            )
+            return int(dt.strftime("%Y%m%d"))
+        except ValueError:
+            return 0
 
     async def get_system_info(self) -> SystemInfo:
         resp = await self.send_command("GET", command="get_system_info")
@@ -323,17 +348,32 @@ class AntminerOldHTTPClient(BaseHTTPClient):
                 raise APIError("Command failed!")
             return resobj
 
-    async def get_hostname(self) -> str:
+    async def hostname(self) -> str:
         resp = await self.get_system_info()
         return resp.hostname
 
-    async def get_mac_addr(self) -> str:
+    async def mac_address(self) -> str:
         resp = await self.get_system_info()
         return resp.macaddr
 
-    async def get_api_version(self) -> str:
-        resp = await self.get_system_info()
-        return resp.cgminer_version or ""
+    async def api_version(self) -> tuple[str, VersionInfo]:
+        resp = await self.send_command("GET", command="get_system_info")
+        try:
+            resobj = VersionInfo.model_validate(resp, by_alias=True)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        return resobj.fw_version, resobj
+
+    @override
+    def api_version_number(self, version_str: str) -> int:
+        try:
+            dt = datetime.strptime(
+                version_str.replace("CST", ""), "%a %b %d %H:%M:%S %Y"
+            )
+            return int(dt.strftime("%Y%m%d"))
+        except ValueError:
+            return 0
 
     async def get_system_info(self) -> SystemInfo:
         resp = await self.send_command("GET", command="get_system_info")
@@ -368,8 +408,8 @@ class AntminerOldHTTPClient(BaseHTTPClient):
     async def summary(self) -> MinerSummary:
         resp = await self.send_command("GET", command="miner_summary")
         valid = self._validate_response(resp)
-        if valid.summary is None or len(valid.summary) != 1:
-            raise APIInvalidResponse(reason="Malformed")
+        if not isinstance(valid.summary, list) or len(valid.summary) != 1:
+            raise APIInvalidResponse
         else:
             try:
                 return MinerSummary.model_validate(obj=valid.summary[0])
@@ -396,7 +436,7 @@ class AntminerOldHTTPClient(BaseHTTPClient):
         resp = await self.send_command("GET", command="miner_pools")
         valid = self._validate_response(resp)
         if valid.pools is None:
-            raise APIInvalidResponse(reason="Malformed")
+            raise APIInvalidResponse
         else:
             return valid.pools
 
