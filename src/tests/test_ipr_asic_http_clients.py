@@ -51,6 +51,18 @@ ANTMINER_SYSTEM_INFO = {
     "serinum": "SER123",
 }
 
+# a complete Antminer get_miner_config payload (all required MinerConfig fields)
+ANTMINER_MINER_CONFIG = {
+    "bitmain-work-mode": "1",
+    "pools": [
+        {
+            "url": "stratum+tcp://test.pool.com",
+            "user": "testuser",
+            "pass": "1",
+        }
+    ],
+}
+
 
 class TestAntminerClient(unittest.IsolatedAsyncioTestCase):
     async def test_get_system_info_request_and_parse(self):
@@ -64,6 +76,19 @@ class TestAntminerClient(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(info.hostname, "antminer")
         self.assertEqual(info.macaddr, "AA:BB:CC:DD:EE:FF")
         self.assertEqual(info.serinum, "SER123")
+
+    async def test_miner_config_request_and_parse(self):
+        def handler(request: httpx.Request) -> httpx.Response:
+            self.assertTrue(request.url.path.endswith("cgi-bin/get_miner_conf.cgi"))
+            return httpx.Response(200, json=ANTMINER_MINER_CONFIG)
+
+        client = AntminerHTTPClient("127.0.0.1", transport=httpx.MockTransport(handler))
+        client.authed = True  # bypass the digest handshake for a transport-only test
+        info = await client.get_miner_conf()
+        self.assertEqual(info.miner_mode, 1)
+        self.assertEqual(info.pools.root[0].url, "stratum+tcp://test.pool.com")
+        self.assertEqual(info.pools.root[0].user, "testuser")
+        self.assertEqual(info.pools.root[0].pwd, "1")
 
     async def test_update_passwd_posts_expected_json_payload(self):
         def handler(request: httpx.Request) -> httpx.Response:
