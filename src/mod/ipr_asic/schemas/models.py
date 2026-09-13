@@ -20,9 +20,10 @@ class ActionResult(BaseModel):
 
 
 class MinerPoolConfig(BaseModel):
+    model_config: ClassVar[ConfigDict] = ConfigDict(populate_by_name=True)
     url: str = ""
     user: str = ""
-    pwd: str = Field(default="", serialization_alias="pass")
+    pwd: str = Field(default="", alias="pass")
 
 
 class PoolConfig(RootModel[list[MinerPoolConfig]]):
