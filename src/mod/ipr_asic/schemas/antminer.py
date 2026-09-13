@@ -238,7 +238,7 @@ class MinerConfig(MinerConfigModel):
     voltage: str | None = Field(None, alias="bitmain-voltage")
     hashrate_per: str | None = Field(None, alias="bitmain-hashrate-percent")
     user_ip_cat: str | None = Field(None, alias="bitmain-user-ip-cat")
-    miner_mode: str = Field(
+    miner_mode: int = Field(
         validation_alias="bitmain-work-mode", serialization_alias="miner-mode"
     )
     pools: PoolConfig
