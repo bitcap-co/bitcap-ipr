@@ -220,7 +220,7 @@ class AntminerHTTPClient(BaseHTTPClient):
 
     async def set_miner_mode(self, mode: int = 0) -> APIObject:
         resp = await self.get_miner_conf()
-        resp.miner_mode = f"{mode}"
+        resp.miner_mode = mode
 
         return await self.set_miner_conf(
             conf=resp.model_dump(mode="json", by_alias=True, exclude_none=True)
