@@ -4,6 +4,7 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 import logging
+from abc import ABC
 from collections.abc import Sequence
 from typing import TypeVar
 
@@ -33,7 +34,7 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
-class CGMinerRPCLayer(BaseRPCClient):
+class CGMinerRPCLayer(BaseRPCClient, ABC):
     def _validate_response(self, data: APIObject) -> str | None:
         try:
             resobj = BaseCGMinerResponse.model_validate(obj=data, by_alias=True)
@@ -43,7 +44,7 @@ class CGMinerRPCLayer(BaseRPCClient):
         else:
             return resobj.error()
 
-    def _unmarshal_status(self, data: APIObject) -> Status:
+    def unmarshal_status(self, data: APIObject) -> Status:
         try:
             resobj = BaseCGMinerResponse.model_validate(obj=data, by_alias=True)
         except ValidationError as e:
@@ -51,6 +52,13 @@ class CGMinerRPCLayer(BaseRPCClient):
             raise APIInvalidResponse
         else:
             return resobj.status[0]
+
+    def unmarshal_response(self, data: APIObject) -> BaseCGMinerResponse:
+        try:
+            return BaseCGMinerResponse.model_validate(obj=data, by_alias=True)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()}: {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
 
     async def _get_one(
         self, command: str, response_key: str, adapter: TypeAdapter[T]
