@@ -187,7 +187,7 @@ class TestMinerActionController(unittest.IsolatedAsyncioTestCase):
             populate_data=Mock(),
         )
         asic = SimpleNamespace(
-            _parse_http_type=AsyncMock(return_value=MinerType.ANTMINER),
+            identify_http=AsyncMock(return_value=MinerType.ANTMINER),
             get_miner_data=AsyncMock(return_value=result),
         )
         subject: Any = SimpleNamespace(
@@ -273,7 +273,7 @@ class TestMinerActionController(unittest.IsolatedAsyncioTestCase):
     async def test_bulk_refresh_redetects_type_and_auth_before_fetch(self):
         result = MinerResult(data={"type": "antminer", "mac": "N/A"})
         asic = SimpleNamespace(
-            _parse_http_type=AsyncMock(return_value=MinerType.ANTMINER),
+            identify_http=AsyncMock(return_value=MinerType.ANTMINER),
             get_miner_data=AsyncMock(return_value=result),
         )
         run_bulk_action = AsyncMock()
@@ -301,7 +301,7 @@ class TestMinerActionController(unittest.IsolatedAsyncioTestCase):
         )
 
         self.assertIs(refresh_result, result)
-        asic._parse_http_type.assert_awaited_once_with("10.0.0.4")
+        asic.identify_http.assert_awaited_once_with("10.0.0.4")
         subject._auth_provider.assert_called_once_with(MinerType.ANTMINER.value)
         asic.get_miner_data.assert_awaited_once_with(
             MinerType.ANTMINER,

@@ -198,34 +198,36 @@ class TestHTTPTransport(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(resp, {})
 
 
-class TestRPCLoadApiData(unittest.TestCase):
+class TestRPCUnmarshalData(unittest.TestCase):
     """The btminer/bmminer JSON-repair heuristics (sync, ported verbatim)."""
 
     def setUp(self):
         self.client = _RPCClient("127.0.0.1")
 
     def test_strips_trailing_null_byte(self):
-        self.assertEqual(self.client._load_api_data(b'{"a": 1}\x00'), {"a": 1})
+        self.assertEqual(self.client._unmarshal_data(b'{"a": 1}\x00'), {"a": 1})
 
     def test_fixes_trailing_comma(self):
-        self.assertEqual(self.client._load_api_data(b'{"a": 1,}'), {"a": 1})
+        self.assertEqual(self.client._unmarshal_data(b'{"a": 1,}'), {"a": 1})
 
     def test_fixes_whatsminer_list_as_dict(self):
         # whatsminer API v2.0.4 returns error_code as a list of colon-pairs
         # (invalid JSON); the heuristic rewrites the [ ] to { }.
         raw = b'{"error_code":["0":"data"]}'
-        self.assertEqual(self.client._load_api_data(raw), {"error_code": {"0": "data"}})
+        self.assertEqual(
+            self.client._unmarshal_data(raw), {"error_code": {"0": "data"}}
+        )
 
     def test_fixes_bmminer_missing_comma_between_objects(self):
         # "}{" between two objects in an array becomes "},{"
         self.assertEqual(
-            self.client._load_api_data(b'{"a": [{"x": 1}{"y": 2}]}'),
+            self.client._unmarshal_data(b'{"a": [{"x": 1}{"y": 2}]}'),
             {"a": [{"x": 1}, {"y": 2}]},
         )
 
     def test_invalid_json_raises(self):
         with self.assertRaises(APIError):
-            self.client._load_api_data(b"totally not json")
+            self.client._unmarshal_data(b"totally not json")
 
 
 class _RPCServer:
@@ -320,7 +322,7 @@ class TestTCPTransport(unittest.IsolatedAsyncioTestCase):
             resp = await client.btv3_send(msg, len(msg))
             self.assertEqual(resp["code"], 0)
             self.assertEqual(resp["msg"]["salt"], "abc")
-            client._close()
+            client.close()
 
     async def test_oversized_length_raises(self):
         # advertise a body length above the 8192 cap
@@ -329,7 +331,7 @@ class TestTCPTransport(unittest.IsolatedAsyncioTestCase):
             client = _TCPClient(srv.host, port=srv.port)
             with self.assertRaises(APIError):
                 await client.btv3_send("x", 1)
-            client._close()
+            client.close()
 
 
 if __name__ == "__main__":

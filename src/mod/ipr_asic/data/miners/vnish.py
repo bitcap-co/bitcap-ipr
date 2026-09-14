@@ -3,82 +3,71 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-from typing import Any
+
+from pydantic import BaseModel
 
 from mod.ipr_asic.data import (
-    BaseParser,
     MinerAlgorithm,
+    MinerData,
     MinerFirmware,
     MinerPlatform,
     MinerType,
 )
+from mod.ipr_asic.schemas.vnish import (
+    Info as VnishSystemInfo,
+)
+from mod.ipr_asic.schemas.vnish import (
+    PoolStats as VnishMinerPool,
+)
+from mod.ipr_asic.schemas.vnish import (
+    Summary as VnishSummary,
+)
 
 
-class VnishParser(BaseParser):
-    def __init__(self) -> None:
-        super().__init__()
-        self.data.type = MinerType.ANTMINER
-        self.data.firmware = MinerFirmware.VNISH
+class VnishModels(BaseModel):
+    system_info: VnishSystemInfo
+    summary: VnishSummary
+    pools: list[VnishMinerPool]
 
-    def parse_api_version(self, obj: Any) -> None:
-        return super().parse_api_version(obj)
 
-    def parse_uptime(self, obj: Any) -> None:
-        self.data.uptime = obj["miner"]["miner_status"]["miner_state_time"]
+class VnishParser:
+    def parse(self, models: VnishModels) -> MinerData:
+        data = MinerData()
+        data.type = MinerType.ANTMINER
+        data.firmware = MinerFirmware.VNISH
 
-    def parse_hostname(self, obj: Any) -> None:
-        self.data.hostname = obj["system"]["network_status"]["hostname"]
+        data.uptime = models.summary.miner.miner_status.miner_state_time
+        data.subtype = models.system_info.miner[9:]
+        net_info = models.system_info.system.network_status
+        data.hostname = net_info.hostname
+        data.mac = net_info.mac
+        data.serial = models.system_info.serial
+        data.fw_version = models.system_info.fw_version
+        data.algorithm = MinerAlgorithm.from_value(models.system_info.algorithm)
 
-    def parse_mac(self, obj: Any) -> None:
-        self.data.mac = obj["system"]["network_status"]["mac"]
-
-    def parse_serial(self, obj: Any) -> None:
-        self.data.serial = obj["serial"]
-
-    def parse_type(self, obj: Any) -> None:
-        return super().parse_type(obj)
-
-    def parse_subtype(self, obj: Any) -> None:
-        if "model" in obj:
-            self.data.subtype = obj["model"].upper()
-        elif "miner" in obj:
-            self.data.subtype = obj["miner"].split(" ")[-1]
-
-    def parse_algorithm(self, obj: Any) -> None:
-        self.data.algorithm = MinerAlgorithm.from_value(obj["algorithm"])
-
-    def parse_firmware(self, obj: Any) -> None:
-        self.data.fw_version = obj["fw_version"]
-
-    def parse_platform(self, obj: Any) -> None:
-        match obj["platform"]:
+        match models.system_info.platform:
             case "xil":
-                self.data.platform = MinerPlatform.XILINX
+                data.platform = MinerPlatform.XILINX
             case "bb":
-                self.data.platform = MinerPlatform.BEAGLEBONE
+                data.platform = MinerPlatform.BEAGLEBONE
             case "aml":
-                self.data.platform = MinerPlatform.AMLOGIC
+                data.platform = MinerPlatform.AMLOGIC
             case "cv":
-                self.data.platform = MinerPlatform.CVITEK
+                data.platform = MinerPlatform.CVITEK
             case "stm":
-                self.data.platform = MinerPlatform.STM
+                data.platform = MinerPlatform.STM
             case _:
-                self.data.platform = None
+                data.platform = None
 
-    def parse_system_info(self, obj: Any) -> None:
-        return super().parse_system_info(obj)
-
-    def parse_summary(self, obj: Any) -> None:
-        self.parse_uptime(obj)
-
-    def parse_pools(self, obj: list[dict[str, Any]]) -> None:
-        for pool in obj:
-            if pool["status"] == "active":
-                self.data.stratum_url = pool["url"]
-                if "." in pool["user"]:
-                    user, worker = pool["user"].split(".", 1)
-                    self.data.username = user
-                    self.data.worker_name = worker
+        for pool in models.pools:
+            if pool.status == "active":
+                data.stratum_url = pool.url
+                if "." in pool.user:
+                    user, worker = pool.user.split(",", 1)
+                    data.username = user
+                    data.worker_name = worker
                 else:
-                    self.data.username = pool["user"]
+                    data.username = pool.user
                 break
+
+        return data
