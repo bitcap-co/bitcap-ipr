@@ -36,7 +36,8 @@ class VnishParser:
         data.type = MinerType.ANTMINER
         data.firmware = MinerFirmware.VNISH
 
-        data.uptime = models.summary.miner.miner_status.miner_state_time
+        if models.summary.miner is not None:
+            data.uptime = models.summary.miner.miner_status.miner_state_time
         data.subtype = models.system_info.miner[9:]
         net_info = models.system_info.system.network_status
         data.hostname = net_info.hostname

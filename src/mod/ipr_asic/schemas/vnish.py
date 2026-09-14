@@ -230,7 +230,7 @@ class MinerSummary(BaseModel):
 
 
 class Summary(SummaryModel):
-    miner: MinerSummary
+    miner: MinerSummary | None = None
 
 
 # perf-summary

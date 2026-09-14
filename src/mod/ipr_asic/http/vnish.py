@@ -179,6 +179,8 @@ class VnishHTTPClient(BaseHTTPClient):
 
     async def pools(self) -> list[PoolStats]:
         resp = await self.summary()
+        if resp.miner is None:
+            return []
         return resp.miner.pools
 
     async def get_pool_conf(self) -> PoolConfig:
