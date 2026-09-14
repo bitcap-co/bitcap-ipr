@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Copyright (C) 2024-2026 Matthew Wertman <matt@bitcap.co>
 #
 # This file is part of bitcap-ipr
