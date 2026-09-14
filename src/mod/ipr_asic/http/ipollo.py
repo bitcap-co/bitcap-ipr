@@ -138,7 +138,7 @@ class IPolloHTTPClient(BaseHTTPClient):
             method="GET", command="admin/network/iface_status/lan"
         )
         try:
-            resobj = NetworkInfo.model_validate(obj=resp)
+            resobj = NetworkInfo.from_list(resp)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse

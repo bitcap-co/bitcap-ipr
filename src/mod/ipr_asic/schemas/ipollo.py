@@ -5,9 +5,10 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, RootModel
 
 from .models import (
+    APIObject,
     MinerConfigModel,
     MinerPoolConfig,
     MinerPoolModel,
@@ -103,8 +104,17 @@ class Interface(BaseModel):
     name: str
 
 
+class Interfaces(RootModel[list[Interface]]):
+    pass
+
+
 class NetworkInfo(NetworkInfoModel):
-    ifaces: list[Interface]
+    ifaces: Interfaces
+
+    @classmethod
+    def from_list(cls, data: APIObject) -> "NetworkInfo":
+        validated = Interfaces.model_validate(data)
+        return cls(ifaces=validated)
 
 
 class MinerSubmitForm(BaseModel):
