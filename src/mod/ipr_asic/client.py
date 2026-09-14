@@ -244,9 +244,10 @@ class ASICClient(QObject):
         try:
             # antminer: old firmware (<= 2020) uses the legacy endpoints
             if isinstance(client, AntminerHTTPClient):
-                sys_info = await client.get_system_info()
+                api_ver, _ = await client.api_version()
+                version = client.api_version_number(api_ver)
                 try:
-                    if int(sys_info.system_filesystem_version[-4:]) <= 2020:
+                    if version <= 20201231:
                         client.close()
                         return AntminerOldHTTPClient(ip, alt_pwd=alt_pwd)
                 except ValueError:
