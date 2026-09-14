@@ -8,6 +8,7 @@
 import argparse
 import socket
 import time
+from typing import Any
 
 
 class DgramNSP(argparse.Namespace):
