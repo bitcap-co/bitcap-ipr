@@ -14,14 +14,14 @@ files = [
 
 [[package]]
 name = "anyio"
-version = "4.15.0"
+version = "4.15.1"
 description = "High-level concurrency and networking framework on top of asyncio or Trio"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "anyio-4.15.0-py3-none-any.whl", hash = "sha256:7ecd9937369ffce8bba0b5ccb9b3a9507b101b0ed50256aecfbab27e6c2acb99"},
-    {file = "anyio-4.15.0.tar.gz", hash = "sha256:b5c620ed540725e2579c31b17bb995b3bf02c9281c9cace04c7d186380bab85e"},
+    {file = "anyio-4.15.1-py3-none-any.whl", hash = "sha256:6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101"},
+    {file = "anyio-4.15.1.tar.gz", hash = "sha256:9f28306018cbd6d329e64a36d58256edff76dd996fe423bc957326e578b82a94"},
 ]
 
 [package.dependencies]
@@ -333,13 +333,13 @@ files = [
 
 [[package]]
 name = "nuitka"
-version = "4.2"
+version = "4.2.1"
 description = "Python compiler with full language support and CPython compatibility"
 optional = false
 python-versions = "*"
 groups = ["dev"]
 files = [
-    {file = "nuitka-4.2.tar.gz", hash = "sha256:b6112c10a5d0431e2b4309780257a03049a42605290e83f771d57a067a387410"},
+    {file = "nuitka-4.2.1.tar.gz", hash = "sha256:815c6e571a7a6424af384fe9d95d4ba38f1634d39a5515e8094d7fbfa090cbcb"},
 ]
 
 [package.extras]
@@ -369,14 +369,14 @@ totp = ["cryptography"]
 
 [[package]]
 name = "platformdirs"
-version = "4.11.7"
+version = "4.11.8"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "platformdirs-4.11.7-py3-none-any.whl", hash = "sha256:8a02cb259042c79d1cd0450facc2fe6dc9d303ae7901afbe33bf8ea0b188cef6"},
-    {file = "platformdirs-4.11.7.tar.gz", hash = "sha256:4f41487eeeeeb07f3a6625e61d9bc0ae6809f92d3386dbd74392fbb76108104d"},
+    {file = "platformdirs-4.11.8-py3-none-any.whl", hash = "sha256:52f2f181bbfde907966932cc8312d967d02976422d66d537ea16092b8e291081"},
+    {file = "platformdirs-4.11.8.tar.gz", hash = "sha256:f23abafea7dd4276d1f29104b83598d7dcc567cafd07c9c951e66665645437fc"},
 ]
 
 [[package]]
