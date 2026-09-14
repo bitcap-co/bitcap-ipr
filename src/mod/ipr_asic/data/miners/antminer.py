@@ -24,8 +24,8 @@ _PLATFORM_PATTERNS: dict[str, re.Pattern[str]] = {
 
 class AntminerModels(BaseModel):
     system_info: AntminerSystemInfo
-    summary: AntminerSummary
-    pools: list[AntminerPool] | list[OldAntminerPool]
+    summary: AntminerSummary | None = None
+    pools: list[AntminerPool] | list[OldAntminerPool] | None = None
     log: AntminerLog | None = None
 
 
@@ -35,8 +35,8 @@ class AntminerParser:
         data.type = MinerType.ANTMINER
         data.firmware = MinerFirmware.STOCK
         data.algorithm = MinerAlgorithm.SHA256
-
-        data.uptime = models.summary.elapsed
+        if models.summary is not None:
+            data.uptime = models.summary.elapsed
         data.subtype = models.system_info.minertype[9:]
         data.hostname = models.system_info.hostname
         data.mac = models.system_info.macaddr
@@ -54,15 +54,16 @@ class AntminerParser:
                     data.platform = platform
                     break
 
-        for pool in models.pools:
-            if pool.status == "Alive":
-                data.stratum_url = pool.url
-                if "." in pool.user:
-                    user, worker = pool.user.split(".", 1)
-                    data.username = user
-                    data.worker_name = worker
-                else:
-                    data.username = pool.user
-                break
+        if models.pools is not None:
+            for pool in models.pools:
+                if pool.status == "Alive":
+                    data.stratum_url = pool.url
+                    if "." in pool.user:
+                        user, worker = pool.user.split(".", 1)
+                        data.username = user
+                        data.worker_name = worker
+                    else:
+                        data.username = pool.user
+                    break
 
         return data

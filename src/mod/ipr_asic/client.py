@@ -282,13 +282,17 @@ class ASICClient(QObject):
             if isinstance(client, (AntminerHTTPClient, AntminerOldHTTPClient)):
                 try:
                     log = await client.log()
+                    summary = await client.summary()
+                    pools = await client.pools()
                 except _CLIENT_ERRORS as e:
                     logger.error(f"{client!r} : client error raised: {e!s}")
                     log = None
+                    summary = None
+                    pools = None
                 models = AntminerModels(
                     system_info=await client.get_system_info(),
-                    summary=await client.summary(),
-                    pools=await client.pools(),
+                    summary=summary,
+                    pools=pools,
                     log=log,
                 )
                 return AntminerParser().parse(models).as_dict()
