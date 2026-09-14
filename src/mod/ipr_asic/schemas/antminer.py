@@ -167,8 +167,9 @@ class VersionInfo(VersionInfoModel):
     minertype: str
     fw_version: str = Field(alias="system_filesystem_version")
     kernel_version: str = Field(alias="system_kernel_version")
-    firmware_type: str
+    firmware_type: str | None = None
     cgminer_version: str | None = None
+    bmminer_version: str | None = None
 
 
 class SystemInfo(SystemInfoModel):
@@ -184,10 +185,11 @@ class SystemInfo(SystemInfoModel):
     system_mode: str
     system_kernel_version: str
     system_filesystem_version: str
-    firmware_type: str
+    firmware_type: str | None = None
     serinum: str = ""
     algorithm: str | None = Field(None, alias="Algorithm")
     cgminer_version: str | None = None
+    bmminer_version: str | None = None
 
 
 class NetworkInfo(NetworkInfoModel):
