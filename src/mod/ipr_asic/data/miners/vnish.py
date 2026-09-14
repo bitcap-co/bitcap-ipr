@@ -64,7 +64,7 @@ class VnishParser:
             if pool.status == "active":
                 data.stratum_url = pool.url
                 if "." in pool.user:
-                    user, worker = pool.user.split(",", 1)
+                    user, worker = pool.user.split(".", 1)
                     data.username = user
                     data.worker_name = worker
                 else:
