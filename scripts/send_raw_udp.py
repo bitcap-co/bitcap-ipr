@@ -8,8 +8,21 @@
 
 import argparse
 import time
+from typing import Any
 
 from scapy.all import IP, UDP, Raw, send
+
+
+class RawUDPNSP(argparse.Namespace):
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.src: str
+        self.dst: str
+        self.port: int
+        self.sport: int
+        self.message: str
+        self.count: int
+        self.hex: bool
 
 
 def parse_args():
@@ -55,7 +68,8 @@ def parse_args():
         action="store_true",
         help="Treat message as a hex string.",
     )
-    return parser.parse_args()
+    nsp = parser.parse_args(namespace=RawUDPNSP())
+    return nsp
 
 
 def main():
