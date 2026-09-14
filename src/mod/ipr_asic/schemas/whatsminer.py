@@ -238,31 +238,33 @@ class PowerOnStats(BaseModel):
 
 
 class BTMinerV3Summary(SummaryModel):
-    elapsed: int
-    bootup_time: int = Field(alias="bootup-time")
-    freq_avg: int = Field(alias="freq-avg")
-    target_freq: int = Field(alias="target-freq")
-    factory_hash: float = Field(alias="factory-hash")
-    hash_average: float = Field(alias="hash-average")
-    hash_1m: float = Field(alias="hash-1min")
-    hash_15m: float = Field(alias="hash-15min")
-    hash_realtime: float = Field(alias="hash-realtime")
-    power_rate: float = Field(alias="power-rate")
-    power_5m: float = Field(alias="power-5min")
-    cumulative_stats: CumulativeStats | None = Field(None, alias="cumulative-stats")
-    power_on_stats: PowerOnStats | None = Field(None, alias="power-on-stats")
-    power_realtime: int = Field(alias="power-realtime")
-    environment_tempurature: float = Field(alias="environment-tempurature")
-    board_tempurature: list[float] = Field(
-        alias="board-tempurature", default_factory=list
+    elapsed: int = 0
+    bootup_time: int = Field(default=0, alias="bootup-time")
+    freq_avg: float = Field(default=0, alias="freq-avg")
+    target_freq: int = Field(default=0, alias="target-freq")
+    factory_hash: float = Field(default=0, alias="factory-hash")
+    hash_average: float = Field(default=0, alias="hash-average")
+    hash_1m: float = Field(default=0, alias="hash-1min")
+    hash_15m: float = Field(default=0, alias="hash-15min")
+    hash_realtime: float = Field(default=0, alias="hash-realtime")
+    power_rate: float = Field(default=0, alias="power-rate")
+    power_5m: float = Field(default=0, alias="power-5min")
+    cumulative_stats: CumulativeStats | None = Field(
+        default=None, alias="cumulative-stats"
     )
-    chip_temp_min: float = Field(alias="chip-temp-min")
-    chip_temp_max: float = Field(alias="chip-temp-max")
-    chip_temp_avg: float = Field(alias="chip-temp-avg")
-    power_limit: int = Field(alias="power-limit")
-    up_freq_finish: int = Field(alias="up-freq-finish")
-    fan_speed_in: int = Field(alias="fan-speed-in")
-    fan_speed_out: int = Field(alias="fan-speed-out")
+    power_on_stats: PowerOnStats | None = Field(default=None, alias="power-on-stats")
+    power_realtime: int = Field(default=0, alias="power-realtime")
+    environment_tempurature: float = Field(default=0, alias="environment-tempurature")
+    board_tempurature: list[float] = Field(
+        default_factory=list, alias="board-tempurature"
+    )
+    chip_temp_min: float = Field(default=0, alias="chip-temp-min")
+    chip_temp_max: float = Field(default=0, alias="chip-temp-max")
+    chip_temp_avg: float = Field(default=0, alias="chip-temp-avg")
+    power_limit: int = Field(default=0, alias="power-limit")
+    up_freq_finish: int = Field(default=0, alias="up-freq-finish")
+    fan_speed_in: int = Field(default=0, alias="fan-speed-in")
+    fan_speed_out: int = Field(default=0, alias="fan-speed-out")
 
 
 class BTMinerV3Pool(MinerPoolModel):
@@ -272,7 +274,7 @@ class BTMinerV3Pool(MinerPoolModel):
     account: str
     stratum_active: bool = Field(alias="stratum-active")
     reject_rate: float = Field(alias="reject-rate")
-    last_share_time: int = Field(alias="last-share-time")
+    last_share_time: float = Field(alias="last-share-time")
 
 
 class BTMinerV3Device(BaseDev):
@@ -288,9 +290,9 @@ class BTMinerV3Device(BaseDev):
 
 
 class BTMinerV3Status(BaseModel):
-    pools: list[BTMinerV3Pool] | None = Field(None, alias="pools")
-    edevs: list[BTMinerV3Device] | None = Field(None, alias="edevs")
-    summary: BTMinerV3Summary | None = Field(None, alias="summary")
+    pools: list[BTMinerV3Pool] | None = None
+    edevs: list[BTMinerV3Device] | None = None
+    summary: BTMinerV3Summary | None = None
 
 
 class BTMinerV3PoolConfigParam(BaseModel):

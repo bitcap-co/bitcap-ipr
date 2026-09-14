@@ -459,12 +459,14 @@ class WhatsminerTCPClient(BaseTCPClient):
     async def summary(self) -> BTMinerV3Summary:
         resp = await self.send_command("get.miner.status", "summary")
         try:
-            resobj = BTMinerV3Summary.model_validate(obj=resp, by_alias=True)
+            resobj = BTMinerV3Status.model_validate(obj=resp, by_alias=True)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj
+            if resobj.summary is None:
+                return BTMinerV3Summary()
+            return resobj.summary
 
     async def pools(self) -> list[BTMinerV3Pool]:
         resp = await self.send_command("get.miner.status", "pools")
