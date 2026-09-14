@@ -3,6 +3,7 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
+import asyncio
 import logging
 import webbrowser
 from enum import Enum, auto
@@ -140,6 +141,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.config: IPRConfig = stored
         self.aboutDialog: IPRAbout | None = None
         self.confirms: list[IPRConfirmation] = []
+        self._processing_report_ips: set[str] = set()
+        self._report_processing_lock: asyncio.Lock = asyncio.Lock()
         self.sys_tray: QSystemTrayIcon = QSystemTrayIcon(
             QIcon(":rc/img/BitCapIPR_BLK-02_Sqaure.png"),
             parent=self,
@@ -1628,13 +1631,27 @@ Statistics:
         self.start_listen()
 
     @asyncSlot(IPReport)
-    async def process_result(self, result: IPReport):
+    async def process_result(self, result: IPReport) -> None:
         # reset inactive timer
         if self.inactive.isActive():
             self.inactive.start()
         logger.debug(
             f"process_result : got {result.ip}, {result.mac}, {result.serial}, {result.miner_hint} from listener."
         )
+        if result.ip in self._processing_report_ips:
+            logger.warning(
+                f"process_result : ignoring duplicate report for {result.ip} while processing is in progress."
+            )
+            return
+
+        self._processing_report_ips.add(result.ip)
+        try:
+            async with self._report_processing_lock:
+                await self._process_result(result)
+        finally:
+            self._processing_report_ips.discard(result.ip)
+
+    async def _process_result(self, result: IPReport) -> None:
         # identify miner type from src ip
         miner_type = await self.asic.identify(ip=result.ip, miner_hint=result.hint)
         error: Exception | None = None
