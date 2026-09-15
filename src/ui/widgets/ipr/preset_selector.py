@@ -24,8 +24,8 @@ class IPRPresetSelector(QWidget):
     aliases for the button clicks.
     """
 
-    create_requested = Signal()
-    remove_requested = Signal()
+    create_requested: Signal = Signal()
+    remove_requested: Signal = Signal()
 
     def __init__(
         self,
@@ -49,7 +49,7 @@ class IPRPresetSelector(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
 
-        self.combo = QComboBox(self)
+        self.combo: QComboBox = QComboBox(self)
         size_policy = QSizePolicy(
             QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed
         )
@@ -66,18 +66,18 @@ class IPRPresetSelector(QWidget):
         bold = QFont()
         bold.setBold(True)
 
-        self.add_button = self._make_tool_button("＋", add_tooltip, bold)
+        self.add_button: QToolButton = self._make_tool_button("＋", add_tooltip, bold)
         layout.addWidget(self.add_button)
 
-        self.remove_button = self._make_tool_button("−", remove_tooltip, bold)
+        self.remove_button: QToolButton = self._make_tool_button(
+            "−", remove_tooltip, bold
+        )
         layout.addWidget(self.remove_button)
 
         self.add_button.clicked.connect(self.create_requested)
         self.remove_button.clicked.connect(self.remove_requested)
 
-    def _make_tool_button(
-        self, text: str, tooltip: str, font: QFont
-    ) -> QToolButton:
+    def _make_tool_button(self, text: str, tooltip: str, font: QFont) -> QToolButton:
         button = QToolButton(self)
         button.setMinimumSize(QSize(25, 22))
         button.setMaximumSize(QSize(25, 22))
@@ -85,3 +85,32 @@ class IPRPresetSelector(QWidget):
         button.setToolTip(tooltip)
         button.setText(text)
         return button
+
+    @property
+    def index(self) -> int:
+        return self.combo.currentIndex()
+
+    @property
+    def preset_name(self) -> str:
+        return self.combo.currentText()
+
+    @property
+    def count(self) -> int:
+        return self.combo.count()
+
+    def update_selected_preset_name(self, preset_name: str) -> None:
+        self.combo.setItemText(self.index, preset_name)
+
+    def create_preset(self, preset_name: str, index: int | None = None) -> None:
+        if index is None:
+            index = self.count
+        self.combo.insertItem(index, preset_name)
+        self.combo.setCurrentIndex(index)
+        self.combo.setCurrentText(preset_name)
+        line_edit = self.combo.lineEdit()
+        if line_edit:
+            line_edit.setFocus()
+            line_edit.selectAll()
+
+    def remove_selected_preset(self) -> None:
+        self.combo.removeItem(self.index)

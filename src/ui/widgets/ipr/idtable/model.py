@@ -5,13 +5,14 @@
 
 from collections import Counter
 from collections.abc import Callable
-from typing import Any
+from typing import Any, ClassVar, override
 
 from pydantic import BaseModel, ConfigDict
 from PySide6.QtCore import (
     QAbstractTableModel,
     QDateTime,
     QModelIndex,
+    QObject,
     QPersistentModelIndex,
     Qt,
 )
@@ -31,7 +32,9 @@ IPR_SORT_ROLE = Qt.ItemDataRole.UserRole + 1
 class Column(BaseModel):
     """Describes one display column backed by a ``MinerData`` field."""
 
-    model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
+    model_config: ClassVar[ConfigDict] = ConfigDict(
+        frozen=True, arbitrary_types_allowed=True
+    )
 
     header: str
     field: str  # MinerData attribute name
@@ -47,7 +50,8 @@ class Column(BaseModel):
 def _ip_sort_key(m: MinerData) -> int:
     if not m.ip:
         return -1
-    return QHostAddress(m.ip).toIPv4Address()
+    ipv4 = QHostAddress(m.ip).toIPv4Address()
+    return ipv4[0] if isinstance(ipv4, tuple) else ipv4
 
 
 # index in this list == column index - 1 (the action column occupies 0)
@@ -78,10 +82,25 @@ COLUMNS: list[Column] = [
     Column(header="PLATFORM", field="platform", filterable=True),
 ]
 
-# full header row including the two action columns
+# full header row including the action column
 HEADERS = [""] + [c.header for c in COLUMNS]
 ACTION_COLUMN_COUNT = 1
 COLUMN_COUNT = len(HEADERS)
+
+
+def _field_column(field: str) -> int:
+    return next(
+        index + ACTION_COLUMN_COUNT
+        for index, column in enumerate(COLUMNS)
+        if column.field == field
+    )
+
+
+COL_IP = _field_column("ip")
+COL_SERIAL = _field_column("serial")
+COL_URL = _field_column("stratum_url")
+COL_USER = _field_column("username")
+COL_FWVERSION = _field_column("fw_version")
 
 # view column indices that expose a header filter dropdown
 FILTERABLE_COLUMNS: set[int] = {
@@ -108,26 +127,29 @@ def normalize_value(value: str) -> str:
 
 
 class IPRTableModel(QAbstractTableModel):
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._rows: list[MinerData] = []
 
+    @override
     def rowCount(
         self, parent: QModelIndex | QPersistentModelIndex = QModelIndex()
     ) -> int:
         return 0 if parent.isValid() else len(self._rows)
 
+    @override
     def columnCount(
         self, parent: QModelIndex | QPersistentModelIndex = QModelIndex()
     ) -> int:
         return 0 if parent.isValid() else COLUMN_COUNT
 
+    @override
     def headerData(
         self,
         section: int,
         orientation: Qt.Orientation,
         role: int = Qt.ItemDataRole.DisplayRole,
-    ) -> Any:
+    ) -> str | None:
         if (
             orientation == Qt.Orientation.Horizontal
             and role == Qt.ItemDataRole.DisplayRole
@@ -135,6 +157,7 @@ class IPRTableModel(QAbstractTableModel):
             return HEADERS[section]
         return None
 
+    @override
     def flags(self, index: QModelIndex | QPersistentModelIndex) -> Qt.ItemFlag:
         if not index.isValid():
             return Qt.ItemFlag.NoItemFlags
@@ -144,6 +167,7 @@ class IPRTableModel(QAbstractTableModel):
             flags |= Qt.ItemFlag.ItemIsEditable
         return flags
 
+    @override
     def data(
         self,
         index: QModelIndex | QPersistentModelIndex,
@@ -171,6 +195,7 @@ class IPRTableModel(QAbstractTableModel):
 
         return None
 
+    @override
     def setData(
         self,
         index: QModelIndex | QPersistentModelIndex,

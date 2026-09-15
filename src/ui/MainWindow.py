@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.11.1
+## Created by: Qt User Interface Compiler version 6.11.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -51,7 +51,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.titleBarWidget.sizePolicy().hasHeightForWidth())
         self.titleBarWidget.setSizePolicy(sizePolicy)
-        self.titleBarWidget.setMinimumSize(QSize(550, 30))
+        self.titleBarWidget.setMinimumSize(QSize(535, 30))
         self.horizontalLayout_2 = QHBoxLayout(self.titleBarWidget)
         self.horizontalLayout_2.setSpacing(0)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
@@ -63,7 +63,7 @@ class Ui_MainWindow(object):
         self.menuBarWidget.setObjectName(u"menuBarWidget")
         sizePolicy.setHeightForWidth(self.menuBarWidget.sizePolicy().hasHeightForWidth())
         self.menuBarWidget.setSizePolicy(sizePolicy)
-        self.menuBarWidget.setMinimumSize(QSize(550, 26))
+        self.menuBarWidget.setMinimumSize(QSize(530, 26))
         self.horizontalLayout = QHBoxLayout(self.menuBarWidget)
         self.horizontalLayout.setSpacing(0)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
@@ -95,14 +95,14 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.setSpacing(0)
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
         self.horizontalLayout_4.setContentsMargins(0, 0, 0, 0)
-        self.presetSet = QWidget(self.presetControl)
-        self.presetSet.setObjectName(u"presetSet")
-        self.presetSet.setMaximumSize(QSize(450, 16777215))
-        self.horizontalLayout_5 = QHBoxLayout(self.presetSet)
+        self.poolSelector = QWidget(self.presetControl)
+        self.poolSelector.setObjectName(u"poolSelector")
+        self.poolSelector.setMaximumSize(QSize(450, 16777215))
+        self.horizontalLayout_5 = QHBoxLayout(self.poolSelector)
         self.horizontalLayout_5.setSpacing(5)
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
         self.horizontalLayout_5.setContentsMargins(10, 9, 9, 9)
-        self.label_25 = QLabel(self.presetSet)
+        self.label_25 = QLabel(self.poolSelector)
         self.label_25.setObjectName(u"label_25")
         self.label_25.setMaximumSize(QSize(65, 32))
         self.label_25.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
@@ -110,7 +110,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.addWidget(self.label_25)
 
 
-        self.horizontalLayout_4.addWidget(self.presetSet)
+        self.horizontalLayout_4.addWidget(self.poolSelector)
 
         self.presetButtons = QWidget(self.presetControl)
         self.presetButtons.setObjectName(u"presetButtons")
@@ -886,25 +886,23 @@ class Ui_MainWindow(object):
         self.gridLayout_17 = QGridLayout(self.groupIPRD)
         self.gridLayout_17.setObjectName(u"gridLayout_17")
         self.gridLayout_17.setVerticalSpacing(9)
-        self.labelIPRDPreset = QLabel(self.groupIPRD)
-        self.labelIPRDPreset.setObjectName(u"labelIPRDPreset")
+        self.socketSelector = QWidget(self.groupIPRD)
+        self.socketSelector.setObjectName(u"socketSelector")
+        sizePolicy7.setHeightForWidth(self.socketSelector.sizePolicy().hasHeightForWidth())
+        self.socketSelector.setSizePolicy(sizePolicy7)
+        self.socketSelector.setMinimumSize(QSize(180, 35))
+        self.socketSelector.setMaximumSize(QSize(250, 35))
+        self.horizontalLayout_iprd_preset = QHBoxLayout(self.socketSelector)
+        self.horizontalLayout_iprd_preset.setSpacing(0)
+        self.horizontalLayout_iprd_preset.setObjectName(u"horizontalLayout_iprd_preset")
+        self.horizontalLayout_iprd_preset.setContentsMargins(0, 0, 0, 0)
 
-        self.gridLayout_17.addWidget(self.labelIPRDPreset, 2, 0, 1, 1)
+        self.gridLayout_17.addWidget(self.socketSelector, 2, 2, 1, 1)
 
         self.checkIPRDAutoReconnect = QCheckBox(self.groupIPRD)
         self.checkIPRDAutoReconnect.setObjectName(u"checkIPRDAutoReconnect")
 
         self.gridLayout_17.addWidget(self.checkIPRDAutoReconnect, 4, 0, 1, 1)
-
-        self.lineIPRDSocketAddress = QLineEdit(self.groupIPRD)
-        self.lineIPRDSocketAddress.setObjectName(u"lineIPRDSocketAddress")
-        sizePolicy7.setHeightForWidth(self.lineIPRDSocketAddress.sizePolicy().hasHeightForWidth())
-        self.lineIPRDSocketAddress.setSizePolicy(sizePolicy7)
-        self.lineIPRDSocketAddress.setMinimumSize(QSize(180, 25))
-        self.lineIPRDSocketAddress.setMaximumSize(QSize(250, 25))
-        self.lineIPRDSocketAddress.setClearButtonEnabled(True)
-
-        self.gridLayout_17.addWidget(self.lineIPRDSocketAddress, 3, 1, 1, 1)
 
         self.spinIPRDMaxRetries = QSpinBox(self.groupIPRD)
         self.spinIPRDMaxRetries.setObjectName(u"spinIPRDMaxRetries")
@@ -915,20 +913,32 @@ class Ui_MainWindow(object):
         self.spinIPRDMaxRetries.setMaximum(10)
         self.spinIPRDMaxRetries.setValue(3)
 
-        self.gridLayout_17.addWidget(self.spinIPRDMaxRetries, 5, 1, 1, 1)
+        self.gridLayout_17.addWidget(self.spinIPRDMaxRetries, 5, 2, 1, 1)
 
-        self.iprdPresetSet = QWidget(self.groupIPRD)
-        self.iprdPresetSet.setObjectName(u"iprdPresetSet")
-        sizePolicy7.setHeightForWidth(self.iprdPresetSet.sizePolicy().hasHeightForWidth())
-        self.iprdPresetSet.setSizePolicy(sizePolicy7)
-        self.iprdPresetSet.setMinimumSize(QSize(180, 35))
-        self.iprdPresetSet.setMaximumSize(QSize(250, 35))
-        self.horizontalLayout_iprd_preset = QHBoxLayout(self.iprdPresetSet)
-        self.horizontalLayout_iprd_preset.setSpacing(0)
-        self.horizontalLayout_iprd_preset.setObjectName(u"horizontalLayout_iprd_preset")
-        self.horizontalLayout_iprd_preset.setContentsMargins(0, 0, 0, 0)
+        self.lineIPRDSocketAddress = QLineEdit(self.groupIPRD)
+        self.lineIPRDSocketAddress.setObjectName(u"lineIPRDSocketAddress")
+        sizePolicy7.setHeightForWidth(self.lineIPRDSocketAddress.sizePolicy().hasHeightForWidth())
+        self.lineIPRDSocketAddress.setSizePolicy(sizePolicy7)
+        self.lineIPRDSocketAddress.setMinimumSize(QSize(180, 25))
+        self.lineIPRDSocketAddress.setMaximumSize(QSize(250, 25))
+        self.lineIPRDSocketAddress.setClearButtonEnabled(True)
 
-        self.gridLayout_17.addWidget(self.iprdPresetSet, 2, 1, 1, 1)
+        self.gridLayout_17.addWidget(self.lineIPRDSocketAddress, 3, 2, 1, 1)
+
+        self.labelIPRDMaxRetries = QLabel(self.groupIPRD)
+        self.labelIPRDMaxRetries.setObjectName(u"labelIPRDMaxRetries")
+
+        self.gridLayout_17.addWidget(self.labelIPRDMaxRetries, 5, 0, 1, 1)
+
+        self.labelIPRDPreset = QLabel(self.groupIPRD)
+        self.labelIPRDPreset.setObjectName(u"labelIPRDPreset")
+
+        self.gridLayout_17.addWidget(self.labelIPRDPreset, 2, 0, 1, 1)
+
+        self.checkEnableIPRDAutoDiscover = QCheckBox(self.groupIPRD)
+        self.checkEnableIPRDAutoDiscover.setObjectName(u"checkEnableIPRDAutoDiscover")
+
+        self.gridLayout_17.addWidget(self.checkEnableIPRDAutoDiscover, 1, 0, 1, 1)
 
         self.label_6 = QLabel(self.groupIPRD)
         self.label_6.setObjectName(u"label_6")
@@ -940,15 +950,11 @@ class Ui_MainWindow(object):
 
         self.gridLayout_17.addWidget(self.checkEnableIPRDBackend, 0, 0, 1, 1)
 
-        self.labelIPRDMaxRetries = QLabel(self.groupIPRD)
-        self.labelIPRDMaxRetries.setObjectName(u"labelIPRDMaxRetries")
+        self.toolIPRDSocketStatus = QToolButton(self.groupIPRD)
+        self.toolIPRDSocketStatus.setObjectName(u"toolIPRDSocketStatus")
+        self.toolIPRDSocketStatus.setEnabled(False)
 
-        self.gridLayout_17.addWidget(self.labelIPRDMaxRetries, 5, 0, 1, 1)
-
-        self.checkEnableIPRDAutoDiscover = QCheckBox(self.groupIPRD)
-        self.checkEnableIPRDAutoDiscover.setObjectName(u"checkEnableIPRDAutoDiscover")
-
-        self.gridLayout_17.addWidget(self.checkEnableIPRDAutoDiscover, 1, 0, 1, 1)
+        self.gridLayout_17.addWidget(self.toolIPRDSocketStatus, 3, 1, 1, 1)
 
 
         self.verticalLayout_6.addWidget(self.groupIPRD)
@@ -1691,31 +1697,35 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.checkListenIPollo.setText(QCoreApplication.translate("MainWindow", u"iPollo", None))
         self.groupIPRD.setTitle(QCoreApplication.translate("MainWindow", u"IPR Daemon", None))
-        self.labelIPRDPreset.setText(QCoreApplication.translate("MainWindow", u"Instance:", None))
-        self.labelIPRDPreset.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
 #if QT_CONFIG(tooltip)
         self.checkIPRDAutoReconnect.setToolTip(QCoreApplication.translate("MainWindow", u"Automatically try to reconnect when the IPR Daemon connection drops", None))
 #endif // QT_CONFIG(tooltip)
         self.checkIPRDAutoReconnect.setText(QCoreApplication.translate("MainWindow", u"Auto-reconnect", None))
 #if QT_CONFIG(tooltip)
-        self.lineIPRDSocketAddress.setToolTip(QCoreApplication.translate("MainWindow", u"Socket address pointing to IPRD instance in the format of <HOST>:<PORT>", None))
-#endif // QT_CONFIG(tooltip)
-        self.lineIPRDSocketAddress.setPlaceholderText(QCoreApplication.translate("MainWindow", u"HOST:PORT", None))
-#if QT_CONFIG(tooltip)
         self.spinIPRDMaxRetries.setToolTip(QCoreApplication.translate("MainWindow", u"Number of reconnect attempts before giving up", None))
 #endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.lineIPRDSocketAddress.setToolTip(QCoreApplication.translate("MainWindow", u"Socket address pointing to IPRD instance in the format of <IP>:<PORT>", None))
+#endif // QT_CONFIG(tooltip)
+        self.lineIPRDSocketAddress.setPlaceholderText(QCoreApplication.translate("MainWindow", u"IP:PORT", None))
+        self.labelIPRDMaxRetries.setText(QCoreApplication.translate("MainWindow", u"Max Retries:", None))
+        self.labelIPRDMaxRetries.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+        self.labelIPRDPreset.setText(QCoreApplication.translate("MainWindow", u"Instance:", None))
+        self.labelIPRDPreset.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.checkEnableIPRDAutoDiscover.setToolTip(QCoreApplication.translate("MainWindow", u"Listen for active IPR Daemon instances on the network", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkEnableIPRDAutoDiscover.setText(QCoreApplication.translate("MainWindow", u"Auto-Discover", None))
         self.label_6.setText(QCoreApplication.translate("MainWindow", u"Socket Address:", None))
         self.label_6.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
 #if QT_CONFIG(tooltip)
         self.checkEnableIPRDBackend.setToolTip(QCoreApplication.translate("MainWindow", u"Use the IPR Daemon backend instead of the built-in listener", None))
 #endif // QT_CONFIG(tooltip)
         self.checkEnableIPRDBackend.setText(QCoreApplication.translate("MainWindow", u"Enable IPR Daemon backend", None))
-        self.labelIPRDMaxRetries.setText(QCoreApplication.translate("MainWindow", u"Max Retries:", None))
-        self.labelIPRDMaxRetries.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
 #if QT_CONFIG(tooltip)
-        self.checkEnableIPRDAutoDiscover.setToolTip(QCoreApplication.translate("MainWindow", u"Listen for active IPR Daemon instances on the network", None))
+        self.toolIPRDSocketStatus.setToolTip(QCoreApplication.translate("MainWindow", u"Check IPRD socket health/status", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkEnableIPRDAutoDiscover.setText(QCoreApplication.translate("MainWindow", u"Auto-Discover", None))
+        self.toolIPRDSocketStatus.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.tabSettings.setTabText(self.tabSettings.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General", None))
 #if QT_CONFIG(tooltip)
         self.tabSettings.setTabToolTip(self.tabSettings.indexOf(self.tabGeneral), QCoreApplication.translate("MainWindow", u"General Settings", None))

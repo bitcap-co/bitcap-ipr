@@ -3,31 +3,49 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-from .antminer import AntminerParser
-from .auradine import AuradineParser
-from .elphapex import ElphapexParser
-from .goldshell import GoldshellParser
-from .iceriver import IceriverParser
-from .ipollo import IPolloParser
-from .luxminer import LuxminerParser
-from .sealminer import SealminerParser
-from .srbminer import SRBMinerParser
-from .vnish import VnishParser
-from .volcminer import VolcminerParser
-from .whatsminer import WhatsminerParser, WhatsminerV3Parser
+from .antminer import AntminerModels, AntminerParser
+from .auradine import AuradineModels, AuradineParser
+from .elphapex import ElphapexModels, ElphapexParser
+from .goldshell import GoldshellModels, GoldshellParser
+from .iceriver import IceriverModels, IceriverParser
+from .ipollo import IPolloModels, IPolloParser
+from .luxminer import LuxminerModels, LuxminerParser
+from .sealminer import SealminerModels, SealminerParser
+from .srbminer import SRBMinerModels, SRBMinerParser
+from .vnish import VnishModels, VnishParser
+from .volcminer import VolcminerModels, VolcminerParser
+from .whatsminer import (
+    WhatsminerModels,
+    WhatsminerParser,
+    WhatsminerV3Models,
+    WhatsminerV3Parser,
+)
 
 __all__ = [
+    "AntminerModels",
     "AntminerParser",
+    "AuradineModels",
     "AuradineParser",
+    "ElphapexModels",
     "ElphapexParser",
+    "GoldshellModels",
     "GoldshellParser",
+    "IPolloModels",
     "IPolloParser",
+    "IceriverModels",
     "IceriverParser",
+    "LuxminerModels",
     "LuxminerParser",
+    "SRBMinerModels",
     "SRBMinerParser",
+    "SealminerModels",
     "SealminerParser",
+    "VnishModels",
     "VnishParser",
+    "VolcminerModels",
     "VolcminerParser",
+    "WhatsminerModels",
     "WhatsminerParser",
+    "WhatsminerV3Models",
     "WhatsminerV3Parser",
 ]

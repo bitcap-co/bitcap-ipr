@@ -57,7 +57,7 @@ def package(metadata: ProjectMetadata, platform_tag: str, portable_only: bool) -
         text=True,
     ).stdout.strip()
     control = f"""Package: {metadata.package_name}
-Version: {metadata.version}
+Version: {metadata.debian_version}
 Maintainer: {metadata.author}
 Architecture: {architecture}
 Homepage: {metadata.homepage_url}

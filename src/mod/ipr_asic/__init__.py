@@ -7,9 +7,15 @@ from .client import ASICClient, MinerResult, PoolConf
 from .data import MinerData, MinerFirmware, MinerType
 from .data.miners import *
 from .http import *
-from .models import *
-from .protocol import BaseClient, BaseHTTPClient, BaseRPCClient, BaseTCPClient
+from .protocol import (
+    BaseClient,
+    BaseHTTPClient,
+    BaseRPCClient,
+    BaseTCPClient,
+    MinerClient,
+)
 from .rpc import *
+from .schemas.models import *
 
 __all__ = [
     "ASICClient",
@@ -19,6 +25,7 @@ __all__ = [
     "BaseTCPClient",
     "CGMinerRPCClient",
     "LuxminerRPCClient",
+    "MinerClient",
     "MinerData",
     "MinerFirmware",
     "MinerResult",

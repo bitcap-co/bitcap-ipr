@@ -3,7 +3,9 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-from PySide6.QtCore import QSize, Qt
+from typing import override
+
+from PySide6.QtCore import QEvent, QPoint, QSize, Qt
 from PySide6.QtGui import QColor, QIcon, QMouseEvent, QPixmap
 from PySide6.QtWidgets import (
     QHBoxLayout,
@@ -17,42 +19,51 @@ from utils import CURR_PLATFORM
 
 
 class IPRTitlebar(QWidget):
-    def __init__(self, parent: QWidget, title: str, button_hints: list[str]):
+    def __init__(
+        self, parent: QWidget, title: str, button_hints: list[str] | None = None
+    ):
         super().__init__(parent)
-        self._parent = parent
-        self._window = self._parent.window()
-        self._title_str = title
+        self._parent: QWidget = parent
+        self._window: QWidget = self._parent.window()
+        self._title_str: str = title
         if not button_hints:
             button_hints = ["min", "max", "close"]
-        self._button_hints = button_hints
-        self._bar_style = CURR_PLATFORM
+        self._button_hints: list[str] = button_hints
+        self._bar_style: str = CURR_PLATFORM
+
+        self._rc_path: str = ":rc/titlebar/"
+        if self._bar_style == "darwin":
+            self._rc_path += "macos/"
 
         self._init_titlebar()
         self._init_ui()
 
     def _init_titlebar(self) -> None:
-        self._set_pos = False
-        self._pos = None
+        self._set_pos: bool = False
+        self._pos: QPoint | None = None
 
-        self.title_label = QLabel()
-        self.icon_button = QToolButton()
-        self.close_button = QToolButton()
+        self.title_label: QLabel = QLabel()
+        self.icon_button: QToolButton = QToolButton()
+        self.close_button: QToolButton = QToolButton()
         self.close_button.setSizePolicy(
             QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
         )
         self.close_button.setIconSize(QSize(16, 16))
-        self.minimize_button = QToolButton()
+        self.close_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+        self.minimize_button: QToolButton = QToolButton()
         self.minimize_button.setSizePolicy(
             QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
         )
         self.minimize_button.setIconSize(QSize(16, 16))
-        self.maximize_button = QToolButton()
+        self.minimize_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+        self.maximize_button: QToolButton = QToolButton()
         self.maximize_button.setSizePolicy(
             QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
         )
         self.maximize_button.setIconSize(QSize(16, 16))
+        self.maximize_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
 
-        self._buttons = {
+        self._buttons: dict[str, QToolButton] = {
             "close": self.close_button,
             "min": self.minimize_button,
             "max": self.maximize_button,
@@ -65,7 +76,7 @@ class IPRTitlebar(QWidget):
 
         match self._bar_style:
             case "darwin":
-                btn_size = 14
+                btn_size = 15
                 btn_colors = {
                     "close": "#DD0000",
                     "min": "#AA8800",
@@ -80,6 +91,8 @@ class IPRTitlebar(QWidget):
                         border_color_name = border_color.name()
                         bkg_color_name = border_color.lighter().name()
                         self._buttons[x].setStyleSheet(f"""QToolButton {{
+                                                            padding: 1px;
+                                                            margin: 0px;
                                                             background-color: {bkg_color_name};
                                                             border: {btn_size // 20} solid {border_color_name};
                                                             border-radius: {btn_size // 2};
@@ -126,38 +139,43 @@ class IPRTitlebar(QWidget):
 
     def sync_maximize_button(self) -> None:
         """Swap the maximize/restore glyph to match the window state."""
-        if self._bar_style == "darwin":
-            return
         self.maximize_button.setIcon(
             QIcon(
-                ":rc/titlebar/restore.png"
+                self._rc_path + "restore.png"
                 if self._window.isMaximized()
-                else ":rc/titlebar/max.png"
+                else self._rc_path + "max.png"
             )
         )
 
-    def changeEvent(self, event):
+    @override
+    def changeEvent(self, event: QEvent) -> None:
         super().changeEvent(event)
         event.accept()
 
+    @override
     def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:
         # double-clicking the bar maximizes/restores, like a native title bar
         if event.button() == Qt.MouseButton.LeftButton and "max" in self._button_hints:
             self.toggle_maximize()
         return event.accept()
 
-    def enterEvent(self, event):
+    @override
+    def enterEvent(self, event: QEvent) -> None:
         if self._bar_style == "darwin":
-            for x in self._buttons:
-                self._buttons[x].setIcon(QIcon(f":rc/titlebar/macos/{x}.png"))
+            # redraw icons on hover for macOS
+            self.close_button.setIcon(QIcon(f"{self._rc_path}close.png"))
+            self.minimize_button.setIcon(QIcon(f"{self._rc_path}min.png"))
+            self.sync_maximize_button()
         event.accept()
 
-    def leaveEvent(self, event):
+    @override
+    def leaveEvent(self, event: QEvent) -> None:
         if self._bar_style == "darwin":
             for x in self._buttons:
                 self._buttons[x].setIcon(QIcon())
         event.accept()
 
+    @override
     def mousePressEvent(self, event: QMouseEvent) -> None:
         if (
             event.button() == Qt.MouseButton.LeftButton
@@ -167,6 +185,7 @@ class IPRTitlebar(QWidget):
             self._pos = event.position().toPoint()
         return event.accept()
 
+    @override
     def mouseMoveEvent(self, event: QMouseEvent) -> None:
         if self._set_pos and self._pos is not None:
             offset = event.position().toPoint() - self._pos
@@ -175,6 +194,7 @@ class IPRTitlebar(QWidget):
             )
         return event.accept()
 
+    @override
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
             self._set_pos = False

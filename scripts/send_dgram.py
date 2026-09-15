@@ -8,6 +8,18 @@
 import argparse
 import socket
 import time
+from typing import Any
+
+
+class DgramNSP(argparse.Namespace):
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.count: int
+        self.hex: bool
+        self.port: int
+        self.message: str
+        self.broadcast: bool
+        self.host: str | None
 
 
 def parse_args():
@@ -49,8 +61,8 @@ def parse_args():
         default=None,
         help="Explicit destination host (overrides --broadcast and localhost default).",
     )
-
-    return parser.parse_args()
+    nsp = parser.parse_args(namespace=DgramNSP())
+    return nsp
 
 
 def main():

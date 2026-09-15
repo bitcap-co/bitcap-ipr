@@ -11,10 +11,12 @@ import zlib
 from pathlib import Path
 from typing import Any
 
+from pydantic import BaseModel
 from PySide6.QtCore import QCoreApplication, QMetaMethod
+from PySide6.QtNetwork import QAbstractSocket
 from PySide6.QtTest import QSignalSpy, QTest
 
-from mod.lm import IPReport, Listener
+from mod.lm import IPReport, Listener, ListenerError
 
 app = QCoreApplication.instance() or QCoreApplication(sys.argv)
 
@@ -39,6 +41,18 @@ def send_udp_dgram(port: int, msg: str, compressed: bool = False):
     else:
         sock.sendto(bytes(msg, "utf-8"), (ip_addr, port))
     sock.close()
+
+
+class ListenerExpectedResult(BaseModel):
+    ip: str
+    mac: str
+    miner_hint: str
+
+
+class ListenerTestCase(BaseModel):
+    port: int
+    payload: str
+    expected_result: ListenerExpectedResult
 
 
 class ListenerSpy:
@@ -78,10 +92,10 @@ class TestListeners(unittest.TestCase):
     def tearDown(self) -> None:
         app.quit()
 
-    def assertResult(self, listener: ListenerSpy, miner_type: str, ip: str, mac: str):
-        self.assertEqual(listener.result.src_ip, ip)
-        self.assertEqual(listener.result.src_mac, mac)
-        self.assertEqual(listener.result.miner_type, miner_type)
+    def assertResult(self, listener: ListenerSpy, miner_hint: str, ip: str, mac: str):
+        self.assertEqual(listener.result.ip, ip)
+        self.assertEqual(listener.result.mac, mac)
+        self.assertEqual(listener.result.miner_hint, miner_hint)
 
     def listenFor(
         self,
@@ -102,140 +116,161 @@ class TestListeners(unittest.TestCase):
 
     def test_common_listen(self):
         """Test common payload (port 14235)"""
-        test = {
-            "port": 14235,
-            "payload": "10.10.1.0,ab:cd:ef:ab:cd:ef",
-            "expected_result": {
-                "ip": "10.10.1.0",
-                "mac": "ab:cd:ef:ab:cd:ef",
-                "miner_type": "common",
-            },
-        }
+        test = ListenerTestCase(
+            port=14235,
+            payload="10.10.1.0,ab:cd:ef:ab:cd:ef",
+            expected_result=ListenerExpectedResult(
+                ip="10.10.1.0",
+                mac="ab:cd:ef:ab:cd:ef",
+                miner_hint="antminer",
+            ),
+        )
         self.listenFor(
-            port=test["port"],
-            payload=test["payload"],
-            expected_result=test["expected_result"],
+            port=test.port,
+            payload=test.payload,
+            expected_result=test.expected_result.model_dump(),
         )
 
     def test_iceriver_listen(self):
         """Test iceriver payload (port 11503)"""
-        test = {
-            "port": 11503,
-            "payload": "addr:172.16.1.100",
-            "expected_result": {
-                "ip": "172.16.1.100",
-                "mac": "iceriver",
-                "miner_type": "iceriver",
-            },
-        }
+        test = ListenerTestCase(
+            port=11503,
+            payload="addr:172.16.1.100",
+            expected_result=ListenerExpectedResult(
+                ip="172.16.1.100",
+                mac="iceriver",
+                miner_hint="iceriver",
+            ),
+        )
         self.listenFor(
-            port=test["port"],
-            payload=test["payload"],
-            expected_result=test["expected_result"],
+            port=test.port,
+            payload=test.payload,
+            expected_result=test.expected_result.model_dump(),
         )
 
     def test_whatsminer_listen(self):
         """Test whatsminer payload (port 8888)"""
-        test = {
-            "port": 8888,
-            "payload": "IP:192.168.100.10MAC:ab:cd:ef:ab:cd:ef",
-            "expected_result": {
-                "ip": "192.168.100.10",
-                "mac": "ab:cd:ef:ab:cd:ef",
-                "miner_type": "whatsminer",
-            },
-        }
+        test = ListenerTestCase(
+            port=8888,
+            payload="IP:192.168.100.10MAC:ab:cd:ef:ab:cd:ef",
+            expected_result=ListenerExpectedResult(
+                ip="192.168.100.10",
+                mac="ab:cd:ef:ab:cd:ef",
+                miner_hint="whatsminer",
+            ),
+        )
         self.listenFor(
-            port=test["port"],
-            payload=test["payload"],
-            expected_result=test["expected_result"],
+            port=test.port,
+            payload=test.payload,
+            expected_result=test.expected_result.model_dump(),
         )
 
     def test_sealminer_listen(self):
         """Test sealminer payload (port 18650)"""
-        test = {
-            "port": 18650,
-            "payload": f"{compress_paylaod('tests/payloads/sealminer_a2.json')}",
-            "expected_result": {
-                "ip": "192.168.1.168",
-                "mac": "ab:cd:ef:ab:cd:ef",
-                "miner_type": "sealminer",
-            },
-        }
+        test = ListenerTestCase(
+            port=18650,
+            payload=f"{compress_paylaod('tests/payloads/sealminer_a2.json')}",
+            expected_result=ListenerExpectedResult(
+                ip="192.168.1.168",
+                mac="ab:cd:ef:ab:cd:ef",
+                miner_hint="sealminer",
+            ),
+        )
         self.listenFor(
-            port=test["port"],
-            payload=test["payload"],
-            expected_result=test["expected_result"],
+            port=test.port,
+            payload=test.payload,
+            expected_result=test.expected_result.model_dump(),
             compressed=True,
         )
 
     def test_goldshell_listen(self):
         """Test goldshell payload (port 1314)"""
-        test = {
-            "port": 1314,
-            "payload": f"{read_payload('tests/payloads/goldshell.json')}",
-            "expected_result": {
-                "ip": "192.168.9.216",
-                "mac": "ab:cd:ef:ab:cd:ef",
-                "miner_type": "goldshell",
-            },
-        }
+        test = ListenerTestCase(
+            port=1314,
+            payload=f"{read_payload('tests/payloads/goldshell.json')}",
+            expected_result=ListenerExpectedResult(
+                ip="192.168.9.216",
+                mac="ab:cd:ef:ab:cd:ef",
+                miner_hint="goldshell",
+            ),
+        )
         self.listenFor(
-            port=test["port"],
-            payload=test["payload"],
-            expected_result=test["expected_result"],
+            port=test.port,
+            payload=test.payload,
+            expected_result=test.expected_result.model_dump(),
         )
 
     def test_elphapex_listen(self):
         """Test elphapex payload (port 9999)"""
-        test = {
-            "port": 9999,
-            "payload": "DG_IPREPORT_ONLY",
-            "expected_result": {
-                "ip": "127.0.0.1",
-                "mac": "elphapex",
-                "miner_type": "elphapex",
-            },
-        }
+        test = ListenerTestCase(
+            port=9999,
+            payload="DG_IPREPORT_ONLY",
+            expected_result=ListenerExpectedResult(
+                ip="127.0.0.1",
+                mac="elphapex",
+                miner_hint="elphapex",
+            ),
+        )
         self.listenFor(
-            port=test["port"],
-            payload=test["payload"],
-            expected_result=test["expected_result"],
+            port=test.port,
+            payload=test.payload,
+            expected_result=test.expected_result.model_dump(),
         )
 
     def test_auradine_listen(self):
         """Test Auradine payload (port 12345)"""
-        test = {
-            "port": 12345,
-            "payload": f"{read_payload('tests/payloads/auradine.json')}",
-            "expected_result": {
-                "ip": "192.168.34.34",
-                "mac": "aa:bb:cc:dd:ee:ff",
-                "miner_type": "auradine",
-            },
-        }
+        test = ListenerTestCase(
+            port=12345,
+            payload=f"{read_payload('tests/payloads/auradine.json')}",
+            expected_result=ListenerExpectedResult(
+                ip="192.168.34.34",
+                mac="aa:bb:cc:dd:ee:ff",
+                miner_hint="auradine",
+            ),
+        )
         self.listenFor(
-            port=test["port"],
-            payload=test["payload"],
-            expected_result=test["expected_result"],
+            port=test.port,
+            payload=test.payload,
+            expected_result=test.expected_result.model_dump(),
         )
 
     def test_ipollo_listen(self):
         """Test iPollo payload (port 54321)"""
-        test = {
-            "port": 54321,
-            "payload": "IP Addr:[192.168.6.22]   MAC Addr:[AA:BB:CC:DD:EE:FF]    Time:[2026-06-04 23:02:19]",
-            "expected_result": {
-                "ip": "192.168.6.22",
-                "mac": "aa:bb:cc:dd:ee:ff",
-                "miner_type": "ipollo",
-            },
-        }
-        self.listenFor(
-            port=test["port"],
-            payload=test["payload"],
-            expected_result=test["expected_result"],
+        test = ListenerTestCase(
+            port=54321,
+            payload="IP Addr:[192.168.6.22]   MAC Addr:[AA:BB:CC:DD:EE:FF]    Time:[2026-06-04 23:02:19]",
+            expected_result=ListenerExpectedResult(
+                ip="192.168.6.22",
+                mac="aa:bb:cc:dd:ee:ff",
+                miner_hint="ipollo",
+            ),
         )
+        self.listenFor(
+            port=test.port,
+            payload=test.payload,
+            expected_result=test.expected_result.model_dump(),
+        )
+
+
+class TestListenerLifecycle(unittest.TestCase):
+    def test_zero_valued_socket_error_is_included_in_message(self) -> None:
+        error = ListenerError(
+            listener="Listener[Antminer:14235]",
+            port=14235,
+            port_name="Antminer",
+            error_name=QAbstractSocket.SocketError.ConnectionRefusedError,
+            message="Connection refused",
+        )
+
+        self.assertIn("ConnectionRefusedError", str(error))
+        self.assertIn("Connection refused", str(error))
+
+    def test_close_is_idempotent(self) -> None:
+        listener = Listener(port=0)
+        self.assertTrue(listener.bound)
+
+        listener.close()
+        listener.close()
 
 
 if __name__ == "__main__":

@@ -15,8 +15,10 @@ searching only hides rows (checked-but-hidden values stay in the result), and
 "(Select All)" then acts on whatever is currently visible.
 """
 
-from PySide6.QtCore import QEvent, QPoint, QRect, Qt, Signal
-from PySide6.QtGui import QGuiApplication, QKeyEvent
+from typing import override
+
+from PySide6.QtCore import QPoint, QRect, Qt, Signal
+from PySide6.QtGui import QGuiApplication, QHideEvent, QKeyEvent
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -26,6 +28,7 @@ from PySide6.QtWidgets import (
     QListWidgetItem,
     QPushButton,
     QVBoxLayout,
+    QWidget,
 )
 
 from .model import normalize_value
@@ -35,20 +38,20 @@ _SEARCH_THRESHOLD = 9
 
 
 class ColumnFilterPopup(QFrame):
-    applied = Signal(list)  # list[str] of checked value labels
-    cleared = Signal()  # remove the column filter (show all)
+    applied: Signal = Signal(list)  # list[str] of checked value labels
+    cleared: Signal = Signal()  # remove the column filter (show all)
 
     def __init__(
         self,
         title: str,
         values: list[tuple[str, int]],
         checked: set[str] | None,
-        parent=None,
+        parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent, Qt.WindowType.Popup)
         self.setObjectName("columnFilterPopup")
         self.setFrameShape(QFrame.Shape.StyledPanel)
-        self._guard = False
+        self._guard: bool = False
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(8, 8, 8, 8)
@@ -58,19 +61,19 @@ class ColumnFilterPopup(QFrame):
         heading.setObjectName("filterPopupTitle")
         layout.addWidget(heading)
 
-        self._search = QLineEdit(self)
+        self._search: QLineEdit = QLineEdit(self)
         self._search.setPlaceholderText("Search…")
         self._search.setClearButtonEnabled(True)
         self._search.textChanged.connect(self._on_search)
         self._search.setVisible(len(values) >= _SEARCH_THRESHOLD)
         layout.addWidget(self._search)
 
-        self._list = QListWidget(self)
+        self._list: QListWidget = QListWidget(self)
         self._list.setMinimumWidth(200)
         self._list.setMaximumHeight(260)
         layout.addWidget(self._list)
 
-        self._select_all = QListWidgetItem("(Select All)")
+        self._select_all: QListWidgetItem = QListWidgetItem("(Select All)")
         self._select_all.setFlags(
             Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled
         )
@@ -83,9 +86,7 @@ class ColumnFilterPopup(QFrame):
         for value, count in values:
             item = QListWidgetItem(f"{value} ({count})")
             item.setData(Qt.ItemDataRole.UserRole, value)
-            item.setFlags(
-                Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled
-            )
+            item.setFlags(Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled)
             is_on = checked is None or normalize_value(value) in checked
             item.setCheckState(
                 Qt.CheckState.Checked if is_on else Qt.CheckState.Unchecked
@@ -97,11 +98,11 @@ class ColumnFilterPopup(QFrame):
         self._list.itemChanged.connect(self._on_item_changed)
 
         buttons = QHBoxLayout()
-        self._clear_btn = QPushButton("Clear Filter", self)
+        self._clear_btn: QPushButton = QPushButton("Clear Filter", self)
         self._clear_btn.clicked.connect(self._on_clear)
-        cancel_btn = QPushButton("Cancel", self)
+        cancel_btn: QPushButton = QPushButton("Cancel", self)
         cancel_btn.clicked.connect(self.close)
-        self._apply_btn = QPushButton("Apply", self)
+        self._apply_btn: QPushButton = QPushButton("Apply", self)
         self._apply_btn.setDefault(True)
         self._apply_btn.clicked.connect(self._on_apply)
         buttons.addWidget(self._clear_btn)
@@ -164,9 +165,7 @@ class ColumnFilterPopup(QFrame):
     def _sync_select_all(self) -> None:
         # "(Select All)" reflects the currently visible (searched) items
         visible = self._visible_value_items()
-        on = sum(
-            item.checkState() == Qt.CheckState.Checked for item in visible
-        )
+        on = sum(item.checkState() == Qt.CheckState.Checked for item in visible)
         if not visible or on == 0:
             state = Qt.CheckState.Unchecked
         elif on == len(visible):
@@ -209,19 +208,21 @@ class ColumnFilterPopup(QFrame):
 
     def _on_apply(self) -> None:
         self.applied.emit(self._checked_labels())
-        self.close()
+        _ = self.close()
 
     def _on_clear(self) -> None:
         self.cleared.emit()
-        self.close()
+        _ = self.close()
 
+    @override
     def keyPressEvent(self, event: QKeyEvent) -> None:
         if event.key() == Qt.Key.Key_Escape:
-            self.close()
+            _ = self.close()
             return
         super().keyPressEvent(event)
 
-    def hideEvent(self, event: QEvent) -> None:
+    @override
+    def hideEvent(self, event: QHideEvent) -> None:
         # single-use popup: dismissing it (Apply/Cancel/Clear/outside-click, all
         # of which hide the Qt.Popup) also disposes of it.
         super().hideEvent(event)

@@ -14,20 +14,29 @@ via ``normalize_value`` (case- and space-insensitive) so near-duplicates share
 one filter entry.
 """
 
-from PySide6.QtCore import QModelIndex, QPersistentModelIndex, QSortFilterProxyModel, Qt
+from typing import override
+
+from PySide6.QtCore import (
+    QModelIndex,
+    QObject,
+    QPersistentModelIndex,
+    QSortFilterProxyModel,
+    Qt,
+)
 
 from .model import ACTION_COLUMN_COUNT, COLUMN_COUNT, IPR_SORT_ROLE, normalize_value
 
 
 class IPRFilterProxyModel(QSortFilterProxyModel):
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self.setSortRole(IPR_SORT_ROLE)
         self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-        self._needle = ""
+        self._needle: str = ""
         # view column index -> set of casefolded allowed display values
         self._column_filters: dict[int, set[str]] = {}
 
+    @override
     def headerData(
         self,
         section: int,
@@ -74,6 +83,7 @@ class IPRFilterProxyModel(QSortFilterProxyModel):
         """Normalized allowed values for ``col``, or ``None`` if unfiltered."""
         return self._column_filters.get(col)
 
+    @override
     def filterAcceptsRow(
         self, source_row: int, source_parent: QModelIndex | QPersistentModelIndex
     ) -> bool:

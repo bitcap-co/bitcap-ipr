@@ -13,9 +13,11 @@ native left-click column-select and left-drag multi-column select. Only the
 funnel-hotspot press is swallowed so it doesn't also select the column.
 """
 
+from typing import override
+
 from PySide6.QtCore import QPoint, QRect, Qt, Signal
 from PySide6.QtGui import QColor, QMouseEvent, QPainter, QPixmap
-from PySide6.QtWidgets import QHeaderView
+from PySide6.QtWidgets import QHeaderView, QWidget
 
 # funnel icon box and its inset from the section's right edge (px). The inset
 # keeps the hotspot clear of the ~5px section-resize grip at the border.
@@ -28,9 +30,9 @@ _COLOR_ACTIVE = QColor(0x92, 0xBE, 0xFF)
 
 
 class FilterHeaderView(QHeaderView):
-    filter_clicked = Signal(int)  # logical (== view) column index
+    filter_clicked: Signal = Signal(int)  # logical (== view) column index
 
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(Qt.Orientation.Horizontal, parent)
         self._filterable: set[int] = set()
         self._active: set[int] = set()
@@ -43,8 +45,8 @@ class FilterHeaderView(QHeaderView):
         self.setSectionsClickable(True)
         # pre-tint the white funnel icon once for the idle / active-filter states
         base = QPixmap(":theme/icons/rc/funnel.png")
-        self._idle_icon = self._tint(base, _COLOR_IDLE)
-        self._active_icon = self._tint(base, _COLOR_ACTIVE)
+        self._idle_icon: QPixmap = self._tint(base, _COLOR_IDLE)
+        self._active_icon: QPixmap = self._tint(base, _COLOR_ACTIVE)
 
     def set_filterable_columns(self, columns: set[int]) -> None:
         self._filterable = set(columns)
@@ -79,9 +81,10 @@ class FilterHeaderView(QHeaderView):
         painter.drawPixmap(0, 0, pixmap)
         painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
         painter.fillRect(tinted.rect(), color)
-        painter.end()
+        _ = painter.end()
         return tinted
 
+    @override
     def paintSection(self, painter: QPainter, rect: QRect, logical_index: int) -> None:
         super().paintSection(painter, rect, logical_index)
         if logical_index not in self._filterable:
@@ -104,6 +107,7 @@ class FilterHeaderView(QHeaderView):
         hotspot = self._glyph_rect(self._section_rect(logical)).adjusted(-3, -4, 0, 4)
         return logical if hotspot.contains(point) else None
 
+    @override
     def mousePressEvent(self, event: QMouseEvent) -> None:
         point = event.position().toPoint()
         if event.button() == Qt.MouseButton.LeftButton:
@@ -116,6 +120,7 @@ class FilterHeaderView(QHeaderView):
         self._press_logical = None
         super().mousePressEvent(event)
 
+    @override
     def mouseReleaseEvent(self, event: QMouseEvent) -> None:
         pressed = self._press_logical
         self._press_logical = None

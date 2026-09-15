@@ -3,17 +3,20 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-from PySide6.QtGui import QPainter
+from typing import override
+
+from PySide6.QtGui import QPainter, QPaintEvent
 from PySide6.QtSvg import QSvgRenderer
-from PySide6.QtWidgets import QLabel
+from PySide6.QtWidgets import QLabel, QWidget
 
 
 class SvgLabel(QLabel):
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         self._renderer: QSvgRenderer
 
-    def paintEvent(self, event):
+    @override
+    def paintEvent(self, event: QPaintEvent):
         painter = QPainter(self)
         if self._renderer:
             self._renderer.render(painter)

@@ -37,19 +37,19 @@ class IPRProgress(QDialog):
         cancelled (): emitted when the user cancels or closes the dialog.
     """
 
-    cancelled = Signal()
+    cancelled: Signal = Signal()
 
-    TITLE_BAR_HEIGHT = 30
-    BAR_WIDTH = 340
+    TITLE_BAR_HEIGHT: int = 30
+    BAR_WIDTH: int = 340
 
     def __init__(
         self, parent: QWidget, title: str, text: str, cancellable: bool = True
     ):
         super().__init__(parent=parent, f=Qt.WindowType.FramelessWindowHint)
 
-        self._parent = parent
-        self._title_str = title
-        self._cancellable = cancellable
+        self._parent: QWidget = parent
+        self._title_str: str = title
+        self._cancellable: bool = cancellable
 
         self.setWindowTitle(self._title_str)
 
@@ -59,13 +59,13 @@ class IPRProgress(QDialog):
         layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
 
         title_buttons = ["close"] if cancellable else []
-        self.title_bar = IPRTitlebar(self, self._title_str, title_buttons)
+        self.title_bar: IPRTitlebar = IPRTitlebar(self, self._title_str, title_buttons)
         self.title_bar.setFixedHeight(self.TITLE_BAR_HEIGHT)
         if cancellable:
             self.title_bar.close_button.clicked.connect(self._on_cancel)
         layout.addWidget(self.title_bar)
 
-        self.line = QFrame()
+        self.line: QFrame = QFrame()
         self.line.setFrameShape(QFrame.Shape.HLine)
         self.line.setFrameShadow(QFrame.Shadow.Plain)
         layout.addWidget(self.line)
@@ -75,14 +75,14 @@ class IPRProgress(QDialog):
         body_layout.setContentsMargins(15, 15, 15, 15)
         body_layout.setSpacing(10)
 
-        self.text_label = QLabel(text)
+        self.text_label: QLabel = QLabel(text)
         self.text_label.setWordWrap(True)
         self.text_label.setAlignment(
             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
         )
         body_layout.addWidget(self.text_label)
 
-        self.progress_bar = QProgressBar()
+        self.progress_bar: QProgressBar = QProgressBar()
         self.progress_bar.setMinimumWidth(self.BAR_WIDTH)
         # start indeterminate until the first progress update reports a total.
         self.progress_bar.setRange(0, 0)
@@ -93,7 +93,7 @@ class IPRProgress(QDialog):
         buttons_layout = QHBoxLayout(buttons)
         buttons_layout.setContentsMargins(9, 9, 9, 9)
         buttons_layout.addStretch(1)
-        self.cancelButton = QPushButton("Cancel")
+        self.cancelButton: QPushButton = QPushButton("Cancel")
         self.cancelButton.clicked.connect(self._on_cancel)
         self.cancelButton.setVisible(self._cancellable)
         buttons_layout.addWidget(self.cancelButton)

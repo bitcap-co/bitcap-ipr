@@ -18,25 +18,20 @@ class IPRAbout(QDialog, Ui_IPRAbout):
     def __init__(self, parent: QWidget, title: str, text: str):
         super().__init__(parent=parent, f=Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
-
-        self._parent = parent
-        self._window = self._parent.window()
-        self._title_str = title
-        self._about_text = text
-
+        self._title_str: str = title
+        self._about_text: str = text
         self.setWindowTitle(self._title_str)
 
-        self.title_bar = IPRTitlebar(self, self._title_str, ["close"])
+        self.title_bar: IPRTitlebar = IPRTitlebar(self, self._title_str, ["close"])
         self.title_bar.close_button.clicked.connect(self.window().close)
         title_bar_widget = self.titleBarWidget.layout()
         if title_bar_widget:
             title_bar_widget.addWidget(self.title_bar)
-
         self.acceptButton.clicked.connect(self.window().close)
 
         central_widget = self.centralWidget.layout()
         if central_widget:
-            self.logo = SvgLabel()
+            self.logo: SvgLabel = SvgLabel()
             self.logo.setSvgFile(":rc/img/scalable/BitCapIPRCenterLogo.svg")
             self.logo.setFixedSize(QSize(150, 150))
             self.logo.setAlignment(
@@ -44,7 +39,7 @@ class IPRAbout(QDialog, Ui_IPRAbout):
             )
             central_widget.addWidget(self.logo)
 
-            self.text_label = QLabel()
+            self.text_label: QLabel = QLabel()
             self.text_label.setWordWrap(True)
             self.text_label.setMargin(10)
             self.text_label.setAlignment(

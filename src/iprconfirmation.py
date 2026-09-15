@@ -17,25 +17,25 @@ class IPRConfirmation(QDialog, Ui_IPRConfirmation):
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, stay_on_top)
         self.setupUi(self)
 
-        self.title_bar = IPRTitlebar(self, "IP Confirmation", ["min", "close"])
+        self.title_bar: IPRTitlebar = IPRTitlebar(
+            self, "IP Confirmation", ["min", "close"]
+        )
         self.title_bar.minimize_button.clicked.connect(self.window().showMinimized)
         self.title_bar.close_button.clicked.connect(self.window().hide)
         title_bar_widget = self.titleBarWidget.layout()
         if title_bar_widget:
             title_bar_widget.addWidget(self.title_bar)
-
         self.acceptButton.clicked.connect(self.window().hide)
 
+        self.labelRecvAtLogo.setPixmap(QPixmap(":theme/icons/rc/time.png"))
         self.labelIPLogo.setPixmap(QPixmap(":theme/icons/rc/wifi.png"))
         self.labelMACLogo.setPixmap(QPixmap(":theme/icons/rc/stack.png"))
         self.labelASICLogo.setPixmap(QPixmap(":theme/icons/rc/miner.png"))
-        self.labelRecvAtLogo.setPixmap(QPixmap(":theme/icons/rc/time.png"))
-
         self._create_copy_action(self.lineIPField)
         self._create_copy_action(self.lineMACField)
         self._create_copy_action(self.lineASICField)
 
-        self.actionOpenDashboard = self._create_open_action(self.lineIPField)
+        self.actionOpenDashboard: QAction = self._create_open_action(self.lineIPField)
 
     def _create_copy_action(self, lineEdit: QLineEdit) -> QAction:
         copy_action = lineEdit.addAction(
