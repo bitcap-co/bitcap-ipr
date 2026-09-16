@@ -137,7 +137,7 @@
              </sizepolicy>
             </property>
             <property name="currentIndex">
-             <number>0</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="poolConfigurator">
              <attribute name="title">
@@ -880,17 +880,7 @@ Uses last 5 of SN or MAC address.</string>
                 <layout class="QVBoxLayout" name="verticalLayout_18">
                  <item>
                   <layout class="QGridLayout" name="firmwareUpdateConfig">
-                   <item row="0" column="0" colspan="2">
-                    <widget class="QCheckBox" name="checkStoreFirmwarePath">
-                     <property name="toolTip">
-                      <string>Store current base path as default firmware path</string>
-                     </property>
-                     <property name="text">
-                      <string>Store as default path</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="0">
+                   <item row="0" column="0">
                     <widget class="QLineEdit" name="lineSelectedFirmwarePath">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -906,7 +896,7 @@ Uses last 5 of SN or MAC address.</string>
                      </property>
                     </widget>
                    </item>
-                   <item row="1" column="1">
+                   <item row="0" column="1">
                     <widget class="QPushButton" name="pushSelectFirmware">
                      <property name="maximumSize">
                       <size>
@@ -915,7 +905,7 @@ Uses last 5 of SN or MAC address.</string>
                       </size>
                      </property>
                      <property name="toolTip">
-                      <string>Select firmware updates from local filesystem</string>
+                      <string>Select firmware file from the filesystem</string>
                      </property>
                      <property name="text">
                       <string>Select Firmware</string>
@@ -925,12 +915,28 @@ Uses last 5 of SN or MAC address.</string>
                   </layout>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkUpdateKeepSettings">
+                  <widget class="QCheckBox" name="checkFirmwareForceCompatibility">
                    <property name="toolTip">
-                    <string>Keep current miner configuration</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check firmware image to ensure it's compatible with the selected miner(s), preventing update if not. &lt;br/&gt;&lt;br/&gt;WARNING: flashing non-compatible firmware can brick or cause physical damage to the miner. Only disable if you know what you are doing!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
-                    <string>Keep Settings</string>
+                    <string>Force Compatibility</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkUpdateKeepSettings">
+                   <property name="toolTip">
+                    <string>If supported, current miner configuration is kept after update</string>
+                   </property>
+                   <property name="text">
+                    <string>Keep Miner Configuration</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -948,7 +954,7 @@ Uses last 5 of SN or MAC address.</string>
                    <item row="0" column="2">
                     <widget class="QPushButton" name="pushResetFirmware">
                      <property name="toolTip">
-                      <string>Reset firmware/configuration back to factory settings</string>
+                      <string>Reset miner back to factory settings</string>
                      </property>
                      <property name="text">
                       <string>Reset Firmware</string>
@@ -958,7 +964,7 @@ Uses last 5 of SN or MAC address.</string>
                    <item row="0" column="1">
                     <widget class="QLabel" name="label_34">
                      <property name="text">
-                      <string>Reset Firmware</string>
+                      <string>Reset/Restore to factory settings</string>
                      </property>
                      <property name="StyleClass" stdset="0">
                       <string>setText</string>
@@ -972,7 +978,7 @@ Uses last 5 of SN or MAC address.</string>
                    <item row="0" column="0">
                     <widget class="QLabel" name="label_35">
                      <property name="text">
-                      <string>Rollback to Stock firmware (Custom)</string>
+                      <string>Rollback to stock firmware (Custom)</string>
                      </property>
                      <property name="StyleClass" stdset="0">
                       <string>setText</string>
@@ -982,7 +988,7 @@ Uses last 5 of SN or MAC address.</string>
                    <item row="0" column="1">
                     <widget class="QPushButton" name="pushRollbackFirmware">
                      <property name="toolTip">
-                      <string>Rollback custom back to stock firmware</string>
+                      <string>Rollback installed custom firmware to stock</string>
                      </property>
                      <property name="text">
                       <string>Rollback Firmware</string>
@@ -1535,7 +1541,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>927</width>
+                   <width>864</width>
                    <height>849</height>
                   </rect>
                  </property>
@@ -2209,7 +2215,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>925</width>
+                   <width>862</width>
                    <height>986</height>
                   </rect>
                  </property>
@@ -2944,8 +2950,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>927</width>
-                   <height>242</height>
+                   <width>864</width>
+                   <height>275</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_11">
