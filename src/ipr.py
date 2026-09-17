@@ -989,6 +989,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.pool_preset_controller.reload()
         self.socket_preset_controller.reload()
 
+        self.lineSelectedFirmwarePath.setText(self.config.fw_config.firmware_path)
+        self.checkForceFirmwareCompatibility.setChecked(
+            self.config.fw_config.force_capability
+        )
+        self.checkFirmwareUpgradeKeepSettings.setChecked(
+            self.config.fw_config.keep_settings
+        )
+
         # instance
         window_geometry = self.config.instance.geometry
         if window_geometry:
@@ -1097,10 +1105,17 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "vnishAltPasswd": self.lineVnishPasswd.text(),
             },
         }
-        settings["poolConfigurator"] = {
-            "autoSetWorkers": self.checkAutomaticWorkerNames.isChecked(),
-            "selectedPoolPreset": self.pool_preset_controller.index,
-            "poolPresets": self.pool_preset_controller.snapshot(),
+        settings["configurator"] = {
+            "poolConfig": {
+                "autoSetWorkers": self.checkAutomaticWorkerNames.isChecked(),
+                "selectedPoolPreset": self.pool_preset_controller.index,
+                "poolPresets": self.pool_preset_controller.snapshot(),
+            },
+            "firmwareConfig": {
+                "firmwarePath": self.lineSelectedFirmwarePath.text(),
+                "forceCapability": self.checkForceFirmwareCompatibility.isChecked(),
+                "keepSettings": self.checkFirmwareUpgradeKeepSettings.isChecked(),
+            },
         }
         settings["logs"] = {
             "logLevel": self.comboLogLevel.currentText(),

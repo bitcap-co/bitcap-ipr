@@ -138,6 +138,21 @@ class PoolConfiguratorSettings(BaseModel):
     pool_presets: Annotated[list[PoolPreset], Field(alias="poolPresets")] = []
 
 
+class FirmwareConfiguratorSettings(BaseModel):
+    firmware_path: Annotated[str, Field(alias="firmwarePath")] = ""
+    force_capability: Annotated[bool, Field(alias="forceCapability")] = False
+    keep_settings: Annotated[bool, Field(alias="keepSettings")] = False
+
+
+class ConfiguratorSettings(BaseModel):
+    pool_config: Annotated[PoolConfiguratorSettings, Field(alias="poolConfig")] = (
+        PoolConfiguratorSettings()
+    )
+    fw_config: Annotated[
+        FirmwareConfiguratorSettings, Field(alias="firmwareConfig")
+    ] = FirmwareConfiguratorSettings()
+
+
 class IDTableInstanceSettings(BaseModel):
     table_live_capture: Annotated[bool, Field(alias="enableTableLiveCapture")] = False
     clear_table_on_stop: Annotated[bool, Field(alias="clearTableOnStop")] = False
@@ -168,9 +183,7 @@ class IPRConfigModel(BaseModel):
     general: GeneralSettings
     listener: ListenerSettings
     api: APISettings
-    pool_config: Annotated[
-        PoolConfiguratorSettings, Field(alias="poolConfigurator")
-    ] = PoolConfiguratorSettings()
+    configurator: ConfiguratorSettings
     logs: LogSettings
     instance: InstanceSettings
 
@@ -198,7 +211,9 @@ class IPRConfig:
         self.auth_firmware: APIAuthFirmware = APIAuthFirmware()
         self.auth: APIAuth = APIAuth()
         self.api: APISettings = APISettings(auth=self.auth, firmware=self.auth_firmware)
-        self.pool_config: PoolConfiguratorSettings = PoolConfiguratorSettings()
+        self.configurator: ConfiguratorSettings = ConfiguratorSettings()
+        self.pool_config: PoolConfiguratorSettings = self.configurator.pool_config
+        self.fw_config: FirmwareConfiguratorSettings = self.configurator.fw_config
         self.logs: LogSettings = LogSettings()
         self.options: InstanceOptions = InstanceOptions()
         self.table: IDTableInstanceSettings = IDTableInstanceSettings()
@@ -210,7 +225,7 @@ class IPRConfig:
             general=self.general,
             listener=self.listener,
             api=self.api,
-            pool_config=self.pool_config,
+            configurator=self.configurator,
             logs=self.logs,
             instance=self.instance,
         )
@@ -223,7 +238,9 @@ class IPRConfig:
         self.auth_firmware = self.config.api.firmware
         self.auth = self.config.api.auth
         self.api = self.config.api
-        self.pool_config = self.config.pool_config
+        self.configurator = self.config.configurator
+        self.pool_config = self.configurator.pool_config
+        self.fw_config = self.configurator.fw_config
         self.logs = self.config.logs
         self.options = self.config.instance.options
         self.table = self.config.instance.options.table
