@@ -60,6 +60,16 @@ class PasswordConfiguratorWidgets(BaseModel):
     alternatives: dict[MinerType, QLineEdit]
 
 
+class FirmwareConfiguratorWidgets(BaseModel):
+    model_config: ClassVar[ConfigDict] = ConfigDict(
+        frozen=True, extra="forbid", arbitrary_types_allowed=True
+    )
+
+    firmware_path: QLineEdit
+    force_capability: QCheckBox
+    keep_settings: QCheckBox
+
+
 class MinerConfiguratorWidgets(BaseModel):
     model_config: ClassVar[ConfigDict] = ConfigDict(
         frozen=True, extra="forbid", arbitrary_types_allowed=True
@@ -72,6 +82,7 @@ class MinerConfiguratorWidgets(BaseModel):
     set_pool_action: QAction
     pools: PoolConfiguratorWidgets
     passwords: PasswordConfiguratorWidgets
+    firmware: FirmwareConfiguratorWidgets
 
 
 class MinerConfiguratorDependencies(BaseModel):

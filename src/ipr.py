@@ -63,6 +63,7 @@ from mod.powermonitor import PowerMonitor
 from mod.updater import UpdateController
 from ui import Ui_MainWindow
 from ui.widgets import (
+    FirmwareConfiguratorWidgets,
     IPRMenubar,
     IPRMessage,
     IPRPresetSelector,
@@ -523,6 +524,11 @@ class IPR(QMainWindow, Ui_MainWindow):
                             MinerType.AURADINE: self.lineAuradinePasswd,
                             MinerType.VNISH: self.lineVnishPasswd,
                         },
+                    ),
+                    firmware=FirmwareConfiguratorWidgets(
+                        firmware_path=self.lineSelectedFirmwarePath,
+                        force_capability=self.checkForceFirmwareCompatibility,
+                        keep_settings=self.checkFirmwareUpgradeKeepSettings,
                     ),
                 ),
                 dependencies=MinerConfiguratorDependencies(
