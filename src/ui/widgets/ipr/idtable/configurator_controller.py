@@ -8,12 +8,13 @@ from collections.abc import Awaitable, Callable
 from typing import ClassVar
 
 from pydantic import BaseModel, ConfigDict
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QFile, QObject, Signal
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDialog,
+    QFileDialog,
     QLineEdit,
     QTabWidget,
     QWidget,
@@ -365,3 +366,17 @@ class MinerConfiguratorController(QObject):
         await self._action_controller.run_bulk_action(
             "Update Passwords", rows, make_coro
         )
+
+    def update_firmware_path(self) -> None:
+        fd, _ = QFileDialog.getOpenFileName(
+            self._window,
+            "Select firmware file",
+            str(self._widgets.firmware.firmware_path.text()),
+            "Firmware Files (*.bmu *.bin)",
+        )
+        if not fd:
+            return
+
+        fw_file = QFile(fd)
+        self._widgets.firmware.firmware_path.setText(fw_file.fileName())
+        return
