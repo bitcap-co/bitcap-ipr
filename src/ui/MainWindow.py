@@ -410,26 +410,26 @@ class Ui_MainWindow(object):
 
         self.firmwareUpdateConfig.addWidget(self.lineSelectedFirmwarePath, 0, 0, 1, 1)
 
-        self.pushSelectFirmware = QPushButton(self.groupUpdateFirmware)
-        self.pushSelectFirmware.setObjectName(u"pushSelectFirmware")
-        self.pushSelectFirmware.setMaximumSize(QSize(400, 25))
+        self.actionSelectLocalFirmware = QPushButton(self.groupUpdateFirmware)
+        self.actionSelectLocalFirmware.setObjectName(u"actionSelectLocalFirmware")
+        self.actionSelectLocalFirmware.setMaximumSize(QSize(400, 25))
 
-        self.firmwareUpdateConfig.addWidget(self.pushSelectFirmware, 0, 1, 1, 1)
+        self.firmwareUpdateConfig.addWidget(self.actionSelectLocalFirmware, 0, 1, 1, 1)
 
 
         self.verticalLayout_18.addLayout(self.firmwareUpdateConfig)
 
-        self.checkFirmwareForceCompatibility = QCheckBox(self.groupUpdateFirmware)
-        self.checkFirmwareForceCompatibility.setObjectName(u"checkFirmwareForceCompatibility")
-        self.checkFirmwareForceCompatibility.setChecked(True)
+        self.checkForceFirmwareCompatibility = QCheckBox(self.groupUpdateFirmware)
+        self.checkForceFirmwareCompatibility.setObjectName(u"checkForceFirmwareCompatibility")
+        self.checkForceFirmwareCompatibility.setChecked(True)
 
-        self.verticalLayout_18.addWidget(self.checkFirmwareForceCompatibility)
+        self.verticalLayout_18.addWidget(self.checkForceFirmwareCompatibility)
 
-        self.checkUpdateKeepSettings = QCheckBox(self.groupUpdateFirmware)
-        self.checkUpdateKeepSettings.setObjectName(u"checkUpdateKeepSettings")
-        self.checkUpdateKeepSettings.setChecked(True)
+        self.checkFirmwareUpgradeKeepSettings = QCheckBox(self.groupUpdateFirmware)
+        self.checkFirmwareUpgradeKeepSettings.setObjectName(u"checkFirmwareUpgradeKeepSettings")
+        self.checkFirmwareUpgradeKeepSettings.setChecked(True)
 
-        self.verticalLayout_18.addWidget(self.checkUpdateKeepSettings)
+        self.verticalLayout_18.addWidget(self.checkFirmwareUpgradeKeepSettings)
 
 
         self.verticalLayout_16.addWidget(self.groupUpdateFirmware)
@@ -440,10 +440,10 @@ class Ui_MainWindow(object):
         self.verticalLayout_19.setObjectName(u"verticalLayout_19")
         self.gridLayout = QGridLayout()
         self.gridLayout.setObjectName(u"gridLayout")
-        self.pushResetFirmware = QPushButton(self.groupRestoreFirmware)
-        self.pushResetFirmware.setObjectName(u"pushResetFirmware")
+        self.actionResetFirmware = QPushButton(self.groupRestoreFirmware)
+        self.actionResetFirmware.setObjectName(u"actionResetFirmware")
 
-        self.gridLayout.addWidget(self.pushResetFirmware, 0, 2, 1, 1)
+        self.gridLayout.addWidget(self.actionResetFirmware, 0, 2, 1, 1)
 
         self.label_34 = QLabel(self.groupRestoreFirmware)
         self.label_34.setObjectName(u"label_34")
@@ -460,10 +460,10 @@ class Ui_MainWindow(object):
 
         self.gridLayout_22.addWidget(self.label_35, 0, 0, 1, 1)
 
-        self.pushRollbackFirmware = QPushButton(self.groupRestoreFirmware)
-        self.pushRollbackFirmware.setObjectName(u"pushRollbackFirmware")
+        self.actionRollbackFirmware = QPushButton(self.groupRestoreFirmware)
+        self.actionRollbackFirmware.setObjectName(u"actionRollbackFirmware")
 
-        self.gridLayout_22.addWidget(self.pushRollbackFirmware, 0, 1, 1, 1)
+        self.gridLayout_22.addWidget(self.actionRollbackFirmware, 0, 1, 1, 1)
 
 
         self.verticalLayout_19.addLayout(self.gridLayout_22)
@@ -1546,30 +1546,30 @@ class Ui_MainWindow(object):
         self.groupUpdateFirmware.setTitle(QCoreApplication.translate("MainWindow", u"Update", None))
         self.lineSelectedFirmwarePath.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Selected Firmware Path", None))
 #if QT_CONFIG(tooltip)
-        self.pushSelectFirmware.setToolTip(QCoreApplication.translate("MainWindow", u"Select firmware file from the filesystem", None))
+        self.actionSelectLocalFirmware.setToolTip(QCoreApplication.translate("MainWindow", u"Select firmware file from the filesystem", None))
 #endif // QT_CONFIG(tooltip)
-        self.pushSelectFirmware.setText(QCoreApplication.translate("MainWindow", u"Select Firmware", None))
+        self.actionSelectLocalFirmware.setText(QCoreApplication.translate("MainWindow", u"Select Firmware", None))
 #if QT_CONFIG(tooltip)
-        self.checkFirmwareForceCompatibility.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Check firmware image to ensure it's compatible with the selected miner(s), preventing update if not. <br/><br/>WARNING: flashing non-compatible firmware can brick or cause physical damage to the miner. Only disable if you know what you are doing!</p></body></html>", None))
+        self.checkForceFirmwareCompatibility.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Check firmware image to ensure it's compatible with the selected miner(s), preventing update if not. <br/><br/>WARNING: flashing non-compatible firmware can brick or cause physical damage to the miner. Only disable if you know what you are doing!</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkFirmwareForceCompatibility.setText(QCoreApplication.translate("MainWindow", u"Force Compatibility", None))
+        self.checkForceFirmwareCompatibility.setText(QCoreApplication.translate("MainWindow", u"Force Compatibility", None))
 #if QT_CONFIG(tooltip)
-        self.checkUpdateKeepSettings.setToolTip(QCoreApplication.translate("MainWindow", u"If supported, current miner configuration is kept after update", None))
+        self.checkFirmwareUpgradeKeepSettings.setToolTip(QCoreApplication.translate("MainWindow", u"If supported, current miner configuration is kept after update", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkUpdateKeepSettings.setText(QCoreApplication.translate("MainWindow", u"Keep Miner Configuration", None))
+        self.checkFirmwareUpgradeKeepSettings.setText(QCoreApplication.translate("MainWindow", u"Keep Miner Configuration", None))
         self.groupRestoreFirmware.setTitle(QCoreApplication.translate("MainWindow", u"Restoration", None))
 #if QT_CONFIG(tooltip)
-        self.pushResetFirmware.setToolTip(QCoreApplication.translate("MainWindow", u"Reset miner back to factory settings", None))
+        self.actionResetFirmware.setToolTip(QCoreApplication.translate("MainWindow", u"Reset miner back to factory settings", None))
 #endif // QT_CONFIG(tooltip)
-        self.pushResetFirmware.setText(QCoreApplication.translate("MainWindow", u"Reset Firmware", None))
+        self.actionResetFirmware.setText(QCoreApplication.translate("MainWindow", u"Reset Firmware", None))
         self.label_34.setText(QCoreApplication.translate("MainWindow", u"Reset/Restore to factory settings", None))
         self.label_34.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.label_35.setText(QCoreApplication.translate("MainWindow", u"Rollback to stock firmware (Custom)", None))
         self.label_35.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
 #if QT_CONFIG(tooltip)
-        self.pushRollbackFirmware.setToolTip(QCoreApplication.translate("MainWindow", u"Rollback installed custom firmware to stock", None))
+        self.actionRollbackFirmware.setToolTip(QCoreApplication.translate("MainWindow", u"Rollback installed custom firmware to stock", None))
 #endif // QT_CONFIG(tooltip)
-        self.pushRollbackFirmware.setText(QCoreApplication.translate("MainWindow", u"Rollback Firmware", None))
+        self.actionRollbackFirmware.setText(QCoreApplication.translate("MainWindow", u"Rollback Firmware", None))
         self.tabConfigurator.setTabText(self.tabConfigurator.indexOf(self.firmwareConfigurator), QCoreApplication.translate("MainWindow", u"Firmware", None))
 #if QT_CONFIG(tooltip)
         self.btnConfiguratorCancel.setToolTip(QCoreApplication.translate("MainWindow", u"Cancel configuration", None))

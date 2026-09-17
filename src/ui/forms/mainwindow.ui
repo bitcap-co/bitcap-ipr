@@ -897,7 +897,7 @@ Uses last 5 of SN or MAC address.</string>
                     </widget>
                    </item>
                    <item row="0" column="1">
-                    <widget class="QPushButton" name="pushSelectFirmware">
+                    <widget class="QPushButton" name="actionSelectLocalFirmware">
                      <property name="maximumSize">
                       <size>
                        <width>400</width>
@@ -915,7 +915,7 @@ Uses last 5 of SN or MAC address.</string>
                   </layout>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkFirmwareForceCompatibility">
+                  <widget class="QCheckBox" name="checkForceFirmwareCompatibility">
                    <property name="toolTip">
                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check firmware image to ensure it's compatible with the selected miner(s), preventing update if not. &lt;br/&gt;&lt;br/&gt;WARNING: flashing non-compatible firmware can brick or cause physical damage to the miner. Only disable if you know what you are doing!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
@@ -928,7 +928,7 @@ Uses last 5 of SN or MAC address.</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkUpdateKeepSettings">
+                  <widget class="QCheckBox" name="checkFirmwareUpgradeKeepSettings">
                    <property name="toolTip">
                     <string>If supported, current miner configuration is kept after update</string>
                    </property>
@@ -952,7 +952,7 @@ Uses last 5 of SN or MAC address.</string>
                  <item>
                   <layout class="QGridLayout" name="gridLayout">
                    <item row="0" column="2">
-                    <widget class="QPushButton" name="pushResetFirmware">
+                    <widget class="QPushButton" name="actionResetFirmware">
                      <property name="toolTip">
                       <string>Reset miner back to factory settings</string>
                      </property>
@@ -986,7 +986,7 @@ Uses last 5 of SN or MAC address.</string>
                     </widget>
                    </item>
                    <item row="0" column="1">
-                    <widget class="QPushButton" name="pushRollbackFirmware">
+                    <widget class="QPushButton" name="actionRollbackFirmware">
                      <property name="toolTip">
                       <string>Rollback installed custom firmware to stock</string>
                      </property>
