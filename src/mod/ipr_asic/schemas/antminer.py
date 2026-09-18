@@ -157,13 +157,14 @@ class WarningResponse(BaseModel):
 
 
 class MinerTypeInfo(BaseModel):
-    miner_type: str
-    subtype: str
-    fw_version: str
+    miner_type: str = ""
+    subtype: str = ""
+    fw_version: str = ""
     product_type: str = ""
 
 
 class VersionInfo(VersionInfoModel):
+    miner_info: MinerTypeInfo | None = None
     minertype: str
     fw_version: str = Field(alias="system_filesystem_version")
     kernel_version: str = Field(alias="system_kernel_version")
