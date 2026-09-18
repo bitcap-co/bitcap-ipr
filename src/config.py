@@ -140,8 +140,8 @@ class PoolConfiguratorSettings(BaseModel):
 
 class FirmwareConfiguratorSettings(BaseModel):
     firmware_path: Annotated[str, Field(alias="firmwarePath")] = ""
-    force_capability: Annotated[bool, Field(alias="forceCapability")] = False
-    keep_settings: Annotated[bool, Field(alias="keepSettings")] = False
+    force_capability: Annotated[bool, Field(alias="forceCapability")] = True
+    keep_settings: Annotated[bool, Field(alias="keepSettings")] = True
 
 
 class ConfiguratorSettings(BaseModel):
