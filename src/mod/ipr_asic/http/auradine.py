@@ -268,6 +268,10 @@ class AuradineHTTPClient(BaseHTTPClient):
         )
 
     @override
+    async def reset_firmware(self) -> APIObject:
+        return await self.send_command("POST", command="factory-reset")
+
+    @override
     async def update_passwd(self, old_passwd: str, new_passwd: str) -> APIObject:
         pw_conf = MinerPasswdConfig(user=self.username, old=old_passwd, new=new_passwd)
         resp = await self.send_command(

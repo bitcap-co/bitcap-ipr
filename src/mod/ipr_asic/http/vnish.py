@@ -231,6 +231,16 @@ class VnishHTTPClient(BaseHTTPClient):
         return await self.send_command("POST", command="system/reboot")
 
     @override
+    async def reset_firmware(self) -> APIObject:
+        return await self.send_command("POST", command="system/factory-reset")
+
+    @override
+    async def rollback_firmware(self) -> APIObject:
+        return await self.send_command(
+            "POST", command="firmware/remove", payload={"remove_stock_logs": False}
+        )
+
+    @override
     async def update_passwd(self, old_passwd: str, new_passwd: str) -> APIObject:
         pw_conf = MinerPasswdConfig(curr_passwd=old_passwd, new_passwd=new_passwd)
         return await self.set_miner_conf(conf=pw_conf.model_dump(by_alias=True))

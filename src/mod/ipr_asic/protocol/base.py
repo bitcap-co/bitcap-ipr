@@ -79,6 +79,12 @@ class BaseClient(ABC):
     async def reboot(self) -> APIObject:
         self._unsupported("reboot")
 
+    async def reset_firmware(self) -> APIObject:
+        self._unsupported("reset_firmware")
+
+    async def rollback_firmware(self) -> APIObject:
+        self._unsupported("rollback_firmware")
+
     async def update_passwd(
         self,
         old_passwd: str,

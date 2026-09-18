@@ -220,6 +220,10 @@ class SealminerHTTPClient(BaseHTTPClient):
         return await self.send_command("POST", command="reboot")
 
     @override
+    async def reset_firmware(self) -> APIObject:
+        return await self.send_command("POST", command="reset")
+
+    @override
     async def update_passwd(self, old_passwd: str, new_passwd: str) -> APIObject:
         pw_conf = MinerPasswdConfig(
             username=self.username,

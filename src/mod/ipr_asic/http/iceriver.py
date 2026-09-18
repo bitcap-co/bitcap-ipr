@@ -234,6 +234,10 @@ class IceriverHTTPClient(BaseHTTPClient):
         return await self.send_command("POST", command="userpanel", data={"post": 3})
 
     @override
+    async def reset_firmware(self) -> APIObject:
+        return await self.send_command("POST", command="userpanel", data={"post": 2})
+
+    @override
     async def update_passwd(self, old_passwd: str, new_passwd: str) -> APIObject:
         data = {
             "post": 2,

@@ -127,6 +127,14 @@ class LuxminerRPCClient(CGMinerRPCClient):
         return await self.send_privileged_command("rebootdevice")
 
     @override
+    async def reset_firmware(self) -> APIObject:
+        return await self.send_privileged_command("resetconfig")
+
+    @override
+    async def rollback_firmware(self) -> APIObject:
+        return await self.send_privileged_command("uninstallluxos")
+
+    @override
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
     ) -> APIObject:

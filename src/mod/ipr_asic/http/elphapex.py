@@ -215,6 +215,10 @@ class ElphapexHTTPClient(BaseHTTPClient):
         return await self.send_command("POST", command="reboot")
 
     @override
+    async def reset_firmware(self) -> APIObject:
+        return await self.send_command("POST", command="reset_conf")
+
+    @override
     async def update_passwd(self, old_passwd: str, new_passwd: str) -> APIObject:
         pw_conf = MinerPasswdConfig(
             curr_passwd=old_passwd, new_passwd=new_passwd, confirm_passwd=new_passwd
