@@ -111,7 +111,7 @@ class IPolloHTTPClient(BaseHTTPClient):
     @override
     async def mac_address(self) -> str:
         resp = await self.get_network_info()
-        for iface in resp.ifaces:
+        for iface in resp.ifaces.root:
             if iface.is_up:
                 return iface.macaddr
         return ""
