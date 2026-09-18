@@ -93,7 +93,7 @@ class CGMinerRPCLayer(BaseRPCClient, ABC):
 
 
 class CGMinerRPCClient(CGMinerRPCLayer):
-    async def api_version(self) -> tuple[str, Version]:
+    async def get_version_info(self) -> tuple[str, Version]:
         resp = await self.send_command("version")
         resobj = self.unmarshal_response(resp)
         api_ver = resobj.status[0].description

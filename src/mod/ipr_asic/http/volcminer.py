@@ -104,7 +104,7 @@ class VolcminerHTTPClient(BaseHTTPClient):
         resp = await self.get_network_info()
         return resp.macaddr
 
-    async def api_version(self) -> tuple[str, VersionInfo]:
+    async def get_version_info(self) -> tuple[str, VersionInfo]:
         resp = await self.send_command("GET", command="get_system_info")
         try:
             resobj = VersionInfo.model_validate(obj=resp)

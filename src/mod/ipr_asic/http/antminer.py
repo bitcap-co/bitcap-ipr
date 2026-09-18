@@ -100,17 +100,8 @@ class AntminerHTTPClient(BaseHTTPClient):
         resp = await self.get_system_info()
         return resp.macaddr
 
-    async def api_version(self) -> tuple[str, VersionInfo]:
-        resp = await self.send_command("GET", command="get_system_info")
-        try:
-            resobj = VersionInfo.model_validate(resp, by_alias=True)
-        except ValidationError as e:
-            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
-            raise APIInvalidResponse
-        return resobj.fw_version, resobj
-
     @override
-    def api_version_number(self, version_str: str) -> int:
+    def version_number(self, version_str: str) -> int:
         # api version format: yyyymmdd
         # FR-1.61(260403-S21-Pro+) -> 20260403
         if "FR-" in version_str and (match := re.search(r"\d{6}", version_str)):
@@ -123,6 +114,21 @@ class AntminerHTTPClient(BaseHTTPClient):
             return int(dt.strftime("%Y%m%d"))
         except ValueError:
             return 0
+
+    async def get_version_info(self) -> tuple[str, VersionInfo]:
+        resp = await self.send_command("GET", command="get_system_info")
+        try:
+            resobj = VersionInfo.model_validate(resp, by_alias=True)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        try:
+            miner_resp = await self.send_command("GET", command="miner_type")
+            miner_info = MinerTypeInfo.model_validate(miner_resp)
+            resobj.miner_info = miner_info
+        except (ValidationError, FailedConnectionError, AuthenticationError, APIError):
+            pass
+        return resobj.fw_version, resobj
 
     async def get_system_info(self) -> SystemInfo:
         resp = await self.send_command("GET", command="get_system_info")
@@ -348,10 +354,12 @@ class AntminerOldHTTPClient(BaseHTTPClient):
                 raise APIError("Command failed!")
             return resobj
 
+    @override
     async def hostname(self) -> str:
         resp = await self.get_system_info()
         return resp.hostname
 
+    @override
     async def mac_address(self) -> str:
         resp = await self.get_system_info()
         return resp.macaddr
@@ -366,7 +374,7 @@ class AntminerOldHTTPClient(BaseHTTPClient):
         return resobj.fw_version, resobj
 
     @override
-    def api_version_number(self, version_str: str) -> int:
+    def version_number(self, version_str: str) -> int:
         try:
             dt = datetime.strptime(
                 version_str.replace("CST", ""), "%a %b %d %H:%M:%S %Y"
@@ -374,6 +382,15 @@ class AntminerOldHTTPClient(BaseHTTPClient):
             return int(dt.strftime("%Y%m%d"))
         except ValueError:
             return 0
+
+    async def get_version_info(self) -> tuple[str, VersionInfo]:
+        resp = await self.send_command("GET", command="get_system_info")
+        try:
+            resobj = VersionInfo.model_validate(resp, by_alias=True)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        return resobj.fw_version, resobj
 
     async def get_system_info(self) -> SystemInfo:
         resp = await self.send_command("GET", command="get_system_info")

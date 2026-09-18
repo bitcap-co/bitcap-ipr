@@ -39,7 +39,7 @@ class BaseClient(ABC):
         return f"{self.__class__.__name__}[{self.ip!s}]"
 
     @staticmethod
-    def _parse_api_version(api_version: str = "") -> int:
+    def _parse_version(api_version: str = "") -> int:
         if not api_version:
             try:
                 return int(api_version)
@@ -50,8 +50,8 @@ class BaseClient(ABC):
             return 0
         return int(match.group(1).replace(".", ""))
 
-    def api_version_number(self, version_str: str) -> int:
-        return self._parse_api_version(version_str)
+    def version_number(self, version_str: str) -> int:
+        return self._parse_version(version_str)
 
     async def hostname(self) -> str:
         return ""

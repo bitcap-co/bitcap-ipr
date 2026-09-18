@@ -118,7 +118,7 @@ class AuradineHTTPClient(BaseHTTPClient):
         resp = await self.get_system_info()
         return resp.mac
 
-    async def api_version(self) -> tuple[str, Version]:
+    async def get_version_info(self) -> tuple[str, Version]:
         resp = await self.send_command("GET", command="version")
         resobj = self._unmarshal_response(resp)
         api_version = resobj.status[0].description

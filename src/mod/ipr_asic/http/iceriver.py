@@ -100,7 +100,7 @@ class IceriverHTTPClient(BaseHTTPClient):
         resp = await self.get_network_info()
         return resp.mac
 
-    async def api_version(self) -> tuple[str, VersionInfo]:
+    async def get_version_info(self) -> tuple[str, VersionInfo]:
         resp = await self.send_command("POST", command="userpanel", data={"post": 4})
         try:
             resobj = VersionInfo.model_validate(obj=resp["data"], by_alias=True)

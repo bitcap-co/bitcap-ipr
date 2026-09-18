@@ -101,7 +101,7 @@ class VnishHTTPClient(BaseHTTPClient):
         resp = await self.get_network_info()
         return resp.mac
 
-    async def api_version(self) -> tuple[str, VersionInfo]:
+    async def get_version_info(self) -> tuple[str, VersionInfo]:
         resp = await self.send_command("GET", command="info")
         try:
             resobj = VersionInfo.model_validate(obj=resp)
@@ -206,8 +206,8 @@ class VnishHTTPClient(BaseHTTPClient):
 
     @override
     async def blink(self, enabled: bool) -> APIObject:
-        api_ver, _ = await self.api_version()
-        if self.api_version_number(api_ver) >= 133:
+        api_ver, _ = await self.get_version_info()
+        if self.version_number(api_ver) >= 133:
             return await self.send_command(
                 "POST", command="locate-miner", payload={"is_enabled": enabled}
             )
