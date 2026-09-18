@@ -45,6 +45,7 @@ from mod.ipr_asic.errors import (
     AuthenticationError,
     FailedConnectionError,
     UnknownClientError,
+    UnsupportedOperationError,
 )
 from mod.ipr_asic.http import (
     AntminerHTTPClient,
@@ -80,6 +81,7 @@ _CLIENT_ERRORS = (
     OSError,
     LookupError,
     NotImplementedError,
+    UnsupportedOperationError,
 )
 
 
@@ -558,6 +560,38 @@ class ASICClient(QObject):
                     _ = await client.blink(enabled=False)
                 except _CLIENT_ERRORS:
                     pass
+        except _CLIENT_ERRORS as e:
+            logger.error(f"{client.__repr__()} : client error raised: {e!s}")
+            return MinerResult(error=e)
+        finally:
+            client.close()
+        return MinerResult()
+
+    async def reset_miner_firmware(
+        self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
+    ):
+        try:
+            client = await self._make_client(miner_type, ip, alt_pwd)
+        except UnknownClientError as e:
+            return MinerResult(error=e)
+        try:
+            _ = await client.reset_firmware()
+        except _CLIENT_ERRORS as e:
+            logger.error(f"{client.__repr__()} : client error raised: {e!s}")
+            return MinerResult(error=e)
+        finally:
+            client.close()
+        return MinerResult()
+
+    async def rollback_miner_firmware(
+        self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
+    ):
+        try:
+            client = await self._make_client(miner_type, ip, alt_pwd)
+        except UnknownClientError as e:
+            return MinerResult(error=e)
+        try:
+            _ = await client.rollback_firmware()
         except _CLIENT_ERRORS as e:
             logger.error(f"{client.__repr__()} : client error raised: {e!s}")
             return MinerResult(error=e)
