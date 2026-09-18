@@ -562,12 +562,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionSelectLocalFirmware.clicked.connect(
             self.configurator_controller.update_firmware_path
         )
-        # self.actionResetFirmware.clicked.connect(
-        #     self.configurator_controller.reset_firmware
-        # )
-        # self.actionRollbackFirmware.clicked.connect(
-        #     self.configurator_controller.rollback_firmware
-        # )
+        self.actionResetFirmware.clicked.connect(
+            self.configurator_controller.reset_miner_firmware
+        )
+        self.actionRollbackFirmware.clicked.connect(
+            self.configurator_controller.rollback_miner_firmware
+        )
 
         # set logo
         self.labelIPRLogo.setPixmap(QPixmap(":rc/img/scalable/BitCapIPRCenterLogo.svg"))

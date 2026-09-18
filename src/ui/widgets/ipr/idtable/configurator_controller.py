@@ -380,3 +380,95 @@ class MinerConfiguratorController(QObject):
         fw_file = QFile(fd)
         self._widgets.firmware.firmware_path.setText(fw_file.fileName())
         return
+
+    def reset_miner_firmware(self) -> None:
+        rows = self._table_controller.selected_source_rows_for_action(
+            "reset_miner_firmware", column=COL_IP
+        )
+        if not rows:
+            self.notification_requested.emit(
+                "Status :: Failed action: no selected IPs.", 5000
+            )
+            return
+        confirm = IPRMessage(
+            self._window,
+            "Confirm Miner Firmware Reset",
+            f"Reset firmware for selected {len(rows)} miner(s)?",
+            action_text="Reset Firmware",
+        )
+        if confirm.exec() != QDialog.DialogCode.Accepted:
+            return
+        self._action_controller.schedule(self._reset_miner_firmware(rows))
+
+    async def _reset_miner_firmware(self, rows: list[int]) -> None:
+        def make_coro(
+            _row: int,
+            ip_addr: str,
+            miner_type: MinerType,
+            _firmware: MinerFirmware,
+            alt_pwd: str | None,
+        ) -> Awaitable[MinerResult] | None:
+            if miner_type in (
+                MinerType.HAMMER,
+                MinerType.GOLDSHELL,
+                MinerType.VOLCMINER,
+                MinerType.IPOLLO,
+                MinerType.HIVEGPU,
+            ):
+                logger.error(
+                    f"reset_firmware : {miner_type.value} is currently not supported."
+                )
+                self.notification_requested.emit(
+                    f"Status :: Skipping {ip_addr}: "
+                    f"{miner_type.value.capitalize()} reset firmware is not supported.",
+                    5000,
+                )
+                return None
+            return self._asic.reset_miner_firmware(miner_type, ip_addr, alt_pwd=alt_pwd)
+
+        await self._action_controller.run_bulk_action("Reset Firmware", rows, make_coro)
+
+    def rollback_miner_firmware(self) -> None:
+        rows = self._table_controller.selected_source_rows_for_action(
+            "rollback_miner_firmware", column=COL_IP
+        )
+        if not rows:
+            self.notification_requested.emit(
+                "Status :: Failed action: no selected IPs.", 5000
+            )
+            return
+        confirm = IPRMessage(
+            self._window,
+            "Confirm Miner Firmware Rollback",
+            f"Rollback firmware back to stock firmware for selected {len(rows)} miner(s)?",
+            action_text="Rollback",
+        )
+        if confirm.exec() != QDialog.DialogCode.Accepted:
+            return
+        self._action_controller.schedule(self._rollback_miner_firmware(rows))
+
+    async def _rollback_miner_firmware(self, rows: list[int]) -> None:
+        def make_coro(
+            _row: int,
+            ip_addr: str,
+            miner_type: MinerType,
+            _firmware: MinerFirmware,
+            alt_pwd: str | None,
+        ) -> Awaitable[MinerResult] | None:
+            if miner_type not in (MinerType.VNISH, MinerType.LUX_OS):
+                logger.error(
+                    f"rollback_firmware : {miner_type.value} is currently not supported."
+                )
+                self.notification_requested.emit(
+                    f"Status :: Skipping {ip_addr}: "
+                    f"{miner_type.value.capitalize()} rollback firmware is not supported.",
+                    5000,
+                )
+                return None
+            return self._asic.rollback_miner_firmware(
+                miner_type, ip_addr, alt_pwd=alt_pwd
+            )
+
+        await self._action_controller.run_bulk_action(
+            "Rollback Firmware", rows, make_coro
+        )
