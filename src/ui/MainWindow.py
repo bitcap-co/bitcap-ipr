@@ -419,11 +419,11 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_18.addLayout(self.firmwareUpdateConfig)
 
-        self.checkForceFirmwareCompatibility = QCheckBox(self.groupUpdateFirmware)
-        self.checkForceFirmwareCompatibility.setObjectName(u"checkForceFirmwareCompatibility")
-        self.checkForceFirmwareCompatibility.setChecked(True)
+        self.checkEnforceFirmwareCompatibility = QCheckBox(self.groupUpdateFirmware)
+        self.checkEnforceFirmwareCompatibility.setObjectName(u"checkEnforceFirmwareCompatibility")
+        self.checkEnforceFirmwareCompatibility.setChecked(True)
 
-        self.verticalLayout_18.addWidget(self.checkForceFirmwareCompatibility)
+        self.verticalLayout_18.addWidget(self.checkEnforceFirmwareCompatibility)
 
         self.checkFirmwareUpgradeKeepSettings = QCheckBox(self.groupUpdateFirmware)
         self.checkFirmwareUpgradeKeepSettings.setObjectName(u"checkFirmwareUpgradeKeepSettings")
@@ -1550,9 +1550,9 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.actionSelectLocalFirmware.setText(QCoreApplication.translate("MainWindow", u"Select Firmware", None))
 #if QT_CONFIG(tooltip)
-        self.checkForceFirmwareCompatibility.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Check firmware image to ensure it's compatible with the selected miner(s), preventing update if not. <br/><br/>WARNING: flashing non-compatible firmware can brick or cause physical damage to the miner. Only disable if you know what you are doing!</p></body></html>", None))
+        self.checkEnforceFirmwareCompatibility.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Check firmware image to ensure it's compatible with the selected miner(s), preventing update if not. <br/><br/>WARNING: flashing non-compatible firmware can brick or cause physical damage to the miner. Only disable if you know what you are doing!</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkForceFirmwareCompatibility.setText(QCoreApplication.translate("MainWindow", u"Force Compatibility", None))
+        self.checkEnforceFirmwareCompatibility.setText(QCoreApplication.translate("MainWindow", u"Enforce Compatibility", None))
 #if QT_CONFIG(tooltip)
         self.checkFirmwareUpgradeKeepSettings.setToolTip(QCoreApplication.translate("MainWindow", u"If supported, current miner configuration is kept after update", None))
 #endif // QT_CONFIG(tooltip)

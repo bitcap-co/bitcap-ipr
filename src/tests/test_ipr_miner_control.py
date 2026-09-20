@@ -424,8 +424,8 @@ class TestMinerConfiguratorController(unittest.IsolatedAsyncioTestCase):
         run_bulk_action = AsyncMock()
         firmware = Mock()
         firmware.payload_for.return_value = SimpleNamespace(data=b"selected payload")
-        force_capability = Mock()
-        force_capability.isChecked.return_value = True
+        enforce_compatibility = Mock()
+        enforce_compatibility.isChecked.return_value = True
         keep_settings = Mock()
         keep_settings.isChecked.return_value = False
         subject: Any = SimpleNamespace(
@@ -433,7 +433,7 @@ class TestMinerConfiguratorController(unittest.IsolatedAsyncioTestCase):
             _action_controller=SimpleNamespace(run_bulk_action=run_bulk_action),
             _widgets=SimpleNamespace(
                 firmware=SimpleNamespace(
-                    force_capability=force_capability,
+                    enforce_compatibility=enforce_compatibility,
                     keep_settings=keep_settings,
                 )
             ),
@@ -505,7 +505,7 @@ class TestMinerConfiguratorController(unittest.IsolatedAsyncioTestCase):
             _action_controller=SimpleNamespace(run_bulk_action=run_bulk_action),
             _widgets=SimpleNamespace(
                 firmware=SimpleNamespace(
-                    force_capability=checkbox,
+                    enforce_compatibility=checkbox,
                     keep_settings=checkbox,
                 )
             ),

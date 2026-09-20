@@ -527,7 +527,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                     ),
                     firmware=FirmwareConfiguratorWidgets(
                         firmware_path=self.lineSelectedFirmwarePath,
-                        force_capability=self.checkForceFirmwareCompatibility,
+                        enforce_compatibility=self.checkEnforceFirmwareCompatibility,
                         keep_settings=self.checkFirmwareUpgradeKeepSettings,
                     ),
                 ),
@@ -1005,8 +1005,8 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.socket_preset_controller.reload()
 
         self.lineSelectedFirmwarePath.setText(self.config.fw_config.firmware_path)
-        self.checkForceFirmwareCompatibility.setChecked(
-            self.config.fw_config.force_capability
+        self.checkEnforceFirmwareCompatibility.setChecked(
+            self.config.fw_config.enforce_compatibility
         )
         self.checkFirmwareUpgradeKeepSettings.setChecked(
             self.config.fw_config.keep_settings
@@ -1128,7 +1128,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             },
             "firmwareConfig": {
                 "firmwarePath": self.lineSelectedFirmwarePath.text(),
-                "forceCapability": self.checkForceFirmwareCompatibility.isChecked(),
+                "enforceCompatibility": self.checkEnforceFirmwareCompatibility.isChecked(),
                 "keepSettings": self.checkFirmwareUpgradeKeepSettings.isChecked(),
             },
         }

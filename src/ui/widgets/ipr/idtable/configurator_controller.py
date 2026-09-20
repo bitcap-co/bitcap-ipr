@@ -70,7 +70,7 @@ class FirmwareConfiguratorWidgets(BaseModel):
     )
 
     firmware_path: QLineEdit
-    force_capability: QCheckBox
+    enforce_compatibility: QCheckBox
     keep_settings: QCheckBox
 
 
@@ -420,7 +420,7 @@ class MinerConfiguratorController(QObject):
         self, rows: list[int], firmware: BitmainFirmwareImage
     ) -> None:
         firmware_widgets = self._widgets.firmware
-        enforce_compatibility = firmware_widgets.force_capability.isChecked()
+        enforce_compatibility = firmware_widgets.enforce_compatibility.isChecked()
         keep_settings = firmware_widgets.keep_settings.isChecked()
 
         def make_coro(

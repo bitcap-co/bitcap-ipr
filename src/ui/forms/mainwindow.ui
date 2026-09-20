@@ -915,12 +915,12 @@ Uses last 5 of SN or MAC address.</string>
                   </layout>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkForceFirmwareCompatibility">
+                  <widget class="QCheckBox" name="checkEnforceFirmwareCompatibility">
                    <property name="toolTip">
                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check firmware image to ensure it's compatible with the selected miner(s), preventing update if not. &lt;br/&gt;&lt;br/&gt;WARNING: flashing non-compatible firmware can brick or cause physical damage to the miner. Only disable if you know what you are doing!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
-                    <string>Force Compatibility</string>
+                    <string>Enforce Compatibility</string>
                    </property>
                    <property name="checked">
                     <bool>true</bool>
