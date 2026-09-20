@@ -42,6 +42,7 @@ import asyncio
 import logging
 import logging.handlers
 import os
+import signal
 import sys
 import traceback
 from json.decoder import JSONDecodeError
@@ -49,7 +50,7 @@ from pathlib import Path
 from types import TracebackType
 
 from pydantic import ValidationError
-from PySide6.QtCore import QUrl
+from PySide6.QtCore import QTimer, QUrl
 from PySide6.QtGui import QDesktopServices, QFont, QIcon
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtWidgets import (
@@ -94,8 +95,10 @@ class Main:
         self.log_path: Path = get_log_file_path()
         self._init_logger()
         self._handling_exception: bool = False
+        self._shutting_down: bool = False
         self.exit_code: int = 0
         self.ipc_server: QLocalServer
+        self._signal_timer: QTimer
         self.app: QApplication = QApplication(self.args)
         # run the asyncio loop as the Qt event loop (qasync) so the async
         # ipr_asic clients can be awaited directly from Qt slots.
@@ -222,8 +225,32 @@ class Main:
         self.main_window.show()
 
         sys.excepthook = self._exc_hook
+        self._init_signal_handler()
         with self.event_loop:
             self.exit_code = self.event_loop.run_forever()
+
+    def _init_signal_handler(self) -> None:
+        _ = signal.signal(signal.SIGINT, self._handle_sigint)
+
+        # Qt can otherwise keep Python from dispatching SIGINT until another
+        # UI event occurs. This timer regularly returns control to Python.
+        self._signal_timer = QTimer(self.app)
+        _ = self._signal_timer.timeout.connect(self._process_signals)
+        self._signal_timer.start(200)
+
+    def _process_signals(self) -> None:
+        pass
+
+    def _handle_sigint(self, _signum: int, _frame: object | None) -> None:
+        if self._shutting_down:
+            return
+        self._shutting_down = True
+
+        logger.info("received SIGINT; closing application.")
+        try:
+            self.main_window.quit()
+        finally:
+            self.app.quit()
 
     def _handle_ipc_connection(self):
         conn = self.ipc_server.nextPendingConnection()
