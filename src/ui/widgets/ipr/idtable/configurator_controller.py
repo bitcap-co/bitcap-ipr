@@ -5,6 +5,7 @@
 
 import logging
 from collections.abc import Awaitable, Callable
+from pathlib import Path
 from typing import ClassVar
 
 from pydantic import BaseModel, ConfigDict
@@ -23,7 +24,9 @@ from PySide6.QtWidgets import (
 from mod.ipr_asic import ASICClient, MinerResult
 from mod.ipr_asic import settings as api_settings
 from mod.ipr_asic.data import MinerFirmware, MinerType
-from mod.ipr_asic.errors import UnknownClientError
+from mod.ipr_asic.errors import APIError, UnknownClientError
+from mod.ipr_asic.firmware import BitmainFirmwareImage, FirmwareImageError
+from mod.ipr_asic.schemas.antminer import VersionInfo as AntminerVersionInfo
 
 from ..message import IPRMessage
 from .action_controller import MinerActionController
@@ -171,6 +174,8 @@ class MinerConfiguratorController(QObject):
                     )
                     return
                 self.update_miner_passwords()
+            case 2:
+                self.update_miner_firmware()
             case _:
                 return
 
@@ -380,6 +385,105 @@ class MinerConfiguratorController(QObject):
         fw_file = QFile(fd)
         self._widgets.firmware.firmware_path.setText(fw_file.fileName())
         return
+
+    def update_miner_firmware(self) -> None:
+        rows = self._table_controller.selected_source_rows_for_action(
+            "update_miner_firmware", column=COL_IP
+        )
+        if not rows:
+            self.notification_requested.emit(
+                "Status :: Failed action: no selected IPs.", 5000
+            )
+            return
+
+        firmware_path = Path(self._widgets.firmware.firmware_path.text())
+        try:
+            firmware = BitmainFirmwareImage.from_path(firmware_path)
+        except FirmwareImageError as e:
+            logger.error(f"update_firmware : failed to load firmware image: {e!s}")
+            self.notification_requested.emit(
+                f"Status :: Invalid firmware image: {e!s}", 5000
+            )
+            return
+
+        confirm = IPRMessage(
+            self._window,
+            "Confirm Miner Firmware Update",
+            f"Update firmware for selected {len(rows)} miner(s)?",
+            action_text="Update Firmware",
+        )
+        if confirm.exec() != QDialog.DialogCode.Accepted:
+            return
+        self._action_controller.schedule(self._update_miner_firmware(rows, firmware))
+
+    async def _update_miner_firmware(
+        self, rows: list[int], firmware: BitmainFirmwareImage
+    ) -> None:
+        firmware_widgets = self._widgets.firmware
+        enforce_compatibility = firmware_widgets.force_capability.isChecked()
+        keep_settings = firmware_widgets.keep_settings.isChecked()
+
+        def make_coro(
+            _row: int,
+            ip_addr: str,
+            miner_type: MinerType,
+            _firmware: MinerFirmware,
+            alt_pwd: str | None,
+        ) -> Awaitable[MinerResult] | None:
+            if miner_type is not MinerType.ANTMINER:
+                logger.error(
+                    f"update_firmware : {miner_type.value} is currently not supported."
+                )
+                self.notification_requested.emit(
+                    f"Status :: Skipping {ip_addr}: "
+                    f"{miner_type.value.capitalize()} firmware update is not supported.",
+                    5000,
+                )
+                return None
+
+            async def update() -> MinerResult:
+                version_result = await self._asic.get_miner_version_info(
+                    miner_type, ip_addr, alt_pwd=alt_pwd
+                )
+                if version_result.error is not None:
+                    return version_result
+                version_data = version_result.data
+                if (
+                    not isinstance(version_data, tuple)
+                    or len(version_data) != 2
+                    or not isinstance(version_data[1], AntminerVersionInfo)
+                ):
+                    return MinerResult(
+                        error=APIError("Miner returned invalid version information")
+                    )
+                miner_info = version_data[1].miner_info
+                if miner_info is None:
+                    return MinerResult(
+                        error=APIError(
+                            "Miner did not report model and control board information"
+                        )
+                    )
+                try:
+                    payload = firmware.payload_for(
+                        miner_info.miner_type,
+                        miner_info.subtype,
+                        enforce_compatibility=enforce_compatibility,
+                    )
+                except FirmwareImageError as e:
+                    return MinerResult(error=e)
+                return await self._asic.update_miner_firmware(
+                    miner_type,
+                    ip_addr,
+                    payload.data,
+                    keep_settings=keep_settings,
+                    alt_pwd=alt_pwd,
+                )
+
+            return update()
+
+        await self._action_controller.run_bulk_action(
+            "Update Firmware", rows, make_coro
+        )
 
     def reset_miner_firmware(self) -> None:
         rows = self._table_controller.selected_source_rows_for_action(

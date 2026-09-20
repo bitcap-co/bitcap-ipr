@@ -9,12 +9,17 @@ import asyncio
 import unittest
 from types import SimpleNamespace
 from typing import Any
-from unittest.mock import AsyncMock, Mock, call
+from unittest.mock import AsyncMock, Mock, call, patch
 
 import config  # noqa: F401  # initialize Pydantic before importing PySide-backed IPR
 from mod.ipr_asic import MinerResult
 from mod.ipr_asic.data import MinerFirmware, MinerType
 from mod.ipr_asic.errors import APIError
+from mod.ipr_asic.firmware import (
+    IncompatibleFirmwareError,
+    InvalidFirmwareImageError,
+)
+from mod.ipr_asic.schemas.antminer import MinerTypeInfo, VersionInfo
 from ui.widgets import MinerActionController, MinerConfiguratorController
 
 
@@ -369,6 +374,161 @@ class TestMinerConfiguratorController(unittest.IsolatedAsyncioTestCase):
             ["x", "y", ""],
             alt_pwd="secret",
         )
+
+    def test_update_firmware_rejects_invalid_image(self):
+        firmware_path = Mock()
+        firmware_path.text.return_value = "/tmp/invalid.bmu"
+        subject: Any = SimpleNamespace(
+            _table_controller=SimpleNamespace(
+                selected_source_rows_for_action=Mock(return_value=[4])
+            ),
+            _widgets=SimpleNamespace(
+                firmware=SimpleNamespace(firmware_path=firmware_path)
+            ),
+            _action_controller=SimpleNamespace(schedule=Mock()),
+            notification_requested=Mock(),
+        )
+        error = InvalidFirmwareImageError("bad checksum")
+
+        with patch(
+            "ui.widgets.ipr.idtable.configurator_controller.BitmainFirmwareImage.from_path",
+            side_effect=error,
+        ):
+            MinerConfiguratorController.update_miner_firmware(subject)
+
+        subject.notification_requested.emit.assert_called_once_with(
+            "Status :: Invalid firmware image: bad checksum", 5000
+        )
+        subject._action_controller.schedule.assert_not_called()
+
+    async def test_update_firmware_selects_payload_from_version_info(self):
+        upload_result = MinerResult(data={"stats": "success"})
+        miner_info = MinerTypeInfo(
+            miner_type="Antminer S19j Pro",
+            subtype="AMLOGIC",
+        )
+        version_info = VersionInfo(
+            minertype="Antminer S19j Pro",
+            system_filesystem_version="Tue Jun 22 17:45:49 CST 2021",
+            system_kernel_version="Linux 4.6",
+            miner_info=miner_info,
+        )
+        asic = SimpleNamespace(
+            get_miner_version_info=AsyncMock(
+                return_value=MinerResult(
+                    data=("Tue Jun 22 17:45:49 CST 2021", version_info)
+                )
+            ),
+            update_miner_firmware=AsyncMock(return_value=upload_result),
+        )
+        run_bulk_action = AsyncMock()
+        firmware = Mock()
+        firmware.payload_for.return_value = SimpleNamespace(data=b"selected payload")
+        force_capability = Mock()
+        force_capability.isChecked.return_value = True
+        keep_settings = Mock()
+        keep_settings.isChecked.return_value = False
+        subject: Any = SimpleNamespace(
+            _asic=asic,
+            _action_controller=SimpleNamespace(run_bulk_action=run_bulk_action),
+            _widgets=SimpleNamespace(
+                firmware=SimpleNamespace(
+                    force_capability=force_capability,
+                    keep_settings=keep_settings,
+                )
+            ),
+            notification_requested=Mock(),
+        )
+
+        await MinerConfiguratorController._update_miner_firmware(subject, [4], firmware)
+
+        awaited = run_bulk_action.await_args
+        if awaited is None:
+            self.fail("firmware update bulk action was not awaited")
+        action, rows, make_coro = awaited.args
+        self.assertEqual(action, "Update Firmware")
+        self.assertEqual(rows, [4])
+
+        operation = make_coro(
+            4,
+            "10.0.0.9",
+            MinerType.ANTMINER,
+            MinerFirmware.STOCK,
+            "secret",
+        )
+        if operation is None:
+            self.fail("Antminer firmware update was skipped")
+        result = await operation
+
+        self.assertIs(result, upload_result)
+        asic.get_miner_version_info.assert_awaited_once_with(
+            MinerType.ANTMINER, "10.0.0.9", alt_pwd="secret"
+        )
+        firmware.payload_for.assert_called_once_with(
+            "Antminer S19j Pro",
+            "AMLOGIC",
+            enforce_compatibility=True,
+        )
+        asic.update_miner_firmware.assert_awaited_once_with(
+            MinerType.ANTMINER,
+            "10.0.0.9",
+            b"selected payload",
+            keep_settings=False,
+            alt_pwd="secret",
+        )
+
+    async def test_update_firmware_returns_compatibility_error(self):
+        miner_info = MinerTypeInfo(
+            miner_type="Antminer S21",
+            subtype="AMLOGIC",
+        )
+        version_info = VersionInfo(
+            minertype="Antminer S21",
+            system_filesystem_version="firmware version",
+            system_kernel_version="Linux 4.6",
+            miner_info=miner_info,
+        )
+        asic = SimpleNamespace(
+            get_miner_version_info=AsyncMock(
+                return_value=MinerResult(data=("firmware version", version_info))
+            ),
+            update_miner_firmware=AsyncMock(),
+        )
+        run_bulk_action = AsyncMock()
+        firmware = Mock()
+        compatibility_error = IncompatibleFirmwareError("not compatible")
+        firmware.payload_for.side_effect = compatibility_error
+        checkbox = Mock()
+        checkbox.isChecked.return_value = True
+        subject: Any = SimpleNamespace(
+            _asic=asic,
+            _action_controller=SimpleNamespace(run_bulk_action=run_bulk_action),
+            _widgets=SimpleNamespace(
+                firmware=SimpleNamespace(
+                    force_capability=checkbox,
+                    keep_settings=checkbox,
+                )
+            ),
+            notification_requested=Mock(),
+        )
+
+        await MinerConfiguratorController._update_miner_firmware(subject, [4], firmware)
+        awaited = run_bulk_action.await_args
+        if awaited is None:
+            self.fail("firmware update bulk action was not awaited")
+        operation = awaited.args[2](
+            4,
+            "10.0.0.9",
+            MinerType.ANTMINER,
+            MinerFirmware.STOCK,
+            None,
+        )
+        if operation is None:
+            self.fail("Antminer firmware update was skipped")
+        result = await operation
+
+        self.assertIs(result.error, compatibility_error)
+        asic.update_miner_firmware.assert_not_awaited()
 
     async def test_get_pool_populates_fields_and_writes_preset(self):
         def fields():
