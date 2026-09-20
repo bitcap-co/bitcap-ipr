@@ -92,6 +92,7 @@ class Main:
         self.config_path: Path = get_config_file_path()
         self.log_dir: str = get_log_dir()
         self.log_path: Path = get_log_file_path()
+        self._init_logger()
         self._handling_exception: bool = False
         self.exit_code: int = 0
         self.ipc_server: QLocalServer
@@ -142,7 +143,16 @@ class Main:
 
     def _init_logger(self) -> None:
         os.makedirs(self.log_dir, exist_ok=True)
+        logging.basicConfig(
+            format="%(asctime)s - %(levelname)s - %(name)s:%(message)s",
+            datefmt="%m/%d/%Y %I:%M:%S%p",
+            level=logging.INFO,
+            handlers=[logging.FileHandler(self.log_path.as_posix())],
+            force=True,
+        )
+        logger.info("init_logger : initialized file logging.")
 
+    def _init_log_handler(self) -> None:
         max_log_size_kb = self.config.logs.max_log_size * 1000
         rfh = logging.handlers.RotatingFileHandler(
             self.log_path.as_posix(), maxBytes=max_log_size_kb, backupCount=1
@@ -169,8 +179,9 @@ class Main:
             datefmt="%m/%d/%Y %I:%M:%S%p",
             level=logging.INFO,
             handlers=[rfh],
+            force=True,
         )
-        logger.info("init_logger : init finished.")
+        logger.info("init_log_handler : init finished.")
 
         logger.manager.root.setLevel(self.config.logs.log_level)
         logger.info(f"init_logger : set logger to level {self.config.logs.log_level}.")
@@ -199,7 +210,7 @@ class Main:
         # initialize app
         if not self._init_conf():
             return
-        self._init_logger()
+        self._init_log_handler()
         logger.debug(f"launch_app : bitcap-ipr v{IPR_METADATA['appversion']}")
         logger.info("launch_app : start app.")
 
