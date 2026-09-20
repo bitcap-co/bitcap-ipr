@@ -124,7 +124,7 @@ class Main:
             error_action = QMessageBox.critical(
                 None,
                 "BitCapIPR - Critical error",
-                f"Failed to read existing configuration file!\n{exc.__repr__()}\nPlease fix configuration file or restore to defaults and relaunch the application.",
+                f"Failed to read existing configuration file!\n{exc.__repr__()}\nPlease fix the configuration file or restore defaults to continue.",
                 buttons=QMessageBox.StandardButton.Open
                 | QMessageBox.StandardButton.RestoreDefaults
                 | QMessageBox.StandardButton.Ok,
@@ -136,6 +136,10 @@ class Main:
                     )
                 case QMessageBox.StandardButton.RestoreDefaults:
                     self.config.write_default()
+                    logger.info(
+                        "init_conf : restored default configuration; continuing startup."
+                    )
+                    return True
                 case _:
                     pass
             return False
