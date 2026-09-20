@@ -49,6 +49,8 @@ from mod.ipr_asic.settings import get_auth_list, set_alt_auth
 
 logger = logging.getLogger(__name__)
 
+_FIRMWARE_UPDATE_TIMEOUT = 300.0
+
 
 @final
 class AntminerHTTPClient(BaseHTTPClient):
@@ -116,6 +118,14 @@ class AntminerHTTPClient(BaseHTTPClient):
         except ValueError:
             return 0
 
+    async def get_miner_type_info(self) -> MinerTypeInfo:
+        resp = await self.send_command("GET", command="miner_type")
+        try:
+            return MinerTypeInfo.model_validate(resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+
     async def get_version_info(self) -> tuple[str, VersionInfo]:
         resp = await self.send_command("GET", command="get_system_info")
         try:
@@ -124,9 +134,7 @@ class AntminerHTTPClient(BaseHTTPClient):
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         try:
-            miner_resp = await self.send_command("GET", command="miner_type")
-            miner_info = MinerTypeInfo.model_validate(miner_resp)
-            resobj.miner_info = miner_info
+            resobj.miner_info = await self.get_miner_type_info()
         except (ValidationError, FailedConnectionError, AuthenticationError, APIError):
             pass
         return resobj.fw_version, resobj
@@ -254,6 +262,33 @@ class AntminerHTTPClient(BaseHTTPClient):
         return await self.send_command("POST", command="reset_conf")
 
     @override
+    async def update_firmware(self, firmware: bytes, keep_settings: bool) -> APIObject:
+        if not firmware:
+            raise APIError("Firmware image is empty")
+        command = "upgrade" if keep_settings else "upgrade_clear"
+        resp = await self.send_command(
+            "POST",
+            command=command,
+            files={
+                "firmware": (
+                    "firmware.bmu",
+                    firmware,
+                    "application/octet-stream",
+                )
+            },
+            timeout=_FIRMWARE_UPDATE_TIMEOUT,
+        )
+        try:
+            result = ActionResult.model_validate(resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        if error := result.error():
+            logger.error(f"{self.__repr__()} : {error}")
+            raise APIError("Firmware update failed")
+        return resp
+
+    @override
     async def update_passwd(self, old_passwd: str, new_passwd: str) -> APIObject:
         pw_conf = MinerPasswdConfig(
             curr_passwd=old_passwd, new_passwd=new_passwd, confirm_passwd=new_passwd
@@ -379,6 +414,14 @@ class AntminerOldHTTPClient(BaseHTTPClient):
         except ValueError:
             return 0
 
+    async def get_miner_type_info(self) -> MinerTypeInfo:
+        resp = await self.send_command("GET", command="miner_type")
+        try:
+            return MinerTypeInfo.model_validate(resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+
     async def get_version_info(self) -> tuple[str, VersionInfo]:
         resp = await self.send_command("GET", command="get_system_info")
         try:
@@ -386,6 +429,10 @@ class AntminerOldHTTPClient(BaseHTTPClient):
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
+        try:
+            resobj.miner_info = await self.get_miner_type_info()
+        except (ValidationError, FailedConnectionError, AuthenticationError, APIError):
+            pass
         return resobj.fw_version, resobj
 
     async def get_system_info(self) -> SystemInfo:
@@ -485,6 +532,33 @@ class AntminerOldHTTPClient(BaseHTTPClient):
     @override
     async def reboot(self) -> APIObject:
         return await self.send_command("POST", command="reboot")
+
+    @override
+    async def update_firmware(self, firmware: bytes, keep_settings: bool) -> APIObject:
+        if not firmware:
+            raise APIError("Firmware image is empty")
+        command = "upgrade" if keep_settings else "upgrade_clear"
+        resp = await self.send_command(
+            "POST",
+            command=command,
+            files={
+                "firmware": (
+                    "firmware.bmu",
+                    firmware,
+                    "application/octet-stream",
+                )
+            },
+            timeout=_FIRMWARE_UPDATE_TIMEOUT,
+        )
+        try:
+            result = ActionResult.model_validate(resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        if error := result.error():
+            logger.error(f"{self.__repr__()} : {error}")
+            raise APIError("Firmware update failed")
+        return resp
 
     @override
     async def update_passwd(self, old_passwd: str, new_passwd: str) -> APIObject:
