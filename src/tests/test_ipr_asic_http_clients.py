@@ -90,6 +90,46 @@ class TestAntminerClient(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(info.pools.root[0].user, "testuser")
         self.assertEqual(info.pools.root[0].pwd, "1")
 
+    async def test_update_firmware_posts_multipart_payload(self):
+        firmware = b"validated firmware payload"
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            self.assertEqual(request.method, "POST")
+            self.assertTrue(request.url.path.endswith("cgi-bin/upgrade_clear.cgi"))
+            self.assertTrue(
+                request.headers["content-type"].startswith("multipart/form-data;")
+            )
+            self.assertIn(b'name="firmware"', request.content)
+            self.assertIn(b'filename="firmware.bmu"', request.content)
+            self.assertIn(b"application/octet-stream", request.content)
+            self.assertIn(firmware, request.content)
+            return httpx.Response(200, json={"stats": "success"})
+
+        client = AntminerHTTPClient("127.0.0.1", transport=httpx.MockTransport(handler))
+        client.authed = True
+
+        result = await client.update_firmware(firmware, keep_settings=False)
+
+        self.assertEqual(result["stats"], "success")
+
+    async def test_update_firmware_rejects_failed_action_response(self):
+        transport = httpx.MockTransport(
+            lambda request: httpx.Response(
+                200,
+                json={
+                    "stats": "fail",
+                    "status": "fail",
+                    "code": "1",
+                    "msg": "invalid firmware",
+                },
+            )
+        )
+        client = AntminerHTTPClient("127.0.0.1", transport=transport)
+        client.authed = True
+
+        with self.assertRaisesRegex(APIError, "Firmware update failed"):
+            await client.update_firmware(b"firmware", keep_settings=True)
+
     async def test_update_passwd_posts_expected_json_payload(self):
         def handler(request: httpx.Request) -> httpx.Response:
             self.assertEqual(request.method, "POST")

@@ -405,6 +405,24 @@ class ASICClient(QObject):
 
         return MinerData().as_dict()
 
+    async def get_miner_version_info(
+        self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
+    ) -> MinerResult:
+        try:
+            client = await self._make_client(miner_type, ip, alt_pwd)
+        except UnknownClientError as e:
+            return MinerResult(error=e)
+        error: Exception | None = None
+        try:
+            version_info = await client.get_version_info()
+            return MinerResult(data=version_info)
+        except _CLIENT_ERRORS as e:
+            logger.error(f"{client!r} : client error raised: {e!s}")
+            error = e
+        finally:
+            client.close(error)
+        return MinerResult(error=error)
+
     async def get_miner_pool_conf(
         self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
     ) -> MinerResult:
@@ -582,6 +600,34 @@ class ASICClient(QObject):
         finally:
             client.close()
         return MinerResult()
+
+    async def update_miner_firmware(
+        self,
+        miner_type: MinerType,
+        ip: str,
+        firmware: bytes,
+        keep_settings: bool = True,
+        alt_pwd: str | None = None,
+    ) -> MinerResult:
+        """Upload a firmware payload that has already been selected and validated."""
+        if miner_type is not MinerType.ANTMINER:
+            return MinerResult(
+                error=UnsupportedOperationError(
+                    "Firmware updates currently support Antminer only"
+                )
+            )
+        try:
+            client = await self._make_client(miner_type, ip, alt_pwd)
+        except UnknownClientError as e:
+            return MinerResult(error=e)
+        try:
+            data = await client.update_firmware(firmware, keep_settings)
+            return MinerResult(data=data)
+        except _CLIENT_ERRORS as e:
+            logger.error(f"{client!r} : client error raised: {e!s}")
+            return MinerResult(error=e)
+        finally:
+            client.close()
 
     async def rollback_miner_firmware(
         self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
