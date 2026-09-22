@@ -10,7 +10,7 @@ from typing import ClassVar, Self
 
 from pydantic import BaseModel, ConfigDict
 
-from .errors import (
+from ..errors import (
     FirmwareChecksumError,
     IncompatibleFirmwareError,
     InvalidFirmwareImageError,

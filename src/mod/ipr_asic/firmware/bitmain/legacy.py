@@ -17,7 +17,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Signature import pkcs1_15
 from pydantic import BaseModel, ConfigDict
 
-from .errors import (
+from ..errors import (
     FirmwareSignatureError,
     IncompatibleFirmwareError,
     InvalidFirmwareImageError,

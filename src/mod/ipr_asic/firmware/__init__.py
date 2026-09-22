@@ -6,10 +6,13 @@
 from .bitmain import (
     BitmainContainerHeader,
     BitmainContainerItem,
+    BitmainFirmware,
     BitmainFirmwareImage,
     BitmainFirmwarePayload,
+    BitmainLegacyFirmwareImage,
+    BitmainLegacyMetadata,
+    load_bitmain_firmware,
 )
-from .bitmain_legacy import BitmainLegacyFirmwareImage, BitmainLegacyMetadata
 from .errors import (
     FirmwareChecksumError,
     FirmwareImageError,
@@ -21,6 +24,7 @@ from .errors import (
 __all__ = [
     "BitmainContainerHeader",
     "BitmainContainerItem",
+    "BitmainFirmware",
     "BitmainFirmwareImage",
     "BitmainFirmwarePayload",
     "BitmainLegacyFirmwareImage",
@@ -30,4 +34,5 @@ __all__ = [
     "FirmwareSignatureError",
     "IncompatibleFirmwareError",
     "InvalidFirmwareImageError",
+    "load_bitmain_firmware",
 ]
