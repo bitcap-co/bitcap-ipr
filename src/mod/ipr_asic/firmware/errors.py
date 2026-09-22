@@ -16,5 +16,9 @@ class FirmwareChecksumError(InvalidFirmwareImageError):
     """Raised when a firmware container fails checksum validation."""
 
 
+class FirmwareSignatureError(InvalidFirmwareImageError):
+    """Raised when a firmware image fails signature validation."""
+
+
 class IncompatibleFirmwareError(FirmwareImageError):
     """Raised when an image has no payload compatible with a miner."""

@@ -9,9 +9,11 @@ from .bitmain import (
     BitmainFirmwareImage,
     BitmainFirmwarePayload,
 )
+from .bitmain_legacy import BitmainLegacyFirmwareImage, BitmainLegacyMetadata
 from .errors import (
     FirmwareChecksumError,
     FirmwareImageError,
+    FirmwareSignatureError,
     IncompatibleFirmwareError,
     InvalidFirmwareImageError,
 )
@@ -21,8 +23,11 @@ __all__ = [
     "BitmainContainerItem",
     "BitmainFirmwareImage",
     "BitmainFirmwarePayload",
+    "BitmainLegacyFirmwareImage",
+    "BitmainLegacyMetadata",
     "FirmwareChecksumError",
     "FirmwareImageError",
+    "FirmwareSignatureError",
     "IncompatibleFirmwareError",
     "InvalidFirmwareImageError",
 ]
