@@ -534,6 +534,10 @@ class AntminerOldHTTPClient(BaseHTTPClient):
         return await self.send_command("POST", command="reboot")
 
     @override
+    async def reset_firmware(self) -> APIObject:
+        return await self.send_command("POST", command="reset_conf")
+
+    @override
     async def update_firmware(self, firmware: bytes, keep_settings: bool) -> APIObject:
         if not firmware:
             raise APIError("Firmware image is empty")
