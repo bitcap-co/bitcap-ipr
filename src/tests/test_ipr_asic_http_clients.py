@@ -100,7 +100,10 @@ class TestAntminerClient(unittest.IsolatedAsyncioTestCase):
                 request.headers["content-type"].startswith("multipart/form-data;")
             )
             self.assertIn(b'name="firmware"', request.content)
-            self.assertIn(b'filename="firmware.bmu"', request.content)
+            self.assertIn(
+                b'filename="firmware.img"',
+                request.content,
+            )
             self.assertIn(b"application/octet-stream", request.content)
             self.assertIn(firmware, request.content)
             return httpx.Response(200, json={"stats": "success"})
@@ -108,7 +111,11 @@ class TestAntminerClient(unittest.IsolatedAsyncioTestCase):
         client = AntminerHTTPClient("127.0.0.1", transport=httpx.MockTransport(handler))
         client.authed = True
 
-        result = await client.update_firmware(firmware, keep_settings=False)
+        result = await client.update_firmware(
+            firmware,
+            filename="firmware.img",
+            keep_settings=False,
+        )
 
         self.assertEqual(result["stats"], "success")
 
@@ -128,7 +135,9 @@ class TestAntminerClient(unittest.IsolatedAsyncioTestCase):
         client.authed = True
 
         with self.assertRaisesRegex(APIError, "Firmware update failed"):
-            await client.update_firmware(b"firmware", keep_settings=True)
+            await client.update_firmware(
+                b"firmware", filename="firmware.img", keep_settings=True
+            )
 
     async def test_update_passwd_posts_expected_json_payload(self):
         def handler(request: httpx.Request) -> httpx.Response:
@@ -187,6 +196,46 @@ class TestAntminerClient(unittest.IsolatedAsyncioTestCase):
 
 
 class TestAntminerOldClient(unittest.IsolatedAsyncioTestCase):
+    async def test_update_firmware_uses_legacy_datafile_form_field(self):
+        firmware = b"legacy firmware archive"
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            self.assertEqual(request.method, "POST")
+            self.assertTrue(request.url.path.endswith("cgi-bin/upgrade.cgi"))
+            self.assertTrue(
+                request.headers["content-type"].startswith("multipart/form-data;")
+            )
+            self.assertIn(b'name="datafile"', request.content)
+            self.assertIn(
+                b'filename="Antminer-L3-201704271449-384M.tar.gz"',
+                request.content,
+            )
+            self.assertNotIn(b'name="firmware"', request.content)
+            self.assertIn(b"application/octet-stream", request.content)
+            self.assertIn(firmware, request.content)
+            return httpx.Response(
+                200,
+                json={
+                    "stats": "success",
+                    "status": "success",
+                    "code": "0",
+                    "msg": "OK",
+                },
+            )
+
+        client = AntminerOldHTTPClient(
+            "127.0.0.1", transport=httpx.MockTransport(handler)
+        )
+        client.authed = True
+
+        result = await client.update_firmware(
+            firmware,
+            filename="Antminer-L3-201704271449-384M.tar.gz",
+            keep_settings=True,
+        )
+
+        self.assertEqual(result["stats"], "success")
+
     async def test_update_passwd_posts_expected_query_params(self):
         def handler(request: httpx.Request) -> httpx.Response:
             self.assertEqual(request.method, "POST")

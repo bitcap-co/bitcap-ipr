@@ -25,7 +25,12 @@ from mod.ipr_asic import ASICClient, MinerResult
 from mod.ipr_asic import settings as api_settings
 from mod.ipr_asic.data import MinerFirmware, MinerType
 from mod.ipr_asic.errors import APIError, UnknownClientError
-from mod.ipr_asic.firmware import BitmainFirmwareImage, FirmwareImageError
+from mod.ipr_asic.firmware import (
+    BitmainFirmware,
+    BitmainLegacyFirmwareImage,
+    FirmwareImageError,
+    load_bitmain_firmware,
+)
 from mod.ipr_asic.schemas.antminer import VersionInfo as AntminerVersionInfo
 
 from ..message import IPRMessage
@@ -377,7 +382,7 @@ class MinerConfiguratorController(QObject):
             self._window,
             "Select firmware file",
             str(self._widgets.firmware.firmware_path.text()),
-            "Firmware Files (*.bmu *.bin)",
+            "Firmware Files (*.bmu *.bin *.tar.gz)",
         )
         if not fd:
             return
@@ -398,7 +403,7 @@ class MinerConfiguratorController(QObject):
 
         firmware_path = Path(self._widgets.firmware.firmware_path.text())
         try:
-            firmware = BitmainFirmwareImage.from_path(firmware_path)
+            firmware = load_bitmain_firmware(firmware_path)
         except FirmwareImageError as e:
             logger.error(f"update_firmware : failed to load firmware image: {e!s}")
             self.notification_requested.emit(
@@ -406,10 +411,20 @@ class MinerConfiguratorController(QObject):
             )
             return
 
+        warning = ""
+        if (
+            isinstance(firmware, BitmainLegacyFirmwareImage)
+            and not firmware.metadata.signature_valid
+        ):
+            warning = (
+                "\n\nThis legacy package is unsigned. Archive and embedded "
+                + "image checksums passed, but authenticity cannot be verified."
+            )
         confirm = IPRMessage(
             self._window,
             "Confirm Miner Firmware Update",
-            f"Update firmware for selected {len(rows)} miner(s)?",
+            f"Update firmware for selected {len(rows)} miner(s) using "
+            + f"{firmware_path.name!r}?{warning}",
             action_text="Update Firmware",
         )
         if confirm.exec() != QDialog.DialogCode.Accepted:
@@ -417,7 +432,7 @@ class MinerConfiguratorController(QObject):
         self._action_controller.schedule(self._update_miner_firmware(rows, firmware))
 
     async def _update_miner_firmware(
-        self, rows: list[int], firmware: BitmainFirmwareImage
+        self, rows: list[int], firmware: BitmainFirmware
     ) -> None:
         firmware_widgets = self._widgets.firmware
         enforce_compatibility = firmware_widgets.enforce_compatibility.isChecked()
@@ -464,19 +479,35 @@ class MinerConfiguratorController(QObject):
                         )
                     )
                 try:
-                    payload = firmware.payload_for(
-                        miner_info.miner_type,
-                        miner_info.subtype,
-                        enforce_compatibility=enforce_compatibility,
-                    )
+                    if isinstance(firmware, BitmainLegacyFirmwareImage):
+                        payload_data = firmware.payload_for(
+                            miner_info.miner_type,
+                            enforce_compatibility=enforce_compatibility,
+                        )
+                        upload_filename = firmware.metadata.filename
+                    else:
+                        payload = firmware.payload_for(
+                            miner_info.miner_type,
+                            miner_info.subtype,
+                            enforce_compatibility=enforce_compatibility,
+                        )
+                        payload_data = payload.data
+                        upload_filename = (
+                            payload.item.name
+                            if payload.item is not None
+                            else firmware.source.name
+                            if firmware.source is not None
+                            else "firmware.bmu"
+                        )
                 except FirmwareImageError as e:
                     return MinerResult(error=e)
                 return await self._asic.update_miner_firmware(
                     miner_type,
                     ip_addr,
-                    payload.data,
+                    payload_data,
                     keep_settings=keep_settings,
                     alt_pwd=alt_pwd,
+                    filename=upload_filename,
                 )
 
             return update()

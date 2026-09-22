@@ -15,6 +15,7 @@ import json
 import unittest
 from collections.abc import Sequence
 from pathlib import Path
+from unittest.mock import AsyncMock
 
 import httpx
 
@@ -24,7 +25,11 @@ from mod.ipr_asic.errors import (
     UnknownClientError,
     UnsupportedOperationError,
 )
-from mod.ipr_asic.http import SRBMinerHTTPClient
+from mod.ipr_asic.http import (
+    AntminerHTTPClient,
+    AntminerOldHTTPClient,
+    SRBMinerHTTPClient,
+)
 from mod.ipr_asic.schemas.antminer import MinerTypeInfo
 from mod.ipr_asic.schemas.models import (
     APIObject,
@@ -51,7 +56,7 @@ class _FakeClient:
         self.blinks: list[bool] = []
         self.controls: list[str] = []
         self.passwd_updates: list[tuple[str, str]] = []
-        self.firmware_updates: list[tuple[bytes, bool]] = []
+        self.firmware_updates: list[tuple[bytes, str, bool]] = []
         self._ex: Exception | None = None
 
     def error(self) -> Exception | None:
@@ -127,8 +132,13 @@ class _FakeClient:
             subtype="AMLOGIC",
         )
 
-    async def update_firmware(self, firmware: bytes, keep_settings: bool) -> APIObject:
-        self.firmware_updates.append((firmware, keep_settings))
+    async def update_firmware(
+        self,
+        firmware: bytes,
+        filename: str,
+        keep_settings: bool,
+    ) -> APIObject:
+        self.firmware_updates.append((firmware, filename, keep_settings))
         error = self._behaviours.get("update_firmware_error")
         if isinstance(error, Exception):
             raise error
@@ -266,6 +276,17 @@ class TestPoolConf(unittest.IsolatedAsyncioTestCase):
 
 
 class TestFirmwareUpdate(unittest.IsolatedAsyncioTestCase):
+    async def test_legacy_antminer_uses_old_http_client(self):
+        asic = ASICClient()
+        client = AntminerHTTPClient("10.0.0.1")
+        client.get_version_info = AsyncMock(
+            return_value=("Thu Apr 27 06:49:04 CST 2017", object())
+        )
+
+        upgraded = await asic._upgrade_client(client, "10.0.0.1")
+
+        self.assertIsInstance(upgraded, AntminerOldHTTPClient)
+
     async def test_update_firmware_uploads_raw_payload(self):
         asic = ASICClient()
         client = _FakeClient()
@@ -278,13 +299,15 @@ class TestFirmwareUpdate(unittest.IsolatedAsyncioTestCase):
             MinerType.ANTMINER,
             "10.0.0.1",
             b"selected firmware payload",
+            "firmware.img",
             keep_settings=False,
         )
 
         self.assertTrue(result.ok)
         self.assertEqual(result.data, {"stats": "success"})
         self.assertEqual(
-            client.firmware_updates, [(b"selected firmware payload", False)]
+            client.firmware_updates,
+            [(b"selected firmware payload", "firmware.img", False)],
         )
         self.assertTrue(client.closed)
 
@@ -301,6 +324,7 @@ class TestFirmwareUpdate(unittest.IsolatedAsyncioTestCase):
             MinerType.ANTMINER,
             "10.0.0.1",
             b"selected firmware payload",
+            "firmware.img",
         )
 
         self.assertFalse(result.ok)
@@ -314,6 +338,7 @@ class TestFirmwareUpdate(unittest.IsolatedAsyncioTestCase):
             MinerType.WHATSMINER,
             "10.0.0.1",
             b"selected firmware payload",
+            "firmware.img",
         )
 
         self.assertFalse(result.ok)

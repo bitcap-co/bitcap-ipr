@@ -85,7 +85,12 @@ class BaseClient(ABC):
     async def rollback_firmware(self) -> APIObject:
         self._unsupported("rollback_firmware")
 
-    async def update_firmware(self, firmware: bytes, keep_settings: bool) -> APIObject:
+    async def update_firmware(
+        self,
+        firmware: bytes,
+        filename: str,
+        keep_settings: bool,
+    ) -> APIObject:
         self._unsupported("update_firmware")
 
     async def update_passwd(

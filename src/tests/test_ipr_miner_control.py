@@ -7,6 +7,7 @@
 
 import asyncio
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 from unittest.mock import AsyncMock, Mock, call, patch
@@ -16,6 +17,7 @@ from mod.ipr_asic import MinerResult
 from mod.ipr_asic.data import MinerFirmware, MinerType
 from mod.ipr_asic.errors import APIError
 from mod.ipr_asic.firmware import (
+    BitmainLegacyFirmwareImage,
     IncompatibleFirmwareError,
     InvalidFirmwareImageError,
 )
@@ -391,7 +393,7 @@ class TestMinerConfiguratorController(unittest.IsolatedAsyncioTestCase):
         error = InvalidFirmwareImageError("bad checksum")
 
         with patch(
-            "ui.widgets.ipr.idtable.configurator_controller.BitmainFirmwareImage.from_path",
+            "ui.widgets.ipr.idtable.configurator_controller.load_bitmain_firmware",
             side_effect=error,
         ):
             MinerConfiguratorController.update_miner_firmware(subject)
@@ -423,7 +425,10 @@ class TestMinerConfiguratorController(unittest.IsolatedAsyncioTestCase):
         )
         run_bulk_action = AsyncMock()
         firmware = Mock()
-        firmware.payload_for.return_value = SimpleNamespace(data=b"selected payload")
+        firmware.source = Path("/tmp/update.bmu")
+        firmware.payload_for.return_value = SimpleNamespace(
+            data=b"selected payload", item=None
+        )
         enforce_compatibility = Mock()
         enforce_compatibility.isChecked.return_value = True
         keep_settings = Mock()
@@ -475,6 +480,74 @@ class TestMinerConfiguratorController(unittest.IsolatedAsyncioTestCase):
             b"selected payload",
             keep_settings=False,
             alt_pwd="secret",
+            filename="update.bmu",
+        )
+
+    async def test_update_legacy_firmware_uses_model_and_archive_filename(self):
+        upload_result = MinerResult(data={"stats": "success"})
+        miner_info = MinerTypeInfo(miner_type="Antminer L3", subtype="")
+        version_info = VersionInfo(
+            minertype="Antminer L3",
+            system_filesystem_version="Thu Apr 27 06:49:04 CST 2017",
+            system_kernel_version="Linux 3.8",
+            miner_info=miner_info,
+        )
+        asic = SimpleNamespace(
+            get_miner_version_info=AsyncMock(
+                return_value=MinerResult(
+                    data=("Thu Apr 27 06:49:04 CST 2017", version_info)
+                )
+            ),
+            update_miner_firmware=AsyncMock(return_value=upload_result),
+        )
+        run_bulk_action = AsyncMock()
+        firmware = Mock(spec=BitmainLegacyFirmwareImage)
+        firmware.metadata = SimpleNamespace(
+            filename="Antminer-L3-201704271449-384M.tar.gz"
+        )
+        firmware.payload_for.return_value = b"legacy archive"
+        checkbox = Mock()
+        checkbox.isChecked.return_value = True
+        subject: Any = SimpleNamespace(
+            _asic=asic,
+            _action_controller=SimpleNamespace(run_bulk_action=run_bulk_action),
+            _widgets=SimpleNamespace(
+                firmware=SimpleNamespace(
+                    enforce_compatibility=checkbox,
+                    keep_settings=checkbox,
+                )
+            ),
+            notification_requested=Mock(),
+        )
+
+        await MinerConfiguratorController._update_miner_firmware(subject, [4], firmware)
+        awaited = run_bulk_action.await_args
+        if awaited is None:
+            self.fail("firmware update bulk action was not awaited")
+        _, _, make_coro = awaited.args
+        operation = make_coro(
+            4,
+            "10.0.0.3",
+            MinerType.ANTMINER,
+            MinerFirmware.STOCK,
+            "secret",
+        )
+        if operation is None:
+            self.fail("Antminer firmware update was skipped")
+
+        result = await operation
+
+        self.assertIs(result, upload_result)
+        firmware.payload_for.assert_called_once_with(
+            "Antminer L3", enforce_compatibility=True
+        )
+        asic.update_miner_firmware.assert_awaited_once_with(
+            MinerType.ANTMINER,
+            "10.0.0.3",
+            b"legacy archive",
+            keep_settings=True,
+            alt_pwd="secret",
+            filename="Antminer-L3-201704271449-384M.tar.gz",
         )
 
     async def test_update_firmware_returns_compatibility_error(self):

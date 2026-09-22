@@ -606,6 +606,7 @@ class ASICClient(QObject):
         miner_type: MinerType,
         ip: str,
         firmware: bytes,
+        filename: str,
         keep_settings: bool = True,
         alt_pwd: str | None = None,
     ) -> MinerResult:
@@ -621,7 +622,7 @@ class ASICClient(QObject):
         except UnknownClientError as e:
             return MinerResult(error=e)
         try:
-            data = await client.update_firmware(firmware, keep_settings)
+            data = await client.update_firmware(firmware, filename, keep_settings)
             return MinerResult(data=data)
         except _CLIENT_ERRORS as e:
             logger.error(f"{client!r} : client error raised: {e!s}")

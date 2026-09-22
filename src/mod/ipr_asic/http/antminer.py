@@ -262,7 +262,12 @@ class AntminerHTTPClient(BaseHTTPClient):
         return await self.send_command("POST", command="reset_conf")
 
     @override
-    async def update_firmware(self, firmware: bytes, keep_settings: bool) -> APIObject:
+    async def update_firmware(
+        self,
+        firmware: bytes,
+        filename: str,
+        keep_settings: bool,
+    ) -> APIObject:
         if not firmware:
             raise APIError("Firmware image is empty")
         command = "upgrade" if keep_settings else "upgrade_clear"
@@ -271,7 +276,7 @@ class AntminerHTTPClient(BaseHTTPClient):
             command=command,
             files={
                 "firmware": (
-                    "firmware.bmu",
+                    filename,
                     firmware,
                     "application/octet-stream",
                 )
@@ -538,7 +543,12 @@ class AntminerOldHTTPClient(BaseHTTPClient):
         return await self.send_command("POST", command="reset_conf")
 
     @override
-    async def update_firmware(self, firmware: bytes, keep_settings: bool) -> APIObject:
+    async def update_firmware(
+        self,
+        firmware: bytes,
+        filename: str,
+        keep_settings: bool,
+    ) -> APIObject:
         if not firmware:
             raise APIError("Firmware image is empty")
         command = "upgrade" if keep_settings else "upgrade_clear"
@@ -546,8 +556,8 @@ class AntminerOldHTTPClient(BaseHTTPClient):
             "POST",
             command=command,
             files={
-                "firmware": (
-                    "firmware.bmu",
+                "datafile": (
+                    filename,
                     firmware,
                     "application/octet-stream",
                 )
