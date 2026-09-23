@@ -18,7 +18,7 @@ from PySide6.QtCore import (
 )
 from PySide6.QtNetwork import QHostAddress
 
-from mod.ipr_asic.data import MinerData
+from mod.ipr_asic.data import MinerData, model_identity
 
 # action columns (icon-only, no underlying MinerData field)
 COL_ACTION = 0
@@ -27,6 +27,11 @@ COL_RECV_AT = 1
 
 # custom role used by the proxy for type-aware sorting (epoch int, ip int, ...)
 IPR_SORT_ROLE = Qt.ItemDataRole.UserRole + 1
+
+
+def normalize_value(value: str) -> str:
+    """Fold a value for case- and whitespace-insensitive filter matching."""
+    return "".join(value.casefold().split())
 
 
 class Column(BaseModel):
@@ -45,6 +50,8 @@ class Column(BaseModel):
     tooltip: str | None = None
     # low-cardinality columns get an Excel-style header filter dropdown
     filterable: bool = False
+    # normalization used to group and match header-filter values
+    filter_key: Callable[[str], str] = normalize_value
 
 
 def _ip_sort_key(m: MinerData) -> int:
@@ -65,7 +72,12 @@ COLUMNS: list[Column] = [
     ),
     Column(header="MAC", field="mac"),
     Column(header="TYPE", field="type", filterable=True),
-    Column(header="SUBTYPE", field="subtype", filterable=True),
+    Column(
+        header="SUBTYPE",
+        field="subtype",
+        filterable=True,
+        filter_key=model_identity,
+    ),
     Column(
         header="SERIAL",
         field="serial",
@@ -97,6 +109,7 @@ def _field_column(field: str) -> int:
 
 
 COL_IP = _field_column("ip")
+COL_SUBTYPE = _field_column("subtype")
 COL_SERIAL = _field_column("serial")
 COL_URL = _field_column("stratum_url")
 COL_USER = _field_column("username")
@@ -115,15 +128,9 @@ def _column_for(section: int) -> Column | None:
     return COLUMNS[section - ACTION_COLUMN_COUNT]
 
 
-def normalize_value(value: str) -> str:
-    """Fold a value for header-filter grouping and matching.
-
-    Case- and whitespace-insensitive, so near-duplicates like ``S19JPRO`` and
-    ``S19j Pro`` (differing only by case and a space) are treated as the same
-    value. Used identically by the model, proxy and popup so grouping and
-    matching stay in sync.
-    """
-    return "".join(value.casefold().split())
+def filter_key_for_column(section: int) -> Callable[[str], str]:
+    column = _column_for(section)
+    return column.filter_key if column is not None else normalize_value
 
 
 class IPRTableModel(QAbstractTableModel):
@@ -225,6 +232,10 @@ class IPRTableModel(QAbstractTableModel):
         """Return the MinerData for a *source* row (caller maps proxy->source)."""
         return self._rows[row]
 
+    @staticmethod
+    def filter_key(col: int) -> Callable[[str], str]:
+        return filter_key_for_column(col)
+
     def distinct_values(self, col: int) -> list[tuple[str, int]]:
         """Distinct ``(label, count)`` pairs for a column, grouped case-insensitively.
 
@@ -244,7 +255,7 @@ class IPRTableModel(QAbstractTableModel):
         best_count: dict[str, int] = {}
         total: dict[str, int] = {}
         for label, count in counts.items():
-            key = normalize_value(label)
+            key = column.filter_key(label)
             total[key] = total.get(key, 0) + count
             if count > best_count.get(key, -1):
                 best_count[key] = count
