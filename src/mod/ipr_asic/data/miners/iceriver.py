@@ -12,8 +12,8 @@ from mod.ipr_asic.schemas.iceriver import UserPanel as IceriverSummary
 
 
 class IceriverModels(BaseModel):
-    summary: IceriverSummary
-    pools: list[IceriverPool]
+    summary: IceriverSummary | None = None
+    pools: list[IceriverPool] | None = None
 
 
 class IceriverParser:
@@ -22,13 +22,29 @@ class IceriverParser:
         data.type = MinerType.ICERIVER
         data.firmware = MinerFirmware.STOCK
 
-        uptime_str = models.summary.runtime
-        days, hours, mins, secs = map(int, uptime_str.split(":"))
-        uptime = days * 86400 + hours * 3600 + mins * 60 + secs
-        data.uptime = uptime
+        if models.summary is not None:
+            self._parse_summary(models.summary, data)
 
-        if models.summary.model == "none":
-            slug = models.summary.softver1
+        for pool in models.pools or []:
+            if pool.connect == 1:
+                data.stratum_url = pool.addr
+                if "." in pool.user:
+                    user, worker = pool.user.split(".", 1)
+                    data.username = user
+                    data.worker_name = worker
+                else:
+                    data.username = pool.user
+                break
+
+        return data
+
+    def _parse_summary(self, summary: IceriverSummary, data: MinerData) -> None:
+        uptime_str = summary.runtime
+        days, hours, mins, secs = map(int, uptime_str.split(":"))
+        data.uptime = days * 86400 + hours * 3600 + mins * 60 + secs
+
+        if summary.model == "none":
+            slug = summary.softver1
             split_ver = slug.split("_")
             if split_ver[-1] == "miner":
                 model_ver = split_ver[-2]
@@ -42,14 +58,14 @@ class IceriverParser:
                 case _:
                     data.subtype = model_ver.upper()
         else:
-            data.subtype = models.summary.model
+            data.subtype = summary.model
 
-        data.hostname = models.summary.host
-        data.mac = models.summary.mac
-        data.fw_version = models.summary.softver1
+        data.hostname = summary.host
+        data.mac = summary.mac
+        data.fw_version = summary.softver1
 
         data.algorithm = None
-        algo = models.summary.algo
+        algo = summary.algo
         if algo != "none":
             data.algorithm = MinerAlgorithm.from_value(algo)
         elif data.subtype:
@@ -57,16 +73,3 @@ class IceriverParser:
                 data.algorithm = MinerAlgorithm.BLAKE3
             elif data.subtype.__contains__("KS"):
                 data.algorithm = MinerAlgorithm.KHEAVYHASH
-
-        for pool in models.pools:
-            if pool.connect == 1:
-                data.stratum_url = pool.addr
-                if "." in pool.user:
-                    user, worker = pool.user.split(".", 1)
-                    data.username = user
-                    data.worker_name = worker
-                else:
-                    data.username = pool.user
-                break
-
-        return data

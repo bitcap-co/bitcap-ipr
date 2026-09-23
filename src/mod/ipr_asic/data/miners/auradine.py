@@ -7,9 +7,9 @@ from mod.ipr_asic.schemas.auradine import Summary as AuradineSummary
 
 
 class AuradineModels(BaseModel):
-    system_info: AuradineSystemInfo
-    summary: AuradineSummary
-    pools: list[AuradinePool]
+    system_info: AuradineSystemInfo | None = None
+    summary: AuradineSummary | None = None
+    pools: list[AuradinePool] | None = None
 
 
 class AuradineParser:
@@ -19,14 +19,16 @@ class AuradineParser:
         data.firmware = MinerFirmware.STOCK
         data.algorithm = MinerAlgorithm.SHA256
 
-        data.uptime = models.summary.elapsed
-        data.subtype = models.system_info.model
-        data.hostname = models.system_info.hostname
-        data.mac = models.system_info.mac
-        data.serial = models.system_info.chassis_serial
-        data.fw_version = models.system_info.version
+        if models.summary is not None:
+            data.uptime = models.summary.elapsed
+        if models.system_info is not None:
+            data.subtype = models.system_info.model
+            data.hostname = models.system_info.hostname
+            data.mac = models.system_info.mac
+            data.serial = models.system_info.chassis_serial
+            data.fw_version = models.system_info.version
 
-        for pool in models.pools:
+        for pool in models.pools or []:
             if pool.status == "Alive":
                 data.stratum_url = pool.url
                 if "." in pool.user:

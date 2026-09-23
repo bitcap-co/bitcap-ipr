@@ -15,11 +15,11 @@ from mod.ipr_asic.schemas.goldshell import Status as GoldshellSystemInfo
 
 
 class GoldshellModels(BaseModel):
-    system_info: GoldshellSystemInfo
-    summary: GoldshellSummary
-    miner_config: GoldshellMinerConfig
-    algorithm: GoldshellAlgorithm
-    pools: list[GoldshellPool]
+    system_info: GoldshellSystemInfo | None = None
+    summary: GoldshellSummary | None = None
+    miner_config: GoldshellMinerConfig | None = None
+    algorithm: GoldshellAlgorithm | None = None
+    pools: list[GoldshellPool] | None = None
 
 
 class GoldshellParser:
@@ -28,15 +28,18 @@ class GoldshellParser:
         data.type = MinerType.GOLDSHELL
         data.firmware = MinerFirmware.STOCK
 
-        data.subtype = models.system_info.model
-        # data.hostname = models.miner_config.name
-        data.mac = models.miner_config.name
-        data.fw_version = models.system_info.firmware
-        data.algorithm = MinerAlgorithm.from_value(
-            models.algorithm.algos[models.algorithm.algo_select].name
-        )
+        if models.system_info is not None:
+            data.subtype = models.system_info.model
+            data.fw_version = models.system_info.firmware
+        if models.miner_config is not None:
+            # Goldshell reports its MAC address in the config name field.
+            data.mac = models.miner_config.name
+        if models.algorithm is not None:
+            data.algorithm = MinerAlgorithm.from_value(
+                models.algorithm.algos[models.algorithm.algo_select].name
+            )
 
-        for pool in models.pools:
+        for pool in models.pools or []:
             if pool.active:
                 data.stratum_url = pool.url
                 if "." in pool.user:

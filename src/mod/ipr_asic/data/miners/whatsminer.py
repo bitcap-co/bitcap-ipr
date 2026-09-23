@@ -39,17 +39,17 @@ from mod.ipr_asic.schemas.whatsminer import (
 
 
 class WhatsminerModels(BaseModel):
-    system_info: WhatsminerSystemInfo
-    summary: WhatsminerSummary
-    version_info: WhatsminerVersionInfo
-    pools: list[WhatsminerPool]
-    dev_details: list[WhatsminerDevDetails]
+    system_info: WhatsminerSystemInfo | None = None
+    summary: WhatsminerSummary | None = None
+    version_info: WhatsminerVersionInfo | None = None
+    pools: list[WhatsminerPool] | None = None
+    dev_details: list[WhatsminerDevDetails] | None = None
 
 
 class WhatsminerV3Models(BaseModel):
-    device_info: WhatsminerV3DeviceInfo
-    summary: WhatsminerV3Summary
-    pools: list[WhatsminerV3Pool]
+    device_info: WhatsminerV3DeviceInfo | None = None
+    summary: WhatsminerV3Summary | None = None
+    pools: list[WhatsminerV3Pool] | None = None
 
 
 class WhatsminerParser:
@@ -59,25 +59,24 @@ class WhatsminerParser:
         data.firmware = MinerFirmware.STOCK
         data.algorithm = MinerAlgorithm.SHA256
 
-        data.api_version = models.version_info.api_ver
-        try:
-            data.uptime = int(models.summary.elapsed)
-        except ValueError:
-            data.uptime = None
-        data.hostname = models.system_info.hostname
-        data.mac = models.system_info.mac
-        data.serial = models.system_info.minersn
-        data.fw_version = models.version_info.fw_ver
-        data.platform = models.version_info.platform
-
-        miner_type = models.version_info.miner_type
-        if miner_type is not None:
-            data.subtype = miner_type
-        else:
-            # get from devices
+        if models.version_info is not None:
+            data.api_version = models.version_info.api_ver
+            data.fw_version = models.version_info.fw_ver
+            data.platform = models.version_info.platform
+            data.subtype = models.version_info.miner_type
+        if models.summary is not None:
+            try:
+                data.uptime = int(models.summary.elapsed)
+            except ValueError:
+                data.uptime = None
+        if models.system_info is not None:
+            data.hostname = models.system_info.hostname
+            data.mac = models.system_info.mac
+            data.serial = models.system_info.minersn
+        if data.subtype is None and models.dev_details:
             data.subtype = models.dev_details[0].model
 
-        for pool in models.pools:
+        for pool in models.pools or []:
             if pool.status == "Alive":
                 data.stratum_url = pool.url
                 if "." in pool.user:
@@ -98,22 +97,24 @@ class WhatsminerV3Parser:
         data.firmware = MinerFirmware.STOCK
         data.algorithm = MinerAlgorithm.SHA256
 
-        version = models.device_info.version
-        if version is not None:
-            data.api_version = version.api
-            data.fw_version = version.fwversion
-            data.platform = version.platform
-        data.uptime = models.summary.elapsed
-        network = models.device_info.network
-        if network is not None:
-            data.hostname = network.hostname
-            data.mac = network.mac
-        system = models.device_info.system
-        if system is not None:
-            data.serial = system.miner_sn
-            data.subtype = system.type
+        if models.device_info is not None:
+            version = models.device_info.version
+            if version is not None:
+                data.api_version = version.api
+                data.fw_version = version.fwversion
+                data.platform = version.platform
+            network = models.device_info.network
+            if network is not None:
+                data.hostname = network.hostname
+                data.mac = network.mac
+            system = models.device_info.system
+            if system is not None:
+                data.serial = system.miner_sn
+                data.subtype = system.type
+        if models.summary is not None:
+            data.uptime = models.summary.elapsed
 
-        for pool in models.pools:
+        for pool in models.pools or []:
             if pool.status == "alive":
                 data.stratum_url = pool.url
                 if "." in pool.account:

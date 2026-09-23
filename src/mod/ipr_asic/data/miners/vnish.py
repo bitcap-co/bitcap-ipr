@@ -25,9 +25,9 @@ from mod.ipr_asic.schemas.vnish import (
 
 
 class VnishModels(BaseModel):
-    system_info: VnishSystemInfo
-    summary: VnishSummary
-    pools: list[VnishMinerPool]
+    system_info: VnishSystemInfo | None = None
+    summary: VnishSummary | None = None
+    pools: list[VnishMinerPool] | None = None
 
 
 class VnishParser:
@@ -36,31 +36,32 @@ class VnishParser:
         data.type = MinerType.ANTMINER
         data.firmware = MinerFirmware.VNISH
 
-        if models.summary.miner is not None:
+        if models.summary is not None and models.summary.miner is not None:
             data.uptime = models.summary.miner.miner_status.miner_state_time
-        data.subtype = models.system_info.miner[9:]
-        net_info = models.system_info.system.network_status
-        data.hostname = net_info.hostname
-        data.mac = net_info.mac
-        data.serial = models.system_info.serial
-        data.fw_version = models.system_info.fw_version
-        data.algorithm = MinerAlgorithm.from_value(models.system_info.algorithm)
+        if models.system_info is not None:
+            data.subtype = models.system_info.miner[9:]
+            net_info = models.system_info.system.network_status
+            data.hostname = net_info.hostname
+            data.mac = net_info.mac
+            data.serial = models.system_info.serial
+            data.fw_version = models.system_info.fw_version
+            data.algorithm = MinerAlgorithm.from_value(models.system_info.algorithm)
 
-        match models.system_info.platform:
-            case "xil":
-                data.platform = MinerPlatform.XILINX
-            case "bb":
-                data.platform = MinerPlatform.BEAGLEBONE
-            case "aml":
-                data.platform = MinerPlatform.AMLOGIC
-            case "cv":
-                data.platform = MinerPlatform.CVITEK
-            case "stm":
-                data.platform = MinerPlatform.STM
-            case _:
-                data.platform = None
+            match models.system_info.platform:
+                case "xil":
+                    data.platform = MinerPlatform.XILINX
+                case "bb":
+                    data.platform = MinerPlatform.BEAGLEBONE
+                case "aml":
+                    data.platform = MinerPlatform.AMLOGIC
+                case "cv":
+                    data.platform = MinerPlatform.CVITEK
+                case "stm":
+                    data.platform = MinerPlatform.STM
+                case _:
+                    data.platform = None
 
-        for pool in models.pools:
+        for pool in models.pools or []:
             if pool.status == "active":
                 data.stratum_url = pool.url
                 if "." in pool.user:

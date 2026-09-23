@@ -24,9 +24,9 @@ from mod.ipr_asic.schemas.sealminer import (
 
 
 class SealminerModels(BaseModel):
-    system_info: SealminerSystemInfo
-    summary: SealminerSummary
-    pools: list[SealminerPool]
+    system_info: SealminerSystemInfo | None = None
+    summary: SealminerSummary | None = None
+    pools: list[SealminerPool] | None = None
 
 
 class SealminerParser:
@@ -36,13 +36,15 @@ class SealminerParser:
         data.firmware = MinerFirmware.STOCK
         data.algorithm = MinerAlgorithm.SHA256
 
-        data.uptime = models.summary.summary.elapsed
-        data.subtype = models.system_info.miner_type
-        data.mac = models.system_info.macaddr
-        data.fw_version = models.system_info.firmware_version
-        data.platform = models.system_info.ctrl_version
+        if models.summary is not None:
+            data.uptime = models.summary.summary.elapsed
+        if models.system_info is not None:
+            data.subtype = models.system_info.miner_type
+            data.mac = models.system_info.macaddr
+            data.fw_version = models.system_info.firmware_version
+            data.platform = models.system_info.ctrl_version
 
-        for pool in models.pools:
+        for pool in models.pools or []:
             if pool.is_active:
                 data.stratum_url = pool.url
                 if pool.user is not None and "." in pool.user:

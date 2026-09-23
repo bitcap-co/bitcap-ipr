@@ -13,9 +13,9 @@ from mod.ipr_asic.schemas.elphapex import MinerSummary as ElphapexSummary
 
 
 class ElphapexModels(BaseModel):
-    system_info: ElphapexSystemInfo
-    summary: ElphapexSummary
-    pools: list[ElphapexPool]
+    system_info: ElphapexSystemInfo | None = None
+    summary: ElphapexSummary | None = None
+    pools: list[ElphapexPool] | None = None
 
 
 class ElphapexParser:
@@ -25,13 +25,15 @@ class ElphapexParser:
         data.firmware = MinerFirmware.STOCK
         data.algorithm = MinerAlgorithm.SCRYPT
 
-        data.uptime = models.summary.elapsed
-        data.subtype = models.system_info.minertype
-        data.hostname = models.system_info.hostname
-        data.mac = models.system_info.macaddr
-        data.fw_version = models.system_info.system_filesystem_version
+        if models.summary is not None:
+            data.uptime = models.summary.elapsed
+        if models.system_info is not None:
+            data.subtype = models.system_info.minertype
+            data.hostname = models.system_info.hostname
+            data.mac = models.system_info.macaddr
+            data.fw_version = models.system_info.system_filesystem_version
 
-        for pool in models.pools:
+        for pool in models.pools or []:
             if pool.status == "Alive":
                 data.stratum_url = pool.url
                 if "." in pool.user:

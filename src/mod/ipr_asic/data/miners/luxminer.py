@@ -20,10 +20,10 @@ from mod.ipr_asic.schemas.luxminer import Summary as LuxOSSummary
 
 
 class LuxminerModels(BaseModel):
-    system_info: LuxOSSystemInfo
-    summary: LuxOSSummary
-    version_info: LuxOSVersionInfo
-    pools: list[LuxOSPool]
+    system_info: LuxOSSystemInfo | None = None
+    summary: LuxOSSummary | None = None
+    version_info: LuxOSVersionInfo | None = None
+    pools: list[LuxOSPool] | None = None
 
 
 class LuxminerParser:
@@ -33,15 +33,20 @@ class LuxminerParser:
         data.firmware = MinerFirmware.LUX_OS
         data.algorithm = MinerAlgorithm.SHA256
 
-        data.api_version = models.version_info.api
-        data.uptime = models.summary.elapsed
-        data.hostname = models.system_info.hostname
-        data.mac = models.system_info.mac_addr
-        data.serial = models.system_info.serial_number
-        data.fw_version = models.version_info.luxminer
-        data.platform = MinerPlatform.from_value(models.system_info.control_board_type)
+        if models.version_info is not None:
+            data.api_version = models.version_info.api
+            data.fw_version = models.version_info.luxminer
+        if models.summary is not None:
+            data.uptime = models.summary.elapsed
+        if models.system_info is not None:
+            data.hostname = models.system_info.hostname
+            data.mac = models.system_info.mac_addr
+            data.serial = models.system_info.serial_number
+            data.platform = MinerPlatform.from_value(
+                models.system_info.control_board_type
+            )
 
-        for pool in models.pools:
+        for pool in models.pools or []:
             if pool.status == "Alive":
                 data.stratum_url = pool.url
                 if "." in pool.user:

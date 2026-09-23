@@ -177,6 +177,34 @@ class TestGetMinerData(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.data["hostname"], "SRBMiner-Multi-Rig")
         self.assertEqual(result.data["subtype"], "4x RTX 3070")
 
+    async def test_partial_data_is_returned_when_one_endpoint_fails(self):
+        payload = read_payload("tests/payloads/srbminer.json")
+        request_count = 0
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            nonlocal request_count
+            request_count += 1
+            if request_count == 1:
+                return httpx.Response(200, json=payload)
+            return httpx.Response(
+                200, content=b"Socket connect failed: Connection refused"
+            )
+
+        transport = httpx.MockTransport(handler)
+        asic = ASICClient()
+
+        async def fake_make(miner_type, ip, alt_pwd=None):
+            return SRBMinerHTTPClient(ip, transport=transport)
+
+        asic._make_client = fake_make
+        result = await asic.get_miner_data(MinerType.HIVEGPU, "10.0.0.1")
+
+        self.assertFalse(result.ok)
+        self.assertIsInstance(result.error, APIError)
+        self.assertEqual(result.data["type"], str(MinerType.HIVEGPU))
+        self.assertEqual(result.data["hostname"], "SRBMiner-Multi-Rig")
+        self.assertEqual(result.data["stratum_url"], "N/A")
+
     async def test_http_api_error_returns_error_result(self):
         transport = httpx.MockTransport(
             lambda r: httpx.Response(

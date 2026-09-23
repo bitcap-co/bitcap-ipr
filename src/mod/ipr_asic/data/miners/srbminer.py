@@ -35,8 +35,8 @@ def _format_gpu_model(model: str) -> str:
 
 
 class SRBMinerModels(BaseModel):
-    system_info: SRBMinerSystemInfo
-    pools: list[SRBMinerPool]
+    system_info: SRBMinerSystemInfo | None = None
+    pools: list[SRBMinerPool] | None = None
 
 
 class SRBMinerParser:
@@ -45,22 +45,22 @@ class SRBMinerParser:
         data.type = MinerType.HIVEGPU
         data.platform = "HiveOS"
 
-        data.api_version = models.system_info.miner_version
-        data.uptime = models.system_info.mining_time
+        if models.system_info is not None:
+            data.api_version = models.system_info.miner_version
+            data.uptime = models.system_info.mining_time
 
-        data.subtype = None
-        gpus = models.system_info.gpu_devices
-        if gpus:
-            count = models.system_info.total_gpu_workers or len(gpus)
-            model = _format_gpu_model(gpus[0].model)
-            data.subtype = f"{count}x {model}" if model else f"{count}x GPU"
-        data.hostname = models.system_info.rig_name
+            gpus = models.system_info.gpu_devices
+            if gpus:
+                count = models.system_info.total_gpu_workers or len(gpus)
+                model = _format_gpu_model(gpus[0].model)
+                data.subtype = f"{count}x {model}" if model else f"{count}x GPU"
+            data.hostname = models.system_info.rig_name
 
-        algos = models.system_info.algorithms
-        if algos:
-            data.algorithm = MinerAlgorithm.from_value(algos[0].name)
+            algos = models.system_info.algorithms
+            if algos:
+                data.algorithm = MinerAlgorithm.from_value(algos[0].name)
 
-        for pool in models.pools:
+        for pool in models.pools or []:
             if not pool.pool:
                 continue
             data.stratum_url = pool.pool
