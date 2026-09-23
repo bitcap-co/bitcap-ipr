@@ -12,6 +12,7 @@ from mod.ipr_asic.data import (
     MinerFirmware,
     MinerPlatform,
     MinerType,
+    clean_model_name,
 )
 from mod.ipr_asic.schemas.vnish import (
     Info as VnishSystemInfo,
@@ -39,7 +40,7 @@ class VnishParser:
         if models.summary is not None and models.summary.miner is not None:
             data.uptime = models.summary.miner.miner_status.miner_state_time
         if models.system_info is not None:
-            data.subtype = models.system_info.miner[9:]
+            data.subtype = clean_model_name(models.system_info.miner, vendor="Antminer")
             net_info = models.system_info.system.network_status
             data.hostname = net_info.hostname
             data.mac = net_info.mac

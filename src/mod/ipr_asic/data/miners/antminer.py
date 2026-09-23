@@ -7,7 +7,13 @@ import re
 
 from pydantic import BaseModel
 
-from mod.ipr_asic.data import MinerAlgorithm, MinerData, MinerFirmware, MinerType
+from mod.ipr_asic.data import (
+    MinerAlgorithm,
+    MinerData,
+    MinerFirmware,
+    MinerType,
+    clean_model_name,
+)
 from mod.ipr_asic.schemas.antminer import MinerPool as AntminerPool
 from mod.ipr_asic.schemas.antminer import MinerSummary as AntminerSummary
 from mod.ipr_asic.schemas.antminer import OldMinerPool as OldAntminerPool
@@ -38,7 +44,9 @@ class AntminerParser:
         if models.summary is not None:
             data.uptime = models.summary.elapsed
         if models.system_info is not None:
-            data.subtype = models.system_info.minertype[9:]
+            data.subtype = clean_model_name(
+                models.system_info.minertype, vendor="Antminer"
+            )
             data.hostname = models.system_info.hostname
             data.mac = models.system_info.macaddr
             data.serial = models.system_info.serinum

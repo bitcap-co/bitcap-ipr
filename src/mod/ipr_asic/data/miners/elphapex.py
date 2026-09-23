@@ -6,7 +6,13 @@
 
 from pydantic import BaseModel
 
-from mod.ipr_asic.data import MinerAlgorithm, MinerData, MinerFirmware, MinerType
+from mod.ipr_asic.data import (
+    MinerAlgorithm,
+    MinerData,
+    MinerFirmware,
+    MinerType,
+    clean_model_name,
+)
 from mod.ipr_asic.schemas.antminer import SystemInfo as ElphapexSystemInfo
 from mod.ipr_asic.schemas.elphapex import MinerPool as ElphapexPool
 from mod.ipr_asic.schemas.elphapex import MinerSummary as ElphapexSummary
@@ -28,7 +34,9 @@ class ElphapexParser:
         if models.summary is not None:
             data.uptime = models.summary.elapsed
         if models.system_info is not None:
-            data.subtype = models.system_info.minertype
+            data.subtype = clean_model_name(
+                models.system_info.minertype, vendor="Elphapex"
+            )
             data.hostname = models.system_info.hostname
             data.mac = models.system_info.macaddr
             data.fw_version = models.system_info.system_filesystem_version

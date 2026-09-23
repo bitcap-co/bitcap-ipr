@@ -11,6 +11,7 @@ from mod.ipr_asic.data import (
     MinerData,
     MinerFirmware,
     MinerType,
+    clean_model_name,
 )
 from mod.ipr_asic.schemas.volcminer import MinerPool as VolcminerPool
 from mod.ipr_asic.schemas.volcminer import MinerStatus as VolcminerSummary
@@ -33,7 +34,9 @@ class VolcminerParser:
         if models.summary is not None:
             data.uptime = int(models.summary.elapsed)
         if models.system_info is not None:
-            data.subtype = models.system_info.minertype[10:]
+            data.subtype = clean_model_name(
+                models.system_info.minertype, vendor="VolcMiner"
+            )
             data.hostname = models.system_info.hostname
             data.mac = models.system_info.macaddr
             data.fw_version = models.system_info.system_filesystem_version

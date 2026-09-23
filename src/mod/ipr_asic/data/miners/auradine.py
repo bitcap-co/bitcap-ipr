@@ -1,6 +1,12 @@
 from pydantic import BaseModel
 
-from mod.ipr_asic.data import MinerAlgorithm, MinerData, MinerFirmware, MinerType
+from mod.ipr_asic.data import (
+    MinerAlgorithm,
+    MinerData,
+    MinerFirmware,
+    MinerType,
+    clean_model_name,
+)
 from mod.ipr_asic.schemas.auradine import IPReport as AuradineSystemInfo
 from mod.ipr_asic.schemas.auradine import Pool as AuradinePool
 from mod.ipr_asic.schemas.auradine import Summary as AuradineSummary
@@ -22,7 +28,7 @@ class AuradineParser:
         if models.summary is not None:
             data.uptime = models.summary.elapsed
         if models.system_info is not None:
-            data.subtype = models.system_info.model
+            data.subtype = clean_model_name(models.system_info.model, vendor="Auradine")
             data.hostname = models.system_info.hostname
             data.mac = models.system_info.mac
             data.serial = models.system_info.chassis_serial

@@ -11,6 +11,7 @@ from mod.ipr_asic.data import (
     MinerData,
     MinerFirmware,
     MinerType,
+    clean_model_name,
 )
 from mod.ipr_asic.schemas.whatsminer import (
     BTMinerDevDetails as WhatsminerDevDetails,
@@ -63,7 +64,9 @@ class WhatsminerParser:
             data.api_version = models.version_info.api_ver
             data.fw_version = models.version_info.fw_ver
             data.platform = models.version_info.platform
-            data.subtype = models.version_info.miner_type
+            data.subtype = clean_model_name(
+                models.version_info.miner_type, vendor="WhatsMiner"
+            )
         if models.summary is not None:
             try:
                 data.uptime = int(models.summary.elapsed)
@@ -74,7 +77,9 @@ class WhatsminerParser:
             data.mac = models.system_info.mac
             data.serial = models.system_info.minersn
         if data.subtype is None and models.dev_details:
-            data.subtype = models.dev_details[0].model
+            data.subtype = clean_model_name(
+                models.dev_details[0].model, vendor="WhatsMiner"
+            )
 
         for pool in models.pools or []:
             if pool.status == "Alive":
@@ -110,7 +115,7 @@ class WhatsminerV3Parser:
             system = models.device_info.system
             if system is not None:
                 data.serial = system.miner_sn
-                data.subtype = system.type
+                data.subtype = clean_model_name(system.type, vendor="WhatsMiner")
         if models.summary is not None:
             data.uptime = models.summary.elapsed
 

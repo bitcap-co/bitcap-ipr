@@ -11,6 +11,7 @@ from mod.ipr_asic.data import (
     MinerData,
     MinerFirmware,
     MinerType,
+    clean_model_name,
 )
 from mod.ipr_asic.schemas.sealminer import (
     MinerPool as SealminerPool,
@@ -39,7 +40,9 @@ class SealminerParser:
         if models.summary is not None:
             data.uptime = models.summary.summary.elapsed
         if models.system_info is not None:
-            data.subtype = models.system_info.miner_type
+            data.subtype = clean_model_name(
+                models.system_info.miner_type, vendor="SealMiner"
+            )
             data.mac = models.system_info.macaddr
             data.fw_version = models.system_info.firmware_version
             data.platform = models.system_info.ctrl_version

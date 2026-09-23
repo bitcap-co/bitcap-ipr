@@ -6,7 +6,13 @@
 
 from pydantic import BaseModel
 
-from mod.ipr_asic.data import MinerAlgorithm, MinerData, MinerFirmware, MinerType
+from mod.ipr_asic.data import (
+    MinerAlgorithm,
+    MinerData,
+    MinerFirmware,
+    MinerType,
+    clean_model_name,
+)
 from mod.ipr_asic.schemas.goldshell import AlgoSettings as GoldshellAlgorithm
 from mod.ipr_asic.schemas.goldshell import Devs as GoldshellSummary
 from mod.ipr_asic.schemas.goldshell import MinerPool as GoldshellPool
@@ -29,7 +35,9 @@ class GoldshellParser:
         data.firmware = MinerFirmware.STOCK
 
         if models.system_info is not None:
-            data.subtype = models.system_info.model
+            data.subtype = clean_model_name(
+                models.system_info.model, vendor="Goldshell"
+            )
             data.fw_version = models.system_info.firmware
         if models.miner_config is not None:
             # Goldshell reports its MAC address in the config name field.

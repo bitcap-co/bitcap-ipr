@@ -6,7 +6,13 @@
 
 from pydantic import BaseModel
 
-from mod.ipr_asic.data import MinerAlgorithm, MinerData, MinerFirmware, MinerType
+from mod.ipr_asic.data import (
+    MinerAlgorithm,
+    MinerData,
+    MinerFirmware,
+    MinerType,
+    clean_model_name,
+)
 from mod.ipr_asic.schemas.iceriver import MinerPool as IceriverPool
 from mod.ipr_asic.schemas.iceriver import UserPanel as IceriverSummary
 
@@ -58,7 +64,7 @@ class IceriverParser:
                 case _:
                     data.subtype = model_ver.upper()
         else:
-            data.subtype = summary.model
+            data.subtype = clean_model_name(summary.model, vendor="IceRiver")
 
         data.hostname = summary.host
         data.mac = summary.mac
