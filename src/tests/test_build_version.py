@@ -16,27 +16,45 @@ from tools.project_metadata import load_metadata
 PROJECT_METADATA = load_metadata()
 
 
+def next_patch_version(version: str) -> str:
+    major, minor, patch = map(int, version.split("."))
+    return f"{major}.{minor}.{patch + 1}"
+
+
 class TestResolveReleaseMetadata(unittest.TestCase):
     def test_stable_tag_matches_project_version(self):
-        resolved = resolve_release_metadata(PROJECT_METADATA, "v1.5.2")
+        resolved = resolve_release_metadata(
+            PROJECT_METADATA, f"v{PROJECT_METADATA.version}"
+        )
 
-        self.assertEqual(resolved.version, "1.5.2")
+        self.assertEqual(resolved.version, PROJECT_METADATA.version)
 
     def test_preview_tag_embeds_full_version(self):
-        resolved = resolve_release_metadata(PROJECT_METADATA, "v1.5.2-rp-listen-intent")
+        preview_version = f"{PROJECT_METADATA.version}-rp-listen-intent"
+        resolved = resolve_release_metadata(PROJECT_METADATA, f"v{preview_version}")
 
-        self.assertEqual(resolved.version, "1.5.2-rp-listen-intent")
-        self.assertEqual(resolved.debian_version, "1.5.2~rp.listen.intent")
+        self.assertEqual(resolved.version, preview_version)
+        self.assertEqual(
+            resolved.debian_version,
+            f"{PROJECT_METADATA.version}~rp.listen.intent",
+        )
 
     def test_preview_tag_requires_matching_future_version(self):
+        future_version = next_patch_version(PROJECT_METADATA.version)
         with self.assertRaisesRegex(
-            SystemExit, "expects pyproject.toml version '1.5.3'"
+            SystemExit,
+            f"expects pyproject.toml version '{future_version}'",
         ):
-            resolve_release_metadata(PROJECT_METADATA, "v1.5.3-rp-listen-intent")
+            resolve_release_metadata(
+                PROJECT_METADATA, f"v{future_version}-rp-listen-intent"
+            )
 
     def test_non_preview_suffix_is_rejected(self):
         with self.assertRaises(SystemExit):
-            resolve_release_metadata(PROJECT_METADATA, "v1.5.2-beta-listen-intent")
+            resolve_release_metadata(
+                PROJECT_METADATA,
+                f"v{PROJECT_METADATA.version}-beta-listen-intent",
+            )
 
 
 if __name__ == "__main__":
