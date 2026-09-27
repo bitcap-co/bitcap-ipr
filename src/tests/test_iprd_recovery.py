@@ -8,7 +8,7 @@
 import unittest
 from types import SimpleNamespace
 from typing import Any
-from unittest.mock import Mock
+from unittest.mock import Mock, call
 
 import config  # noqa: F401  # initialize Pydantic before importing PySide-backed IPR
 from ipr import IPR, ListenState, _select_iprd_service_address
@@ -82,11 +82,39 @@ class TestIPRDRecovery(unittest.TestCase):
         subject.stop_listen.assert_not_called()
         subject.notify.assert_not_called()
 
+    def test_discovery_timeout_stops_browser_before_listening(self) -> None:
+        calls = Mock()
+        discovery = Mock()
+        discovery.services = ()
+        calls.attach_mock(discovery.stop, "stop_discovery")
+        stop_listen = Mock()
+        calls.attach_mock(stop_listen, "stop_listen")
+        subject: Any = SimpleNamespace(
+            _iprd_listening=True,
+            _listen_state=ListenState.DISCOVERING,
+            _discovered_iprd_service_name=None,
+            _discovered_iprd_address=None,
+            iprd_discovery=discovery,
+            stop_listen=stop_listen,
+            notify=Mock(),
+        )
+
+        IPR.on_iprd_discovery_timeout(subject)
+
+        self.assertEqual(
+            calls.mock_calls,
+            [call.stop_discovery(), call.stop_listen()],
+        )
+        subject.notify.assert_called_once_with(
+            "Status :: IPRD discovery timed out. Stopped listening."
+        )
+
     def test_retry_pause_preserves_intent_and_enters_disconnected(self) -> None:
         subject: Any = SimpleNamespace(
             _iprd_listening=True,
             _listen_state=ListenState.RECONNECTING,
             _retry_cooldown_ms=0,
+            checkEnableIPRDAutoDiscover=SimpleNamespace(isChecked=lambda: False),
             set_listen_state=lambda state: setattr(subject, "_listen_state", state),
             stop_listen=Mock(),
         )
