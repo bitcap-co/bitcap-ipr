@@ -1569,7 +1569,16 @@ Statistics:
             or self._listen_state is not ListenState.DISCOVERING
         ):
             return
-        logger.warning("IPRD discovery timed out without finding a service.")
+        logger.warning(
+            "IPRD discovery timed out without finding a service: "
+            f"selected_service={self._discovered_iprd_service_name!r}, "
+            f"selected_address={self._discovered_iprd_address!r}, "
+            f"discovered_services={len(self.iprd_discovery.services)}."
+        )
+        # A browser created before post-resume networking settled may remain bound
+        # to stale interfaces. Fully close it so the next Start creates a fresh
+        # Zeroconf instance instead of reusing the failed browser.
+        self.iprd_discovery.stop()
         self.stop_listen()
         self.notify("Status :: IPRD discovery timed out. Stopped listening.")
 
