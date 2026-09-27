@@ -230,7 +230,7 @@ class IPRDListener(QObject):
         addr_result = QHostAddress(result.src_ip).toIPv4Address()
         addr = addr_result[0] if isinstance(addr_result, tuple) else addr_result
         ip_report = IPReport(
-            created_at=float(result.timestamp),
+            created_at=result.timestamp / 1000.0,
             updated_at=time.time(),
             hint=hint,
             sort_ip=addr,
