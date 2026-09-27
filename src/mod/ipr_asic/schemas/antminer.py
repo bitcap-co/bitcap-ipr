@@ -245,6 +245,11 @@ class MinerConfig(MinerConfigModel):
     )
     pools: PoolConfig
 
+    @field_validator("*", mode="before")
+    @classmethod
+    def _empty_to_none(cls, field_value: Any) -> Any | None:
+        return None if field_value == "" else field_value
+
 
 class MinerPasswdConfig(BaseModel):
     curr_passwd: str = Field(default="", serialization_alias="curPwd")
