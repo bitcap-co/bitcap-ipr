@@ -167,7 +167,9 @@ class IPRDServiceListener(QObject, ServiceListener):
             self._emit_error(f"Failed to start IPRD service discovery: {exc}")
             return
 
-        logger.info(f"{self.__repr__()} : started service discovery.")
+        logger.info(
+            f"{self.__repr__()} : started service discovery (session={self._session})."
+        )
         self.started.emit()
 
     @Slot()
@@ -219,7 +221,9 @@ class IPRDServiceListener(QObject, ServiceListener):
             self._emit_error(
                 "Failed to stop IPRD service discovery: " + "; ".join(errors)
             )
-        logger.info(f"{self.__repr__()} : stopped service discovery.")
+        logger.info(
+            f"{self.__repr__()} : stopped service discovery (session={self._session})."
+        )
         self.stopped.emit()
 
     @Slot()
@@ -365,12 +369,16 @@ class IPRDServiceListener(QObject, ServiceListener):
 
         if previous is None or not is_update:
             logger.info(
-                f"{self.__repr__()} : discovered {service.address}:{service.port}."
+                f"{self.__repr__()} : discovered {service.address}:{service.port} "
+                f"(addresses={service.addresses!r}, session={session})."
             )
             self.service_found.emit(service)
             return
 
-        logger.info(f"{self.__repr__()} : updated {service.address}:{service.port}.")
+        logger.info(
+            f"{self.__repr__()} : updated {service.address}:{service.port} "
+            f"(addresses={service.addresses!r}, session={session})."
+        )
         self.service_updated.emit(service)
 
     @Slot(str, int, int)
