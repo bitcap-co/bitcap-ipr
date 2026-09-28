@@ -29,14 +29,34 @@ class TestResolveReleaseMetadata(unittest.TestCase):
 
         self.assertEqual(resolved.version, PROJECT_METADATA.version)
 
-    def test_preview_tag_embeds_full_version(self):
+    def test_numbered_preview_tag_embeds_full_version(self):
+        preview_version = f"{PROJECT_METADATA.version}-rp2-listen-intent"
+        resolved = resolve_release_metadata(PROJECT_METADATA, f"v{preview_version}")
+
+        self.assertEqual(resolved.version, preview_version)
+        self.assertEqual(
+            resolved.debian_version,
+            f"{PROJECT_METADATA.version}~rp.2.listen.intent",
+        )
+
+    def test_numbered_preview_tag_allows_omitting_label(self):
+        preview_version = f"{PROJECT_METADATA.version}-rp3"
+        resolved = resolve_release_metadata(PROJECT_METADATA, f"v{preview_version}")
+
+        self.assertEqual(resolved.version, preview_version)
+        self.assertEqual(
+            resolved.debian_version,
+            f"{PROJECT_METADATA.version}~rp.3",
+        )
+
+    def test_legacy_preview_tag_uses_sequence_zero(self):
         preview_version = f"{PROJECT_METADATA.version}-rp-listen-intent"
         resolved = resolve_release_metadata(PROJECT_METADATA, f"v{preview_version}")
 
         self.assertEqual(resolved.version, preview_version)
         self.assertEqual(
             resolved.debian_version,
-            f"{PROJECT_METADATA.version}~rp.listen.intent",
+            f"{PROJECT_METADATA.version}~rp.0.listen.intent",
         )
 
     def test_preview_tag_requires_matching_future_version(self):
@@ -46,7 +66,7 @@ class TestResolveReleaseMetadata(unittest.TestCase):
             f"expects pyproject.toml version '{future_version}'",
         ):
             resolve_release_metadata(
-                PROJECT_METADATA, f"v{future_version}-rp-listen-intent"
+                PROJECT_METADATA, f"v{future_version}-rp1-listen-intent"
             )
 
     def test_non_preview_suffix_is_rejected(self):

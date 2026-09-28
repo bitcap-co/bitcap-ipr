@@ -25,7 +25,10 @@ from build_support import (
 from project_metadata import ProjectMetadata, load_metadata, sync_runtime_metadata
 
 _RELEASE_PREVIEW_RE = re.compile(
-    r"(?P<base>\d+\.\d+\.\d+)-rp-[A-Za-z0-9][A-Za-z0-9.-]*"
+    r"(?P<base>\d+\.\d+\.\d+)-rp(?:"
+    r"\d+(?:-[A-Za-z0-9][A-Za-z0-9.-]*)?"
+    r"|-[A-Za-z0-9][A-Za-z0-9.-]*"
+    r")"
 )
 
 
@@ -110,7 +113,7 @@ def parse_arguments() -> argparse.Namespace:
         "--expected-version",
         help=(
             "release tag to validate against pyproject.toml; "
-            "vX.Y.Z-rp-N previews embed the full tag version"
+            "vX.Y.Z-rpN[-feature] previews embed the full tag version"
         ),
     )
     return parser.parse_args()

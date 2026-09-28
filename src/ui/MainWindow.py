@@ -1633,7 +1633,7 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.checkCheckUpdatesOnStartup.setText(QCoreApplication.translate("MainWindow", u"Check for Updates on Startup", None))
 #if QT_CONFIG(tooltip)
-        self.checkIncludePreReleases.setToolTip(QCoreApplication.translate("MainWindow", u"Also offer pre-release (vX.Y.Z-rp-N) versions when checking for updates", None))
+        self.checkIncludePreReleases.setToolTip(QCoreApplication.translate("MainWindow", u"Also offer release preview (vX.Y.Z-rpN[-feature]) versions when checking for updates", None))
 #endif // QT_CONFIG(tooltip)
         self.checkIncludePreReleases.setText(QCoreApplication.translate("MainWindow", u"Include Pre-Releases", None))
         self.groupInactiveTimer.setTitle(QCoreApplication.translate("MainWindow", u"Inactive Timer", None))

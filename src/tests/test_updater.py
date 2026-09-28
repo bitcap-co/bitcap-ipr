@@ -97,14 +97,26 @@ class TestFetchLatestRelease(unittest.TestCase):
     ):
         get.return_value.json.return_value = [
             {"tag_name": "v3.0.0", "draft": True},
-            {"tag_name": "v2.1.0-rp-preview", "prerelease": True},
+            {"tag_name": "v2.1.0-rp2-preview", "prerelease": True},
             {"tag_name": "v2.0.0"},
         ]
 
         release = fetch_latest_release(include_prereleases=True)
 
-        self.assertEqual(release.tag, "v2.1.0-rp-preview")
+        self.assertEqual(release.tag, "v2.1.0-rp2-preview")
         self.assertTrue(release.prerelease)
+
+    @patch("mod.updater.updater.requests.get")
+    def test_prerelease_fetch_selects_highest_preview_sequence(self, get: Mock):
+        get.return_value.json.return_value = [
+            {"tag_name": "v2.1.0-rp1-first", "prerelease": True},
+            {"tag_name": "v2.1.0-rp3-third", "prerelease": True},
+            {"tag_name": "v2.1.0-rp2-second", "prerelease": True},
+        ]
+
+        release = fetch_latest_release(include_prereleases=True)
+
+        self.assertEqual(release.tag, "v2.1.0-rp3-third")
 
     @patch("mod.updater.updater.requests.get")
     def test_empty_release_list_returns_empty_release(self, get: Mock):
@@ -169,26 +181,38 @@ class TestIsNewer(unittest.TestCase):
 
     def test_prerelease_preview_of_higher_version(self):
         # a preview of an upcoming patch is newer than the current release.
-        self.assertTrue(is_newer("v1.4.2-rp-hivegpu", "1.4.1"))
+        self.assertTrue(is_newer("v1.4.2-rp1-hivegpu", "1.4.1"))
 
     def test_final_release_supersedes_its_prerelease(self):
-        self.assertTrue(is_newer("v1.4.2", "1.4.2-rp-hivegpu"))
+        self.assertTrue(is_newer("v1.4.2", "1.4.2-rp2-hivegpu"))
 
     def test_prerelease_not_newer_than_final(self):
         # a preview of the version you already run is not an upgrade.
-        self.assertFalse(is_newer("v1.4.2-rp-hivegpu", "1.4.2"))
+        self.assertFalse(is_newer("v1.4.2-rp2-hivegpu", "1.4.2"))
 
-    def test_sibling_prereleases_not_comparable(self):
-        # two feature previews of the same base never supersede each other.
-        self.assertFalse(is_newer("v1.4.2-rp-hivegpu", "1.4.2-rp-pools"))
-        self.assertFalse(is_newer("v1.4.2-rp-pools", "1.4.2-rp-hivegpu"))
+    def test_higher_prerelease_sequence_is_newer(self):
+        self.assertTrue(is_newer("v1.4.2-rp2-pools", "1.4.2-rp1-hivegpu"))
+        self.assertFalse(is_newer("v1.4.2-rp1-hivegpu", "1.4.2-rp2-pools"))
+
+    def test_prerelease_labels_do_not_affect_precedence(self):
+        self.assertFalse(is_newer("v1.4.2-rp2-hivegpu", "1.4.2-rp2-pools"))
+        self.assertFalse(is_newer("v1.4.2-rp2-pools", "1.4.2-rp2-hivegpu"))
+
+    def test_legacy_prerelease_precedes_numbered_prerelease(self):
+        self.assertTrue(is_newer("v1.4.2-rp1-pools", "1.4.2-rp-hivegpu"))
 
     def test_equal_prerelease(self):
-        self.assertFalse(is_newer("v1.4.2-rp-hivegpu", "1.4.2-rp-hivegpu"))
+        self.assertFalse(is_newer("v1.4.2-rp2-hivegpu", "1.4.2-rp2-hivegpu"))
 
 
 class TestIsPrerelease(unittest.TestCase):
-    def test_prerelease_tag(self):
+    def test_numbered_prerelease_with_label(self):
+        self.assertTrue(is_prerelease("v1.4.2-rp2-hivegpu"))
+
+    def test_numbered_prerelease_without_label(self):
+        self.assertTrue(is_prerelease("v1.4.2-rp2"))
+
+    def test_legacy_prerelease_tag(self):
         self.assertTrue(is_prerelease("v1.4.2-rp-hivegpu"))
 
     def test_final_tag(self):
@@ -200,20 +224,34 @@ class TestIsPrerelease(unittest.TestCase):
 
 class TestVersionKey(unittest.TestCase):
     def test_prerelease_orders_before_final(self):
-        self.assertLess(version_key("v1.4.2-rp-hivegpu"), version_key("v1.4.2"))
+        self.assertLess(version_key("v1.4.2-rp2-hivegpu"), version_key("v1.4.2"))
 
-    def test_sibling_prereleases_share_a_key(self):
+    def test_higher_prerelease_sequence_wins(self):
+        self.assertGreater(
+            version_key("v1.4.2-rp2-pools"), version_key("v1.4.2-rp1-hivegpu")
+        )
+
+    def test_prerelease_labels_do_not_affect_key(self):
         self.assertEqual(
-            version_key("v1.4.2-rp-hivegpu"), version_key("v1.4.2-rp-pools")
+            version_key("v1.4.2-rp2-hivegpu"), version_key("v1.4.2-rp2-pools")
+        )
+
+    def test_legacy_prerelease_uses_sequence_zero(self):
+        self.assertLess(
+            version_key("v1.4.2-rp-hivegpu"), version_key("v1.4.2-rp1-pools")
         )
 
     def test_higher_base_wins_over_prerelease(self):
-        self.assertGreater(version_key("v1.4.2-rp-hivegpu"), version_key("v1.4.1"))
+        self.assertGreater(version_key("v1.4.2-rp1-hivegpu"), version_key("v1.4.1"))
 
-    def test_max_prefers_prerelease_of_highest_base(self):
-        # newest-first order; max keeps the first of a tie (most recent).
-        tags = ["v1.4.2-rp-pools", "v1.4.2-rp-hivegpu", "v1.4.1", "v1.3.2"]
-        self.assertEqual(max(tags, key=version_key), "v1.4.2-rp-pools")
+    def test_max_prefers_highest_prerelease_sequence(self):
+        tags = [
+            "v1.4.2-rp1-pools",
+            "v1.4.2-rp3-other",
+            "v1.4.2-rp2-hivegpu",
+            "v1.4.1",
+        ]
+        self.assertEqual(max(tags, key=version_key), "v1.4.2-rp3-other")
 
 
 class TestSelectAsset(unittest.TestCase):

@@ -1665,7 +1665,7 @@ Uses last 5 of SN or MAC address.</string>
                      <item>
                       <widget class="QCheckBox" name="checkIncludePreReleases">
                        <property name="toolTip">
-                        <string>Also offer pre-release (vX.Y.Z-rp-N) versions when checking for updates</string>
+                        <string>Also offer release preview (vX.Y.Z-rpN[-feature]) versions when checking for updates</string>
                        </property>
                        <property name="text">
                         <string>Include Pre-Releases</string>
