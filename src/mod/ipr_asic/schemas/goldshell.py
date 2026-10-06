@@ -14,9 +14,17 @@ from .models import (
 )
 
 
-class PowerPlan(BaseModel):
+class PowerPlanMode(BaseModel):
     info: str
     level: int
+    temp_target: int | None = None
+
+
+class PowerPlan(BaseModel):
+    algo: str | None = None
+    mode: list[PowerPlanMode] | None = None
+    info: str | None = None
+    level: int | None = None
 
 
 class Settings(MinerConfigModel):
