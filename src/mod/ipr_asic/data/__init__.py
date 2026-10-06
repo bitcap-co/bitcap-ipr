@@ -73,6 +73,9 @@ class MinerAlgorithm(str, Enum):
     RANDOMX = "RandomX"
     PEARLHASH = "Pearlhash"
     CUCKATOO = "Cuckatoo"
+    AUTOLYKOS = "Autolykos"
+    BLAKE2B = "Blake2b (Sia)"
+    BLAKE2S = "Blake2s"
 
     @override
     def __str__(self) -> str:

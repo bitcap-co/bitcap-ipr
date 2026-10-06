@@ -35,14 +35,38 @@ class GoldshellParser:
         data.firmware = MinerFirmware.STOCK
 
         if models.system_info is not None:
-            data.subtype = clean_model_name(
-                models.system_info.model, vendor="Goldshell"
-            )
+            model = clean_model_name(models.system_info.model, vendor="Goldshell")
+            # normalize alpha-numeric model names
+            match model:
+                case "CAEU14":
+                    data.subtype = "SC5 Pro II"
+                case "CAEU12":
+                    data.subtype = "SC5 Pro"
+                case "CBAU12":
+                    data.subtype = "CK6"
+                    data.algorithm = MinerAlgorithm.EAGLESONG
+                case "CBAU13":
+                    data.subtype = "CK6 SE"
+                    data.algorithm = MinerAlgorithm.EAGLESONG
+                case "CDAU12":
+                    data.subtype = "KD6"
+                    data.algorithm = MinerAlgorithm.BLAKE2S
+                case "CDAU14":
+                    data.subtype = "KD MAX"
+                    data.algorithm = MinerAlgorithm.BLAKE2S
+                case "CHAU12":
+                    data.subtype = "HS6"
+                case "CLAU12":
+                    data.subtype = "LT6"
+                    data.algorithm = MinerAlgorithm.SCRYPT
+                case _:
+                    data.subtype = model
             data.fw_version = models.system_info.firmware
         if models.miner_config is not None:
             # Goldshell reports its MAC address in the config name field.
             data.mac = models.miner_config.name
-        if models.algorithm is not None:
+        # for dual algorithm miners, use the selected algorithm
+        if models.algorithm is not None and data.algorithm is None:
             data.algorithm = MinerAlgorithm.from_value(
                 models.algorithm.algos[models.algorithm.algo_select].name
             )
