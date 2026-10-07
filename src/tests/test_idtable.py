@@ -13,7 +13,13 @@ from unittest.mock import Mock, patch
 from PySide6.QtCore import QItemSelectionModel, Qt
 
 import config  # noqa: F401  # initialize Pydantic before importing PySide-backed IPR
-from mod.ipr_asic.data import MinerData, MinerFirmware, MinerType
+from mod.ipr_asic.data import (
+    MinerData,
+    MinerFirmware,
+    MinerType,
+    clean_model_name,
+    model_identity,
+)
 from ui.widgets import (
     COL_ACTION,
     COL_IP,
@@ -22,6 +28,7 @@ from ui.widgets import (
     IPRTableController,
     IPRTableModel,
 )
+from ui.widgets.ipr.idtable.model import COL_SUBTYPE
 
 
 def _miner(ip: str, mac: str, serial: str) -> MinerData:
@@ -31,6 +38,36 @@ def _miner(ip: str, mac: str, serial: str) -> MinerData:
         serial=serial,
         type=MinerType.ANTMINER,
     )
+
+
+class TestModelNormalization(unittest.TestCase):
+    def test_clean_model_name_normalizes_spacing_and_vendor_prefix(self) -> None:
+        self.assertEqual(
+            clean_model_name("  Antminer   S19j Pro  ", vendor="Antminer"),
+            "S19j Pro",
+        )
+        self.assertEqual(
+            clean_model_name("AntminerS19", vendor="Antminer"),
+            "AntminerS19",
+        )
+        self.assertIsNone(clean_model_name("   "))
+
+    def test_model_identity_groups_format_variants_without_losing_suffixes(
+        self,
+    ) -> None:
+        variants = {
+            model_identity(value)
+            for value in (
+                "S19JPRO",
+                "S19j Pro",
+                "S19j-Pro",
+                "Ｓ１９ｊ＿Ｐｒｏ",
+            )
+        }
+
+        self.assertEqual(variants, {"s19jpro"})
+        self.assertNotEqual(model_identity("S19 Pro"), model_identity("S19 Pro+"))
+        self.assertNotEqual(model_identity("S19 Pro+"), model_identity("S19 Pro++"))
 
 
 class TestIPRTableModel(unittest.TestCase):
@@ -79,6 +116,31 @@ class TestIPRTableProxy(unittest.TestCase):
         self.model.append(_miner("10.0.0.3", "aa:bb:cc:dd:ee:03", "SERIAL-3"))
         self.proxy = IPRFilterProxyModel()
         self.proxy.setSourceModel(self.model)
+
+    def test_subtype_filter_groups_model_format_variants(self) -> None:
+        self.model.clear()
+        for index, subtype in enumerate(
+            ("S19JPRO", "S19j Pro", "S19j-Pro", "S19 Pro+"), start=1
+        ):
+            miner = _miner(
+                f"10.0.0.{index}",
+                f"aa:bb:cc:dd:ee:{index:02x}",
+                f"SERIAL-{index}",
+            )
+            miner.subtype = subtype
+            self.model.append(miner)
+
+        values = dict(self.model.distinct_values(COL_SUBTYPE))
+        self.assertEqual(values, {"S19JPRO": 3, "S19 Pro+": 1})
+
+        self.proxy.set_column_filter(COL_SUBTYPE, ["S19j Pro"])
+
+        self.assertEqual(self.proxy.rowCount(), 3)
+        displayed = {
+            self.proxy.data(self.proxy.index(row, COL_SUBTYPE))
+            for row in range(self.proxy.rowCount())
+        }
+        self.assertEqual(displayed, {"S19JPRO", "S19j Pro", "S19j-Pro"})
 
     def test_sorting_maps_proxy_rows_back_to_source_rows(self) -> None:
         self.proxy.sort(COL_IP, Qt.SortOrder.DescendingOrder)

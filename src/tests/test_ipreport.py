@@ -77,7 +77,7 @@ class TestIPReportSchema(unittest.TestCase):
         listener = cast(IPRDListener, cast(object, SimpleNamespace(result=emitted)))
         packet = IPRDPacketData.model_validate(
             {
-                "timestamp": 1234567890,
+                "timestamp": 1727298000123,
                 "packetID": "packet-1",
                 "dstPort": MinerTypeHint.GOLDSHELL,
                 "srcIP": "192.168.1.20",
@@ -91,7 +91,7 @@ class TestIPReportSchema(unittest.TestCase):
         self.assertEqual(len(emitted.reports), 1)
         report = emitted.reports[0]
         self.assertIPReportSchema(report)
-        self.assertEqual(report.created_at, 1234567890.0)
+        self.assertEqual(report.created_at, 1727298000.123)
         self.assertGreaterEqual(report.updated_at, report.created_at)
         self.assertEqual(report.hint, MinerTypeHint.GOLDSHELL)
         self.assertEqual(report.miner_hint, "goldshell")

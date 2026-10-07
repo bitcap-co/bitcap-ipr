@@ -3,6 +3,8 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
+from typing import Any
+
 from pydantic import BaseModel, Field, field_validator
 
 from .models import (
@@ -116,10 +118,8 @@ class MinerSummary(BaseModel):
 
     @field_validator("*", mode="before")
     @classmethod
-    def _empty_to_none(cls, field_value):
-        if field_value == "":
-            return None
-        return field_value
+    def _empty_to_none(cls, field_value: Any) -> Any | None:
+        return None if field_value == "" else field_value
 
 
 class MinerPool(MinerPoolModel):
@@ -142,10 +142,8 @@ class MinerPool(MinerPoolModel):
 
     @field_validator("*", mode="before")
     @classmethod
-    def _emtpy_to_none(cls, field_value):
-        if field_value == "":
-            return None
-        return field_value
+    def _empty_to_none(cls, field_value: Any) -> Any | None:
+        return None if field_value == "" else field_value
 
 
 class Summary(SummaryModel):

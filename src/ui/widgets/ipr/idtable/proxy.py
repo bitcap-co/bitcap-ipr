@@ -10,8 +10,7 @@ Sorting uses the model's ``SortRole`` so columns sort by their real type
 passes *both* filters that may be active: the free-text needle (matched against
 any backing field) and the per-column value filters set from the Excel-style
 header dropdowns. Column filters are ``AND``-ed together; values are compared
-via ``normalize_value`` (case- and space-insensitive) so near-duplicates share
-one filter entry.
+via each column's filter key so near-duplicates share one filter entry.
 """
 
 from typing import override
@@ -24,7 +23,12 @@ from PySide6.QtCore import (
     Qt,
 )
 
-from .model import ACTION_COLUMN_COUNT, COLUMN_COUNT, IPR_SORT_ROLE, normalize_value
+from .model import (
+    ACTION_COLUMN_COUNT,
+    COLUMN_COUNT,
+    IPR_SORT_ROLE,
+    filter_key_for_column,
+)
 
 
 class IPRFilterProxyModel(QSortFilterProxyModel):
@@ -66,7 +70,8 @@ class IPRFilterProxyModel(QSortFilterProxyModel):
         if not labels:
             self._column_filters.pop(col, None)
         else:
-            self._column_filters[col] = {normalize_value(label) for label in labels}
+            filter_key = filter_key_for_column(col)
+            self._column_filters[col] = {filter_key(label) for label in labels}
         self.invalidateFilter()
 
     def clear_column_filters(self) -> None:
@@ -92,7 +97,7 @@ class IPRFilterProxyModel(QSortFilterProxyModel):
         for col, allowed in self._column_filters.items():
             index = model.index(source_row, col, source_parent)
             value = model.data(index, Qt.ItemDataRole.DisplayRole)
-            if normalize_value(str(value)) not in allowed:
+            if filter_key_for_column(col)(str(value)) not in allowed:
                 return False
         # free-text needle: match against any data column (OR)
         if self._needle:

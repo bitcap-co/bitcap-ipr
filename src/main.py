@@ -42,6 +42,7 @@ import asyncio
 import logging
 import logging.handlers
 import os
+import signal
 import sys
 import traceback
 from json.decoder import JSONDecodeError
@@ -49,7 +50,7 @@ from pathlib import Path
 from types import TracebackType
 
 from pydantic import ValidationError
-from PySide6.QtCore import QUrl
+from PySide6.QtCore import QTimer, QUrl
 from PySide6.QtGui import QDesktopServices, QFont, QIcon
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from PySide6.QtWidgets import (
@@ -92,9 +93,12 @@ class Main:
         self.config_path: Path = get_config_file_path()
         self.log_dir: str = get_log_dir()
         self.log_path: Path = get_log_file_path()
+        self._init_logger()
         self._handling_exception: bool = False
+        self._shutting_down: bool = False
         self.exit_code: int = 0
         self.ipc_server: QLocalServer
+        self._signal_timer: QTimer
         self.app: QApplication = QApplication(self.args)
         # run the asyncio loop as the Qt event loop (qasync) so the async
         # ipr_asic clients can be awaited directly from Qt slots.
@@ -123,7 +127,7 @@ class Main:
             error_action = QMessageBox.critical(
                 None,
                 "BitCapIPR - Critical error",
-                f"Failed to read existing configuration file!\n{exc.__repr__()}\nPlease fix configuration file or restore to defaults and relaunch the application.",
+                f"Failed to read existing configuration file!\n{exc.__repr__()}\nPlease fix the configuration file or restore defaults to continue.",
                 buttons=QMessageBox.StandardButton.Open
                 | QMessageBox.StandardButton.RestoreDefaults
                 | QMessageBox.StandardButton.Ok,
@@ -135,6 +139,10 @@ class Main:
                     )
                 case QMessageBox.StandardButton.RestoreDefaults:
                     self.config.write_default()
+                    logger.info(
+                        "init_conf : restored default configuration; continuing startup."
+                    )
+                    return True
                 case _:
                     pass
             return False
@@ -142,7 +150,16 @@ class Main:
 
     def _init_logger(self) -> None:
         os.makedirs(self.log_dir, exist_ok=True)
+        logging.basicConfig(
+            format="%(asctime)s - %(levelname)s - %(name)s:%(message)s",
+            datefmt="%m/%d/%Y %I:%M:%S%p",
+            level=logging.INFO,
+            handlers=[logging.FileHandler(self.log_path.as_posix())],
+            force=True,
+        )
+        logger.info("init_logger : initialized file logging.")
 
+    def _init_log_handler(self) -> None:
         max_log_size_kb = self.config.logs.max_log_size * 1000
         rfh = logging.handlers.RotatingFileHandler(
             self.log_path.as_posix(), maxBytes=max_log_size_kb, backupCount=1
@@ -169,8 +186,9 @@ class Main:
             datefmt="%m/%d/%Y %I:%M:%S%p",
             level=logging.INFO,
             handlers=[rfh],
+            force=True,
         )
-        logger.info("init_logger : init finished.")
+        logger.info("init_log_handler : init finished.")
 
         logger.manager.root.setLevel(self.config.logs.log_level)
         logger.info(f"init_logger : set logger to level {self.config.logs.log_level}.")
@@ -199,7 +217,7 @@ class Main:
         # initialize app
         if not self._init_conf():
             return
-        self._init_logger()
+        self._init_log_handler()
         logger.debug(f"launch_app : bitcap-ipr v{IPR_METADATA['appversion']}")
         logger.info("launch_app : start app.")
 
@@ -207,8 +225,32 @@ class Main:
         self.main_window.show()
 
         sys.excepthook = self._exc_hook
+        self._init_signal_handler()
         with self.event_loop:
             self.exit_code = self.event_loop.run_forever()
+
+    def _init_signal_handler(self) -> None:
+        _ = signal.signal(signal.SIGINT, self._handle_sigint)
+
+        # Qt can otherwise keep Python from dispatching SIGINT until another
+        # UI event occurs. This timer regularly returns control to Python.
+        self._signal_timer = QTimer(self.app)
+        _ = self._signal_timer.timeout.connect(self._process_signals)
+        self._signal_timer.start(200)
+
+    def _process_signals(self) -> None:
+        pass
+
+    def _handle_sigint(self, _signum: int, _frame: object | None) -> None:
+        if self._shutting_down:
+            return
+        self._shutting_down = True
+
+        logger.info("received SIGINT; closing application.")
+        try:
+            self.main_window.quit()
+        finally:
+            self.app.quit()
 
     def _handle_ipc_connection(self):
         conn = self.ipc_server.nextPendingConnection()

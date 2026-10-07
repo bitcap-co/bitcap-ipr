@@ -63,6 +63,19 @@ ANTMINER_MINER_CONFIG = {
     ],
 }
 
+ANTMINER_EMPTY_MINER_CONFIG = {
+    "bitmain-work-mode": "1",
+    "bitmain-freq": "",
+    "bitmain-freq-level": "",
+    "pools": [
+        {
+            "url": "",
+            "user": "",
+            "pass": "",
+        }
+    ],
+}
+
 
 class TestAntminerClient(unittest.IsolatedAsyncioTestCase):
     async def test_get_system_info_request_and_parse(self):
@@ -138,6 +151,20 @@ class TestAntminerClient(unittest.IsolatedAsyncioTestCase):
             await client.update_firmware(
                 b"firmware", filename="firmware.img", keep_settings=True
             )
+    async def test_get_miner_empty_config_and_parse(self):
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(200, json=ANTMINER_EMPTY_MINER_CONFIG)
+
+        client = AntminerHTTPClient("127.0.0.1", transport=httpx.MockTransport(handler))
+        client.authed = True  # bypass the digest handshake for a transport-only test
+        info = await client.get_miner_conf()
+        self.assertEqual(info.miner_mode, 1)
+        # Model fields converts empty strings to None to skip validation
+        self.assertIsNone(info.freq)
+        self.assertIsNone(info.freq_level)
+        self.assertEqual(info.pools.root[0].url, "")
+        self.assertEqual(info.pools.root[0].user, "")
+        self.assertEqual(info.pools.root[0].pwd, "")
 
     async def test_update_passwd_posts_expected_json_payload(self):
         def handler(request: httpx.Request) -> httpx.Response:

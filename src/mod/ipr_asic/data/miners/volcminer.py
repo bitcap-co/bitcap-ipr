@@ -11,6 +11,7 @@ from mod.ipr_asic.data import (
     MinerData,
     MinerFirmware,
     MinerType,
+    clean_model_name,
 )
 from mod.ipr_asic.schemas.volcminer import MinerPool as VolcminerPool
 from mod.ipr_asic.schemas.volcminer import MinerStatus as VolcminerSummary
@@ -18,9 +19,9 @@ from mod.ipr_asic.schemas.volcminer import SystemInfo as VolcminerSystemInfo
 
 
 class VolcminerModels(BaseModel):
-    system_info: VolcminerSystemInfo
-    summary: VolcminerSummary
-    pools: list[VolcminerPool]
+    system_info: VolcminerSystemInfo | None = None
+    summary: VolcminerSummary | None = None
+    pools: list[VolcminerPool] | None = None
 
 
 class VolcminerParser:
@@ -30,13 +31,17 @@ class VolcminerParser:
         data.firmware = MinerFirmware.STOCK
         data.algorithm = MinerAlgorithm.SCRYPT
 
-        data.uptime = int(models.summary.elapsed)
-        data.subtype = models.system_info.minertype[10:]
-        data.hostname = models.system_info.hostname
-        data.mac = models.system_info.macaddr
-        data.fw_version = models.system_info.system_filesystem_version
+        if models.summary is not None:
+            data.uptime = int(models.summary.elapsed)
+        if models.system_info is not None:
+            data.subtype = clean_model_name(
+                models.system_info.minertype, vendor="VolcMiner"
+            )
+            data.hostname = models.system_info.hostname
+            data.mac = models.system_info.macaddr
+            data.fw_version = models.system_info.system_filesystem_version
 
-        for pool in models.pools:
+        for pool in models.pools or []:
             if pool.status == "Alive":
                 data.stratum_url = pool.url
                 if "." in pool.user:

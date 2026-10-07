@@ -3,6 +3,8 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
+import re
+import unicodedata
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Self, override
@@ -71,6 +73,9 @@ class MinerAlgorithm(str, Enum):
     RANDOMX = "RandomX"
     PEARLHASH = "Pearlhash"
     CUCKATOO = "Cuckatoo"
+    AUTOLYKOS = "Autolykos"
+    BLAKE2B = "Blake2b (Sia)"
+    BLAKE2S = "Blake2s"
 
     @override
     def __str__(self) -> str:
@@ -111,6 +116,28 @@ class MinerPlatform(str, Enum):
                 if platform.lower() == enum.name.lower():
                     return cls(enum.value)
             return None
+
+
+def clean_model_name(value: str | None, vendor: str | None = None) -> str | None:
+    """Clean a reported model name without maintaining a model catalog."""
+    if value is None:
+        return None
+    cleaned = " ".join(unicodedata.normalize("NFKC", value).split())
+    if vendor:
+        cleaned = re.sub(
+            rf"^{re.escape(vendor)}(?:[\s_-]+)",
+            "",
+            cleaned,
+            count=1,
+            flags=re.IGNORECASE,
+        )
+    return cleaned or None
+
+
+def model_identity(value: str) -> str:
+    """Return a stable grouping key while preserving meaningful model suffixes."""
+    normalized = unicodedata.normalize("NFKC", value).casefold()
+    return re.sub(r"[\s_-]+", "", normalized)
 
 
 class MinerData(BaseModel):

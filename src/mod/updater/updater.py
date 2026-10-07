@@ -44,11 +44,16 @@ INSTALLER_EXTS = {
 }
 
 _VERSION_RE = re.compile(r"(\d+(?:\.\d+)*)")
-# Pre-release tag marker used by this project: a base version followed by a
-# '-rp-<feature>' suffix, e.g. 'v1.4.2-rp-hivegpu'. The suffix is free text
-# (a feature name), so previews of the same base have no order among
-# themselves; each is a preview of that upcoming base version.
-_PRERELEASE_RE = re.compile(r"-rp-\S+", re.IGNORECASE)
+# Release previews use an ordered counter and an optional descriptive label,
+# e.g. 'v1.4.2-rp2-hivegpu'. Legacy '-rp-<feature>' tags remain supported as
+# preview sequence 0.
+_PRERELEASE_RE = re.compile(
+    r"-rp(?:"
+    r"(?P<number>\d+)(?:-[A-Za-z0-9][A-Za-z0-9.-]*)?"
+    r"|-(?P<legacy_label>[A-Za-z0-9][A-Za-z0-9.-]*)"
+    r")$",
+    re.IGNORECASE,
+)
 
 
 def parse_version(version: str) -> tuple[int, ...]:
@@ -71,25 +76,33 @@ def parse_version(version: str) -> tuple[int, ...]:
     return tuple(int(part) for part in match.group(1).split("."))
 
 
+def _prerelease_number(version: str) -> int | None:
+    """Return a preview's sequence number, or None for a final release."""
+    match = _PRERELEASE_RE.search(version or "")
+    if not match:
+        return None
+    number = match.group("number")
+    return int(number) if number is not None else 0
+
+
 def is_prerelease(version: str) -> bool:
-    """Whether a version tag is a pre-release preview ('-rp-<feature>').
+    """Whether a version tag is an ordered or legacy release preview.
 
     Args:
         version (str): the version string to inspect.
 
     Returns:
-        bool: True if the tag carries a '-rp-' pre-release suffix.
+        bool: True if the tag carries a supported release-preview suffix.
     """
-    return bool(_PRERELEASE_RE.search(version or ""))
+    return _prerelease_number(version) is not None
 
 
-def version_key(version: str) -> tuple[tuple[int, ...], int]:
+def version_key(version: str) -> tuple[tuple[int, ...], int, int]:
     """Build a sortable key for a version tag, pre-release aware.
 
-    Orders by numeric base version first, then places pre-release previews
-    (e.g. 'v1.4.2-rp-hivegpu') before the matching final release of the same
-    base. Previews of the same base have equal keys; callers relying on this
-    for selection should break ties by source order (newest first).
+    Orders by numeric base version, then preview sequence, while placing the
+    final release after every preview of the same base. Descriptive labels do
+    not affect ordering. Legacy previews use sequence 0.
 
     Args:
         version (str): the version string to key.
@@ -97,16 +110,19 @@ def version_key(version: str) -> tuple[tuple[int, ...], int]:
     Returns:
         tuple: a key suitable for sorting / max().
     """
-    return (parse_version(version), 0 if is_prerelease(version) else 1)
+    preview_number = _prerelease_number(version)
+    if preview_number is None:
+        return (parse_version(version), 1, 0)
+    return (parse_version(version), 0, preview_number)
 
 
 def is_newer(latest: str, current: str) -> bool:
     """Check if latest is a strictly newer version than current.
 
-    A pre-release tag (e.g. 'v1.4.2-rp-hivegpu') previews an upcoming base
+    A pre-release tag (e.g. 'v1.4.2-rp2-hivegpu') previews an upcoming base
     version, so it is newer than any older release and is itself superseded
-    by the matching final release. Two different previews of the same base
-    are not comparable and never report newer than one another.
+    by the matching final release. Previews of the same base are ordered by
+    their sequence number; descriptive labels do not affect precedence.
 
     Args:
         latest (str): the candidate (remote) version string.
@@ -123,8 +139,15 @@ def is_newer(latest: str, current: str) -> bool:
     current_v += (0,) * (length - len(current_v))
     if latest_v != current_v:
         return latest_v > current_v
-    # same base version: only a final release supersedes a preview of it.
-    return not is_prerelease(latest) and is_prerelease(current)
+    # Same base version: finals supersede previews, while previews use only
+    # their sequence number. Two labels on the same sequence are equivalent.
+    latest_preview = _prerelease_number(latest)
+    current_preview = _prerelease_number(current)
+    if latest_preview is None:
+        return current_preview is not None
+    if current_preview is None:
+        return False
+    return latest_preview > current_preview
 
 
 _GITHUB_HEADERS = {
@@ -176,7 +199,7 @@ def fetch_latest_release(
     By default only published, non-pre-release versions are considered (the
     'releases/latest' endpoint). When include_prereleases is True the full
     release list is fetched and the highest version is chosen, so a newer
-    pre-release preview (e.g. 'vX.Y.Z-rp-N') is picked up when one exists.
+    pre-release preview (e.g. 'vX.Y.Z-rp2-feature') is picked up when one exists.
 
     Args:
         include_prereleases (bool): also consider pre-release versions.
@@ -199,8 +222,8 @@ def fetch_latest_release(
 
     resp = requests.get(RELEASES_URL, headers=_GITHUB_HEADERS, timeout=timeout)
     resp.raise_for_status()
-    # GitHub returns releases newest-first; max() keeps the first of any tie,
-    # so competing previews of the same base resolve to the most recent one.
+    # GitHub returns releases newest-first; max() keeps the first when the base
+    # version and preview sequence are equal.
     releases = TypeAdapter(list[IPRReleaseInfo])
     releases = [
         release

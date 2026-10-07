@@ -156,17 +156,21 @@ class IPRDListener(QObject):
 
     @Slot()
     def _process_message(self) -> None:
-        logger.info(f"{self.__repr__()} : received packet.")
-        stream = self.sock.readAll()
-        pkt_data = stream.toStdString().splitlines()[0]
-        logger.debug(f"{self.__repr__()} : read {pkt_data} ({len(pkt_data)})")
-        try:
-            obj = json.loads(pkt_data)
-            packet = IPRDPacketData.model_validate(obj=obj, by_alias=True)
-        except (ValidationError, json.JSONDecodeError) as e:
-            logger.error(f"{self.__repr__()} : invalid IP Report packet data: {e}.")
-            return
-        self.emit_result(packet)
+        # Leave partial frames in QTcpSocket's buffer and process every complete
+        # newline-delimited report already available from the TCP stream.
+        while self.sock.canReadLine():
+            pkt_data = self.sock.readLine().toStdString().strip()
+            if not pkt_data:
+                continue
+            logger.info(f"{self.__repr__()} : received packet.")
+            logger.debug(f"{self.__repr__()} : read {pkt_data} ({len(pkt_data)})")
+            try:
+                obj = json.loads(pkt_data)
+                packet = IPRDPacketData.model_validate(obj=obj, by_alias=True)
+            except (ValidationError, json.JSONDecodeError) as e:
+                logger.error(f"{self.__repr__()} : invalid IP Report packet data: {e}.")
+                continue
+            self.emit_result(packet)
 
     def set_socket_addr(self, addr: str, port: int) -> bool:
         """Sets host IP address and port for iprd TCP stream endpoint.
@@ -226,7 +230,7 @@ class IPRDListener(QObject):
         addr_result = QHostAddress(result.src_ip).toIPv4Address()
         addr = addr_result[0] if isinstance(addr_result, tuple) else addr_result
         ip_report = IPReport(
-            created_at=float(result.timestamp),
+            created_at=result.timestamp / 1000.0,
             updated_at=time.time(),
             hint=hint,
             sort_ip=addr,

@@ -52,10 +52,20 @@ class ProjectMetadata:
     @property
     def debian_version(self) -> str:
         """Return a Debian version that orders release previews before the final."""
-        base, marker, preview = self.version.partition("-rp-")
-        if not marker:
+        preview_match = re.fullmatch(
+            r"(?P<base>\d+\.\d+\.\d+)-rp(?:"
+            r"(?P<number>\d+)(?:-(?P<label>[A-Za-z0-9][A-Za-z0-9.-]*))?"
+            r"|-(?P<legacy_label>[A-Za-z0-9][A-Za-z0-9.-]*)"
+            r")",
+            self.version,
+        )
+        if preview_match is None:
             return self.version
-        return f"{base}~rp.{preview.replace('-', '.')}"
+
+        number = preview_match.group("number") or "0"
+        label = preview_match.group("label") or preview_match.group("legacy_label")
+        suffix = f".{label.replace('-', '.')}" if label else ""
+        return f"{preview_match.group('base')}~rp.{number}{suffix}"
 
     def runtime_values(self) -> dict[str, str]:
         return {

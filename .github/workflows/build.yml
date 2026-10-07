@@ -112,7 +112,7 @@ jobs:
         with:
           name: BitCap IPReporter ${{ github.ref_name }} Release
           draft: true
-          prerelease: ${{ contains(github.ref_name, '-rp-') }}
+          prerelease: ${{ contains(github.ref_name, '-rp') }}
           files: |
             artifacts/**/*.zip
             artifacts/**/*.dmg

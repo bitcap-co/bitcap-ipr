@@ -868,6 +868,9 @@ Uses last 5 of SN or MAC address.</string>
              </layout>
             </widget>
             <widget class="QWidget" name="firmwareConfigurator">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <attribute name="title">
               <string>Firmware</string>
              </attribute>
@@ -1541,7 +1544,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>864</width>
+                   <width>469</width>
                    <height>849</height>
                   </rect>
                  </property>
@@ -1668,7 +1671,7 @@ Uses last 5 of SN or MAC address.</string>
                      <item>
                       <widget class="QCheckBox" name="checkIncludePreReleases">
                        <property name="toolTip">
-                        <string>Also offer pre-release (vX.Y.Z-rp-N) versions when checking for updates</string>
+                        <string>Also offer release preview (vX.Y.Z-rpN[-feature]) versions when checking for updates</string>
                        </property>
                        <property name="text">
                         <string>Include Pre-Releases</string>
@@ -2215,7 +2218,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>862</width>
+                   <width>255</width>
                    <height>986</height>
                   </rect>
                  </property>
@@ -2950,8 +2953,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>864</width>
-                   <height>275</height>
+                   <width>368</width>
+                   <height>242</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_11">

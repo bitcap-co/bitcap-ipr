@@ -7,7 +7,13 @@ import re
 
 from pydantic import BaseModel
 
-from mod.ipr_asic.data import MinerAlgorithm, MinerData, MinerFirmware, MinerType
+from mod.ipr_asic.data import (
+    MinerAlgorithm,
+    MinerData,
+    MinerFirmware,
+    MinerType,
+    clean_model_name,
+)
 from mod.ipr_asic.schemas.antminer import MinerPool as AntminerPool
 from mod.ipr_asic.schemas.antminer import MinerSummary as AntminerSummary
 from mod.ipr_asic.schemas.antminer import OldMinerPool as OldAntminerPool
@@ -23,7 +29,7 @@ _PLATFORM_PATTERNS: dict[str, re.Pattern[str]] = {
 
 
 class AntminerModels(BaseModel):
-    system_info: AntminerSystemInfo
+    system_info: AntminerSystemInfo | None = None
     summary: AntminerSummary | None = None
     pools: list[AntminerPool] | list[OldAntminerPool] | None = None
     log: AntminerLog | None = None
@@ -37,15 +43,18 @@ class AntminerParser:
         data.algorithm = MinerAlgorithm.SHA256
         if models.summary is not None:
             data.uptime = models.summary.elapsed
-        data.subtype = models.system_info.minertype[9:]
-        data.hostname = models.system_info.hostname
-        data.mac = models.system_info.macaddr
-        data.serial = models.system_info.serinum
-        data.fw_version = models.system_info.system_filesystem_version
+        if models.system_info is not None:
+            data.subtype = clean_model_name(
+                models.system_info.minertype, vendor="Antminer"
+            )
+            data.hostname = models.system_info.hostname
+            data.mac = models.system_info.macaddr
+            data.serial = models.system_info.serinum
+            data.fw_version = models.system_info.system_filesystem_version
 
-        algo = models.system_info.algorithm
-        if algo is not None:
-            data.algorithm = MinerAlgorithm.from_value(algo)
+            algo = models.system_info.algorithm
+            if algo is not None:
+                data.algorithm = MinerAlgorithm.from_value(algo)
 
         if models.log is not None:
             models.log.text = models.log.text[0 : models.log.text.find("===")]

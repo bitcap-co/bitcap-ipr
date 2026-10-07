@@ -5,14 +5,34 @@
 
 """Tests for IPRD socket lifecycle and listening-intent guards."""
 
+import json
 import unittest
 from types import SimpleNamespace
 from typing import Any
 from unittest.mock import Mock
 
+from PySide6.QtCore import QByteArray
 from PySide6.QtNetwork import QAbstractSocket, QHostAddress
 
 from mod.lm.iprd.listener import IPRDListener
+
+
+def report_line(ip: str) -> QByteArray:
+    return QByteArray(
+        (
+            json.dumps(
+                {
+                    "timestamp": 1727298000123,
+                    "packetID": f"packet-{ip}",
+                    "dstPort": 1314,
+                    "srcIP": ip,
+                    "srcMAC": "AA:BB:CC:DD:EE:FF",
+                    "minerHint": "goldshell",
+                }
+            )
+            + "\n"
+        ).encode()
+    )
 
 
 class TestIPRDListenerLifecycle(unittest.TestCase):
@@ -86,6 +106,47 @@ class TestIPRDListenerLifecycle(unittest.TestCase):
         socket.write.assert_not_called()
         self.assertFalse(subject.active)
         subscribed.emit.assert_not_called()
+
+    def test_partial_report_remains_buffered_until_line_is_complete(self) -> None:
+        socket = Mock()
+        socket.canReadLine.return_value = False
+        subject: Any = SimpleNamespace(sock=socket, emit_result=Mock())
+
+        IPRDListener._process_message(subject)
+
+        socket.readLine.assert_not_called()
+        subject.emit_result.assert_not_called()
+
+    def test_processes_every_complete_report_in_one_ready_read(self) -> None:
+        socket = Mock()
+        socket.canReadLine.side_effect = [True, True, False]
+        socket.readLine.side_effect = [
+            report_line("192.168.1.20"),
+            report_line("192.168.1.21"),
+        ]
+        subject: Any = SimpleNamespace(sock=socket, emit_result=Mock())
+
+        IPRDListener._process_message(subject)
+
+        self.assertEqual(subject.emit_result.call_count, 2)
+        self.assertEqual(
+            [call.args[0].src_ip for call in subject.emit_result.call_args_list],
+            ["192.168.1.20", "192.168.1.21"],
+        )
+
+    def test_malformed_report_does_not_discard_following_report(self) -> None:
+        socket = Mock()
+        socket.canReadLine.side_effect = [True, True, False]
+        socket.readLine.side_effect = [
+            QByteArray(b"not json\n"),
+            report_line("192.168.1.20"),
+        ]
+        subject: Any = SimpleNamespace(sock=socket, emit_result=Mock())
+
+        IPRDListener._process_message(subject)
+
+        subject.emit_result.assert_called_once()
+        self.assertEqual(subject.emit_result.call_args.args[0].src_ip, "192.168.1.20")
 
     def test_resume_restores_active_connection_without_auto_reconnect(self) -> None:
         socket = Mock()

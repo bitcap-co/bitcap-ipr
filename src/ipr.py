@@ -1547,10 +1547,22 @@ Statistics:
         return True
 
     def _connect_to_iprd_service(self, service: IPRDService) -> None:
+        previous_service_name = self._discovered_iprd_service_name
+        previous_address = self._discovered_iprd_address
+        sticky = (
+            service.name == previous_service_name
+            and previous_address in service.addresses
+        )
         address = _select_iprd_service_address(
             service,
-            self._discovered_iprd_service_name,
-            self._discovered_iprd_address,
+            previous_service_name,
+            previous_address,
+        )
+        selection = "sticky" if sticky else "preferred"
+        logger.info(
+            "IPRD service endpoint selection: "
+            f"service={service.name!r}, addresses={service.addresses!r}, "
+            f"selected={address!r}, selection={selection}."
         )
         self._discovered_iprd_service_name = service.name
         self._discovered_iprd_address = address
@@ -1599,7 +1611,16 @@ Statistics:
             or self._listen_state is not ListenState.DISCOVERING
         ):
             return
-        logger.warning("IPRD discovery timed out without finding a service.")
+        logger.warning(
+            "IPRD discovery timed out without finding a service: "
+            f"selected_service={self._discovered_iprd_service_name!r}, "
+            f"selected_address={self._discovered_iprd_address!r}, "
+            f"discovered_services={len(self.iprd_discovery.services)}."
+        )
+        # A browser created before post-resume networking settled may remain bound
+        # to stale interfaces. Fully close it so the next Start creates a fresh
+        # Zeroconf instance instead of reusing the failed browser.
+        self.iprd_discovery.stop()
         self.stop_listen()
         self.notify("Status :: IPRD discovery timed out. Stopped listening.")
 
@@ -1632,6 +1653,26 @@ Statistics:
 
     def on_iprd_retry_paused(self, delay_ms: int):
         logger.warning(f" IPRD retry cycle exhausted; restarting in {delay_ms} ms.")
+        if self.checkEnableIPRDAutoDiscover.isChecked():
+            service = (
+                self.iprd_discovery.get_service(self._discovered_iprd_service_name)
+                if self._discovered_iprd_service_name is not None
+                else None
+            )
+            alternatives = (
+                tuple(
+                    address
+                    for address in service.addresses
+                    if address != self._discovered_iprd_address
+                )
+                if service is not None
+                else ()
+            )
+            logger.warning(
+                "IPRD discovered endpoint retry cycle paused: "
+                f"failed_endpoint={self._discovered_iprd_address!r}, "
+                f"alternatives={alternatives!r}."
+            )
         self._retry_cooldown_ms = delay_ms
         self.set_listen_state(ListenState.DISCONNECTED)
 

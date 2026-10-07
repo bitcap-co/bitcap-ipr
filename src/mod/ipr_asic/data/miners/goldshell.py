@@ -6,7 +6,13 @@
 
 from pydantic import BaseModel
 
-from mod.ipr_asic.data import MinerAlgorithm, MinerData, MinerFirmware, MinerType
+from mod.ipr_asic.data import (
+    MinerAlgorithm,
+    MinerData,
+    MinerFirmware,
+    MinerType,
+    clean_model_name,
+)
 from mod.ipr_asic.schemas.goldshell import AlgoSettings as GoldshellAlgorithm
 from mod.ipr_asic.schemas.goldshell import Devs as GoldshellSummary
 from mod.ipr_asic.schemas.goldshell import MinerPool as GoldshellPool
@@ -15,11 +21,11 @@ from mod.ipr_asic.schemas.goldshell import Status as GoldshellSystemInfo
 
 
 class GoldshellModels(BaseModel):
-    system_info: GoldshellSystemInfo
-    summary: GoldshellSummary
-    miner_config: GoldshellMinerConfig
-    algorithm: GoldshellAlgorithm
-    pools: list[GoldshellPool]
+    system_info: GoldshellSystemInfo | None = None
+    summary: GoldshellSummary | None = None
+    miner_config: GoldshellMinerConfig | None = None
+    algorithm: GoldshellAlgorithm | None = None
+    pools: list[GoldshellPool] | None = None
 
 
 class GoldshellParser:
@@ -28,15 +34,44 @@ class GoldshellParser:
         data.type = MinerType.GOLDSHELL
         data.firmware = MinerFirmware.STOCK
 
-        data.subtype = models.system_info.model
-        # data.hostname = models.miner_config.name
-        data.mac = models.miner_config.name
-        data.fw_version = models.system_info.firmware
-        data.algorithm = MinerAlgorithm.from_value(
-            models.algorithm.algos[models.algorithm.algo_select].name
-        )
+        if models.system_info is not None:
+            model = clean_model_name(models.system_info.model, vendor="Goldshell")
+            # normalize alpha-numeric model names
+            match model:
+                case "CAEU14":
+                    data.subtype = "SC5 Pro II"
+                case "CAEU12":
+                    data.subtype = "SC5 Pro"
+                case "CBAU12":
+                    data.subtype = "CK6"
+                    data.algorithm = MinerAlgorithm.EAGLESONG
+                case "CBAU13":
+                    data.subtype = "CK6 SE"
+                    data.algorithm = MinerAlgorithm.EAGLESONG
+                case "CDAU12":
+                    data.subtype = "KD6"
+                    data.algorithm = MinerAlgorithm.BLAKE2S
+                case "CDAU14":
+                    data.subtype = "KD MAX"
+                    data.algorithm = MinerAlgorithm.BLAKE2S
+                case "CHAU12":
+                    data.subtype = "HS6"
+                case "CLAU12":
+                    data.subtype = "LT6"
+                    data.algorithm = MinerAlgorithm.SCRYPT
+                case _:
+                    data.subtype = model
+            data.fw_version = models.system_info.firmware
+        if models.miner_config is not None:
+            # Goldshell reports its MAC address in the config name field.
+            data.mac = models.miner_config.name
+        # for dual algorithm miners, use the selected algorithm
+        if models.algorithm is not None and data.algorithm is None:
+            data.algorithm = MinerAlgorithm.from_value(
+                models.algorithm.algos[models.algorithm.algo_select].name
+            )
 
-        for pool in models.pools:
+        for pool in models.pools or []:
             if pool.active:
                 data.stratum_url = pool.url
                 if "." in pool.user:

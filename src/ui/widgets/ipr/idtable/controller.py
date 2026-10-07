@@ -529,6 +529,7 @@ class IPRTableController(QObject):
             values,
             self.proxy.column_filter(section),
             self._window,
+            normalizer=self.model.filter_key(section),
         )
         popup.applied.connect(
             lambda labels, col=section, choices=values: self._apply_column_filter(

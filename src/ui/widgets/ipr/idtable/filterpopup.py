@@ -15,6 +15,7 @@ searching only hides rows (checked-but-hidden values stay in the result), and
 "(Select All)" then acts on whatever is currently visible.
 """
 
+from collections.abc import Callable
 from typing import override
 
 from PySide6.QtCore import QPoint, QRect, Qt, Signal
@@ -47,6 +48,7 @@ class ColumnFilterPopup(QFrame):
         values: list[tuple[str, int]],
         checked: set[str] | None,
         parent: QWidget | None = None,
+        normalizer: Callable[[str], str] = normalize_value,
     ) -> None:
         super().__init__(parent, Qt.WindowType.Popup)
         self.setObjectName("columnFilterPopup")
@@ -87,7 +89,7 @@ class ColumnFilterPopup(QFrame):
             item = QListWidgetItem(f"{value} ({count})")
             item.setData(Qt.ItemDataRole.UserRole, value)
             item.setFlags(Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled)
-            is_on = checked is None or normalize_value(value) in checked
+            is_on = checked is None or normalizer(value) in checked
             item.setCheckState(
                 Qt.CheckState.Checked if is_on else Qt.CheckState.Unchecked
             )
