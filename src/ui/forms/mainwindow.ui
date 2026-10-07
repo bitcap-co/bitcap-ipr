@@ -137,7 +137,7 @@
              </sizepolicy>
             </property>
             <property name="currentIndex">
-             <number>2</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="poolConfigurator">
              <attribute name="title">
@@ -869,7 +869,7 @@ Uses last 5 of SN or MAC address.</string>
             </widget>
             <widget class="QWidget" name="firmwareConfigurator">
              <property name="enabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <attribute name="title">
               <string>Firmware</string>

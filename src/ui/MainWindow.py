@@ -394,7 +394,7 @@ class Ui_MainWindow(object):
         self.tabConfigurator.addTab(self.passwdConfigurator, "")
         self.firmwareConfigurator = QWidget()
         self.firmwareConfigurator.setObjectName(u"firmwareConfigurator")
-        self.firmwareConfigurator.setEnabled(False)
+        self.firmwareConfigurator.setEnabled(True)
         self.verticalLayout_16 = QVBoxLayout(self.firmwareConfigurator)
         self.verticalLayout_16.setObjectName(u"verticalLayout_16")
         self.groupUpdateFirmware = QGroupBox(self.firmwareConfigurator)
@@ -1471,7 +1471,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tabConfigurator.setCurrentIndex(2)
+        self.tabConfigurator.setCurrentIndex(0)
         self.stackedWidget.setCurrentIndex(0)
         self.tabSettings.setCurrentIndex(0)
         self.comboLogLevel.setCurrentIndex(1)
