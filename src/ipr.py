@@ -63,6 +63,7 @@ from mod.powermonitor import PowerMonitor
 from mod.updater import UpdateController
 from ui import Ui_MainWindow
 from ui.widgets import (
+    FirmwareConfiguratorWidgets,
     IPRMenubar,
     IPRMessage,
     IPRPresetSelector,
@@ -524,6 +525,11 @@ class IPR(QMainWindow, Ui_MainWindow):
                             MinerType.VNISH: self.lineVnishPasswd,
                         },
                     ),
+                    firmware=FirmwareConfiguratorWidgets(
+                        firmware_path=self.lineSelectedFirmwarePath,
+                        enforce_compatibility=self.checkEnforceFirmwareCompatibility,
+                        keep_settings=self.checkFirmwareUpgradeKeepSettings,
+                    ),
                 ),
                 dependencies=MinerConfiguratorDependencies(
                     table_controller=self.table_controller,
@@ -552,6 +558,15 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         self.actionIPRStoreAsAlternative.clicked.connect(
             self.configurator_controller.update_alternative_passwords
+        )
+        self.actionSelectLocalFirmware.clicked.connect(
+            self.configurator_controller.update_firmware_path
+        )
+        self.actionResetFirmware.clicked.connect(
+            self.configurator_controller.reset_miner_firmware
+        )
+        self.actionRollbackFirmware.clicked.connect(
+            self.configurator_controller.rollback_miner_firmware
         )
 
         # set logo
@@ -989,6 +1004,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.pool_preset_controller.reload()
         self.socket_preset_controller.reload()
 
+        self.lineSelectedFirmwarePath.setText(self.config.fw_config.firmware_path)
+        self.checkEnforceFirmwareCompatibility.setChecked(
+            self.config.fw_config.enforce_compatibility
+        )
+        self.checkFirmwareUpgradeKeepSettings.setChecked(
+            self.config.fw_config.keep_settings
+        )
+
         # instance
         window_geometry = self.config.instance.geometry
         if window_geometry:
@@ -1097,10 +1120,17 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "vnishAltPasswd": self.lineVnishPasswd.text(),
             },
         }
-        settings["poolConfigurator"] = {
-            "autoSetWorkers": self.checkAutomaticWorkerNames.isChecked(),
-            "selectedPoolPreset": self.pool_preset_controller.index,
-            "poolPresets": self.pool_preset_controller.snapshot(),
+        settings["configurator"] = {
+            "poolConfig": {
+                "autoSetWorkers": self.checkAutomaticWorkerNames.isChecked(),
+                "selectedPoolPreset": self.pool_preset_controller.index,
+                "poolPresets": self.pool_preset_controller.snapshot(),
+            },
+            "firmwareConfig": {
+                "firmwarePath": self.lineSelectedFirmwarePath.text(),
+                "enforceCompatibility": self.checkEnforceFirmwareCompatibility.isChecked(),
+                "keepSettings": self.checkFirmwareUpgradeKeepSettings.isChecked(),
+            },
         }
         settings["logs"] = {
             "logLevel": self.comboLogLevel.currentText(),

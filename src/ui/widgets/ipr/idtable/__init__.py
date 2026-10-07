@@ -5,6 +5,7 @@
 
 from .action_controller import MinerActionController, MinerActionDependencies
 from .configurator_controller import (
+    FirmwareConfiguratorWidgets,
     MinerConfiguratorController,
     MinerConfiguratorDependencies,
     MinerConfiguratorWidgets,
@@ -41,6 +42,7 @@ __all__ = [
     "FILTERABLE_COLUMNS",
     "ColumnFilterPopup",
     "FilterHeaderView",
+    "FirmwareConfiguratorWidgets",
     "IPRActionDelegate",
     "IPRFilterProxyModel",
     "IPRTableContextMenu",

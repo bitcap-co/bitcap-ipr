@@ -23,11 +23,15 @@ from .models import (
 class ActionResult(BaseModel):
     stats: str
     status: str | None = None
-    code: str
-    msg: str
+    code: str = ""
+    msg: str = ""
 
     def error(self) -> str | None:
-        if self.status != "success" and self.stats != "success" or self.msg == "FAIL!":
+        if (
+            self.stats != "success"
+            or self.status not in (None, "success")
+            or self.msg == "FAIL!"
+        ):
             return f"API error ({self.code}): {self.stats} - {self.msg}"
 
 
@@ -157,13 +161,14 @@ class WarningResponse(BaseModel):
 
 
 class MinerTypeInfo(BaseModel):
-    miner_type: str
-    subtype: str
-    fw_version: str
+    miner_type: str = ""
+    subtype: str = ""
+    fw_version: str = ""
     product_type: str = ""
 
 
 class VersionInfo(VersionInfoModel):
+    miner_info: MinerTypeInfo | None = None
     minertype: str
     fw_version: str = Field(alias="system_filesystem_version")
     kernel_version: str = Field(alias="system_kernel_version")

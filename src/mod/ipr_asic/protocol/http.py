@@ -76,6 +76,7 @@ class BaseHTTPClient(BaseClient, ABC):
         params: dict[str, str] | None = None,
         payload: dict[str, Any] | None = None,
         data: dict[str, Any] | None = None,
+        files: dict[str, Any] | None = None,
         timeout: float | None = None,
         verify: bool = True,
     ) -> httpx.Response:
@@ -102,6 +103,7 @@ class BaseHTTPClient(BaseClient, ABC):
                 params=params,
                 json=payload,
                 data=data,
+                files=files,
             )
             resp = await c.send(req)
             return resp
@@ -113,6 +115,8 @@ class BaseHTTPClient(BaseClient, ABC):
         params: dict[str, str] | None = None,
         payload: dict[str, Any] | None = None,
         data: dict[str, Any] | None = None,
+        files: dict[str, Any] | None = None,
+        timeout: float | None = None,
     ) -> APIObject:
         if not self.authed:
             try:
@@ -136,6 +140,8 @@ class BaseHTTPClient(BaseClient, ABC):
                 params=params,
                 payload=payload,
                 data=data,
+                files=files,
+                timeout=timeout,
             )
             _ = resp.raise_for_status()
             if resp.status_code == 200:

@@ -103,6 +103,54 @@ class TestAntminerClient(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(info.pools.root[0].user, "testuser")
         self.assertEqual(info.pools.root[0].pwd, "1")
 
+    async def test_update_firmware_posts_multipart_payload(self):
+        firmware = b"validated firmware payload"
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            self.assertEqual(request.method, "POST")
+            self.assertTrue(request.url.path.endswith("cgi-bin/upgrade_clear.cgi"))
+            self.assertTrue(
+                request.headers["content-type"].startswith("multipart/form-data;")
+            )
+            self.assertIn(b'name="firmware"', request.content)
+            self.assertIn(
+                b'filename="firmware.img"',
+                request.content,
+            )
+            self.assertIn(b"application/octet-stream", request.content)
+            self.assertIn(firmware, request.content)
+            return httpx.Response(200, json={"stats": "success"})
+
+        client = AntminerHTTPClient("127.0.0.1", transport=httpx.MockTransport(handler))
+        client.authed = True
+
+        result = await client.update_firmware(
+            firmware,
+            filename="firmware.img",
+            keep_settings=False,
+        )
+
+        self.assertEqual(result["stats"], "success")
+
+    async def test_update_firmware_rejects_failed_action_response(self):
+        transport = httpx.MockTransport(
+            lambda request: httpx.Response(
+                200,
+                json={
+                    "stats": "fail",
+                    "status": "fail",
+                    "code": "1",
+                    "msg": "invalid firmware",
+                },
+            )
+        )
+        client = AntminerHTTPClient("127.0.0.1", transport=transport)
+        client.authed = True
+
+        with self.assertRaisesRegex(APIError, "Firmware update failed"):
+            await client.update_firmware(
+                b"firmware", filename="firmware.img", keep_settings=True
+            )
     async def test_get_miner_empty_config_and_parse(self):
         def handler(request: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=ANTMINER_EMPTY_MINER_CONFIG)
@@ -175,6 +223,46 @@ class TestAntminerClient(unittest.IsolatedAsyncioTestCase):
 
 
 class TestAntminerOldClient(unittest.IsolatedAsyncioTestCase):
+    async def test_update_firmware_uses_legacy_datafile_form_field(self):
+        firmware = b"legacy firmware archive"
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            self.assertEqual(request.method, "POST")
+            self.assertTrue(request.url.path.endswith("cgi-bin/upgrade.cgi"))
+            self.assertTrue(
+                request.headers["content-type"].startswith("multipart/form-data;")
+            )
+            self.assertIn(b'name="datafile"', request.content)
+            self.assertIn(
+                b'filename="Antminer-L3-201704271449-384M.tar.gz"',
+                request.content,
+            )
+            self.assertNotIn(b'name="firmware"', request.content)
+            self.assertIn(b"application/octet-stream", request.content)
+            self.assertIn(firmware, request.content)
+            return httpx.Response(
+                200,
+                json={
+                    "stats": "success",
+                    "status": "success",
+                    "code": "0",
+                    "msg": "OK",
+                },
+            )
+
+        client = AntminerOldHTTPClient(
+            "127.0.0.1", transport=httpx.MockTransport(handler)
+        )
+        client.authed = True
+
+        result = await client.update_firmware(
+            firmware,
+            filename="Antminer-L3-201704271449-384M.tar.gz",
+            keep_settings=True,
+        )
+
+        self.assertEqual(result["stats"], "success")
+
     async def test_update_passwd_posts_expected_query_params(self):
         def handler(request: httpx.Request) -> httpx.Response:
             self.assertEqual(request.method, "POST")

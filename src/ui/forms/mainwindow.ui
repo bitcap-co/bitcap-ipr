@@ -137,7 +137,7 @@
              </sizepolicy>
             </property>
             <property name="currentIndex">
-             <number>0</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="poolConfigurator">
              <attribute name="title">
@@ -883,17 +883,7 @@ Uses last 5 of SN or MAC address.</string>
                 <layout class="QVBoxLayout" name="verticalLayout_18">
                  <item>
                   <layout class="QGridLayout" name="firmwareUpdateConfig">
-                   <item row="0" column="0" colspan="2">
-                    <widget class="QCheckBox" name="checkStoreFirmwarePath">
-                     <property name="toolTip">
-                      <string>Store current base path as default firmware path</string>
-                     </property>
-                     <property name="text">
-                      <string>Store as default path</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="0">
+                   <item row="0" column="0">
                     <widget class="QLineEdit" name="lineSelectedFirmwarePath">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -909,8 +899,8 @@ Uses last 5 of SN or MAC address.</string>
                      </property>
                     </widget>
                    </item>
-                   <item row="1" column="1">
-                    <widget class="QPushButton" name="pushSelectFirmware">
+                   <item row="0" column="1">
+                    <widget class="QPushButton" name="actionSelectLocalFirmware">
                      <property name="maximumSize">
                       <size>
                        <width>400</width>
@@ -918,7 +908,7 @@ Uses last 5 of SN or MAC address.</string>
                       </size>
                      </property>
                      <property name="toolTip">
-                      <string>Select firmware updates from local filesystem</string>
+                      <string>Select firmware file from the filesystem</string>
                      </property>
                      <property name="text">
                       <string>Select Firmware</string>
@@ -928,12 +918,28 @@ Uses last 5 of SN or MAC address.</string>
                   </layout>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="checkUpdateKeepSettings">
+                  <widget class="QCheckBox" name="checkEnforceFirmwareCompatibility">
                    <property name="toolTip">
-                    <string>Keep current miner configuration</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check firmware image to ensure it's compatible with the selected miner(s), preventing update if not. &lt;br/&gt;&lt;br/&gt;WARNING: flashing non-compatible firmware can brick or cause physical damage to the miner. Only disable if you know what you are doing!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
-                    <string>Keep Settings</string>
+                    <string>Enforce Compatibility</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="checkFirmwareUpgradeKeepSettings">
+                   <property name="toolTip">
+                    <string>If supported, current miner configuration is kept after update</string>
+                   </property>
+                   <property name="text">
+                    <string>Keep Miner Configuration</string>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -949,9 +955,9 @@ Uses last 5 of SN or MAC address.</string>
                  <item>
                   <layout class="QGridLayout" name="gridLayout">
                    <item row="0" column="2">
-                    <widget class="QPushButton" name="pushResetFirmware">
+                    <widget class="QPushButton" name="actionResetFirmware">
                      <property name="toolTip">
-                      <string>Reset firmware/configuration back to factory settings</string>
+                      <string>Reset miner back to factory settings</string>
                      </property>
                      <property name="text">
                       <string>Reset Firmware</string>
@@ -961,7 +967,7 @@ Uses last 5 of SN or MAC address.</string>
                    <item row="0" column="1">
                     <widget class="QLabel" name="label_34">
                      <property name="text">
-                      <string>Reset Firmware</string>
+                      <string>Reset/Restore to factory settings</string>
                      </property>
                      <property name="StyleClass" stdset="0">
                       <string>setText</string>
@@ -975,7 +981,7 @@ Uses last 5 of SN or MAC address.</string>
                    <item row="0" column="0">
                     <widget class="QLabel" name="label_35">
                      <property name="text">
-                      <string>Rollback to Stock firmware (Custom)</string>
+                      <string>Rollback to stock firmware (Custom)</string>
                      </property>
                      <property name="StyleClass" stdset="0">
                       <string>setText</string>
@@ -983,9 +989,9 @@ Uses last 5 of SN or MAC address.</string>
                     </widget>
                    </item>
                    <item row="0" column="1">
-                    <widget class="QPushButton" name="pushRollbackFirmware">
+                    <widget class="QPushButton" name="actionRollbackFirmware">
                      <property name="toolTip">
-                      <string>Rollback custom back to stock firmware</string>
+                      <string>Rollback installed custom firmware to stock</string>
                      </property>
                      <property name="text">
                       <string>Rollback Firmware</string>

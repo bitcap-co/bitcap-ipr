@@ -111,12 +111,12 @@ class IPolloHTTPClient(BaseHTTPClient):
     @override
     async def mac_address(self) -> str:
         resp = await self.get_network_info()
-        for iface in resp.ifaces:
+        for iface in resp.ifaces.root:
             if iface.is_up:
                 return iface.macaddr
         return ""
 
-    async def api_version(self) -> tuple[str, VersionInfo]:
+    async def get_version_info(self) -> tuple[str, VersionInfo]:
         resp = await self.summary()
         version_info = VersionInfo(fw_version=resp.version)
         return resp.version, version_info

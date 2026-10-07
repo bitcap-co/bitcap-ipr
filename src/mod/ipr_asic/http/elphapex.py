@@ -95,7 +95,7 @@ class ElphapexHTTPClient(BaseHTTPClient):
         resp = await self.get_system_info()
         return resp.macaddr
 
-    async def api_version(self) -> tuple[str, VersionInfo]:
+    async def get_version_info(self) -> tuple[str, VersionInfo]:
         resp = await self.send_command("GET", command="get_system_info")
         try:
             resobj = VersionInfo.model_validate(resp, by_alias=True)
@@ -213,6 +213,10 @@ class ElphapexHTTPClient(BaseHTTPClient):
     @override
     async def reboot(self) -> APIObject:
         return await self.send_command("POST", command="reboot")
+
+    @override
+    async def reset_firmware(self) -> APIObject:
+        return await self.send_command("POST", command="reset_conf")
 
     @override
     async def update_passwd(self, old_passwd: str, new_passwd: str) -> APIObject:

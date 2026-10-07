@@ -45,6 +45,7 @@ from mod.ipr_asic.errors import (
     AuthenticationError,
     FailedConnectionError,
     UnknownClientError,
+    UnsupportedOperationError,
 )
 from mod.ipr_asic.http import (
     AntminerHTTPClient,
@@ -80,6 +81,7 @@ _CLIENT_ERRORS = (
     OSError,
     LookupError,
     NotImplementedError,
+    UnsupportedOperationError,
 )
 
 
@@ -244,8 +246,8 @@ class ASICClient(QObject):
         try:
             # antminer: old firmware (<= 2020) uses the legacy endpoints
             if isinstance(client, AntminerHTTPClient):
-                api_ver, _ = await client.api_version()
-                version = client.api_version_number(api_ver)
+                api_ver, _ = await client.get_version_info()
+                version = client.version_number(api_ver)
                 try:
                     if version <= 20201231:
                         client.close()
@@ -399,6 +401,24 @@ class ASICClient(QObject):
             return IPolloParser().parse(models).as_dict()
 
         return MinerData().as_dict()
+
+    async def get_miner_version_info(
+        self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
+    ) -> MinerResult:
+        try:
+            client = await self._make_client(miner_type, ip, alt_pwd)
+        except UnknownClientError as e:
+            return MinerResult(error=e)
+        error: Exception | None = None
+        try:
+            version_info = await client.get_version_info()
+            return MinerResult(data=version_info)
+        except _CLIENT_ERRORS as e:
+            logger.error(f"{client!r} : client error raised: {e!s}")
+            error = e
+        finally:
+            client.close(error)
+        return MinerResult(error=error)
 
     async def get_miner_pool_conf(
         self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
@@ -555,6 +575,67 @@ class ASICClient(QObject):
                     _ = await client.blink(enabled=False)
                 except _CLIENT_ERRORS:
                     pass
+        except _CLIENT_ERRORS as e:
+            logger.error(f"{client.__repr__()} : client error raised: {e!s}")
+            return MinerResult(error=e)
+        finally:
+            client.close()
+        return MinerResult()
+
+    async def reset_miner_firmware(
+        self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
+    ):
+        try:
+            client = await self._make_client(miner_type, ip, alt_pwd)
+        except UnknownClientError as e:
+            return MinerResult(error=e)
+        try:
+            _ = await client.reset_firmware()
+        except _CLIENT_ERRORS as e:
+            logger.error(f"{client.__repr__()} : client error raised: {e!s}")
+            return MinerResult(error=e)
+        finally:
+            client.close()
+        return MinerResult()
+
+    async def update_miner_firmware(
+        self,
+        miner_type: MinerType,
+        ip: str,
+        firmware: bytes,
+        filename: str,
+        keep_settings: bool = True,
+        alt_pwd: str | None = None,
+    ) -> MinerResult:
+        """Upload a firmware payload that has already been selected and validated."""
+        if miner_type is not MinerType.ANTMINER:
+            return MinerResult(
+                error=UnsupportedOperationError(
+                    "Firmware updates currently support Antminer only"
+                )
+            )
+        try:
+            client = await self._make_client(miner_type, ip, alt_pwd)
+        except UnknownClientError as e:
+            return MinerResult(error=e)
+        try:
+            data = await client.update_firmware(firmware, filename, keep_settings)
+            return MinerResult(data=data)
+        except _CLIENT_ERRORS as e:
+            logger.error(f"{client!r} : client error raised: {e!s}")
+            return MinerResult(error=e)
+        finally:
+            client.close()
+
+    async def rollback_miner_firmware(
+        self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
+    ):
+        try:
+            client = await self._make_client(miner_type, ip, alt_pwd)
+        except UnknownClientError as e:
+            return MinerResult(error=e)
+        try:
+            _ = await client.rollback_firmware()
         except _CLIENT_ERRORS as e:
             logger.error(f"{client.__repr__()} : client error raised: {e!s}")
             return MinerResult(error=e)

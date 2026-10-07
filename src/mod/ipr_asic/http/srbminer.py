@@ -46,7 +46,7 @@ class SRBMinerHTTPClient(BaseHTTPClient):
     async def hostname(self) -> str:
         return (await self.get_system_info()).rig_name
 
-    async def api_version(self) -> tuple[str, VersionInfoModel]:
+    async def get_version_info(self) -> tuple[str, VersionInfoModel]:
         return (await self.get_system_info()).miner_version, VersionInfoModel()
 
     async def get_system_info(self) -> SRBMinerInfo:

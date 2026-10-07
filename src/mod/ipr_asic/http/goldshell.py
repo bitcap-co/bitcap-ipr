@@ -112,7 +112,7 @@ class GoldshellHTTPClient(BaseHTTPClient):
         resp = await self.get_miner_conf()
         return resp.name
 
-    async def api_version(self) -> tuple[str, Status]:
+    async def get_version_info(self) -> tuple[str, Status]:
         resp = await self.get_system_info()
         return resp.mcbversion, resp
 

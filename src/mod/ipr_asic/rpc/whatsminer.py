@@ -218,7 +218,7 @@ class WhatsminerRPCClient(CGMinerRPCLayer):
         resp = await self.get_system_info()
         return resp.mac or ""
 
-    async def api_version(self) -> tuple[str, BTMinerVersion]:
+    async def get_version_info(self) -> tuple[str, BTMinerVersion]:
         version = await self.version()
         return version.api_ver, version
 
@@ -236,8 +236,8 @@ class WhatsminerRPCClient(CGMinerRPCLayer):
 
     async def summary(self) -> BTMinerSummary:
         # v2.0.5 and below outputs standard cgminer summary schema
-        api_ver, _ = await self.api_version()
-        if self.api_version_number(api_ver) <= 205:
+        api_ver, _ = await self.get_version_info()
+        if self.version_number(api_ver) <= 205:
             return await self._get_one(
                 "summary", "SUMMARY", TypeAdapter(BTMinerSummary)
             )
@@ -424,7 +424,7 @@ class WhatsminerTCPClient(BaseTCPClient):
         resp = await self.get_network_info()
         return resp.mac
 
-    async def api_version(self) -> tuple[str, BTMinerV3VersionInfo]:
+    async def get_version_info(self) -> tuple[str, BTMinerV3VersionInfo]:
         resp = await self.get_device_info("system")
         if resp.version is None:
             raise APIInvalidResponse
@@ -488,7 +488,7 @@ class WhatsminerTCPClient(BaseTCPClient):
         return PoolConfig(pool_conf)
 
     async def get_blink_status(self) -> BlinkStatus:
-        _, version = await self.api_version()
+        _, version = await self.get_version_info()
         blink = BlinkStatus(blink=version.ledstatus == "auto")
         return blink
 
