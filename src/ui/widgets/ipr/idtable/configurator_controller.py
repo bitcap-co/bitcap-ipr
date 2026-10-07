@@ -382,7 +382,7 @@ class MinerConfiguratorController(QObject):
             self._window,
             "Select firmware file",
             str(self._widgets.firmware.firmware_path.text()),
-            "Firmware Files (*.bmu *.bin *.tar.gz)",
+            "Firmware Files (*.bmu *.tar.gz)",
         )
         if not fd:
             return
