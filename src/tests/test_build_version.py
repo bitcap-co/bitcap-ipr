@@ -4,13 +4,16 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT_DIR), str(ROOT_DIR / "tools")]
 
-from tools.build_app import resolve_release_metadata
+from tools.build_app import nuitka_command, resolve_release_metadata
+from tools.build_support import prune_unused_qt_components
 from tools.project_metadata import load_metadata
 
 PROJECT_METADATA = load_metadata()
@@ -19,6 +22,81 @@ PROJECT_METADATA = load_metadata()
 def next_patch_version(version: str) -> str:
     major, minor, patch = map(int, version.split("."))
     return f"{major}.{minor}.{patch + 1}"
+
+
+class TestNuitkaCommand(unittest.TestCase):
+    def test_windows_excludes_unused_qt_components(self):
+        with patch("tools.build_app.sys.platform", "win32"):
+            command = nuitka_command(PROJECT_METADATA)
+
+        self.assertIn("--nofollow-import-to=PySide6.QtDBus", command)
+        self.assertIn("--noinclude-dlls=qt6dbus.dll", command)
+        self.assertIn("--noinclude-dlls=qt6pdf.dll", command)
+        self.assertNotIn("--noinclude-dlls=qsvg.dll", command)
+        self.assertNotIn("--noinclude-dlls=qwindows.dll", command)
+
+    def test_linux_keeps_dbus(self):
+        with patch("tools.build_app.sys.platform", "linux"):
+            command = nuitka_command(PROJECT_METADATA)
+
+        self.assertNotIn("--nofollow-import-to=PySide6.QtDBus", command)
+        self.assertFalse(
+            any(option.startswith("--noinclude-dlls=q") for option in command)
+        )
+
+    def test_macos_excludes_dbus(self):
+        with patch("tools.build_app.sys.platform", "darwin"):
+            command = nuitka_command(PROJECT_METADATA)
+
+        self.assertIn("--nofollow-import-to=PySide6.QtDBus", command)
+        self.assertFalse(
+            any(option.startswith("--noinclude-dlls=q") for option in command)
+        )
+
+
+class TestQtComponentPruning(unittest.TestCase):
+    @staticmethod
+    def _touch(root: Path, relative_path: str) -> Path:
+        path = root / relative_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.touch()
+        return path
+
+    def test_prunes_cross_platform_plugins_and_keeps_gui_backends(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            qpdf = self._touch(root, "PySide6/qt-plugins/imageformats/qpdf.dll")
+            qjpeg = self._touch(root, "PySide6/qt-plugins/imageformats/libqjpeg.so")
+            qsvg = self._touch(root, "PySide6/qt-plugins/imageformats/libqsvg.so")
+            qoffscreen = self._touch(
+                root, "PySide6/qt-plugins/platforms/qoffscreen.dll"
+            )
+            qxcb = self._touch(root, "PySide6/qt-plugins/platforms/libqxcb.so")
+            qwindows = self._touch(root, "PySide6/qt-plugins/platforms/qwindows.dll")
+            style = self._touch(root, "PySide6/qt-plugins/styles/libqgtk3.so")
+            tls = self._touch(root, "PySide6/qt-plugins/tls/libqopensslbackend.so")
+            qtpdf = self._touch(root, "libQt6Pdf.so.6")
+            qtdbus = self._touch(root, "libQt6DBus.so.6")
+
+            prune_unused_qt_components(root, keep_dbus=True)
+
+            for removed in (qpdf, qjpeg, qoffscreen, style, tls, qtpdf):
+                self.assertFalse(removed.exists())
+            for retained in (qsvg, qxcb, qwindows, qtdbus):
+                self.assertTrue(retained.exists())
+
+    def test_prunes_dbus_outside_linux(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            qtdbus = self._touch(root, "PySide6/QtDBus.pyd")
+            framework_binary = self._touch(
+                root, "PySide6/Qt/lib/QtDBus.framework/QtDBus"
+            )
+
+            prune_unused_qt_components(root, keep_dbus=False)
+
+            self.assertFalse(qtdbus.exists())
+            self.assertFalse(framework_binary.parent.exists())
 
 
 class TestResolveReleaseMetadata(unittest.TestCase):

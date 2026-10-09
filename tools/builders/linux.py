@@ -17,6 +17,7 @@ from build_support import (
     copy_documentation,
     find_build,
     portable_archive_name,
+    prune_unused_qt_components,
     run,
 )
 from project_metadata import ROOT, ProjectMetadata
@@ -24,6 +25,7 @@ from project_metadata import ROOT, ProjectMetadata
 
 def package(metadata: ProjectMetadata, platform_tag: str, portable_only: bool) -> None:
     compiled_dir = find_build("dist", BUILD_DIR)
+    prune_unused_qt_components(compiled_dir, keep_dbus=True)
     app_dir = BUILD_DIR / "bitcap-ipr"
     compiled_dir.rename(app_dir)
     copy_documentation(BUILD_DIR)

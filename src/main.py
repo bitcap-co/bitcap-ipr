@@ -20,8 +20,8 @@
 # nuitka-project: --lto=no
 # nuitka-project: --jobs=4
 # nuitka-project: --static-libpython=no
+# nuitka-project: --no-prefer-source-code
 # nuitka-project: --enable-plugin=pyside6
-# nuitka-project: --follow-imports
 # nuitka-project: --nofollow-import-to="*.tests"
 # nuitka-project: --nofollow-import-to="*.distutils"
 # nuitka-project: --nofollow-import-to="distutils"
@@ -32,8 +32,8 @@
 # nuitka-project: --noinclude-dlls=*.cpp.o
 # nuitka-project: --noinclude-dlls=*.qsb
 # nuitka-project: --noinclude-qt-translations
+# nuitka-project: --no-prefer-source-code
 # nuitka-project: --include-package=passlib.handlers.md5_crypt
-# nuitka-project: --include-data-dir=resources/app=resources/app
 # nuitka-project: --include-data-files=src/ui/theme.qss=ui/theme.qss
 # nuitka-project: --remove-output
 

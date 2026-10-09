@@ -31,6 +31,11 @@ _RELEASE_PREVIEW_RE = re.compile(
     r")"
 )
 
+_WINDOWS_UNUSED_QT_DEPENDENCIES = (
+    "qt6dbus.dll",
+    "qt6pdf.dll",
+)
+
 
 def resolve_release_metadata(
     metadata: ProjectMetadata, expected_version: str | None
@@ -75,6 +80,11 @@ def nuitka_command(metadata: ProjectMetadata) -> list[str]:
             [
                 "--msvc=latest",
                 "--windows-console-mode=disable",
+                "--nofollow-import-to=PySide6.QtDBus",
+                *(
+                    f"--noinclude-dlls={name}"
+                    for name in _WINDOWS_UNUSED_QT_DEPENDENCIES
+                ),
                 f"--windows-icon-from-ico={ICON_DIR / (ICON_STEM + '.ico')}",
                 f"--company-name={metadata.company_name}",
                 f"--product-name={metadata.display_name}",
@@ -85,6 +95,7 @@ def nuitka_command(metadata: ProjectMetadata) -> list[str]:
     elif sys.platform == "darwin":
         command.extend(
             [
+                "--nofollow-import-to=PySide6.QtDBus",
                 f"--macos-app-name={metadata.executable_name}",
                 f"--macos-app-icon={ICON_DIR / (ICON_STEM + '.icns')}",
             ]

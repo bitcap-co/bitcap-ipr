@@ -14,6 +14,7 @@ from build_support import (
     create_zip_archive,
     find_build,
     portable_archive_name,
+    prune_unused_qt_components,
     run,
 )
 from project_metadata import ProjectMetadata
@@ -26,6 +27,7 @@ def package(metadata: ProjectMetadata, platform_tag: str, portable_only: bool) -
         if desired_bundle.exists():
             shutil.rmtree(desired_bundle)
         app_bundle.rename(desired_bundle)
+    prune_unused_qt_components(desired_bundle, keep_dbus=False)
     contents_dir = desired_bundle / "Contents"
     copy_documentation(contents_dir)
 

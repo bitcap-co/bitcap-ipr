@@ -21,9 +21,7 @@ IPR_METADATA = {
     "qt": qVersion(),
     "python": ".".join(map(str, sys.version_info[:3])),
 }
-IPR_DEFAULT_CONFIG = Path(
-    BASEDIR, "resources", "app", "config.json.default"
-)  # Deprecated
+
 MAX_ROTATE_LOG_FILES = 4
 MIN_DATETIME = datetime(1, 1, 1, 0, 0, tzinfo=timezone.utc)
 

@@ -21,6 +21,64 @@ README_FILES = (ROOT / "README.md", ROOT / "CONFIGURATION.md")
 ICON_DIR = ROOT / "resources" / "app" / "icons"
 ICON_STEM = "BitCapLngLogo_IPR_Full_ORG_BLK-02_Square"
 
+_UNUSED_QT_IMAGE_PLUGINS = {
+    "qgif",
+    "qicns",
+    "qico",
+    "qjpeg",
+    "qpdf",
+    "qtga",
+    "qtiff",
+    "qwbmp",
+    "qwebp",
+}
+_UNUSED_QT_PLATFORM_PLUGINS = {
+    "qdirect2d",
+    "qminimal",
+    "qminimalegl",
+    "qoffscreen",
+}
+
+
+def _qt_binary_name(path: Path) -> str:
+    name = path.name.casefold()
+    name = name.removeprefix("lib")
+    return name.split(".", maxsplit=1)[0]
+
+
+def prune_unused_qt_components(compiled_root: Path, *, keep_dbus: bool) -> None:
+    """Remove Qt components that the application does not use."""
+    for plugin_root in compiled_root.rglob("qt-plugins"):
+        image_dir = plugin_root / "imageformats"
+        if image_dir.is_dir():
+            for plugin in image_dir.iterdir():
+                if _qt_binary_name(plugin) in _UNUSED_QT_IMAGE_PLUGINS:
+                    plugin.unlink(missing_ok=True)
+
+        platform_dir = plugin_root / "platforms"
+        if platform_dir.is_dir():
+            for plugin in platform_dir.iterdir():
+                if _qt_binary_name(plugin) in _UNUSED_QT_PLATFORM_PLUGINS:
+                    plugin.unlink(missing_ok=True)
+
+        for unused_family in ("styles", "tls"):
+            shutil.rmtree(plugin_root / unused_family, ignore_errors=True)
+
+    unused_libraries = {"qt6pdf", "qtpdf"}
+    if not keep_dbus:
+        unused_libraries.update(("qt6dbus", "qtdbus"))
+
+    paths = sorted(
+        compiled_root.rglob("*"), key=lambda path: len(path.parts), reverse=True
+    )
+    for path in paths:
+        if _qt_binary_name(path) not in unused_libraries:
+            continue
+        if path.is_dir() and path.name.casefold().endswith(".framework"):
+            shutil.rmtree(path)
+        elif path.is_file() or path.is_symlink():
+            path.unlink(missing_ok=True)
+
 
 def run(command: list[str], *, cwd: Path = ROOT) -> None:
     print("+", " ".join(command), flush=True)
