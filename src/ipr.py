@@ -85,7 +85,7 @@ from ui.widgets import (
 from utils import (
     CURR_PLATFORM,
     IPR_METADATA,
-    get_log_dir,
+    get_log_file,
     normalize_datetime,
 )
 
@@ -1335,7 +1335,10 @@ Statistics:
 
     def open_log(self):
         QDesktopServices.openUrl(
-            QUrl(f"file:///{get_log_dir()}/ipr.log", QUrl.ParsingMode.TolerantMode)
+            QUrl(
+                f"file:///{get_log_file().resolve().as_posix()}",
+                QUrl.ParsingMode.TolerantMode,
+            )
         )
 
     def open_issues(self):

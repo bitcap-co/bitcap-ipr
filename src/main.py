@@ -66,9 +66,8 @@ from utils import (
     IPR_THEME,
     MAX_ROTATE_LOG_FILES,
     flush_log,
-    get_config_file_path,
     get_log_dir,
-    get_log_file_path,
+    get_log_file,
 )
 
 # logger
@@ -90,9 +89,7 @@ class Main:
         if argv is not None:
             self.args = argv
         self.config: IPRConfig = IPRConfig()
-        self.config_path: Path = get_config_file_path()
-        self.log_dir: str = get_log_dir()
-        self.log_path: Path = get_log_file_path()
+        self.log_path: Path = get_log_file()
         self._init_logger()
         self._handling_exception: bool = False
         self._shutting_down: bool = False
@@ -149,7 +146,7 @@ class Main:
         return True
 
     def _init_logger(self) -> None:
-        os.makedirs(self.log_dir, exist_ok=True)
+        os.makedirs(get_log_dir(), exist_ok=True)
         logging.basicConfig(
             format="%(asctime)s - %(levelname)s - %(name)s:%(message)s",
             datefmt="%m/%d/%Y %I:%M:%S%p",

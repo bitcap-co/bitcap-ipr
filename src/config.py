@@ -11,7 +11,7 @@ from typing import Annotated, Any
 
 from pydantic import BaseModel, Field, TypeAdapter
 
-from utils import get_config_dir, get_config_file_path
+from utils import get_config_file
 
 
 class PresetType(int, Enum):
@@ -191,8 +191,7 @@ class IPRConfigModel(BaseModel):
 class IPRConfig:
     def __init__(self):
         self._set_default()
-        self.config_dir: str = get_config_dir()
-        self.config_path: Path = get_config_file_path()
+        self.config_path: Path = get_config_file()
 
     @property
     def as_dict(self) -> dict[str, Any]:
@@ -248,7 +247,6 @@ class IPRConfig:
         self.instance = self.config.instance
 
     def _read_config(self) -> None:
-        os.makedirs(self.config_dir, exist_ok=True)
         if not os.path.exists(self.config_path):
             return self.write_default()
         with open(self.config_path, "r") as d:

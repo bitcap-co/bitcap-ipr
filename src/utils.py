@@ -3,15 +3,12 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-
-import collections.abc
 import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
-from platformdirs import user_data_dir, user_downloads_dir, user_log_dir
+from platformdirs import user_data_path, user_downloads_path, user_log_path
 from PySide6.QtCore import qVersion
 
 from metadata import APP_METADATA
@@ -19,59 +16,58 @@ from metadata import APP_METADATA
 CURR_PLATFORM = sys.platform
 BASEDIR = os.path.dirname(__file__)
 IPR_THEME = Path(BASEDIR, "ui", "theme.qss")
-IPR_DEFAULT_CONFIG = Path(BASEDIR, "resources", "app", "config.json.default")
 IPR_METADATA = {
     **APP_METADATA,
     "qt": qVersion(),
     "python": ".".join(map(str, sys.version_info[:3])),
 }
+IPR_DEFAULT_CONFIG = Path(
+    BASEDIR, "resources", "app", "config.json.default"
+)  # Deprecated
 MAX_ROTATE_LOG_FILES = 4
 MIN_DATETIME = datetime(1, 1, 1, 0, 0, tzinfo=timezone.utc)
 
 
-def deep_update(d: dict[str, Any], u: dict[str, Any]) -> dict[str, Any]:
-    for k, v in u.items():
-        if isinstance(v, collections.abc.Mapping):
-            d[k] = deep_update(d.get(k, {}), dict(v))
-        # elif isinstance(v, list):
-        #     d[k] = (d.get(k, []) + v)
-        else:
-            d[k] = v
-    return d
+def is_portable() -> bool:
+    """Returns whether the application is installed as a portable archive."""
+    return os.path.exists(Path(BASEDIR, "..", "README.md"))
 
 
-def get_config_dir() -> str:
-    if os.path.exists(Path(BASEDIR, "..", "README.md")):
-        cd = Path(BASEDIR, "..").as_posix()
-    else:
-        cd = user_data_dir(IPR_METADATA["appname"], IPR_METADATA["appauthor"])
-    return cd
+def get_installed_dir() -> Path:
+    """Returns the base directory of the installed application."""
+    # Portable: return the parent directory based from current directory of self.
+    if is_portable():
+        return Path(BASEDIR, "..")
+    return user_data_path(IPR_METADATA["appname"], IPR_METADATA["appauthor"])
 
 
-def get_config_file_path() -> Path:
-    return Path(get_config_dir(), "config.json")
+def get_log_dir() -> Path:
+    """Returns the log directory of the installed application."""
+    if is_portable():
+        return Path(BASEDIR, "..", "Logs")
+    return user_log_path(IPR_METADATA["appname"], IPR_METADATA["appauthor"])
 
 
-def get_download_dir() -> str:
-    return user_downloads_dir()
+def get_config_file() -> Path:
+    """Returns the path to the current configuration file."""
+    return Path(get_installed_dir(), "config.json")
 
 
-def get_log_dir() -> str:
-    if os.path.exists(Path(BASEDIR, "..", "README.md")):
-        ld = Path(BASEDIR, "..", "Logs").as_posix()
-    else:
-        ld = user_log_dir(IPR_METADATA["appname"], IPR_METADATA["appauthor"])
-    return ld
-
-
-def get_log_file_path() -> Path:
+def get_log_file() -> Path:
+    """Returns the path to the current log file."""
     return Path(get_log_dir(), "ipr.log")
 
 
-def flush_log():
-    with open(get_log_file_path(), "r+") as f:
-        f.truncate(0)
-        f.seek(0)
+def get_download_dir() -> Path:
+    """Returns the path to the user's download directory."""
+    return user_downloads_path()
+
+
+def flush_log() -> None:
+    """Flushes the current log file."""
+    with open(get_log_file(), "r+") as f:
+        _ = f.truncate(0)
+        _ = f.seek(0)
 
 
 def normalize_datetime(datetime_obj: datetime | None) -> str:
