@@ -34,9 +34,13 @@ _UNUSED_QT_IMAGE_PLUGINS = {
 }
 _UNUSED_QT_PLATFORM_PLUGINS = {
     "qdirect2d",
+    "qeglfs",
+    "qlinuxfb",
     "qminimal",
     "qminimalegl",
     "qoffscreen",
+    "qvkkhrdisplay",
+    "qvnc",
 }
 
 
@@ -61,10 +65,24 @@ def prune_unused_qt_components(compiled_root: Path, *, keep_dbus: bool) -> None:
                 if _qt_binary_name(plugin) in _UNUSED_QT_PLATFORM_PLUGINS:
                     plugin.unlink(missing_ok=True)
 
-        for unused_family in ("styles", "tls"):
+        for unused_family in (
+            "egldeviceintegrations",
+            "printsupport",
+            "styles",
+            "tls",
+        ):
             shutil.rmtree(plugin_root / unused_family, ignore_errors=True)
 
-    unused_libraries = {"qt6pdf", "qtpdf"}
+    unused_libraries = {
+        "qt6eglfsdeviceintegration",
+        "qt6eglfskmssupport",
+        "qt6pdf",
+        "qt6printsupport",
+        "qteglfsdeviceintegration",
+        "qteglfskmssupport",
+        "qtpdf",
+        "qtprintsupport",
+    }
     if not keep_dbus:
         unused_libraries.update(("qt6dbus", "qtdbus"))
 

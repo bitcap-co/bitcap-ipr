@@ -29,6 +29,9 @@
 # nuitka-project: --nofollow-import-to="pydoc"
 # nuitka-project: --nofollow-import-to="tkinter"
 # nuitka-project: --nofollow-import-to="test"
+# nuitka-project: --nofollow-import-to="pydantic.mypy"
+# nuitka-project: --nofollow-import-to="pydantic.v1"
+# nuitka-project: --nofollow-import-to="passlib.handlers.sha2_crypt"
 # nuitka-project: --noinclude-dlls=*.cpp.o
 # nuitka-project: --noinclude-dlls=*.qsb
 # nuitka-project: --noinclude-qt-translations
