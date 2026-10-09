@@ -27,7 +27,7 @@ def package(metadata: ProjectMetadata, platform_tag: str, portable_only: bool) -
         if desired_bundle.exists():
             shutil.rmtree(desired_bundle)
         app_bundle.rename(desired_bundle)
-    prune_unused_qt_components(desired_bundle, keep_dbus=False)
+    prune_unused_qt_components(desired_bundle, keep_dbus=True)
     contents_dir = desired_bundle / "Contents"
     copy_documentation(contents_dir)
 
