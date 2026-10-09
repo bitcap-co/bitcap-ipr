@@ -14,6 +14,7 @@ sys.path[:0] = [str(ROOT_DIR), str(ROOT_DIR / "tools")]
 
 from tools.build_app import nuitka_command, resolve_release_metadata
 from tools.build_support import prune_unused_qt_components
+from tools.builders.windows import create_portable_shortcut
 from tools.project_metadata import load_metadata
 
 PROJECT_METADATA = load_metadata()
@@ -97,6 +98,33 @@ class TestQtComponentPruning(unittest.TestCase):
 
             self.assertFalse(qtdbus.exists())
             self.assertFalse(framework_binary.parent.exists())
+
+
+class TestWindowsPortableShortcut(unittest.TestCase):
+    def test_generates_shortcut_for_packaged_executable(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            build_dir = Path(temp_dir)
+            app_dir = build_dir / "bitcap-ipr"
+            app_dir.mkdir()
+            captured_script = ""
+
+            def capture_command(command: list[str]) -> None:
+                nonlocal captured_script
+                captured_script = Path(command[2]).read_text(encoding="utf-8")
+
+            with patch(
+                "tools.builders.windows.run", side_effect=capture_command
+            ) as run_mock:
+                shortcut = create_portable_shortcut(
+                    PROJECT_METADATA, app_dir, build_dir=build_dir
+                )
+
+            command = run_mock.call_args.args[0]
+            self.assertEqual(command[0:2], ["cscript.exe", "//nologo"])
+            self.assertEqual(command[4], str(app_dir / "BitCapIPR.exe"))
+            self.assertEqual(shortcut, build_dir / "BitCapIPR.lnk")
+            self.assertIn("shortcut.TargetPath", captured_script)
+            self.assertFalse((build_dir / "create-portable-shortcut.js").exists())
 
 
 class TestResolveReleaseMetadata(unittest.TestCase):
