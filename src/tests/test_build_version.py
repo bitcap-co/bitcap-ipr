@@ -71,16 +71,43 @@ class TestQtComponentPruning(unittest.TestCase):
             qoffscreen = self._touch(
                 root, "PySide6/qt-plugins/platforms/qoffscreen.dll"
             )
+            qeglfs = self._touch(root, "PySide6/qt-plugins/platforms/libqeglfs.so")
+            qlinuxfb = self._touch(root, "PySide6/qt-plugins/platforms/libqlinuxfb.so")
+            qvnc = self._touch(root, "PySide6/qt-plugins/platforms/libqvnc.so")
+            egl_integration = self._touch(
+                root,
+                "PySide6/qt-plugins/egldeviceintegrations/libqeglfs-kms-integration.so",
+            )
+            print_support = self._touch(
+                root,
+                "PySide6/qt-plugins/printsupport/libcupsprintersupport.so",
+            )
             qxcb = self._touch(root, "PySide6/qt-plugins/platforms/libqxcb.so")
             qwindows = self._touch(root, "PySide6/qt-plugins/platforms/qwindows.dll")
             style = self._touch(root, "PySide6/qt-plugins/styles/libqgtk3.so")
             tls = self._touch(root, "PySide6/qt-plugins/tls/libqopensslbackend.so")
+            qt_eglfs = self._touch(root, "libQt6EglFSDeviceIntegration.so.6")
             qtpdf = self._touch(root, "libQt6Pdf.so.6")
+            qt_print_support = self._touch(root, "libQt6PrintSupport.so.6")
             qtdbus = self._touch(root, "libQt6DBus.so.6")
 
             prune_unused_qt_components(root, keep_dbus=True)
 
-            for removed in (qpdf, qjpeg, qoffscreen, style, tls, qtpdf):
+            for removed in (
+                qpdf,
+                qjpeg,
+                qoffscreen,
+                qeglfs,
+                qlinuxfb,
+                qvnc,
+                egl_integration,
+                print_support,
+                style,
+                tls,
+                qt_eglfs,
+                qtpdf,
+                qt_print_support,
+            ):
                 self.assertFalse(removed.exists())
             for retained in (qsvg, qxcb, qwindows, qtdbus):
                 self.assertTrue(retained.exists())
