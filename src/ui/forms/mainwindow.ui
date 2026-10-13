@@ -1544,7 +1544,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>469</width>
+                   <width>923</width>
                    <height>849</height>
                   </rect>
                  </property>
@@ -1820,6 +1820,22 @@ Uses last 5 of SN or MAC address.</string>
                         <property name="verticalSpacing">
                          <number>15</number>
                         </property>
+                        <item row="3" column="0">
+                         <widget class="QCheckBox" name="checkListenSealminer">
+                          <property name="maximumSize">
+                           <size>
+                            <width>100</width>
+                            <height>30</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Enable listening for Sealminers</string>
+                          </property>
+                          <property name="text">
+                           <string>Sealminer</string>
+                          </property>
+                         </widget>
+                        </item>
                         <item row="4" column="1">
                          <widget class="QCheckBox" name="checkListenGoldshell">
                           <property name="maximumSize">
@@ -1868,22 +1884,6 @@ Uses last 5 of SN or MAC address.</string>
                           </property>
                          </widget>
                         </item>
-                        <item row="3" column="2">
-                         <widget class="QCheckBox" name="checkListenVolcminer">
-                          <property name="maximumSize">
-                           <size>
-                            <width>100</width>
-                            <height>30</height>
-                           </size>
-                          </property>
-                          <property name="toolTip">
-                           <string>Enable listening for Volcminers</string>
-                          </property>
-                          <property name="text">
-                           <string>Volcminer</string>
-                          </property>
-                         </widget>
-                        </item>
                         <item row="4" column="2">
                          <widget class="QCheckBox" name="checkListenAuradine">
                           <property name="maximumSize">
@@ -1900,8 +1900,8 @@ Uses last 5 of SN or MAC address.</string>
                           </property>
                          </widget>
                         </item>
-                        <item row="3" column="0">
-                         <widget class="QCheckBox" name="checkListenSealminer">
+                        <item row="3" column="2">
+                         <widget class="QCheckBox" name="checkListenVolcminer">
                           <property name="maximumSize">
                            <size>
                             <width>100</width>
@@ -1909,32 +1909,10 @@ Uses last 5 of SN or MAC address.</string>
                            </size>
                           </property>
                           <property name="toolTip">
-                           <string>Enable listening for Sealminers</string>
+                           <string>Enable listening for Volcminers</string>
                           </property>
                           <property name="text">
-                           <string>Sealminer</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="4" column="0">
-                         <widget class="QCheckBox" name="checkListenElphapex">
-                          <property name="sizePolicy">
-                           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                            <horstretch>0</horstretch>
-                            <verstretch>0</verstretch>
-                           </sizepolicy>
-                          </property>
-                          <property name="maximumSize">
-                           <size>
-                            <width>100</width>
-                            <height>30</height>
-                           </size>
-                          </property>
-                          <property name="toolTip">
-                           <string>Enable listening for Elphapex miners</string>
-                          </property>
-                          <property name="text">
-                           <string>Elphapex</string>
+                           <string>Volcminer</string>
                           </property>
                          </widget>
                         </item>
@@ -1970,8 +1948,14 @@ Uses last 5 of SN or MAC address.</string>
                           </property>
                          </widget>
                         </item>
-                        <item row="5" column="1">
-                         <widget class="QCheckBox" name="checkListenHiveGPU">
+                        <item row="4" column="0">
+                         <widget class="QCheckBox" name="checkListenElphapex">
+                          <property name="sizePolicy">
+                           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                           </sizepolicy>
+                          </property>
                           <property name="maximumSize">
                            <size>
                             <width>100</width>
@@ -1979,10 +1963,10 @@ Uses last 5 of SN or MAC address.</string>
                            </size>
                           </property>
                           <property name="toolTip">
-                           <string>Enable listening for HiveOS GPU rigs (IPR Daemon only)</string>
+                           <string>Enable listening for Elphapex miners</string>
                           </property>
                           <property name="text">
-                           <string>HiveGPU</string>
+                           <string>Elphapex</string>
                           </property>
                          </widget>
                         </item>
@@ -1999,6 +1983,38 @@ Uses last 5 of SN or MAC address.</string>
                           </property>
                           <property name="text">
                            <string>iPollo</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="5" column="1">
+                         <widget class="QCheckBox" name="checkListenIBeLink">
+                          <property name="maximumSize">
+                           <size>
+                            <width>100</width>
+                            <height>30</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Enable listening for iBeLink miners</string>
+                          </property>
+                          <property name="text">
+                           <string>iBeLink</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item row="5" column="2">
+                         <widget class="QCheckBox" name="checkListenHiveGPU">
+                          <property name="maximumSize">
+                           <size>
+                            <width>100</width>
+                            <height>30</height>
+                           </size>
+                          </property>
+                          <property name="toolTip">
+                           <string>Enable listening for HiveOS GPU rigs (IPR Daemon only)</string>
+                          </property>
+                          <property name="text">
+                           <string>HiveGPU</string>
                           </property>
                          </widget>
                         </item>
@@ -2954,7 +2970,7 @@ Uses last 5 of SN or MAC address.</string>
                    <x>0</x>
                    <y>0</y>
                    <width>368</width>
-                   <height>242</height>
+                   <height>246</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_11">

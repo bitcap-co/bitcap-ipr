@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.11.2
+## Created by: Qt User Interface Compiler version 6.12.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -699,7 +699,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 469, 849))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 923, 849))
         self.verticalLayout_5 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_5.setSpacing(15)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
@@ -810,6 +810,12 @@ class Ui_MainWindow(object):
         self.gridLayout_4.setHorizontalSpacing(70)
         self.gridLayout_4.setVerticalSpacing(15)
         self.gridLayout_4.setContentsMargins(9, 15, 9, 9)
+        self.checkListenSealminer = QCheckBox(self.groupListeners)
+        self.checkListenSealminer.setObjectName(u"checkListenSealminer")
+        self.checkListenSealminer.setMaximumSize(QSize(100, 30))
+
+        self.gridLayout_4.addWidget(self.checkListenSealminer, 3, 0, 1, 1)
+
         self.checkListenGoldshell = QCheckBox(self.groupListeners)
         self.checkListenGoldshell.setObjectName(u"checkListenGoldshell")
         self.checkListenGoldshell.setMaximumSize(QSize(100, 30))
@@ -828,34 +834,17 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.checkListenWhatsminer, 2, 2, 1, 1)
 
-        self.checkListenVolcminer = QCheckBox(self.groupListeners)
-        self.checkListenVolcminer.setObjectName(u"checkListenVolcminer")
-        self.checkListenVolcminer.setMaximumSize(QSize(100, 30))
-
-        self.gridLayout_4.addWidget(self.checkListenVolcminer, 3, 2, 1, 1)
-
         self.checkListenAuradine = QCheckBox(self.groupListeners)
         self.checkListenAuradine.setObjectName(u"checkListenAuradine")
         self.checkListenAuradine.setMaximumSize(QSize(100, 30))
 
         self.gridLayout_4.addWidget(self.checkListenAuradine, 4, 2, 1, 1)
 
-        self.checkListenSealminer = QCheckBox(self.groupListeners)
-        self.checkListenSealminer.setObjectName(u"checkListenSealminer")
-        self.checkListenSealminer.setMaximumSize(QSize(100, 30))
+        self.checkListenVolcminer = QCheckBox(self.groupListeners)
+        self.checkListenVolcminer.setObjectName(u"checkListenVolcminer")
+        self.checkListenVolcminer.setMaximumSize(QSize(100, 30))
 
-        self.gridLayout_4.addWidget(self.checkListenSealminer, 3, 0, 1, 1)
-
-        self.checkListenElphapex = QCheckBox(self.groupListeners)
-        self.checkListenElphapex.setObjectName(u"checkListenElphapex")
-        sizePolicy7 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-        sizePolicy7.setHorizontalStretch(0)
-        sizePolicy7.setVerticalStretch(0)
-        sizePolicy7.setHeightForWidth(self.checkListenElphapex.sizePolicy().hasHeightForWidth())
-        self.checkListenElphapex.setSizePolicy(sizePolicy7)
-        self.checkListenElphapex.setMaximumSize(QSize(100, 30))
-
-        self.gridLayout_4.addWidget(self.checkListenElphapex, 4, 0, 1, 1)
+        self.gridLayout_4.addWidget(self.checkListenVolcminer, 3, 2, 1, 1)
 
         self.checkListenHammer = QCheckBox(self.groupListeners)
         self.checkListenHammer.setObjectName(u"checkListenHammer")
@@ -869,17 +858,34 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.checkListenAntminer, 2, 0, 1, 1)
 
-        self.checkListenHiveGPU = QCheckBox(self.groupListeners)
-        self.checkListenHiveGPU.setObjectName(u"checkListenHiveGPU")
-        self.checkListenHiveGPU.setMaximumSize(QSize(100, 30))
+        self.checkListenElphapex = QCheckBox(self.groupListeners)
+        self.checkListenElphapex.setObjectName(u"checkListenElphapex")
+        sizePolicy7 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        sizePolicy7.setHorizontalStretch(0)
+        sizePolicy7.setVerticalStretch(0)
+        sizePolicy7.setHeightForWidth(self.checkListenElphapex.sizePolicy().hasHeightForWidth())
+        self.checkListenElphapex.setSizePolicy(sizePolicy7)
+        self.checkListenElphapex.setMaximumSize(QSize(100, 30))
 
-        self.gridLayout_4.addWidget(self.checkListenHiveGPU, 5, 1, 1, 1)
+        self.gridLayout_4.addWidget(self.checkListenElphapex, 4, 0, 1, 1)
 
         self.checkListenIPollo = QCheckBox(self.groupListeners)
         self.checkListenIPollo.setObjectName(u"checkListenIPollo")
         self.checkListenIPollo.setMaximumSize(QSize(100, 30))
 
         self.gridLayout_4.addWidget(self.checkListenIPollo, 5, 0, 1, 1)
+
+        self.checkListenIBeLink = QCheckBox(self.groupListeners)
+        self.checkListenIBeLink.setObjectName(u"checkListenIBeLink")
+        self.checkListenIBeLink.setMaximumSize(QSize(100, 30))
+
+        self.gridLayout_4.addWidget(self.checkListenIBeLink, 5, 1, 1, 1)
+
+        self.checkListenHiveGPU = QCheckBox(self.groupListeners)
+        self.checkListenHiveGPU.setObjectName(u"checkListenHiveGPU")
+        self.checkListenHiveGPU.setMaximumSize(QSize(100, 30))
+
+        self.gridLayout_4.addWidget(self.checkListenHiveGPU, 5, 2, 1, 1)
 
 
         self.verticalLayout_6.addWidget(self.groupListeners)
@@ -1315,7 +1321,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollLogs = QWidget()
         self.scrollLogs.setObjectName(u"scrollLogs")
-        self.scrollLogs.setGeometry(QRect(0, 0, 368, 242))
+        self.scrollLogs.setGeometry(QRect(0, 0, 368, 246))
         self.verticalLayout_11 = QVBoxLayout(self.scrollLogs)
         self.verticalLayout_11.setSpacing(15)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
@@ -1656,6 +1662,10 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.groupListeners.setTitle(QCoreApplication.translate("MainWindow", u"Listeners", None))
 #if QT_CONFIG(tooltip)
+        self.checkListenSealminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Sealminers", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenSealminer.setText(QCoreApplication.translate("MainWindow", u"Sealminer", None))
+#if QT_CONFIG(tooltip)
         self.checkListenGoldshell.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Goldshells", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenGoldshell.setText(QCoreApplication.translate("MainWindow", u"Goldshell", None))
@@ -1668,21 +1678,13 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.checkListenWhatsminer.setText(QCoreApplication.translate("MainWindow", u"Whatsminer", None))
 #if QT_CONFIG(tooltip)
-        self.checkListenVolcminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Volcminers", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkListenVolcminer.setText(QCoreApplication.translate("MainWindow", u"Volcminer", None))
-#if QT_CONFIG(tooltip)
         self.checkListenAuradine.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Auradine miners", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenAuradine.setText(QCoreApplication.translate("MainWindow", u"Auradine", None))
 #if QT_CONFIG(tooltip)
-        self.checkListenSealminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Sealminers", None))
+        self.checkListenVolcminer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Volcminers", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkListenSealminer.setText(QCoreApplication.translate("MainWindow", u"Sealminer", None))
-#if QT_CONFIG(tooltip)
-        self.checkListenElphapex.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Elphapex miners", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkListenElphapex.setText(QCoreApplication.translate("MainWindow", u"Elphapex", None))
+        self.checkListenVolcminer.setText(QCoreApplication.translate("MainWindow", u"Volcminer", None))
 #if QT_CONFIG(tooltip)
         self.checkListenHammer.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Hammer miners", None))
 #endif // QT_CONFIG(tooltip)
@@ -1692,13 +1694,21 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.checkListenAntminer.setText(QCoreApplication.translate("MainWindow", u"Antminer", None))
 #if QT_CONFIG(tooltip)
-        self.checkListenHiveGPU.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for HiveOS GPU rigs (IPR Daemon only)", None))
+        self.checkListenElphapex.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for Elphapex miners", None))
 #endif // QT_CONFIG(tooltip)
-        self.checkListenHiveGPU.setText(QCoreApplication.translate("MainWindow", u"HiveGPU", None))
+        self.checkListenElphapex.setText(QCoreApplication.translate("MainWindow", u"Elphapex", None))
 #if QT_CONFIG(tooltip)
         self.checkListenIPollo.setToolTip(QCoreApplication.translate("MainWindow", u"Enable Listening for iPollo miners", None))
 #endif // QT_CONFIG(tooltip)
         self.checkListenIPollo.setText(QCoreApplication.translate("MainWindow", u"iPollo", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenIBeLink.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for iBeLink miners", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenIBeLink.setText(QCoreApplication.translate("MainWindow", u"iBeLink", None))
+#if QT_CONFIG(tooltip)
+        self.checkListenHiveGPU.setToolTip(QCoreApplication.translate("MainWindow", u"Enable listening for HiveOS GPU rigs (IPR Daemon only)", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkListenHiveGPU.setText(QCoreApplication.translate("MainWindow", u"HiveGPU", None))
         self.groupIPRD.setTitle(QCoreApplication.translate("MainWindow", u"IPR Daemon", None))
 #if QT_CONFIG(tooltip)
         self.checkIPRDAutoReconnect.setToolTip(QCoreApplication.translate("MainWindow", u"Automatically try to reconnect when the IPR Daemon connection drops", None))
