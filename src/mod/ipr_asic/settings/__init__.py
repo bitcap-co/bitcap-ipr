@@ -26,6 +26,7 @@ class AuthConfig(BaseModel):
     whatsminer_v3: AuthPassword = AuthPassword(alt="", default="super")
     auradine: AuthPassword = AuthPassword(alt="", default="admin")
     ipollo: AuthPassword = AuthPassword(alt="", default="admin")
+    ibelink: AuthPassword = AuthPassword(alt="", default="admin")
 
 
 _auth_config = AuthConfig()

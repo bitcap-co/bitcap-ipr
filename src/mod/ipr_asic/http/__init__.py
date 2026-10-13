@@ -7,6 +7,7 @@ from .antminer import AntminerHTTPClient, AntminerOldHTTPClient
 from .auradine import AuradineHTTPClient
 from .elphapex import ElphapexHTTPClient
 from .goldshell import GoldshellHTTPClient
+from .ibelink import IBeLinkHTTPClient
 from .iceriver import IceriverHTTPClient
 from .ipollo import IPolloHTTPClient
 from .sealminer import SealminerHTTPClient
@@ -20,6 +21,7 @@ __all__ = [
     "AuradineHTTPClient",
     "ElphapexHTTPClient",
     "GoldshellHTTPClient",
+    "IBeLinkHTTPClient",
     "IPolloHTTPClient",
     "IceriverHTTPClient",
     "SRBMinerHTTPClient",
