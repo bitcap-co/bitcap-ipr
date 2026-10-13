@@ -148,6 +148,8 @@ class ASICClient(QObject):
                 return MinerType.AURADINE
             case MinerTypeHint.IPOLLO:
                 return MinerType.IPOLLO
+            case MinerTypeHint.IBELINK:
+                return MinerType.IBELINK
             case MinerTypeHint.HIVEGPU:
                 return MinerType.HIVEGPU
             case MinerTypeHint.COMMON:

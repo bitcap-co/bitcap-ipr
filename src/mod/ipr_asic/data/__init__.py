@@ -27,6 +27,7 @@ class MinerType(str, Enum):
     LUX_OS = "luxor"
     VNISH = "vnish"
     HIVEGPU = "hivegpu"
+    IBELINK = "ibelink"
 
     @override
     def __str__(self) -> str:
