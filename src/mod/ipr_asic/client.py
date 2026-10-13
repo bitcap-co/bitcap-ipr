@@ -21,6 +21,8 @@ from mod.ipr_asic.data.miners import (
     ElphapexParser,
     GoldshellModels,
     GoldshellParser,
+    IBeLinkModels,
+    IBeLinkParser,
     IceriverModels,
     IceriverParser,
     IPolloModels,
@@ -53,6 +55,7 @@ from mod.ipr_asic.http import (
     AuradineHTTPClient,
     ElphapexHTTPClient,
     GoldshellHTTPClient,
+    IBeLinkHTTPClient,
     IceriverHTTPClient,
     IPolloHTTPClient,
     SealminerHTTPClient,
@@ -236,6 +239,8 @@ class ASICClient(QObject):
                 return SRBMinerHTTPClient(ip, alt_pwd=alt_pwd)
             case MinerType.IPOLLO:
                 return IPolloHTTPClient(ip, alt_pwd=alt_pwd)
+            case MinerType.IBELINK:
+                return IBeLinkHTTPClient(ip, alt_pwd=alt_pwd)
             case _:
                 raise UnknownClientError(
                     f"unsupported client for IP {ip}: {miner_type.value}"
@@ -401,6 +406,12 @@ class ASICClient(QObject):
                 network_info=await self._fetch_model(client, "get_network_info"),
             )
             return IPolloParser().parse(models).as_dict()
+
+        if isinstance(client, IBeLinkHTTPClient):
+            models = IBeLinkModels(
+                system_info=await self._fetch_model(client, "get_system_info"),
+            )
+            return IBeLinkParser().parse(models).as_dict()
 
         return MinerData().as_dict()
 

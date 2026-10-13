@@ -7,6 +7,7 @@ from .antminer import AntminerModels, AntminerParser
 from .auradine import AuradineModels, AuradineParser
 from .elphapex import ElphapexModels, ElphapexParser
 from .goldshell import GoldshellModels, GoldshellParser
+from .ibelink import IBeLinkModels, IBeLinkParser
 from .iceriver import IceriverModels, IceriverParser
 from .ipollo import IPolloModels, IPolloParser
 from .luxminer import LuxminerModels, LuxminerParser
@@ -30,6 +31,8 @@ __all__ = [
     "ElphapexParser",
     "GoldshellModels",
     "GoldshellParser",
+    "IBeLinkModels",
+    "IBeLinkParser",
     "IPolloModels",
     "IPolloParser",
     "IceriverModels",
