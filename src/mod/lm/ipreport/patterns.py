@@ -3,6 +3,7 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
+import ipaddress
 import re
 from enum import IntEnum
 from typing import Any, ClassVar, override
@@ -18,6 +19,10 @@ _IP_PATTERN = (
 )
 _MAC_PATTERN = r"([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})"
 
+_IBELINK_MAGIC = b"AZZ\xf0\x01"
+_IBELINK_HEADER_SIZE = 8
+_IBELINK_ADDRESS_FIELDS = 4
+
 
 class MinerTypeHint(IntEnum):
     UNKNOWN = 0
@@ -30,6 +35,7 @@ class MinerTypeHint(IntEnum):
     AURADINE = 12345
     IPOLLO = 54321
     HIVEGPU = 42069
+    IBELINK = 6667
 
     @override
     def __str__(self) -> str:
@@ -192,3 +198,29 @@ def get_ip_model(hint: MinerTypeHint) -> tuple[type[IPReportModel], bool]:
     if hint in _OBJ_MODELS:
         return _OBJ_MODELS[hint], True
     return IPReportModel, False
+
+
+def parse_ibelink_payload(data: bytes) -> tuple[str, str]:
+    if len(data) < _IBELINK_HEADER_SIZE:
+        raise ValueError(f"payload too short: {len(data)}")
+
+    if not data.startswith(_IBELINK_MAGIC):
+        raise ValueError("invalid ibelink magic")
+
+    fields = [field for field in data[_IBELINK_HEADER_SIZE:].split(b"\x00") if field][
+        :_IBELINK_ADDRESS_FIELDS
+    ]
+    if len(fields) < _IBELINK_ADDRESS_FIELDS:
+        raise ValueError("missing ibelink address fields")
+
+    ip, _, _, raw_mac = (field.decode(encoding="ascii") for field in fields)
+    try:
+        ip = str(ipaddress.IPv4Address(ip))
+    except ipaddress.AddressValueError as e:
+        raise ValueError(f"invalid ip: {ip}") from e
+
+    if re.fullmatch(r"[0-9A-Fa-f]{12}", raw_mac) is None:
+        raise ValueError(f"invalid mac: {raw_mac}")
+
+    mac = ":".join(raw_mac[i : i + 2] for i in range(0, 12, 2))
+    return ip, mac

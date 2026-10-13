@@ -20,6 +20,7 @@ from mod.lm.ipreport.patterns import (
     MinerTypeHint,
     get_ip_model,
     get_msg_pattern,
+    parse_ibelink_payload,
     parse_match,
 )
 
@@ -120,46 +121,67 @@ class IPReportDatagram:
         try:
             return from_json(self.payload)
         except ValueError as ex:
-            logger.error(
-                f"{self.__repr__()}: failed to unmarshal payload - invalid JSON"
-            )
-            logger.debug(f"{self.__repr__()}: {ex} - {self.payload}")
+            logger.error(f"{self.__repr__()}: failed to unmarshal JSON payload - {ex}")
+            logger.debug(f"{self.__repr__()}: {self.payload}")
             return None
 
     def _parse_datagram(self) -> None:
-        if not self.data.isEmpty():
-            self._compressed = self._decompress_payload()
-            if not self._compressed and not self.data.isValidUtf8():
-                self.valid = False
-                return logger.error(
-                    f"{self.__repr__()}: failed to parse datagram - invalid UTF-8"
-                )
-            self.payload = self.data.toStdString().rstrip("\x00")
+        if self.data.isEmpty():
+            return
+        logger.debug(f"{self.__repr__()}: {self.data.data().hex()}")
 
-            # string patterns
-            pattern, ok = get_msg_pattern(self.report.hint)
-            if ok:
-                if not (match := re.match(pattern, self.payload)):
-                    self.valid = False
-                    return
-                self.report.ip, self.report.mac = parse_match(match)
-                self.valid = True
-                return
-            # obj patterns
-            if not (obj := self._unmarshal_payload()):
-                self.valid = False
-                return
-            model, ok = get_ip_model(self.report.hint)
-            if ok:
+        # known raw payloads
+        match self.report.hint:
+            case MinerTypeHint.IBELINK:
                 try:
-                    model = model.model_validate(obj)
-                    self.report.ip, self.report.mac, self.report.serial = (
-                        model.ip_report
+                    self.report.ip, self.report.mac = parse_ibelink_payload(
+                        self.data.data()
                     )
                     self.valid = True
-                except (TypeError, ValueError, ValidationError):
-                    self.valid = False
-                    return
+                except (UnicodeDecodeError, ValueError) as ex:
+                    logger.error(
+                        f"{self.__repr__()}: failed to validate IP report - {ex}"
+                    )
+                return
+            case _:
+                pass
+
+        self._compressed = self._decompress_payload()
+        if not self._compressed and not self.data.isValidUtf8():
+            self.valid = False
+            return logger.error(
+                f"{self.__repr__()}: failed to parse datagram - invalid UTF-8"
+            )
+        self.payload = self.data.toStdString().rstrip("\x00")
+        logger.debug(f"{self.__repr__()}: {self.payload}")
+
+        # string patterns
+        pattern, ok = get_msg_pattern(self.report.hint)
+        if ok:
+            if not (match := re.match(pattern, self.payload)):
+                self.valid = False
+                return logger.error(
+                    f"{self.__repr__()}: failed to validate IP report - invalid pattern"
+                )
+            self.report.ip, self.report.mac = parse_match(match)
+            self.valid = True
+            return
+        # obj patterns
+        if not (obj := self._unmarshal_payload()):
+            self.valid = False
+            return logger.error(
+                f"{self.__repr__()}: failed to validate IP report - invalid payload"
+            )
+        model, ok = get_ip_model(self.report.hint)
+        if ok:
+            try:
+                model = model.model_validate(obj)
+                self.report.ip, self.report.mac, self.report.serial = model.ip_report
+                self.valid = True
+            except (TypeError, ValueError, ValidationError) as ex:
+                self.valid = False
+                return logger.error(
+                    f"{self.__repr__()}: failed to validate IP report - {ex}"
+                )
         if not self.valid:
             logger.error(f"{self.__repr__()}: failed to validate IP report")
-            logger.debug(f"{self.__repr__()}: {self.payload}")

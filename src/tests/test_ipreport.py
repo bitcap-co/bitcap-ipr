@@ -15,7 +15,11 @@ from PySide6.QtNetwork import QHostAddress, QNetworkDatagram
 
 from mod.lm.iprd.listener import IPRDListener, IPRDPacketData
 from mod.lm.ipreport import IPReport, IPReportDatagram, MinerTypeHint
-from mod.lm.ipreport.patterns import GoldshellIPReport, SealMinerIPReport
+from mod.lm.ipreport.patterns import (
+    GoldshellIPReport,
+    SealMinerIPReport,
+    parse_ibelink_payload,
+)
 
 IP_REPORT_FIELDS = {
     "created_at",
@@ -101,6 +105,44 @@ class TestIPReportSchema(unittest.TestCase):
 
 
 class TestIPReportParsingRegressions(unittest.TestCase):
+    def test_ibelink_parses_variable_field_padding(self) -> None:
+        captured_payload = (
+            Path(__file__).parent / "payloads" / "ibelink.bin"
+        ).read_bytes()
+        fixed_width_payload = b"AZZ\xf0\x01\x00\x00\x00" + b"".join(
+            field.ljust(32, b"\x00")
+            for field in (
+                b"172.17.0.2",
+                b"255.255.255.0",
+                b"172.17.0.1",
+                b"02AABBCCDDEE",
+            )
+        )
+
+        self.assertEqual(
+            parse_ibelink_payload(captured_payload),
+            ("198.18.0.1", "02:AA:BB:CC:DD:EE"),
+        )
+        self.assertEqual(
+            parse_ibelink_payload(fixed_width_payload + b"\xff"),
+            ("172.17.0.2", "02:AA:BB:CC:DD:EE"),
+        )
+
+    def test_ibelink_datagram_uses_binary_parser(self) -> None:
+        payload = (Path(__file__).parent / "payloads" / "ibelink.bin").read_bytes()
+        datagram = QNetworkDatagram(
+            QByteArray(payload),
+            QHostAddress("255.255.255.255"),
+            MinerTypeHint.IBELINK,
+        )
+        datagram.setSender(QHostAddress("198.18.0.1"), 51858)
+
+        parsed = IPReportDatagram(datagram)
+
+        self.assertTrue(parsed.valid)
+        self.assertEqual(parsed.ip_report.ip, "198.18.0.1")
+        self.assertEqual(parsed.ip_report.mac, "02:aa:bb:cc:dd:ee")
+
     def test_failed_decompression_probe_preserves_payload(self) -> None:
         payload = QByteArray(b"12345678x-not-a-zlib-stream")
         parsed = IPReportDatagram.__new__(IPReportDatagram)
