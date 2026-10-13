@@ -90,7 +90,7 @@ class BaseHTTPClient(BaseClient, ABC):
                 c.auth = self.digest
             if payload:
                 c.headers.update({"Content-Type": "application/json"})
-            if data:
+            if data and not files:
                 c.headers.update(
                     {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"}
                 )
