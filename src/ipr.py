@@ -389,9 +389,10 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.listenerConfig.addButton(self.checkListenElphapex, 8)
         self.listenerConfig.addButton(self.checkListenAuradine, 9)
         self.listenerConfig.addButton(self.checkListenIPollo, 10)
+        self.listenerConfig.addButton(self.checkListenIBeLink, 11)
         # HiveGPU is IPR Daemon only; id has no ListenerManager port mapping
         # so it acts purely as a listen filter option.
-        self.listenerConfig.addButton(self.checkListenHiveGPU, 11)
+        self.listenerConfig.addButton(self.checkListenHiveGPU, 12)
         self.listenerConfig.buttonClicked.connect(self.restart_listen)
         # listener signals
         self.pushIPRListenStart.clicked.connect(self.start_listen)
@@ -960,6 +961,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.checkListenElphapex.setChecked(self.config.listen_for.elphapex)
         self.checkListenAuradine.setChecked(self.config.listen_for.auradine)
         self.checkListenIPollo.setChecked(self.config.listen_for.ipollo)
+        self.checkListenIBeLink.setChecked(self.config.listen_for.ibelink)
         self.checkListenHiveGPU.setChecked(self.config.listen_for.hivegpu)
         self.checkEnableIPRDBackend.setChecked(self.config.listener.iprd.enable_iprd)
         self.checkEnableIPRDAutoDiscover.setChecked(
@@ -1089,6 +1091,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "elphapex": self.checkListenElphapex.isChecked(),
                 "auradine": self.checkListenAuradine.isChecked(),
                 "ipollo": self.checkListenIPollo.isChecked(),
+                "ibelink": self.checkListenIBeLink.isChecked(),
                 "hivegpu": self.checkListenHiveGPU.isChecked(),
             },
             "iprd": {

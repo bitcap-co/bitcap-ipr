@@ -80,6 +80,7 @@ class Listeners(BaseModel):
     auradine: Annotated[bool, Field(strict=True)] = True
     ipollo: Annotated[bool, Field(strict=True)] = True
     hivegpu: Annotated[bool, Field(strict=True)] = True
+    ibelink: Annotated[bool, Field(strict=True)] = True
 
 
 class ListenerSettings(BaseModel):

@@ -185,6 +185,8 @@ class ListenerManager(QObject):
                     self._append_listener(MinerTypeHint.AURADINE)
                 case 10:  # ipollo
                     self._append_listener(MinerTypeHint.IPOLLO)
+                case 11:  # ibelink
+                    self._append_listener(MinerTypeHint.IBELINK)
                 case _:
                     continue
         for listener in self._listeners:
