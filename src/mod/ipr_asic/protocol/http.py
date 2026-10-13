@@ -112,6 +112,7 @@ class BaseHTTPClient(BaseClient, ABC):
         self,
         method: str,
         command: str,
+        path: str = "",
         params: dict[str, str] | None = None,
         payload: dict[str, Any] | None = None,
         data: dict[str, Any] | None = None,
@@ -131,7 +132,11 @@ class BaseHTTPClient(BaseClient, ABC):
         headers: dict[str, str] = {}
         if self.cookies:
             headers.update({"Cookie": self.cookies})
-        path = self.command_path.format(command=command)
+        if path:
+            path = f"{path}/{command}"
+        else:
+            path = self.command_path.format(command=command)
+
         try:
             resp = await self._do_http(
                 method=method,
