@@ -87,7 +87,7 @@ class Chain(BaseModel):
     temp: str
     fanspeed: str
     minerstatus: int
-    adjustpower: int
+    adjustpower: int | None
 
 
 class Devs(SummaryModel):
