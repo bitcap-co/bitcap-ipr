@@ -188,14 +188,14 @@ class VolcminerHTTPClient(BaseHTTPClient):
         resp = await self.send_command("GET", command="get_miner_statusV1")
         cleaned = self._clean_response(resp)
         try:
-            data = re.search(_SUMMARY_RESPONSE_RE, cleaned).group(1)
-            parts = re.search(_DATA_RESPONSE_RE, data).groups()
+            data = re.search(_DATA_RESPONSE_RE, cleaned).group(1)
+            parts = re.search(_SUMMARY_RESPONSE_RE, data).groups()
             status = parts[0]
             pools = parts[1]
             chains = parts[2]
             fans = parts[3]
             miner_status = from_json(
-                f"{{{status},pool_dtls:[{pools}]}},chains:[{chains}],{fans}}}"
+                f"""{{{status},"pool_dtls":[{pools}]}},"chains":[{chains}],{fans}}}"""
             )
             resobj = MinerStatus.model_validate(obj=miner_status)
         except (AttributeError, ValueError, ValidationError) as e:
