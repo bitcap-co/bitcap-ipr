@@ -699,7 +699,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollGeneral = QWidget()
         self.scrollGeneral.setObjectName(u"scrollGeneral")
-        self.scrollGeneral.setGeometry(QRect(0, 0, 923, 849))
+        self.scrollGeneral.setGeometry(QRect(0, 0, 746, 849))
         self.verticalLayout_5 = QVBoxLayout(self.scrollGeneral)
         self.verticalLayout_5.setSpacing(15)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
@@ -985,7 +985,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollAPI = QWidget()
         self.scrollAPI.setObjectName(u"scrollAPI")
-        self.scrollAPI.setGeometry(QRect(0, 0, 255, 986))
+        self.scrollAPI.setGeometry(QRect(0, 0, 744, 1056))
         self.verticalLayout_8 = QVBoxLayout(self.scrollAPI)
         self.verticalLayout_8.setSpacing(15)
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
@@ -1262,6 +1262,32 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_10.addWidget(self.groupIPollo)
 
+        self.groupIbelink = QGroupBox(self.groupAPIAuth)
+        self.groupIbelink.setObjectName(u"groupIbelink")
+        self.groupIbelink.setEnabled(True)
+        sizePolicy.setHeightForWidth(self.groupIbelink.sizePolicy().hasHeightForWidth())
+        self.groupIbelink.setSizePolicy(sizePolicy)
+        self.groupIbelink.setMinimumSize(QSize(0, 64))
+        self.groupIbelink.setMaximumSize(QSize(16777215, 64))
+        self.gridLayout_23 = QGridLayout(self.groupIbelink)
+        self.gridLayout_23.setObjectName(u"gridLayout_23")
+        self.label_36 = QLabel(self.groupIbelink)
+        self.label_36.setObjectName(u"label_36")
+
+        self.gridLayout_23.addWidget(self.label_36, 0, 0, 1, 1)
+
+        self.lineIbelinkPasswd = QLineEdit(self.groupIbelink)
+        self.lineIbelinkPasswd.setObjectName(u"lineIbelinkPasswd")
+        self.lineIbelinkPasswd.setEnabled(True)
+        sizePolicy.setHeightForWidth(self.lineIbelinkPasswd.sizePolicy().hasHeightForWidth())
+        self.lineIbelinkPasswd.setSizePolicy(sizePolicy)
+        self.lineIbelinkPasswd.setEchoMode(QLineEdit.EchoMode.Password)
+
+        self.gridLayout_23.addWidget(self.lineIbelinkPasswd, 0, 1, 1, 1)
+
+
+        self.verticalLayout_10.addWidget(self.groupIbelink)
+
 
         self.verticalLayout_8.addWidget(self.groupAPIAuth)
 
@@ -1321,7 +1347,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollLogs = QWidget()
         self.scrollLogs.setObjectName(u"scrollLogs")
-        self.scrollLogs.setGeometry(QRect(0, 0, 368, 246))
+        self.scrollLogs.setGeometry(QRect(0, 0, 746, 246))
         self.verticalLayout_11 = QVBoxLayout(self.scrollLogs)
         self.verticalLayout_11.setSpacing(15)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
@@ -1813,6 +1839,12 @@ class Ui_MainWindow(object):
         self.label_29.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
 #if QT_CONFIG(tooltip)
         self.lineIPolloPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative login password for iPollo miners. Default \"admin\"", None))
+#endif // QT_CONFIG(tooltip)
+        self.groupIbelink.setTitle(QCoreApplication.translate("MainWindow", u"iBeLink", None))
+        self.label_36.setText(QCoreApplication.translate("MainWindow", u"Set Alternative Password:", None))
+        self.label_36.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
+#if QT_CONFIG(tooltip)
+        self.lineIbelinkPasswd.setToolTip(QCoreApplication.translate("MainWindow", u"Set alternative login password for iBeLink miners. Default \"admin\"", None))
 #endif // QT_CONFIG(tooltip)
         self.groupAPIAuthFirmwares.setTitle(QCoreApplication.translate("MainWindow", u"Firmwares", None))
 #if QT_CONFIG(tooltip)
