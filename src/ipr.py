@@ -371,6 +371,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionToggleIPolloPasswd: QAction = self.create_passwd_toggle_action(
             self.lineIPolloPasswd
         )
+        self.actionToggleIbelinkPasswd: QAction = self.create_passwd_toggle_action(
+            self.lineIbelinkPasswd
+        )
 
         # listener config
         for child in self.groupListeners.children():
@@ -524,6 +527,8 @@ class IPR(QMainWindow, Ui_MainWindow):
                             MinerType.ELPHAPEX: self.lineElphapexPasswd,
                             MinerType.AURADINE: self.lineAuradinePasswd,
                             MinerType.VNISH: self.lineVnishPasswd,
+                            MinerType.IPOLLO: self.lineIPolloPasswd,
+                            MinerType.IBELINK: self.lineIbelinkPasswd,
                         },
                     ),
                     firmware=FirmwareConfiguratorWidgets(
@@ -986,6 +991,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         # disabled APIs
         # self.lineHammerPasswd.setText(self.config.api.auth.hammer_alt_passwd)
         self.lineIPolloPasswd.setText(self.config.api.auth.ipollo_alt_passwd)
+        self.lineIbelinkPasswd.setText(self.config.api.auth.ibelink_alt_passwd)
 
         # api settings
         self.spinLocateDuration.setValue(self.config.api.locate_duration)
@@ -1117,6 +1123,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "sealminerAltPasswd": self.lineSealminerPasswd.text(),
                 "auradineAltPasswd": self.lineAuradinePasswd.text(),
                 "ipolloAltPasswd": self.lineIPolloPasswd.text(),
+                "ibelinkAltPasswd": self.lineIbelinkPasswd.text(),
             },
             "firmware": {
                 "useAntminerLogin": self.checkUseAntminerLogin.isChecked(),
@@ -1859,6 +1866,8 @@ Statistics:
                 client_auth = self.lineAuradinePasswd.text()
             case "ipollo":
                 client_auth = self.lineIPolloPasswd.text()
+            case "ibelink":
+                client_auth = self.lineIbelinkPasswd.text()
             case "vnish":
                 if not self.checkUseAntminerLogin.isChecked():
                     client_auth = self.lineVnishPasswd.text()

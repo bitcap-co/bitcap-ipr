@@ -108,6 +108,7 @@ class APIAuth(BaseModel):
     sealminer_alt_passwd: Annotated[str, Field(alias="sealminerAltPasswd")] = ""
     auradine_alt_passwd: Annotated[str, Field(alias="auradineAltPasswd")] = ""
     ipollo_alt_passwd: Annotated[str, Field(alias="ipolloAltPasswd")] = ""
+    ibelink_alt_passwd: Annotated[str, Field(alias="ibelinkAltPasswd")] = ""
 
 
 class APISettings(BaseModel):
