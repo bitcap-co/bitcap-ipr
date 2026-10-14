@@ -21,6 +21,7 @@ from mod.ipr_asic.protocol.http import BaseHTTPClient
 from mod.ipr_asic.schemas.goldshell import (
     AlgoSettings,
     Devs,
+    MinerPasswdConfig,
     MinerPool,
     PoolsResponse,
     Settings,
@@ -223,5 +224,24 @@ class GoldshellHTTPClient(BaseHTTPClient):
                     f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}"
                 )
                 raise APIInvalidResponse
+        resobj = ActionResult(success=True, msg="OK")
+        return resobj.model_dump(mode="json")
+
+    @override
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> APIObject:
+        enc_old_passwd = encrypt(old_passwd)
+        enc_new_passwd = encrypt(new_passwd)
+        pw_conf = MinerPasswdConfig(
+            curr_passwd=enc_old_passwd,
+            new_passwd=enc_new_passwd,
+            confirm_passwd=enc_new_passwd,
+        )
+
+        _ = await self.send_command(
+            "PUT",
+            command="updatepd",
+            path="user",
+            params=pw_conf.model_dump(mode="json", by_alias=True),
+        )
         resobj = ActionResult(success=True, msg="OK")
         return resobj.model_dump(mode="json")

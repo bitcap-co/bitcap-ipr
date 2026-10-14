@@ -87,9 +87,15 @@ class Chain(BaseModel):
     temp: str
     fanspeed: str
     minerstatus: int
-    adjustpower: int | None
+    adjustpower: int | None = None
 
 
 class Devs(SummaryModel):
     status: int
     data: list[Chain]
+
+
+class MinerPasswdConfig(BaseModel):
+    curr_passwd: str = Field(serialization_alias="oldpassword")
+    new_passwd: str = Field(serialization_alias="newpassword")
+    confirm_passwd: str = Field(serialization_alias="cfmpassword")
