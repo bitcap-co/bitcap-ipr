@@ -4,6 +4,9 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 
+import re
+from datetime import timedelta
+
 from pydantic import BaseModel
 
 from mod.ipr_asic.data import (
@@ -32,7 +35,7 @@ class VolcminerParser:
         data.algorithm = MinerAlgorithm.SCRYPT
 
         if models.summary is not None:
-            data.uptime = int(models.summary.elapsed)
+            data.uptime = self._parse_uptime(models.summary.elapsed)
         if models.system_info is not None:
             data.subtype = clean_model_name(
                 models.system_info.minertype, vendor="VolcMiner"
@@ -53,3 +56,19 @@ class VolcminerParser:
                 break
 
         return data
+
+    def _parse_uptime(self, uptime_str: str) -> int:
+        match = re.match(
+            r"(?:(\d+)d\s*)?(?:(\d+)h\s*)?(?:(\d+)m\s*)?(?:(\d+)s)", uptime_str.strip()
+        )
+
+        if not match:
+            return 0
+
+        days = int(match.group(1) or 0)
+        hours = int(match.group(2) or 0)
+        minutes = int(match.group(3) or 0)
+        seconds = int(match.group(4) or 0)
+        return timedelta(
+            days=days, hours=hours, minutes=minutes, seconds=seconds
+        ).seconds
