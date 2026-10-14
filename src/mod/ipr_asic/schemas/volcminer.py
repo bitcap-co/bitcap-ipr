@@ -21,6 +21,10 @@ class ActionResult(BaseModel):
     msg: str = ""
     data: str = ""
 
+    def error(self) -> str | None:
+        if self.code != 200:
+            return f"API error ({self.code}) - {self.msg}"
+
 
 class SystemInfo(SystemInfoModel):
     minertype: str
@@ -209,3 +213,8 @@ class MinerStatus(SummaryModel):
     pools: PoolStats
     chains: list[Chain]
     fan: FanInfo
+
+
+class MinerPasswdConfig(BaseModel):
+    curr_passwd: str = Field(default="", serialization_alias="cur_pwd")
+    new_passwd: str = Field(default="", serialization_alias="new_pwd")

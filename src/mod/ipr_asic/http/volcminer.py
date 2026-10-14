@@ -20,8 +20,10 @@ from mod.ipr_asic.errors import (
 from mod.ipr_asic.protocol.http import BaseHTTPClient
 from mod.ipr_asic.schemas.models import APIObject, ContentResponse, PoolConfig
 from mod.ipr_asic.schemas.volcminer import (
+    ActionResult,
     MinerConfig,
     MinerConfigV1,
+    MinerPasswdConfig,
     MinerPool,
     MinerStatus,
     NetworkInfo,
@@ -262,3 +264,21 @@ class VolcminerHTTPClient(BaseHTTPClient):
         data["_bb_debug"] = "false"
 
         return await self.set_miner_conf(conf=data)
+
+    @override
+    async def update_passwd(self, old_passwd: str, new_passwd: str) -> APIObject:
+        pw_conf = MinerPasswdConfig(curr_passwd=old_passwd, new_passwd=new_passwd)
+        resp = await self.send_command(
+            "POST",
+            command="passwdV1",
+            data=pw_conf.model_dump(mode="json", by_alias=True),
+        )
+        try:
+            resobj = ActionResult.model_validate(obj=resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        if error := resobj.error():
+            logger.error(f"{self.__repr__()} : {error}")
+            raise APIError(error)
+        return resp
