@@ -25,6 +25,7 @@ from mod.ipr_asic.schemas.ibelink import (
     NetworkInfo,
     NetworkResponse,
     OverviewResponse,
+    OverviewResponseVersion,
     PoolConfigResponse,
     SystemInfo,
     VersionInfo,
@@ -35,6 +36,7 @@ from mod.ipr_asic.schemas.models import (
     PoolConfig,
     SummaryModel,
 )
+from mod.ipr_asic.settings import get as get_setting
 from mod.ipr_asic.settings import get_auth_list, set_alt_auth
 
 logger = logging.getLogger(__name__)
@@ -121,7 +123,7 @@ class IBeLinkHTTPClient(BaseHTTPClient):
         resp = await self.send_command("GET", command="overview")
         _ = self._validate_response(resp)
         try:
-            ver_info = OverviewResponse.model_validate(obj=resp)
+            ver_info = OverviewResponseVersion.model_validate(obj=resp)
             return ver_info.version_info.api_version, ver_info.version_info
         except ValidationError as e:
             logger.error(f"{self.__repr__()}: {APIInvalidResponse(reason=str(e))!s}")
@@ -227,7 +229,7 @@ class IBeLinkHTTPClient(BaseHTTPClient):
             method="POST",
             command="upgrade",
             files={"file": (filename, firmware, "application/gzip")},
-            timeout=300.0,
+            timeout=float(get_setting("upgrade_firmware_timeout", 300.0)),
         )
         resobj = self._validate_response(resp)
         return resobj.model_dump()

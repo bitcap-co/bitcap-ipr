@@ -83,6 +83,10 @@ class OverviewResponse(ActionResponse):
     miner_info: SystemInfo = Field(validation_alias="minerInfo")
 
 
+class OverviewResponseVersion(ActionResponse):
+    version_info: VersionInfo = Field(validation_alias="minerInfo")
+
+
 class NetworkInfo(NetworkInfoModel):
     ip: str
     dns: str

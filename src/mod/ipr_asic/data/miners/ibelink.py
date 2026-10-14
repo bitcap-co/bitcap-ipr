@@ -33,7 +33,7 @@ class IBeLinkParser:
 
     def _parse_uptime(self, uptime_str: str) -> int:
         match = re.match(
-            r"(?:(\d+)d\s*)?(?:(\d+)h\s*)?(?:(\d+)min)?", uptime_str.strip()
+            r"(?:(\d+)d\s*)?(?:(\d+)h\s*)?(?:(\d+)min)", uptime_str.strip()
         )
 
         if not match:
