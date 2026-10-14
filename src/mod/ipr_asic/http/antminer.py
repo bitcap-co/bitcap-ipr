@@ -45,11 +45,10 @@ from mod.ipr_asic.schemas.models import (
     MinerPoolConfig,
     PoolConfig,
 )
+from mod.ipr_asic.settings import get as get_setting
 from mod.ipr_asic.settings import get_auth_list, set_alt_auth
 
 logger = logging.getLogger(__name__)
-
-_FIRMWARE_UPDATE_TIMEOUT = 300.0
 
 
 @final
@@ -281,7 +280,7 @@ class AntminerHTTPClient(BaseHTTPClient):
                     "application/octet-stream",
                 )
             },
-            timeout=_FIRMWARE_UPDATE_TIMEOUT,
+            timeout=float(get_setting("upgrade_firmware_timeout", 300.0)),
         )
         try:
             result = ActionResult.model_validate(resp)
@@ -562,7 +561,7 @@ class AntminerOldHTTPClient(BaseHTTPClient):
                     "application/octet-stream",
                 )
             },
-            timeout=_FIRMWARE_UPDATE_TIMEOUT,
+            timeout=float(get_setting("upgrade_firmware_timeout", 300.0)),
         )
         try:
             result = ActionResult.model_validate(resp)

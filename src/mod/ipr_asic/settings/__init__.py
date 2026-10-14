@@ -68,6 +68,7 @@ class Settings(BaseModel):
     get_data_retries: int = Field(default=1)
     # HTTP request timeout (seconds) used by BaseHTTPClient
     api_function_timeout: float = Field(default=5.0)
+    upgrade_firmware_timeout: float = Field(default=300.0)
     # async JSON-RPC / TCP transport timeouts (seconds)
     rpc_blocking_timeout: float = Field(default=10.0)
     tcp_blocking_timeout: float = Field(default=10.0)
