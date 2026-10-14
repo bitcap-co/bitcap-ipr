@@ -547,6 +547,7 @@ class MinerConfiguratorController(QObject):
                 MinerType.VOLCMINER,
                 MinerType.IPOLLO,
                 MinerType.HIVEGPU,
+                MinerType.IBELINK,
             ):
                 logger.error(
                     f"reset_firmware : {miner_type.value} is currently not supported."

@@ -234,6 +234,7 @@ class MinerActionController(QObject):
                 MinerType.VOLCMINER,
                 MinerType.HIVEGPU,
                 MinerType.IPOLLO,
+                MinerType.IBELINK,
             ):
                 logger.error(f"locate : {miner_type.value} is currently not supported.")
                 self.notification_requested.emit(
