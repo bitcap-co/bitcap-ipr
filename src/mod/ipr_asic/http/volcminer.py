@@ -228,6 +228,10 @@ class VolcminerHTTPClient(BaseHTTPClient):
         return await self.send_command("POST", command="reboot")
 
     @override
+    async def reset_firmware(self) -> APIObject:
+        return await self.send_command("POST", command="reset_conf")
+
+    @override
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
     ) -> APIObject:

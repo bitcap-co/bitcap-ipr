@@ -202,6 +202,10 @@ class GoldshellHTTPClient(BaseHTTPClient):
         return await self.restart()
 
     @override
+    async def reset_firmware(self) -> APIObject:
+        return await self.send_command("POST", command="facrst")
+
+    @override
     async def update_pool_conf(
         self, urls: list[str], users: list[str], passwds: list[str]
     ) -> APIObject:
