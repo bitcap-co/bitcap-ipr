@@ -268,6 +268,16 @@ class IPolloHTTPClient(BaseHTTPClient):
         return ActionResult(success=True, msg="OK").model_dump()
 
     @override
+    async def reset_firmware(self) -> APIObject:
+        _ = await self.send_command(
+            method="POST",
+            command="admin/system/flashops",
+            data={"reset": "Perform reset"},
+            files={"archive": ("", b"", "application/octet-stream")},
+        )
+        return ActionResult(success=True, msg="OK").model_dump()
+
+    @override
     async def update_passwd(self, old_passwd: str, new_passwd: str) -> APIObject:
         pw_conf = MinerPasswdConfig(new_passwd=new_passwd, confirm_passwd=new_passwd)
         _ = await self.send_command(

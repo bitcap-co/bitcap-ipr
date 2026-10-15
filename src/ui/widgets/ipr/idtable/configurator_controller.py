@@ -543,7 +543,6 @@ class MinerConfiguratorController(QObject):
         ) -> Awaitable[MinerResult] | None:
             if miner_type in (
                 MinerType.HAMMER,
-                MinerType.IPOLLO,
                 MinerType.HIVEGPU,
                 MinerType.IBELINK,
             ):
