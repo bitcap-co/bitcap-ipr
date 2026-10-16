@@ -24,6 +24,7 @@ from mod.ipr_asic.protocol.http import BaseHTTPClient
 from mod.ipr_asic.schemas.antminer import (
     ActionResult,
     CGMinerResponse,
+    DlogResponse,
     MinerConfig,
     MinerPasswdConfig,
     MinerPool,
@@ -499,8 +500,6 @@ class AntminerOldHTTPClient(BaseHTTPClient):
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
-        else:
-            return resobj
 
     async def summary(self) -> MinerSummary:
         resp = await self.send_command("GET", command="miner_summary")
