@@ -153,10 +153,12 @@ class BaseHTTPClient(BaseClient, ABC):
                 try:
                     return resp.json()
                 except json.JSONDecodeError:
-                    content = resp.content.decode().strip("\n")
-                    if content == "Socket connect failed: Connection refused":
+                    content_str = resp.content.decode().strip("\n")
+                    if content_str == "Socket connect failed: Connection refused":
                         raise APIError("API not available: connection refused")
-                    return ContentResponse(text=content).model_dump()
+                    return ContentResponse(
+                        text=content_str, raw=resp.content
+                    ).model_dump()
         except httpx.HTTPError as ex:
             if isinstance(ex, (httpx.ConnectTimeout, httpx.ReadTimeout)):
                 logger.error(

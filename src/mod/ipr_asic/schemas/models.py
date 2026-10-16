@@ -12,6 +12,7 @@ APIObject: TypeAlias = dict[str, Any]
 
 class ContentResponse(BaseModel):
     text: str
+    raw: bytes = b""
 
 
 class ActionResult(BaseModel):
