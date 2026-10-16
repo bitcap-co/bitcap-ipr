@@ -158,15 +158,47 @@ class AntminerHTTPClient(BaseHTTPClient):
         else:
             return resobj
 
-    async def log(self) -> ContentResponse:
+    @override
+    async def get_miner_log(self) -> ContentResponse:
         resp = await self.send_command("GET", command="log")
         try:
-            resobj = ContentResponse.model_validate(obj=resp)
+            return ContentResponse.model_validate(obj=resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+
+    @override
+    async def get_log_list(self) -> list[str]:
+        resp = await self.send_command("GET", command="dlog")
+        try:
+            resobj = DlogResponse.model_validate(obj=resp)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
-            return resobj
+            return resobj.log_list
+
+    @override
+    async def download_logs(self, log_list: list[str] | None = None) -> ContentResponse:
+        if log_list is None or len(log_list) == 0:
+            raise APIError("Invalid length of argurments")
+        resp = await self.send_command(
+            "POST", command="create_log_backup", payload=log_list
+        )
+        try:
+            resobj = ActionResult.model_validate(resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        if error := resobj.error():
+            logger.error(f"{self.__repr__()} : {error!s}")
+            raise APIError("Command failed")
+        log_resp = await self.send_command("GET", path="log", command=resobj.msg)
+        try:
+            return ContentResponse.model_validate(obj=log_resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
 
     async def summary(self) -> MinerSummary:
         resp = await self.send_command("GET", command="summary")
@@ -459,10 +491,11 @@ class AntminerOldHTTPClient(BaseHTTPClient):
         else:
             return resobj
 
-    async def log(self) -> ContentResponse:
+    @override
+    async def get_miner_log(self) -> ContentResponse:
         resp = await self.send_command("GET", command="get_kernel_log")
         try:
-            resobj = ContentResponse.model_validate(obj=resp)
+            return ContentResponse.model_validate(obj=resp)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
