@@ -125,17 +125,19 @@ class VnishHTTPClient(BaseHTTPClient):
         resp = await self.get_system_info()
         return resp.system.network_status
 
-    async def log(
-        self, log_type: Literal["status", "miner", "autotune", "system", "messages"]
+    @override
+    async def get_miner_log(
+        self,
+        log_type: Literal[
+            "status", "miner", "autotune", "system", "messages"
+        ] = "miner",
     ) -> ContentResponse:
         resp = await self.send_command("GET", command=f"logs/{log_type}")
         try:
-            resobj = ContentResponse.model_validate(obj=resp)
+            return ContentResponse.model_validate(obj=resp)
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
-        else:
-            return resobj
 
     async def summary(self) -> Summary:
         resp = await self.send_command("GET", command="summary")
