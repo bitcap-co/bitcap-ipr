@@ -9,7 +9,7 @@ from ipaddress import IPv4Address
 from typing import Never, Self, override
 
 from mod.ipr_asic.errors import UnsupportedOperationError
-from mod.ipr_asic.schemas.models import APIObject
+from mod.ipr_asic.schemas.models import APIObject, ContentResponse
 
 _API_VERSION_RE = re.compile(r"(\d+(?:\.\d+)*)")
 
@@ -51,12 +51,15 @@ class BaseClient(ABC):
         return int(match.group(1).replace(".", ""))
 
     def version_number(self, version_str: str) -> int:
+        """Parses a version string as an integer."""
         return self._parse_version(version_str)
 
     async def hostname(self) -> str:
+        """Returns the hostname of a miner."""
         return ""
 
     async def mac_address(self) -> str:
+        """Returns the MAC address of a miner."""
         return ""
 
     def _unsupported(self, operation: str) -> Never:
@@ -64,25 +67,44 @@ class BaseClient(ABC):
             f"Operation '{operation}' is not supported by {type(self).__name__}"
         )
 
+    async def get_miner_log(self) -> ContentResponse:
+        """Returns the current miner log from a miner."""
+        self._unsupported("get_miner_log")
+
+    async def get_log_list(self) -> list[str]:
+        """Returns a list of available log files/archives from a miner."""
+        self._unsupported("get_log_list")
+
+    async def download_logs(self, log_list: list[str] | None = None) -> ContentResponse:
+        """Downloads a log file/archive from a miner."""
+        self._unsupported("download_logs")
+
     async def blink(self, enabled: bool) -> APIObject:
+        """Locates a miner by blinking its LED."""
         self._unsupported("blink")
 
     async def start(self) -> APIObject:
+        """Starts the miner."""
         self._unsupported("start")
 
     async def stop(self) -> APIObject:
+        """Stops the miner."""
         self._unsupported("stop")
 
     async def restart(self) -> APIObject:
+        """Restarts the miner."""
         self._unsupported("restart")
 
     async def reboot(self) -> APIObject:
+        """Reboots the miner."""
         self._unsupported("reboot")
 
     async def reset_firmware(self) -> APIObject:
+        """Resets the firmware to the default state."""
         self._unsupported("reset_firmware")
 
     async def rollback_firmware(self) -> APIObject:
+        """Rolls back firmware to original stock firmware"""
         self._unsupported("rollback_firmware")
 
     async def update_firmware(
@@ -91,6 +113,7 @@ class BaseClient(ABC):
         filename: str,
         keep_settings: bool,
     ) -> APIObject:
+        """Updates the firmware image of a miner. keep_settings is passed to keep the current configuration after update (if supported)."""
         self._unsupported("update_firmware")
 
     async def update_passwd(
@@ -98,6 +121,7 @@ class BaseClient(ABC):
         old_passwd: str,
         new_passwd: str,
     ) -> APIObject:
+        """Updates the login password of a miner."""
         self._unsupported("password update")
 
     async def update_pool_conf(
@@ -106,6 +130,7 @@ class BaseClient(ABC):
         users: list[str],
         passwds: list[str],
     ) -> APIObject:
+        """Updates the pool configuration of a miner."""
         self._unsupported("pool configuration update")
 
     def error(self) -> Exception | None:
