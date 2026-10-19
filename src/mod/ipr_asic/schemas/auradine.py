@@ -3,6 +3,9 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
+
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from .cgminer import BaseCGMinerResponse
@@ -234,3 +237,21 @@ class CGMinerResponse(BaseCGMinerResponse):
     whitelist_pools: list[WhitelistPools] | None = Field(None, alias="whitelistPools")
     update_pools: list[UpdatePoolsResponse] | None = Field(None, alias="UPDATEPOOLS")
     token: list[Token] | None = Field(None, alias="Token")
+
+
+class LogConfig(BaseModel):
+    command: str = "getLog"
+    daemon: list[
+        Literal[
+            "monitord",
+            "osutil",
+            "kernel",
+            "webui-server",
+            "gcminer",
+            "api-server",
+            "etc-files",
+            "factory-files",
+        ]
+    ] = ["gcminer"]
+    filters: list[Literal["DVFS-VOUT", "ALARM-LED", "FALSE", "ERROR"]] = []
+    level: list[Literal["log", "crash", "alarms", "audit"]] = ["log"]
