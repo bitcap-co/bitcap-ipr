@@ -595,6 +595,58 @@ class ASICClient(QObject):
             client.close()
         return MinerResult()
 
+    async def get_miner_log(
+        self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
+    ) -> MinerResult:
+        try:
+            client = await self._make_client(miner_type, ip, alt_pwd)
+        except UnknownClientError as e:
+            return MinerResult(error=e)
+        try:
+            log = await client.get_miner_log()
+            return MinerResult(data=log)
+        except _CLIENT_ERRORS as e:
+            logger.error(f"{client.__repr__()} : client error raised: {e!s}")
+            return MinerResult(error=e)
+        finally:
+            client.close()
+
+    async def get_log_list(
+        self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
+    ) -> MinerResult:
+        try:
+            client = await self._make_client(miner_type, ip, alt_pwd)
+        except UnknownClientError as e:
+            return MinerResult(error=e)
+        try:
+            log_list = await client.get_log_list()
+            return MinerResult(data=log_list)
+        except _CLIENT_ERRORS as e:
+            logger.error(f"{client.__repr__()} : client error raised: {e!s}")
+            return MinerResult(error=e)
+        finally:
+            client.close()
+
+    async def download_logs(
+        self,
+        miner_type: MinerType,
+        ip: str,
+        alt_pwd: str | None = None,
+        log_list: list[str] | None = None,
+    ) -> MinerResult:
+        try:
+            client = await self._make_client(miner_type, ip, alt_pwd)
+        except UnknownClientError as e:
+            return MinerResult(error=e)
+        try:
+            archive = await client.download_logs(log_list)
+            return MinerResult(data=archive)
+        except _CLIENT_ERRORS as e:
+            logger.error(f"{client.__repr__()} : client error raised: {e!s}")
+            return MinerResult(error=e)
+        finally:
+            client.close()
+
     async def reset_miner_firmware(
         self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
     ):
