@@ -1544,7 +1544,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>746</width>
+                   <width>478</width>
                    <height>849</height>
                   </rect>
                  </property>
@@ -2234,7 +2234,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>744</width>
+                   <width>811</width>
                    <height>1056</height>
                   </rect>
                  </property>
@@ -3028,8 +3028,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>746</width>
-                   <height>246</height>
+                   <width>782</width>
+                   <height>338</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_11">
@@ -3143,7 +3143,7 @@ Uses last 5 of SN or MAC address.</string>
                        <property name="maximumSize">
                         <size>
                          <width>250</width>
-                         <height>16777215</height>
+                         <height>26</height>
                         </size>
                        </property>
                        <property name="toolTip">
@@ -3153,7 +3153,7 @@ Uses last 5 of SN or MAC address.</string>
                         <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
                        </property>
                        <property name="buttonSymbols">
-                        <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
+                        <enum>QAbstractSpinBox::ButtonSymbols::UpDownArrows</enum>
                        </property>
                        <property name="showGroupSeparator" stdset="0">
                         <bool>true</bool>
