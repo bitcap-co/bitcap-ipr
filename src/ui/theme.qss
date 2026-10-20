@@ -550,6 +550,37 @@ QFrame[frameShape="4"] {
   color: #383e46;
 }
 
+/* ID table log download dialog ------------------------------------------- */
+QDialog#minerLogDownloadDialog QLabel {
+  color: #FFFFFF;
+}
+
+QLabel#logDownloadTitle {
+  color: #FFFFFF;
+}
+
+QDialog#minerLogDownloadDialog QListWidget {
+  background-color: #151d28;
+  border: 1px solid #525252;
+  color: #FFFFFF;
+  outline: 0;
+}
+
+QDialog#minerLogDownloadDialog QListWidget::item {
+  padding: 2px 4px;
+}
+
+QDialog#minerLogDownloadDialog QListWidget::item:selected {
+  background-color: #3183ff;
+  color: #FFFFFF;
+}
+
+QDialog#minerLogDownloadDialog QListWidget::item:hover {
+  background-color: #5c9dff;
+  color: #FFFFFF;
+}
+
+
 /* ID table column filter popup ------------------------------------------- */
 QFrame#columnFilterPopup {
   background-color: #383e46;

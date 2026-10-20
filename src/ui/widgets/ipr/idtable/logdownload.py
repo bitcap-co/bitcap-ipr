@@ -32,6 +32,7 @@ class MinerLogDownloadDialog(QDialog):
         allow_multiple: bool = True,
     ) -> None:
         super().__init__(parent, Qt.WindowType.FramelessWindowHint)
+        self.setObjectName("minerLogDownloadDialog")
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self.setModal(True)
         self.setWindowTitle("Download Miner Logs")
@@ -60,8 +61,6 @@ class MinerLogDownloadDialog(QDialog):
         )
         self._list.setSelectionMode(selection_mode)
         self._list.addItems(logs)
-        if self._list.count():
-            self._list.setCurrentRow(0)
         self._list.itemSelectionChanged.connect(self._update_download_button)
         body_layout.addWidget(self._list)
 
