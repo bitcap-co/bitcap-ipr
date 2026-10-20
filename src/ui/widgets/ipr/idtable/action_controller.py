@@ -369,6 +369,21 @@ class MinerActionController(QObject):
     ) -> None:
         ip_addr, miner_type, _ = self._table_controller.miner_target(source_row)
         alt_pwd = self._auth_provider(miner_type.value)
+        if miner_type not in (
+            MinerType.ANTMINER,
+            MinerType.ELPHAPEX,
+            MinerType.VOLCMINER,
+            MinerType.WHATSMINER,
+        ):
+            logger.error(
+                f"download_logs: {miner_type.value} is currently not supported."
+            )
+            self.notification_requested.emit(
+                f"Status :: Failed to download logs for {ip_addr}: "
+                f"{miner_type.value.capitalize()} download_logs is not supported.",
+                5000,
+            )
+            return
         self.notification_requested.emit(
             f"Status :: Preparing log download for {ip_addr}.", 5000
         )
