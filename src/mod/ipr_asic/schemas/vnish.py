@@ -124,7 +124,7 @@ class PoolStats(MinerPoolModel):
     pool_type: str
     user: str
     status: str
-    asic_boost: bool
+    asic_boost: bool | None = None
     diff: str
     accepted: int
     rejected: int
