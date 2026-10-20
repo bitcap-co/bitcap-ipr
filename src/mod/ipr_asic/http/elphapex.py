@@ -145,7 +145,7 @@ class ElphapexHTTPClient(BaseHTTPClient):
 
     @override
     async def download_logs(self, log_list: list[str] | None = None) -> ContentResponse:
-        resp = await self.send_command("GET", path="public", command="messages.log")
+        resp = await self.send_command("GET", path="public", command="messages.tgz")
         try:
             return ContentResponse.model_validate(obj=resp)
         except ValidationError as e:
