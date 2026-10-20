@@ -28,6 +28,7 @@ from mod.ipr_asic.schemas.iceriver import (
 from mod.ipr_asic.schemas.models import (
     APIObject,
     BlinkStatus,
+    ContentResponse,
     MinerPoolConfig,
     PoolConfig,
 )
@@ -180,6 +181,24 @@ class IceriverHTTPClient(BaseHTTPClient):
                 MinerPoolConfig(url=pool.addr, user=pool.user, pwd=pool.passwd)
             )
         return PoolConfig(pool_conf)
+
+    @override
+    async def get_miner_log(self) -> ContentResponse:
+        ver, _ = await self.get_version_info()
+        if ver == "":
+            raise APIError("Command is not supported")
+        resp = await self.send_command("POST", command="logconfig", data={"post": 3})
+        try:
+            resobj = ActionResult.model_validate(obj=resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()}: {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        else:
+            if error := resobj.error_():
+                logger.error(f"{self.__repr__()} : {error}")
+                raise APIError("Command failed!")
+            cleaned = resobj.data["text"].replace("&nbsp;", " ").replace("<br/>", "\n")
+            return ContentResponse(text=cleaned)
 
     async def get_blink_status(self) -> BlinkStatus:
         user = await self.summary()
