@@ -341,7 +341,11 @@ class MinerActionController(QObject):
                 f"Status :: No stored logs found for {ip_addr}.", 5000
             )
             return
-
+        match miner_type:
+            case MinerType.ANTMINER:
+                logs.sort(key=lambda x: datetime.strptime(x, "/%Y-%m/%d"))
+            case _:
+                pass
         dialog = MinerLogDownloadDialog(
             ip_addr,
             logs,
