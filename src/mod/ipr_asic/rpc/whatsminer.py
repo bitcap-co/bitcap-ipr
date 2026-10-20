@@ -403,7 +403,12 @@ class WhatsminerRPCClient(CGMinerRPCLayer):
             except AuthenticationError:
                 self.token = None
                 continue
-            return ContentResponse(text="", raw=content)
+            return ContentResponse(
+                text="",
+                raw=content,
+                filename="whatsminer-logs.tgz",
+                content_type="application/gzip",
+            )
         raise AuthenticationError("Failed to authenticate")
 
     @override
@@ -691,7 +696,12 @@ class WhatsminerTCPClient(BaseTCPClient):
             await self._aclose()
             raise APIInvalidResponse("Incomplete miner log download") from e
 
-        return ContentResponse(text="", raw=content)
+        return ContentResponse(
+            text="",
+            raw=content,
+            filename="whatsminer-logs.tgz",
+            content_type="application/gzip",
+        )
 
     async def set_miner_mode(
         self, mode: Literal["start", "stop", "restart"]

@@ -196,7 +196,13 @@ class AntminerHTTPClient(BaseHTTPClient):
             raise APIError("Command failed")
         log_resp = await self.send_command("GET", path="log", command=resobj.msg)
         try:
-            return ContentResponse.model_validate(obj=log_resp)
+            content = ContentResponse.model_validate(obj=log_resp)
+            return content.model_copy(
+                update={
+                    "filename": "antminer-logs.tar",
+                    "content_type": "application/x-tar",
+                }
+            )
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse

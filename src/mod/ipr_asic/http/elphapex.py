@@ -147,7 +147,13 @@ class ElphapexHTTPClient(BaseHTTPClient):
     async def download_logs(self, log_list: list[str] | None = None) -> ContentResponse:
         resp = await self.send_command("GET", path="public", command="messages.tgz")
         try:
-            return ContentResponse.model_validate(obj=resp)
+            content = ContentResponse.model_validate(obj=resp)
+            return content.model_copy(
+                update={
+                    "filename": "messages.tgz",
+                    "content_type": "application/gzip",
+                }
+            )
         except ValidationError as e:
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse

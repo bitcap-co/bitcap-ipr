@@ -158,7 +158,7 @@ class BaseHTTPClient(BaseClient, ABC):
                         raise APIError("API not available: connection refused")
                     return ContentResponse(
                         text=content_str, raw=resp.content
-                    ).model_dump()
+                    ).model_dump(exclude_none=True)
         except httpx.HTTPError as ex:
             if isinstance(ex, (httpx.ConnectTimeout, httpx.ReadTimeout)):
                 logger.error(

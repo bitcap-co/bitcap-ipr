@@ -236,7 +236,11 @@ class VolcminerHTTPClient(BaseHTTPClient):
 
     @override
     async def download_logs(self, log_list: list[str] | None = None) -> ContentResponse:
-        return await self.get_miner_log(log_name=log_list[0] if log_list else None)
+        log_name = log_list[0] if log_list else None
+        content = await self.get_miner_log(log_name=log_name)
+        return content.model_copy(
+            update={"filename": log_name, "content_type": "text/plain"}
+        )
 
     @override
     async def blink(self, enabled: bool) -> APIObject:

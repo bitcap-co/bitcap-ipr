@@ -13,6 +13,8 @@ APIObject: TypeAlias = dict[str, Any]
 class ContentResponse(BaseModel):
     text: str
     raw: bytes = b""
+    filename: str | None = None
+    content_type: str | None = None
 
 
 class ActionResult(BaseModel):
