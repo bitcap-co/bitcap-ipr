@@ -125,7 +125,8 @@ class ElphapexHTTPClient(BaseHTTPClient):
         else:
             return resobj
 
-    async def log(self, num: int = -1) -> ContentResponse:
+    @override
+    async def get_miner_log(self, num: int = -1) -> ContentResponse:
         """Get miner log
 
         Args:
@@ -141,6 +142,21 @@ class ElphapexHTTPClient(BaseHTTPClient):
             raise APIInvalidResponse
         else:
             return resobj
+
+    @override
+    async def download_logs(self, log_list: list[str] | None = None) -> ContentResponse:
+        resp = await self.send_command("GET", path="public", command="messages.tgz")
+        try:
+            content = ContentResponse.model_validate(obj=resp)
+            return content.model_copy(
+                update={
+                    "filename": "messages.tgz",
+                    "content_type": "application/gzip",
+                }
+            )
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
 
     async def summary(self) -> MinerSummary:
         resp = await self.send_command("GET", command="summary")

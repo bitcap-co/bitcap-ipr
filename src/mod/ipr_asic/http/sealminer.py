@@ -8,6 +8,7 @@ import json
 import logging
 import random
 import time
+import xml.etree.ElementTree as ET
 from typing import final, override
 
 import httpx
@@ -20,10 +21,17 @@ from mod.ipr_asic.errors import (
     FailedConnectionError,
 )
 from mod.ipr_asic.protocol.http import BaseHTTPClient
-from mod.ipr_asic.schemas.models import APIObject, BlinkStatus, PoolConfig
+from mod.ipr_asic.schemas.models import (
+    APIObject,
+    BlinkStatus,
+    ContentResponse,
+    PoolConfig,
+)
 from mod.ipr_asic.schemas.sealminer import (
     ActionResult,
     ConfigResult,
+    ErrorCode,
+    EventRecorderResponse,
     LoginResponse,
     MinerConfig,
     MinerPasswdConfig,
@@ -99,6 +107,26 @@ class SealminerHTTPClient(BaseHTTPClient):
                         break
         if not self.authed:
             raise AuthenticationError("Failed to authenticate")
+
+    async def _get_sealminer_error_codes(self) -> dict[str, ErrorCode]:
+        app_xml = await self._do_http(
+            "GET",
+            path="assets/i18n/en/app_en.xml",
+            headers={"Content-Type": "text/xml"},
+        )
+        print(app_xml.text)
+        error_codes: dict[str, ErrorCode] = {}
+        root = ET.fromstring(app_xml.content.decode()).find("EN")
+        if root is None:
+            return error_codes
+        for child in root:
+            if child.tag == "info" and child.attrib["value"].startswith("error_code_"):
+                code = child.attrib["value"].replace("error_code_", "")
+                error_codes[code] = ErrorCode(
+                    code=int(code),
+                    message=child.text if child.text else "",
+                )
+        return error_codes
 
     @override
     async def mac_address(self) -> str:
@@ -177,6 +205,34 @@ class SealminerHTTPClient(BaseHTTPClient):
     async def get_pool_conf(self) -> PoolConfig:
         resp = await self.get_miner_conf()
         return resp.pools
+
+    @override
+    async def get_miner_log(self, event_type: int = -1) -> ContentResponse:
+        """Returns the current miner log from a miner.
+
+        Args:
+            event_type (int): The event type to filter the log by. Defaults to -1 (ALL).
+        """
+        error_codes = await self._get_sealminer_error_codes()
+        resp = await self.send_command(
+            "GET", command="get_event_recorder", payload={"type": event_type, "user": 0}
+        )
+        try:
+            resobj = EventRecorderResponse.model_validate(obj=resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        if error := resobj.error():
+            logger.error(f"{self.__repr__()} : {error!s}")
+            raise APIError(error)
+        log = ""
+        for event in resobj.data:
+            if event.type == "Error Code":
+                code = event.value.split(" ")[-1]
+                log += f"{event.id} - {event.timestamp} : {event.value} ({error_codes[code].message!s})\n"
+            else:
+                log += f"{event.id} - {event.timestamp} : {event.value}\n"
+        return ContentResponse(text=log)
 
     async def get_blink_status(self) -> BlinkStatus:
         resp = await self.get_system_info()

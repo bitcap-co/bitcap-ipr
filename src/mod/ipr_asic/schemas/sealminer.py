@@ -156,3 +156,25 @@ class MinerPasswdConfig(BaseModel):
     curr_passwd: str = Field(serialization_alias="origin_pwd")
     new_passwd: str = Field(serialization_alias="new_pwd")
     confirm_passwd: str = Field(serialization_alias="confirm_pwd")
+
+
+class MinerEvent(BaseModel):
+    id: int
+    timestamp: str
+    type: str
+    value: str = ""
+    level: int = 0
+
+
+class EventRecorderResponse(BaseModel):
+    result: bool
+    data: list[MinerEvent]
+
+    def error(self) -> str | None:
+        if not self.result:
+            return "API error: failed to get event recorder"
+
+
+class ErrorCode(BaseModel):
+    code: int
+    message: str = ""

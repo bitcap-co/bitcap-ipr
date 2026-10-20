@@ -74,7 +74,7 @@ class BaseHTTPClient(BaseClient, ABC):
         path: str,
         headers: dict[str, str] | None = None,
         params: dict[str, str] | None = None,
-        payload: dict[str, Any] | None = None,
+        payload: dict[str, Any] | list[Any] | None = None,
         data: dict[str, Any] | None = None,
         files: dict[str, Any] | None = None,
         timeout: float | None = None,
@@ -114,7 +114,7 @@ class BaseHTTPClient(BaseClient, ABC):
         command: str,
         path: str = "",
         params: dict[str, str] | None = None,
-        payload: dict[str, Any] | None = None,
+        payload: dict[str, Any] | list[Any] | None = None,
         data: dict[str, Any] | None = None,
         files: dict[str, Any] | None = None,
         timeout: float | None = None,
@@ -153,10 +153,12 @@ class BaseHTTPClient(BaseClient, ABC):
                 try:
                     return resp.json()
                 except json.JSONDecodeError:
-                    content = resp.content.decode().strip("\n")
-                    if content == "Socket connect failed: Connection refused":
+                    content_str = resp.content.decode().strip("\n")
+                    if content_str == "Socket connect failed: Connection refused":
                         raise APIError("API not available: connection refused")
-                    return ContentResponse(text=content).model_dump()
+                    return ContentResponse(
+                        text=content_str, raw=resp.content
+                    ).model_dump(exclude_none=True)
         except httpx.HTTPError as ex:
             if isinstance(ex, (httpx.ConnectTimeout, httpx.ReadTimeout)):
                 logger.error(

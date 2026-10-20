@@ -179,7 +179,7 @@ class TestHTTPTransport(unittest.IsolatedAsyncioTestCase):
 
         client = self._client(handler)
         resp = await client.send_command("GET", "status")
-        self.assertEqual(resp, {"text": "not-json"})
+        self.assertEqual(resp, {"text": "not-json", "raw": b"not-json"})
 
     async def test_http_error_status_raises_apierror(self):
         def handler(request: httpx.Request) -> httpx.Response:

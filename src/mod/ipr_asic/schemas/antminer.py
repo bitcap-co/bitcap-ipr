@@ -160,6 +160,11 @@ class WarningResponse(BaseModel):
     error_message: str
 
 
+class DlogResponse(BaseModel):
+    dlog: bool
+    log_list: list[str]
+
+
 class MinerTypeInfo(BaseModel):
     miner_type: str = ""
     subtype: str = ""

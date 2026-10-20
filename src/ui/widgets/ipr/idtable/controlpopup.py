@@ -28,6 +28,8 @@ ACTIONS: list[tuple[str, str, str | None]] = [
     ("stop", "Stop Miner", ":theme/icons/rc/pause.png"),
     ("restart", "Restart Miner", ":theme/icons/rc/restart.png"),
     ("reboot", "Reboot Miner", ":theme/icons/rc/reboot.png"),
+    ("get_miner_log", "Get Miner Log", ":theme/icons/rc/file.png"),
+    ("download_logs", "Download Logs...", ":theme/icons/rc/archive.png"),
 ]
 
 _ICON_SIZE = QSize(15, 15)
@@ -36,7 +38,12 @@ _ICON_SIZE = QSize(15, 15)
 class MinerControlPopup(QFrame):
     action_selected: Signal = Signal(str)  # the chosen action key (see ACTIONS)
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(
+        self,
+        parent: QWidget | None = None,
+        *,
+        allow_log_download: bool = True,
+    ) -> None:
         super().__init__(parent, Qt.WindowType.Popup)
         self.setObjectName("minerControlPopup")
         self.setFrameShape(QFrame.Shape.StyledPanel)
@@ -46,6 +53,8 @@ class MinerControlPopup(QFrame):
         layout.setSpacing(2)
 
         for key, label, icon_path in ACTIONS:
+            if key == "download_logs" and not allow_log_download:
+                continue
             # flat QPushButtons fill the popup width and left-align like a menu
             button = QPushButton(label, self)
             button.setFlat(True)

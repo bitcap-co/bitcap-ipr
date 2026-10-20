@@ -8,7 +8,12 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from platformdirs import user_data_path, user_downloads_path, user_log_path
+from platformdirs import (
+    user_data_path,
+    user_documents_path,
+    user_downloads_path,
+    user_log_path,
+)
 from PySide6.QtCore import qVersion
 
 from metadata import APP_METADATA
@@ -59,6 +64,11 @@ def get_log_file() -> Path:
 def get_download_dir() -> Path:
     """Returns the path to the user's download directory."""
     return user_downloads_path()
+
+
+def get_miner_log_dir() -> Path:
+    """Returns the directory used for exported miner logs and archives."""
+    return user_documents_path() / "ipr" / "miner_logs"
 
 
 def flush_log() -> None:

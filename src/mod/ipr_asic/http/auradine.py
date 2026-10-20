@@ -16,6 +16,7 @@ from mod.ipr_asic.schemas.auradine import (
     LED,
     CGMinerResponse,
     IPReport,
+    LogConfig,
     MinerPasswdConfig,
     Mode,
     ModeResponse,
@@ -27,6 +28,7 @@ from mod.ipr_asic.schemas.cgminer import BaseCGMinerResponse, Version
 from mod.ipr_asic.schemas.models import (
     APIObject,
     BlinkStatus,
+    ContentResponse,
     MinerPoolConfig,
     PoolConfig,
 )
@@ -73,6 +75,47 @@ class AuradineHTTPClient(BaseHTTPClient):
                 logger.error(f"{self.__repr__()} : {APIError(err)!s}")
                 raise APIError("Command failed!")
             return resobj
+
+    async def _authenticate_session(self) -> None:
+        self.authed = False
+
+        for pwd in self.passwds:
+            if not pwd:
+                continue
+
+            payload = {
+                "command": "token",
+                "user": self.username,
+                "password": pwd,
+            }
+
+            try:
+                async with self._new_client() as client:
+                    resp = await client.post(self.base_url + "login", json=payload)
+                    _ = resp.raise_for_status()
+
+                valid = self._validate_response(resp.json())
+            except (httpx.ConnectError, httpx.TimeoutException):
+                raise FailedConnectionError("Failed to connect or timeout occurred")
+            except (
+                httpx.HTTPError,
+                json.JSONDecodeError,
+                APIError,
+            ):
+                continue
+
+            if not valid.token or len(valid.token) != 1:
+                continue
+
+            session_cookie = resp.cookies.get("session-name")
+            if not session_cookie:
+                continue
+
+            self.cookies = f"session-name={session_cookie}"
+            self.authed = True
+            return
+
+        raise AuthenticationError("Failed to authenticate")
 
     @override
     async def authenticate(self) -> None:
@@ -150,6 +193,36 @@ class AuradineHTTPClient(BaseHTTPClient):
             raise APIInvalidResponse
         else:
             return valid.summary[0]
+
+    @override
+    async def get_miner_log(self) -> ContentResponse:
+        orig_base_url = self.base_url
+        orig_authed = self.authed
+        orig_cookies = self.cookies
+        orig_token = self.token
+        # enter temporary port 80 session to properly get logs
+        try:
+            self.base_url = f"http://{self.ip}:80/"
+            self.authed = False
+            self.cookies = None
+            self.token = None
+
+            await self._authenticate_session()
+
+            resp = await self.send_command(
+                "POST",
+                command="log",
+                payload=LogConfig().model_dump(mode="json"),
+            )
+            return ContentResponse.model_validate(obj=resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        finally:
+            self.base_url = orig_base_url
+            self.authed = orig_authed
+            self.cookies = orig_cookies
+            self.token = orig_token
 
     async def get_miner_conf(self) -> ModeResponse:
         resp = await self.send_command("GET", command="mode")

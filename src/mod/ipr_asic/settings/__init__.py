@@ -72,6 +72,7 @@ class Settings(BaseModel):
     # async JSON-RPC / TCP transport timeouts (seconds)
     rpc_blocking_timeout: float = Field(default=10.0)
     tcp_blocking_timeout: float = Field(default=10.0)
+    whatsminer_log_download_timeout: float = Field(default=180.0)
     # LED locate blink duration (ms); read externally by the app (ipr.py)
     locate_duration_ms: int = Field(default=10000)
 
