@@ -356,6 +356,8 @@ class WhatsminerRPCClient(CGMinerRPCLayer):
             if not chunk:
                 break
             content.extend(chunk)
+        if not content:
+            raise APIError("Miner failed to prepare log archive")
         return bytes(content)
 
     async def _download_logs(self, token: Token) -> tuple[APIObject, bytes]:
