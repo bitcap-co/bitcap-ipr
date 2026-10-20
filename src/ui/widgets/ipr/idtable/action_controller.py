@@ -5,8 +5,11 @@
 
 import asyncio
 import logging
+import re
 import time
 from collections.abc import Awaitable, Callable, Coroutine
+from datetime import datetime
+from pathlib import Path
 from typing import Any, ClassVar
 
 from pydantic import BaseModel, ConfigDict
@@ -15,10 +18,17 @@ from PySide6.QtWidgets import QToolButton, QWidget
 
 from mod.ipr_asic import ASICClient, MinerResult
 from mod.ipr_asic.data import MinerFirmware, MinerType
-from mod.ipr_asic.errors import UnknownClientError
+from mod.ipr_asic.errors import (
+    APIInvalidResponse,
+    UnknownClientError,
+    UnsupportedOperationError,
+)
+from mod.ipr_asic.schemas.models import ContentResponse
+from utils import get_miner_log_dir
 
 from .controller import IPRTableController
 from .controlpopup import MinerControlPopup
+from .logdownload import MinerLogDownloadDialog
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +74,7 @@ class MinerActionController(QObject):
         self._locate_task: asyncio.Task[None] | None = None
         self._tasks: set[asyncio.Task[None]] = set()
         self._control_popup: MinerControlPopup | None = None
+        self._log_dialog: MinerLogDownloadDialog | None = None
         self._stopping: bool = False
 
     def set_locate_duration_ms(self, duration_ms: int) -> None:
@@ -79,7 +90,7 @@ class MinerActionController(QObject):
         popup.show_at(self._table_controller.action_anchor(source_row))
 
     def open_bulk_control(self, *_args: object) -> None:
-        popup = MinerControlPopup(self._window)
+        popup = MinerControlPopup(self._window, allow_log_download=False)
         popup.action_selected.connect(self._table_controller.request_bulk_action)
         popup.destroyed.connect(self._clear_control_popup)
         self._control_popup = popup
@@ -96,6 +107,10 @@ class MinerActionController(QObject):
             self.schedule(self.locate_miner(source_row))
         elif key in _CONTROL_ACTIONS:
             self.schedule(self.control_miner(source_row, key))
+        elif key == "get_miner_log":
+            self.schedule(self.save_miner_logs([source_row]))
+        elif key == "download_logs":
+            self.schedule(self.select_miner_logs(source_row))
         else:
             logger.warning(f"dispatch_miner_control : unknown action '{key}'.")
 
@@ -106,6 +121,8 @@ class MinerActionController(QObject):
             self.schedule(self.bulk_locate_miners(rows))
         elif key in _CONTROL_ACTIONS:
             self.schedule(self.bulk_control_miners(key, rows))
+        elif key == "get_miner_log":
+            self.schedule(self.save_miner_logs(rows))
         else:
             logger.warning(f"dispatch_bulk_control : unknown action '{key}'.")
 
@@ -222,6 +239,171 @@ class MinerActionController(QObject):
             f"Status :: {action} succeeded for {len(passed)} miners.", 3000
         )
 
+    @staticmethod
+    def _safe_filename_component(value: str) -> str:
+        return re.sub(r"[^A-Za-z0-9._-]", "_", value).strip("._") or "miner"
+
+    @staticmethod
+    def _content_suffix(content: ContentResponse, default: str) -> str:
+        if content.filename:
+            remote_name = content.filename.replace("\\", "/").rsplit("/", 1)[-1]
+            suffix = "".join(Path(remote_name).suffixes)
+            if suffix:
+                return suffix
+        return {
+            "application/gzip": ".tgz",
+            "application/x-tar": ".tar",
+            "application/zip": ".zip",
+            "text/plain": ".log",
+        }.get(content.content_type or "", default)
+
+    async def _save_log_content(
+        self,
+        ip_addr: str,
+        content: ContentResponse,
+        *,
+        default_suffix: str,
+    ) -> Path:
+        directory = get_miner_log_dir()
+        await asyncio.to_thread(directory.mkdir, parents=True, exist_ok=True)
+        safe_ip = self._safe_filename_component(ip_addr)
+        timestamp = datetime.now().astimezone().strftime("%Y-%m-%d_%H%M%S_%f")
+        suffix = self._content_suffix(content, default_suffix)
+        if content.filename:
+            remote_name = content.filename.replace("\\", "/").rsplit("/", 1)[-1]
+            safe_remote_name = self._safe_filename_component(remote_name)
+            if not Path(safe_remote_name).suffixes:
+                safe_remote_name += suffix
+            output_name = f"{safe_ip}_{timestamp}_{safe_remote_name}"
+        else:
+            output_name = f"{safe_ip}_{timestamp}{suffix}"
+        file_path = directory / output_name
+        payload = content.raw or content.text.encode("utf-8")
+        await asyncio.to_thread(file_path.write_bytes, payload)
+        return file_path
+
+    async def save_miner_logs(self, rows: list[int]) -> None:
+        saved_paths: list[Path] = []
+
+        async def make_coro(
+            _row: int,
+            ip_addr: str,
+            miner_type: MinerType,
+            _firmware: MinerFirmware,
+            alt_pwd: str | None,
+        ) -> MinerResult:
+            result = await self._asic.get_miner_log(
+                miner_type, ip_addr, alt_pwd=alt_pwd
+            )
+            if result.error is not None:
+                return result
+            if not isinstance(result.data, ContentResponse):
+                return MinerResult(
+                    error=APIInvalidResponse("Expected miner log content")
+                )
+            try:
+                result.data = await self._save_log_content(
+                    ip_addr, result.data, default_suffix=".log"
+                )
+            except OSError as e:
+                result.error = e
+            return result
+
+        def on_success(_row: int, _ip_addr: str, result: MinerResult) -> None:
+            if isinstance(result.data, Path):
+                saved_paths.append(result.data)
+
+        await self.run_bulk_action(
+            "Get Miner Log", rows, make_coro, on_success=on_success
+        )
+        if saved_paths:
+            self.notification_requested.emit(
+                f"Status :: Miner logs saved to {get_miner_log_dir()}.", 5000
+            )
+
+    async def select_miner_logs(self, source_row: int) -> None:
+        ip_addr, miner_type, _ = self._table_controller.miner_target(source_row)
+        alt_pwd = self._auth_provider(miner_type.value)
+        result = await self._asic.get_log_list(miner_type, ip_addr, alt_pwd=alt_pwd)
+        if isinstance(result.error, UnsupportedOperationError):
+            await self.download_miner_logs(source_row)
+            return
+        if result.error is not None:
+            self.notification_requested.emit(
+                f"Status :: Failed to list logs for {ip_addr}: {result.error!s}",
+                5000,
+            )
+            return
+
+        logs = [str(log) for log in result.data or [] if str(log)]
+        if not logs:
+            self.notification_requested.emit(
+                f"Status :: No stored logs found for {ip_addr}.", 5000
+            )
+            return
+
+        dialog = MinerLogDownloadDialog(
+            ip_addr,
+            logs,
+            self._window,
+            allow_multiple=miner_type == MinerType.ANTMINER,
+        )
+        dialog.download_requested.connect(
+            lambda selected, row=source_row: self.schedule(
+                self.download_miner_logs(row, selected)
+            )
+        )
+        dialog.destroyed.connect(self._clear_log_dialog)
+        self._log_dialog = dialog
+        dialog.open()
+
+    def _clear_log_dialog(self, *_args: object) -> None:
+        self._log_dialog = None
+
+    async def download_miner_logs(
+        self, source_row: int, selected_logs: list[str] | None = None
+    ) -> None:
+        ip_addr, miner_type, _ = self._table_controller.miner_target(source_row)
+        alt_pwd = self._auth_provider(miner_type.value)
+        self.notification_requested.emit(
+            f"Status :: Preparing log download for {ip_addr}.", 5000
+        )
+        result = await self._asic.download_logs(
+            miner_type,
+            ip_addr,
+            alt_pwd=alt_pwd,
+            log_list=selected_logs,
+        )
+        if result.error is not None:
+            self.notification_requested.emit(
+                f"Status :: Failed to download logs for {ip_addr}: {result.error!s}",
+                5000,
+            )
+            return
+        if not isinstance(result.data, ContentResponse):
+            self.notification_requested.emit(
+                f"Status :: Invalid log download response from {ip_addr}.", 5000
+            )
+            return
+        if not result.data.raw and not result.data.text:
+            self.notification_requested.emit(
+                f"Status :: {ip_addr} returned an empty log download.", 5000
+            )
+            return
+
+        try:
+            file_path = await self._save_log_content(
+                ip_addr, result.data, default_suffix=".bin"
+            )
+        except OSError as e:
+            self.notification_requested.emit(
+                f"Status :: Failed to save logs for {ip_addr}: {e!s}", 5000
+            )
+            return
+        self.notification_requested.emit(
+            f"Status :: Logs for {ip_addr} saved to {file_path}.", 5000
+        )
+
     async def _locate_rows(self, rows: list[int]) -> None:
         def make_coro(
             _row: int,
@@ -335,6 +517,10 @@ class MinerActionController(QObject):
         if self._control_popup is not None:
             self._control_popup.close()
             self._control_popup = None
+        log_dialog = getattr(self, "_log_dialog", None)
+        if log_dialog is not None:
+            log_dialog.close()
+            self._log_dialog = None
         if self._locate_task is not None and not self._locate_task.done():
             self._locate_task.cancel()
         for task in tuple(self._tasks):
