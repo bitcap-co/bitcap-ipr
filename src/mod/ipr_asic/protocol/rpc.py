@@ -7,8 +7,6 @@ import asyncio
 import json
 import re
 from abc import ABC
-from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
 from typing import Self
 
 from pydantic_core import from_json
@@ -41,30 +39,15 @@ class BaseRPCClient(BaseClient, ABC):
             raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
         return object.__new__(cls)
 
-    @asynccontextmanager
-    async def _rpc_connection(
-        self, timeout: float | None = None
-    ) -> AsyncGenerator[tuple[asyncio.StreamReader, asyncio.StreamWriter]]:
+    async def _do_rpc(self, command: str) -> APIObject:
         try:
             reader, writer = await asyncio.wait_for(
-                asyncio.open_connection(self.ip, self.port),
-                timeout=self._timeout if timeout is None else timeout,
+                asyncio.open_connection(self.ip, self.port), timeout=self._timeout
             )
-        except (TimeoutError, OSError) as e:
-            raise FailedConnectionError("Failed to connect or timeout occurred") from e
-
+        except (asyncio.TimeoutError, OSError):
+            raise FailedConnectionError("Failed to connect or timeout occurred")
         self.connected = True
         try:
-            yield reader, writer
-        finally:
-            writer.close()
-            try:
-                await writer.wait_closed()
-            except (OSError, TimeoutError):
-                pass
-
-    async def _do_rpc(self, command: str) -> APIObject:
-        async with self._rpc_connection() as (reader, writer):
             writer.write(command.encode("utf-8"))
             await writer.drain()
             data = await asyncio.wait_for(
@@ -76,7 +59,14 @@ class BaseRPCClient(BaseClient, ABC):
             if data == b"Socket connect failed: Connection refused\n":
                 raise APIError("Connection Failed: connection refused.")
 
-            return self._unmarshal_data(data)
+            resp = self._unmarshal_data(data)
+            return resp
+        finally:
+            writer.close()
+            try:
+                await writer.wait_closed()
+            except (OSError, asyncio.TimeoutError):
+                pass
 
     @staticmethod
     def _json_object_end(data: bytes | bytearray) -> int | None:
@@ -112,32 +102,6 @@ class BaseRPCClient(BaseClient, ABC):
                     return index + 1
 
         return None
-
-    async def _recv_json_object(
-        self,
-        reader: asyncio.StreamReader,
-        timeout: float,
-        max_size: int = 65536,
-    ) -> tuple[APIObject, bytes]:
-        response = bytearray()
-        response_end: int | None = None
-
-        while response_end is None:
-            try:
-                chunk = await asyncio.wait_for(reader.read(4096), timeout)
-            except TimeoutError as e:
-                raise FailedConnectionError("Timed out waiting for RPC response") from e
-            if not chunk:
-                raise APIInvalidResponse("Connection closed before RPC response")
-            response.extend(chunk)
-            if len(response) > max_size:
-                raise APIInvalidResponse("RPC response header is too large")
-            response_end = self._json_object_end(response)
-
-        trailing = bytes(response[response_end:])
-        if trailing.startswith(b"\x00"):
-            trailing = trailing[1:]
-        return self._unmarshal_data(bytes(response[:response_end])), trailing
 
     @staticmethod
     async def _recv_all(reader: asyncio.StreamReader, buf_size: int) -> bytes | None:
