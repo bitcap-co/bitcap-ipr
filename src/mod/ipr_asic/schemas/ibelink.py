@@ -133,3 +133,7 @@ class MinerPoolConfigForm(BaseModel):
     pool3: str = Field(default="", serialization_alias="Pool3")
     user3: str = Field(default="", serialization_alias="UserName3")
     pass3: str = Field(default="", serialization_alias="Password3")
+
+
+class CGMinerLogResponse(ActionResponse):
+    logs: str

@@ -20,6 +20,7 @@ from mod.ipr_asic.protocol.http import BaseHTTPClient
 from mod.ipr_asic.schemas.ibelink import (
     ActionResponse,
     AuthResponse,
+    CGMinerLogResponse,
     MinerPasswdConfig,
     MinerPoolConfigForm,
     NetworkInfo,
@@ -32,6 +33,7 @@ from mod.ipr_asic.schemas.ibelink import (
 )
 from mod.ipr_asic.schemas.models import (
     APIObject,
+    ContentResponse,
     MinerPoolModel,
     PoolConfig,
     SummaryModel,
@@ -160,6 +162,17 @@ class IBeLinkHTTPClient(BaseHTTPClient):
         _ = self._validate_response(resp)
         try:
             return PoolConfigResponse.model_validate(obj=resp).pools
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()}: {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+
+    @override
+    async def get_miner_log(self) -> ContentResponse:
+        resp = await self.send_command("GET", command="cgminerLog")
+        _ = self._validate_response(resp)
+        try:
+            log = CGMinerLogResponse.model_validate(obj=resp)
+            return ContentResponse(text=log.logs)
         except ValidationError as e:
             logger.error(f"{self.__repr__()}: {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
