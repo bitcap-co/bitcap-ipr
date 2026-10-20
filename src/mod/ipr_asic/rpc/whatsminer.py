@@ -295,33 +295,13 @@ class WhatsminerRPCClient(CGMinerRPCLayer):
     async def _read_log_response(
         self, reader: asyncio.StreamReader, token: Token
     ) -> tuple[APIObject, bytes]:
-        response = bytearray()
-        response_end: int | None = None
-
-        while response_end is None:
-            try:
-                chunk = await asyncio.wait_for(
-                    reader.read(4096), self._log_download_timeout
-                )
-            except TimeoutError as e:
-                raise FailedConnectionError("Timed out waiting for log response") from e
-            if not chunk:
-                raise APIInvalidResponse("Connection closed before log response")
-            response.extend(chunk)
-            if len(response) > 65536:
-                raise APIInvalidResponse("Log response header is too large")
-            response_end = self._json_object_end(bytes(response))
-
-        header = self._unmarshal_data(bytes(response[:response_end]))
+        header, trailing = await self._recv_json_object(
+            reader, self._log_download_timeout
+        )
         try:
-            header = parse_priviledge_data(token, header)
+            return parse_priviledge_data(token, header), trailing
         except ValueError as e:
             raise APIInvalidResponse(reason=str(e)) from e
-
-        trailing = bytes(response[response_end:])
-        if trailing.startswith(b"\x00"):
-            trailing = trailing[1:]
-        return header, trailing
 
     async def _read_log_content(
         self,
@@ -364,15 +344,7 @@ class WhatsminerRPCClient(CGMinerRPCLayer):
         command = create_privileged_cmd(
             token, BTMinerCommand(cmd="download_logs", token=None)
         )
-        try:
-            reader, writer = await asyncio.wait_for(
-                asyncio.open_connection(self.ip, self.port), timeout=self._timeout
-            )
-        except (TimeoutError, OSError):
-            raise FailedConnectionError("Failed to connect or timeout occurred")
-
-        self.connected = True
-        try:
+        async with self._rpc_connection() as (reader, writer):
             writer.write(command.encode("utf-8"))
             await writer.drain()
             response, initial = await self._read_log_response(reader, token)
@@ -386,12 +358,6 @@ class WhatsminerRPCClient(CGMinerRPCLayer):
             msg = self._unmarshal_msg(response, TypeAdapter(BTMinerLogResponse))
             content = await self._read_log_content(reader, initial, msg.logfilelen)
             return response, content
-        finally:
-            writer.close()
-            try:
-                await writer.wait_closed()
-            except (OSError, TimeoutError):
-                pass
 
     @override
     async def download_logs(self, log_list: list[str] | None = None) -> ContentResponse:
