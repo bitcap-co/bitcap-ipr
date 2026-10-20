@@ -135,6 +135,10 @@ class BTMinerPSU(BaseModel):
     temp0: float
 
 
+class BTMinerLogResponse(BaseModel):
+    logfilelen: int = Field(ge=0)
+
+
 class BTMinerV3Command(BaseModel):
     model_config: ClassVar[ConfigDict] = ConfigDict(extra="forbid")
 
@@ -309,3 +313,7 @@ class BTMinerV3PasswdConfig(BaseModel):
     account: str
     new: str
     old: str
+
+
+class BTMinerV3LogResponse(BaseModel):
+    logsize: int = Field(ge=0)

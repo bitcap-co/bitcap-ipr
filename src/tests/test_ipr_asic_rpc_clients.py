@@ -14,6 +14,7 @@ import asyncio
 import json
 import struct
 import unittest
+from unittest.mock import AsyncMock, patch
 
 from mod.ipr_asic.errors import APIError
 from mod.ipr_asic.rpc import (
@@ -22,6 +23,7 @@ from mod.ipr_asic.rpc import (
     WhatsminerRPCClient,
     WhatsminerTCPClient,
 )
+from mod.ipr_asic.schemas.whatsminer import Token
 
 
 def _status(msg="ok"):
@@ -156,6 +158,44 @@ class TestLuxminerClient(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(client.session_token, "tok123")
 
 
+class _LogDownloadServer:
+    def __init__(self, reported_length: int, content: bytes, delay: float = 0.01):
+        self.reported_length = reported_length
+        self.content = content
+        self.delay = delay
+        self.server = None
+
+    async def __aenter__(self):
+        async def handle(reader, writer):
+            await reader.read(4096)
+            response = {
+                "STATUS": "S",
+                "When": 0,
+                "Code": 131,
+                "Msg": {"logfilelen": str(self.reported_length)},
+                "Description": "",
+            }
+            split = min(3, len(self.content))
+            writer.write(json.dumps(response).encode() + b"\x00" + self.content[:split])
+            await writer.drain()
+            await asyncio.sleep(self.delay)
+            writer.write(self.content[split:])
+            await writer.drain()
+            writer.close()
+            try:
+                await writer.wait_closed()
+            except OSError:
+                pass
+
+        self.server = await asyncio.start_server(handle, "127.0.0.1", 0)
+        self.host, self.port = self.server.sockets[0].getsockname()[:2]
+        return self
+
+    async def __aexit__(self, *exc):
+        self.server.close()
+        await self.server.wait_closed()
+
+
 class TestWhatsminerV2Client(unittest.IsolatedAsyncioTestCase):
     async def test_version_plain_command(self):
         responses = {
@@ -177,6 +217,77 @@ class TestWhatsminerV2Client(unittest.IsolatedAsyncioTestCase):
             version = await client.version()
             self.assertEqual(version.api_ver, "2.0.4")
             self.assertEqual(version.platform, "H6")
+
+    async def test_download_logs_uses_reported_length(self):
+        content = b"\x1f\x8b\x08binary log archive"
+        async with _LogDownloadServer(len(content), content) as srv:
+            client = WhatsminerRPCClient(srv.host, port=srv.port)
+            client.passwds = ["admin"]
+            token = Token(sign="sign", key="key")
+            with patch.object(client, "get_token", AsyncMock(return_value=token)):
+                response = await client.download_logs()
+
+            self.assertEqual(response.text, "")
+            self.assertEqual(response.raw, content)
+
+    async def test_download_logs_reads_to_eof_for_zero_length(self):
+        content = b"\x1f\x8b\x08firmware ignored logfilelen"
+        async with _LogDownloadServer(0, content, delay=0.02) as srv:
+            client = WhatsminerRPCClient(srv.host, port=srv.port)
+            client.passwds = ["admin"]
+            client._timeout = 0.005
+            client._log_download_timeout = 0.1
+            token = Token(sign="sign", key="key")
+            with patch.object(client, "get_token", AsyncMock(return_value=token)):
+                response = await client.download_logs()
+
+            self.assertEqual(response.raw, content)
+
+
+class _TCPLogDownloadServer:
+    def __init__(self, content: bytes, delay: float = 0.02):
+        self.content = content
+        self.delay = delay
+        self.server = None
+
+    async def __aenter__(self):
+        async def handle(reader, writer):
+            try:
+                header = await reader.readexactly(4)
+                size = struct.unpack("<I", header)[0]
+                request = json.loads((await reader.readexactly(size)).decode())
+                if request.get("cmd") != "get.log.download":
+                    return
+
+                await asyncio.sleep(self.delay)
+                response = {
+                    "code": 0,
+                    "when": 0,
+                    "msg": {"logsize": str(len(self.content))},
+                    "desc": "get.log.download",
+                }
+                body = json.dumps(response).encode()
+                writer.write(struct.pack("<I", len(body)) + body)
+                for offset in range(0, len(self.content), 10 * 1024):
+                    writer.write(self.content[offset : offset + 10 * 1024])
+                    await writer.drain()
+                await reader.read()
+            except (asyncio.IncompleteReadError, ConnectionError):
+                pass
+            finally:
+                writer.close()
+                try:
+                    await writer.wait_closed()
+                except OSError:
+                    pass
+
+        self.server = await asyncio.start_server(handle, "127.0.0.1", 0)
+        self.host, self.port = self.server.sockets[0].getsockname()[:2]
+        return self
+
+    async def __aexit__(self, *exc):
+        self.server.close()
+        await self.server.wait_closed()
 
 
 class _TCPFramedServer:
@@ -235,6 +346,20 @@ V3_SYSTEM = {
 
 
 class TestWhatsminerV3Client(unittest.IsolatedAsyncioTestCase):
+    async def test_download_logs_reads_stream_from_active_connection(self):
+        content = b"\x1f\x8b\x08" + (b"log archive" * 2000)
+        async with _TCPLogDownloadServer(content) as srv:
+            client = WhatsminerTCPClient(srv.host, port=srv.port)
+            try:
+                await client.connect()
+                client._timeout = 0.001
+                client._log_download_timeout = 0.1
+                response = await client.download_logs()
+                self.assertEqual(response.text, "")
+                self.assertEqual(response.raw, content)
+            finally:
+                client.close()
+
     async def test_api_version(self):
         async with _TCPFramedServer(V3_SYSTEM) as srv:
             client = WhatsminerTCPClient(srv.host, port=srv.port)

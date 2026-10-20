@@ -3,6 +3,7 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
+import asyncio
 import base64
 import binascii
 import datetime
@@ -10,6 +11,7 @@ import hashlib
 import json
 import logging
 import re
+import struct
 from typing import Literal, TypeVar, final, override
 
 from Crypto.Cipher import AES
@@ -21,6 +23,7 @@ from mod.ipr_asic.errors import (
     APIError,
     APIInvalidResponse,
     AuthenticationError,
+    FailedConnectionError,
 )
 from mod.ipr_asic.protocol.tcp import BaseTCPClient
 from mod.ipr_asic.rpc.cgminer import CGMinerRPCLayer
@@ -29,6 +32,7 @@ from mod.ipr_asic.schemas.models import (
     ActionResult,
     APIObject,
     BlinkStatus,
+    ContentResponse,
     MinerPoolConfig,
     PoolConfig,
 )
@@ -37,12 +41,14 @@ from mod.ipr_asic.schemas.whatsminer import (
     BTMinerDevDetails,
     BTMinerDevice,
     BTMinerEncryptedCommand,
+    BTMinerLogResponse,
     BTMinerPool,
     BTMinerSummary,
     BTMinerSystemInfo,
     BTMinerV3Command,
     BTMinerV3CommandResponse,
     BTMinerV3DeviceInfo,
+    BTMinerV3LogResponse,
     BTMinerV3NetworkInfo,
     BTMinerV3Pool,
     BTMinerV3PoolConfig,
@@ -54,6 +60,7 @@ from mod.ipr_asic.schemas.whatsminer import (
     Token,
     TokenResponse,
 )
+from mod.ipr_asic.settings import get as get_setting
 from mod.ipr_asic.settings import get_auth_list, set_alt_auth
 
 logger = logging.getLogger(__name__)
@@ -113,6 +120,9 @@ class WhatsminerRPCClient(CGMinerRPCLayer):
         self.passwds: list[str] = get_auth_list("whatsminer")
 
         self.token: Token | None = None
+        self._log_download_timeout = float(
+            get_setting("whatsminer_log_download_timeout", 180.0)
+        )
 
     @override
     async def send_privileged_command(
@@ -282,6 +292,86 @@ class WhatsminerRPCClient(CGMinerRPCLayer):
                 "set_led", color=color, period=period, duration=duration, start=start
             )
 
+    async def _read_log_response(
+        self, reader: asyncio.StreamReader, token: Token
+    ) -> tuple[APIObject, bytes]:
+        header, trailing = await self._recv_json_object(
+            reader, self._log_download_timeout
+        )
+        try:
+            return parse_priviledge_data(token, header), trailing
+        except ValueError as e:
+            raise APIInvalidResponse(reason=str(e)) from e
+
+    async def _read_log_content(
+        self,
+        reader: asyncio.StreamReader,
+        initial: bytes,
+        expected_length: int,
+    ) -> bytes:
+        if expected_length:
+            if len(initial) >= expected_length:
+                return initial[:expected_length]
+            try:
+                remainder = await asyncio.wait_for(
+                    reader.readexactly(expected_length - len(initial)),
+                    self._log_download_timeout,
+                )
+            except (TimeoutError, asyncio.IncompleteReadError) as e:
+                raise APIInvalidResponse("Incomplete miner log download") from e
+            return initial + remainder
+
+        logger.warning(
+            "%r: miner reported a zero-length log; reading until connection close",
+            self,
+        )
+        content = bytearray(initial)
+        while True:
+            try:
+                chunk = await asyncio.wait_for(
+                    reader.read(65536), self._log_download_timeout
+                )
+            except TimeoutError:
+                break
+            if not chunk:
+                break
+            content.extend(chunk)
+        return bytes(content)
+
+    async def _download_logs(self, token: Token) -> tuple[APIObject, bytes]:
+        command = create_privileged_cmd(
+            token, BTMinerCommand(cmd="download_logs", token=None)
+        )
+        async with self._rpc_connection() as (reader, writer):
+            writer.write(command.encode("utf-8"))
+            await writer.drain()
+            response, initial = await self._read_log_response(reader, token)
+            status = self.unmarshal_status(response)
+            if error := status.error():
+                if status.code == 23:
+                    raise AuthenticationError(error)
+                logger.error("%r: %s", self, APIError(error))
+                raise APIError("Command failed!")
+
+            msg = self._unmarshal_msg(response, TypeAdapter(BTMinerLogResponse))
+            content = await self._read_log_content(reader, initial, msg.logfilelen)
+            return response, content
+
+    @override
+    async def download_logs(self, log_list: list[str] | None = None) -> ContentResponse:
+        for pwd in self.passwds:
+            if not pwd:
+                continue
+            self.pwd = pwd
+            token = await self.get_token()
+            try:
+                _, content = await self._download_logs(token)
+            except AuthenticationError:
+                self.token = None
+                continue
+            return ContentResponse(text="", raw=content)
+        raise AuthenticationError("Failed to authenticate")
+
     @override
     async def restart(self) -> APIObject:
         return await self.send_privileged_command("restart_btminer")
@@ -350,6 +440,9 @@ class WhatsminerTCPClient(BaseTCPClient):
         # force set default password
         self.pwd: str = "super"
         self.salt: str | None = None
+        self._log_download_timeout = float(
+            get_setting("whatsminer_log_download_timeout", 180.0)
+        )
 
     # def _unmarshal_msg(self, resp: APIObject)
 
@@ -521,6 +614,50 @@ class WhatsminerTCPClient(BaseTCPClient):
                 },
             ]
             return await self.send_command("set.system.led", param_data)
+
+    @override
+    async def download_logs(self, log_list: list[str] | None = None) -> ContentResponse:
+        _ = log_list
+        command = BTMinerV3Command(cmd="get.log.download").model_dump_json()
+        _ = await self.connect()
+        if self._reader is None or self._writer is None:
+            raise FailedConnectionError("Failed to connect to miner")
+
+        command_data = command.encode("utf-8")
+        self._writer.write(struct.pack("<I", len(command_data)))
+        self._writer.write(command_data)
+        await self._writer.drain()
+
+        try:
+            response_data = await asyncio.wait_for(
+                self._btv3_recv_all(self._reader), self._log_download_timeout
+            )
+            response = BTMinerV3CommandResponse.model_validate_json(response_data)
+        except TimeoutError as e:
+            await self._aclose()
+            raise FailedConnectionError("Timed out waiting for log archive") from e
+        except ValidationError as e:
+            raise APIInvalidResponse(reason=str(e)) from e
+
+        if error := response.error():
+            logger.error("%r: %s", self, APIError(error))
+            raise APIError("Command failed!")
+        if not isinstance(response.msg, dict):
+            raise APIInvalidResponse("Expected log download metadata")
+
+        try:
+            metadata = BTMinerV3LogResponse.model_validate(response.msg)
+            content = await asyncio.wait_for(
+                self._reader.readexactly(metadata.logsize),
+                self._log_download_timeout,
+            )
+        except ValidationError as e:
+            raise APIInvalidResponse(reason=str(e)) from e
+        except (TimeoutError, asyncio.IncompleteReadError) as e:
+            await self._aclose()
+            raise APIInvalidResponse("Incomplete miner log download") from e
+
+        return ContentResponse(text="", raw=content)
 
     async def set_miner_mode(
         self, mode: Literal["start", "stop", "restart"]
