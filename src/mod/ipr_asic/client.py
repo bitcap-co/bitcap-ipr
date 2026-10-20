@@ -303,7 +303,7 @@ class ASICClient(QObject):
                 system_info=await self._fetch_model(client, "get_system_info"),
                 summary=await self._fetch_model(client, "summary"),
                 pools=await self._fetch_model(client, "pools"),
-                log=await self._fetch_model(client, "log"),
+                log=await self._fetch_model(client, "get_miner_log"),
             )
             return AntminerParser().parse(models).as_dict()
 
