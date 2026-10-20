@@ -15,7 +15,7 @@ from unittest.mock import AsyncMock, Mock, call, patch
 import config  # noqa: F401  # initialize Pydantic before importing PySide-backed IPR
 from mod.ipr_asic import MinerResult
 from mod.ipr_asic.data import MinerFirmware, MinerType
-from mod.ipr_asic.errors import APIError
+from mod.ipr_asic.errors import APIError, UnsupportedOperationError
 from mod.ipr_asic.firmware import (
     BitmainLegacyFirmwareImage,
     IncompatibleFirmwareError,
@@ -124,6 +124,99 @@ class TestMinerActionController(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(
             facade.calls,
             [("reboot", MinerType.ANTMINER, "10.0.0.3", "secret")],
+        )
+
+    async def test_unsupported_miner_log_is_returned_as_failure(self):
+        subject: Any = SimpleNamespace(
+            _asic=SimpleNamespace(get_miner_log=AsyncMock()),
+        )
+
+        result = await MinerActionController._save_miner_log(
+            subject, "10.0.0.5", MinerType.WHATSMINER, None
+        )
+
+        self.assertIsInstance(result.error, UnsupportedOperationError)
+        subject._asic.get_miner_log.assert_not_awaited()
+
+    async def test_save_miner_logs_reports_detailed_error(self):
+        error = APIError("authentication failed")
+        save_miner_log = AsyncMock(return_value=MinerResult(error=error))
+        subject: Any = SimpleNamespace(
+            _table_controller=SimpleNamespace(
+                miner_target=Mock(
+                    return_value=(
+                        "10.0.0.6",
+                        MinerType.ANTMINER,
+                        MinerFirmware.STOCK,
+                    )
+                )
+            ),
+            _auth_provider=Mock(return_value="secret"),
+            _save_miner_log=save_miner_log,
+            notification_requested=Mock(),
+        )
+
+        await MinerActionController.save_miner_logs(subject, 7)
+
+        save_miner_log.assert_awaited_once_with(
+            "10.0.0.6", MinerType.ANTMINER, "secret"
+        )
+        subject.notification_requested.emit.assert_called_once_with(
+            "Status :: Failed to save miner logs for 10.0.0.6: authentication failed",
+            5000,
+        )
+
+    async def test_save_miner_logs_reports_saved_path(self):
+        saved_path = Path("/tmp/10.0.0.7_miner.log")
+        subject: Any = SimpleNamespace(
+            _table_controller=SimpleNamespace(
+                miner_target=Mock(
+                    return_value=(
+                        "10.0.0.7",
+                        MinerType.ANTMINER,
+                        MinerFirmware.STOCK,
+                    )
+                )
+            ),
+            _auth_provider=Mock(return_value=None),
+            _save_miner_log=AsyncMock(return_value=MinerResult(data=saved_path)),
+            notification_requested=Mock(),
+        )
+
+        await MinerActionController.save_miner_logs(subject, 2)
+
+        subject.notification_requested.emit.assert_called_once_with(
+            f"Status :: Miner logs for 10.0.0.7 saved to {saved_path}.", 5000
+        )
+
+    async def test_bulk_save_miner_logs_uses_shared_bulk_engine(self):
+        result = MinerResult(data=Path("/tmp/miner.log"))
+        save_miner_log = AsyncMock(return_value=result)
+        run_bulk_action = AsyncMock()
+        subject: Any = SimpleNamespace(
+            _save_miner_log=save_miner_log,
+            run_bulk_action=run_bulk_action,
+        )
+
+        await MinerActionController.bulk_save_miner_logs(subject, [2, 5])
+
+        awaited = run_bulk_action.await_args
+        if awaited is None:
+            self.fail("bulk log save was not awaited")
+        action, rows, make_coro = awaited.args
+        self.assertEqual(action, "Get Miner Log")
+        self.assertEqual(rows, [2, 5])
+
+        save_result = await make_coro(
+            2,
+            "10.0.0.8",
+            MinerType.ANTMINER,
+            MinerFirmware.STOCK,
+            "secret",
+        )
+        self.assertIs(save_result, result)
+        save_miner_log.assert_awaited_once_with(
+            "10.0.0.8", MinerType.ANTMINER, "secret"
         )
 
     async def test_bulk_action_maps_rows_auth_and_results(self):

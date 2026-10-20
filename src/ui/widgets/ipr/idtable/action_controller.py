@@ -108,7 +108,7 @@ class MinerActionController(QObject):
         elif key in _CONTROL_ACTIONS:
             self.schedule(self.control_miner(source_row, key))
         elif key == "get_miner_log":
-            self.schedule(self.save_miner_logs([source_row]))
+            self.schedule(self.save_miner_logs(source_row))
         elif key == "download_logs":
             self.schedule(self.select_miner_logs(source_row))
         else:
@@ -122,7 +122,7 @@ class MinerActionController(QObject):
         elif key in _CONTROL_ACTIONS:
             self.schedule(self.bulk_control_miners(key, rows))
         elif key == "get_miner_log":
-            self.schedule(self.save_miner_logs(rows))
+            self.schedule(self.bulk_save_miner_logs(rows))
         else:
             logger.warning(f"dispatch_bulk_control : unknown action '{key}'.")
 
@@ -282,44 +282,70 @@ class MinerActionController(QObject):
         await asyncio.to_thread(file_path.write_bytes, payload)
         return file_path
 
-    async def save_miner_logs(self, rows: list[int]) -> None:
-        saved_paths: list[Path] = []
+    async def _save_miner_log(
+        self,
+        ip_addr: str,
+        miner_type: MinerType,
+        alt_pwd: str | None,
+    ) -> MinerResult:
+        if miner_type in (
+            MinerType.GOLDSHELL,
+            MinerType.IPOLLO,
+            MinerType.HIVEGPU,
+            MinerType.HAMMER,
+            MinerType.WHATSMINER,
+            MinerType.LUX_OS,
+        ):
+            error = UnsupportedOperationError(
+                f"{miner_type.value.capitalize()} get_miner_log is not supported"
+            )
+            logger.error(f"get_miner_log: {error!s}.")
+            return MinerResult(error=error)
 
-        async def make_coro(
+        result = await self._asic.get_miner_log(miner_type, ip_addr, alt_pwd=alt_pwd)
+        if result.error is not None:
+            return result
+        if not isinstance(result.data, ContentResponse):
+            return MinerResult(error=APIInvalidResponse("Expected miner log content"))
+        try:
+            result.data = await self._save_log_content(
+                ip_addr, result.data, default_suffix=".log"
+            )
+        except OSError as e:
+            result.error = e
+        return result
+
+    async def save_miner_logs(self, source_row: int) -> None:
+        ip_addr, miner_type, _ = self._table_controller.miner_target(source_row)
+        alt_pwd = self._auth_provider(miner_type.value)
+        result = await self._save_miner_log(ip_addr, miner_type, alt_pwd)
+        if result.error is not None:
+            logger.error(f"get_miner_log: failed for {ip_addr}: {result.error!s}")
+            self.notification_requested.emit(
+                f"Status :: Failed to save miner logs for {ip_addr}: {result.error!s}",
+                5000,
+            )
+            return
+        if not isinstance(result.data, Path):
+            self.notification_requested.emit(
+                f"Status :: Invalid miner log response from {ip_addr}.", 5000
+            )
+            return
+        self.notification_requested.emit(
+            f"Status :: Miner logs for {ip_addr} saved to {result.data}.", 5000
+        )
+
+    async def bulk_save_miner_logs(self, rows: list[int]) -> None:
+        def make_coro(
             _row: int,
             ip_addr: str,
             miner_type: MinerType,
             _firmware: MinerFirmware,
             alt_pwd: str | None,
-        ) -> MinerResult:
-            result = await self._asic.get_miner_log(
-                miner_type, ip_addr, alt_pwd=alt_pwd
-            )
-            if result.error is not None:
-                return result
-            if not isinstance(result.data, ContentResponse):
-                return MinerResult(
-                    error=APIInvalidResponse("Expected miner log content")
-                )
-            try:
-                result.data = await self._save_log_content(
-                    ip_addr, result.data, default_suffix=".log"
-                )
-            except OSError as e:
-                result.error = e
-            return result
+        ) -> Awaitable[MinerResult]:
+            return self._save_miner_log(ip_addr, miner_type, alt_pwd)
 
-        def on_success(_row: int, _ip_addr: str, result: MinerResult) -> None:
-            if isinstance(result.data, Path):
-                saved_paths.append(result.data)
-
-        await self.run_bulk_action(
-            "Get Miner Log", rows, make_coro, on_success=on_success
-        )
-        if saved_paths:
-            self.notification_requested.emit(
-                f"Status :: Miner logs saved to {get_miner_log_dir()}.", 5000
-            )
+        await self.run_bulk_action("Get Miner Log", rows, make_coro)
 
     async def select_miner_logs(self, source_row: int) -> None:
         ip_addr, miner_type, _ = self._table_controller.miner_target(source_row)
