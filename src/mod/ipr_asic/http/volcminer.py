@@ -215,6 +215,30 @@ class VolcminerHTTPClient(BaseHTTPClient):
         return resp.pools
 
     @override
+    async def get_miner_log(self, log_name: str | None = None) -> ContentResponse:
+        data = {"_bb_filename": log_name} if log_name is not None else None
+        resp = await self.send_command("POST", command="get_kernel_log", data=data)
+        try:
+            return ContentResponse.model_validate(obj=resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()}: {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+
+    @override
+    async def get_log_list(self) -> list[str]:
+        resp = await self.send_command("POST", command="get_kernel_log_file_list")
+        try:
+            log_resp = ContentResponse.model_validate(obj=resp)
+            return log_resp.text.split("\n")
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()}: {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+
+    @override
+    async def download_logs(self, log_list: list[str] | None = None) -> ContentResponse:
+        return await self.get_miner_log(log_name=log_list[0] if log_list else None)
+
+    @override
     async def blink(self, enabled: bool) -> APIObject:
         data = {"_bb_type": "rgOn" if enabled else "rgOff"}
         return await self.send_command("POST", command="post_led_onoff", data=data)
