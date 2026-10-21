@@ -3,6 +3,12 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
+from .controller import (
+    IPRDController,
+    IPRDControllerState,
+    IPRDEndpoint,
+    IPRDEndpointMode,
+)
 from .listener import IPRDListener
 from .service import IPRDService, IPRDServiceListener
 from .socket import (
@@ -18,6 +24,10 @@ __all__ = [
     "IPRD_CMD_STATUS",
     "IPRD_CMD_SUBSCRIBE",
     "IPRDCommand",
+    "IPRDController",
+    "IPRDControllerState",
+    "IPRDEndpoint",
+    "IPRDEndpointMode",
     "IPRDListener",
     "IPRDResponse",
     "IPRDService",
