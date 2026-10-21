@@ -1579,13 +1579,11 @@ Statistics:
         )
         self._discovered_iprd_service_name = service.name
         self._discovered_iprd_address = address
-        endpoint = (
-            f"[{address}]:{service.port}"
-            if ":" in address
-            else f"{address}:{service.port}"
+        endpoint_changed = (
+            service.name != previous_service_name
+            or address != previous_address
+            or service.port != self.iprd.port
         )
-        endpoint_changed = self.lineIPRDSocketAddress.text() != endpoint
-        self.lineIPRDSocketAddress.setText(endpoint)
         if not self._iprd_listening or (self.iprd.active and not endpoint_changed):
             return
         self.iprd.stop()
@@ -1613,7 +1611,6 @@ Statistics:
         if replacement is not None:
             self._connect_to_iprd_service(replacement)
             return
-        self.lineIPRDSocketAddress.clear()
         if self._iprd_listening:
             self.iprd.stop()
             self._wait_for_iprd_service()

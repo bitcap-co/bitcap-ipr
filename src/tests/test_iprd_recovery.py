@@ -195,14 +195,11 @@ class TestIPRDRecovery(unittest.TestCase):
             "IPR Daemon._iprd._tcp.local.",
             ("192.168.122.1", "192.168.1.107"),
         )
-        address_field = Mock()
-        address_field.text.return_value = "192.168.1.107:7788"
-        listener = SimpleNamespace(active=True, stop=Mock())
+        listener = SimpleNamespace(active=True, port=7788, stop=Mock())
         subject: Any = SimpleNamespace(
             _discovered_iprd_service_name=service.name,
             _discovered_iprd_address="192.168.1.107",
             _iprd_listening=True,
-            lineIPRDSocketAddress=address_field,
             iprd=listener,
             _start_iprd_connection=Mock(),
         )
@@ -210,7 +207,6 @@ class TestIPRDRecovery(unittest.TestCase):
         IPR._connect_to_iprd_service(subject, service)
 
         self.assertEqual(subject._discovered_iprd_address, "192.168.1.107")
-        address_field.setText.assert_called_once_with("192.168.1.107:7788")
         listener.stop.assert_not_called()
         subject._start_iprd_connection.assert_not_called()
 
@@ -219,14 +215,11 @@ class TestIPRDRecovery(unittest.TestCase):
             "IPR Daemon._iprd._tcp.local.",
             ("192.168.122.1",),
         )
-        address_field = Mock()
-        address_field.text.return_value = "192.168.1.107:7788"
-        listener = SimpleNamespace(active=True, stop=Mock())
+        listener = SimpleNamespace(active=True, port=7788, stop=Mock())
         subject: Any = SimpleNamespace(
             _discovered_iprd_service_name=service.name,
             _discovered_iprd_address="192.168.1.107",
             _iprd_listening=True,
-            lineIPRDSocketAddress=address_field,
             iprd=listener,
             _start_iprd_connection=Mock(),
         )
@@ -234,9 +227,31 @@ class TestIPRDRecovery(unittest.TestCase):
         IPR._connect_to_iprd_service(subject, service)
 
         self.assertEqual(subject._discovered_iprd_address, "192.168.122.1")
-        address_field.setText.assert_called_once_with("192.168.122.1:7788")
         listener.stop.assert_called_once_with()
         subject._start_iprd_connection.assert_called_once_with("192.168.122.1", 7788)
+
+    def test_removed_discovered_service_does_not_clear_manual_address(self) -> None:
+        service = make_service("IPR Daemon._iprd._tcp.local.", ("192.168.1.20",))
+        discovery = Mock()
+        discovery.services = ()
+        discovery.get_service.return_value = None
+        listener = SimpleNamespace(stop=Mock())
+        subject: Any = SimpleNamespace(
+            _discovered_iprd_service_name=service.name,
+            _discovered_iprd_address="192.168.1.20",
+            _iprd_listening=True,
+            iprd_discovery=discovery,
+            iprd=listener,
+            _selected_iprd_service=Mock(return_value=None),
+            _wait_for_iprd_service=Mock(),
+        )
+
+        IPR.on_iprd_service_removed(subject, service.name)
+
+        self.assertIsNone(subject._discovered_iprd_service_name)
+        self.assertIsNone(subject._discovered_iprd_address)
+        listener.stop.assert_called_once_with()
+        subject._wait_for_iprd_service.assert_called_once_with()
 
 
 if __name__ == "__main__":
