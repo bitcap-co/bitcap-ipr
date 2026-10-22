@@ -293,6 +293,12 @@ class IPRDController(QObject):
         fingerprint_changed = snapshot.fingerprint != self._network_fingerprint
         if not self._recovery_pending and not fingerprint_changed:
             return
+        if (
+            not self._recovery_pending
+            and fingerprint_changed
+            and self._retain_active_endpoint(snapshot)
+        ):
+            return
         if not self._recovery_pending:
             self._pause_backends_for_transition()
             self._recovery_pending = True
@@ -305,6 +311,58 @@ class IPRDController(QObject):
         self._set_state(IPRDControllerState.WAITING_FOR_NETWORK)
         if self._stable_samples >= NETWORK_STABLE_SAMPLES:
             self._apply_network(snapshot, network_changed=fingerprint_changed)
+
+    def _retain_active_endpoint(self, snapshot: NetworkSnapshot) -> bool:
+        endpoint = self._endpoint
+        if endpoint is None or not self.listener.active:
+            return False
+
+        previous_score = _address_score(endpoint.host, self._network_snapshot)
+        current_score = _address_score(endpoint.host, snapshot)
+        if current_score == 0 or current_score < previous_score:
+            logger.info(
+                "IPRD active endpoint rank decreased after network change: endpoint=%s:%s, previous_score=%s, current_score=%s.",
+                endpoint.host,
+                endpoint.port,
+                previous_score,
+                current_score,
+            )
+            return False
+
+        if endpoint.mode is IPRDEndpointMode.DISCOVERED:
+            best = select_best_discovered_endpoint(
+                tuple(self._services.values()), snapshot, endpoint
+            )
+            if best is not None:
+                best_score = _address_score(best.host, snapshot)
+                if best_score > current_score:
+                    logger.info(
+                        "IPRD discovered candidate outranks active endpoint after network change: active=%s:%s (%s), candidate=%s:%s (%s).",
+                        endpoint.host,
+                        endpoint.port,
+                        current_score,
+                        best.host,
+                        best.port,
+                        best_score,
+                    )
+                    return False
+            self._set_endpoint(
+                endpoint.model_copy(
+                    update={"network_fingerprint": snapshot.fingerprint}
+                )
+            )
+
+        self._network_snapshot = snapshot
+        self._network_fingerprint = snapshot.fingerprint
+        self._pending_fingerprint = None
+        self._stable_samples = 0
+        logger.info(
+            "IPRD active endpoint remains preferred after network change: endpoint=%s:%s, score=%s.",
+            endpoint.host,
+            endpoint.port,
+            current_score,
+        )
+        return True
 
     def _pause_for_network(self) -> None:
         self._pause_backends_for_transition()

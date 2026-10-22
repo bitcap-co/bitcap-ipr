@@ -148,14 +148,13 @@ class FakeListener:
 
 
 def snapshot(interface: str, host: str, prefix: int = 24) -> NetworkSnapshot:
+    return snapshots((interface, host, prefix))
+
+
+def snapshots(*entries: tuple[str, str, int]) -> NetworkSnapshot:
     return build_network_snapshot(
-        (
-            NetworkAddress(
-                interface=interface,
-                address=host,
-                prefix_length=prefix,
-            ),
-        )
+        NetworkAddress(interface=interface, address=host, prefix_length=prefix)
+        for interface, host, prefix in entries
     )
 
 
@@ -274,6 +273,55 @@ class TestIPRDController(unittest.TestCase):
         self.assertIsNotNone(endpoint)
         assert endpoint is not None
         self.assertEqual(endpoint.host, "192.168.1.20")
+
+    def test_added_vpn_interface_keeps_equal_ranked_active_lan_endpoint(self) -> None:
+        initial = snapshot("eth0", "192.168.1.50")
+        harness = ControllerHarness(initial)
+        harness.controller.start_discovery()
+        harness.discovery.service_found.emit(
+            service("iprd", "192.168.1.20", "10.8.0.20")
+        )
+        harness.controller._select_discovered_endpoint()
+        harness.listener.subscribed.emit()
+        stops_before_vpn = harness.listener.stop_calls
+        vpn_added = snapshots(
+            ("eth0", "192.168.1.50", 24),
+            ("tun0", "10.8.0.2", 24),
+        )
+
+        harness.network.publish(vpn_added)
+
+        endpoint = harness.controller.endpoint
+        self.assertIsNotNone(endpoint)
+        assert endpoint is not None
+        self.assertEqual(endpoint.host, "192.168.1.20")
+        self.assertEqual(harness.listener.stop_calls, stops_before_vpn)
+        self.assertEqual(harness.controller.state, IPRDControllerState.CONNECTED)
+
+    def test_higher_ranked_candidate_can_replace_active_endpoint(self) -> None:
+        initial = snapshot("eth0", "172.16.1.50")
+        harness = ControllerHarness(initial)
+        harness.controller.start_discovery()
+        harness.discovery.service_found.emit(service("a-current", "192.168.1.20"))
+        harness.discovery.service_found.emit(service("z-better", "10.8.0.20"))
+        harness.controller._select_discovered_endpoint()
+        harness.listener.subscribed.emit()
+        improved = snapshots(
+            ("eth0", "172.16.1.50", 24),
+            ("tun0", "10.8.0.2", 24),
+        )
+
+        harness.network.publish(improved)
+
+        self.assertEqual(
+            harness.controller.state, IPRDControllerState.WAITING_FOR_NETWORK
+        )
+        self.assertFalse(harness.listener.active)
+
+        harness.network.publish(improved)
+
+        self.assertIsNone(harness.controller.endpoint)
+        self.assertEqual(harness.controller.state, IPRDControllerState.DISCOVERING)
 
     def test_network_change_discards_discovered_endpoint_after_stabilizing(
         self,
