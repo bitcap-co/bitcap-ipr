@@ -104,9 +104,6 @@ class IPRDServiceListener(QObject, ServiceListener):
         self._session: int = 0
         self._lock: threading.RLock = threading.RLock()
         self._active: bool = False
-        self._power_suspended: bool = False
-        self._resume_after_suspend: bool = False
-        self._resume_refresh_pending: bool = False
 
         self._resolved.connect(self._publish_resolved)
         self._removed.connect(self._publish_removed)
@@ -138,9 +135,6 @@ class IPRDServiceListener(QObject, ServiceListener):
         try:
             with self._lock:
                 if self._active:
-                    return
-                if self._power_suspended:
-                    self._resume_after_suspend = True
                     return
                 zeroconf = _create_zeroconf()
                 self._session += 1
@@ -175,25 +169,17 @@ class IPRDServiceListener(QObject, ServiceListener):
     @Slot()
     def stop(self) -> None:
         """Stop browsing and release all zeroconf sockets and threads."""
-        with self._lock:
-            self._resume_refresh_pending = False
         self._stop()
 
     @Slot()
     def restart(self) -> None:
         """Recreate the browser so it binds to the current interfaces."""
-        with self._lock:
-            if self._power_suspended:
-                self._resume_after_suspend = True
-                return
         logger.info(f"{self.__repr__()} : restarting service discovery.")
         self._stop()
         self.start()
 
-    def _stop(self, *, preserve_resume: bool = False) -> None:
+    def _stop(self) -> None:
         with self._lock:
-            if not preserve_resume:
-                self._resume_after_suspend = False
             if not self._active and self._browser is None and self._zeroconf is None:
                 return
             self._active = False
@@ -225,54 +211,6 @@ class IPRDServiceListener(QObject, ServiceListener):
             f"{self.__repr__()} : stopped service discovery (session={self._session})."
         )
         self.stopped.emit()
-
-    @Slot()
-    def on_suspend(self) -> None:
-        """Pause discovery and remember whether it should resume after wake."""
-        with self._lock:
-            if self._power_suspended:
-                return
-            self._power_suspended = True
-            pause = self._active
-            self._resume_after_suspend = pause
-            self._resume_refresh_pending = False
-        if pause:
-            logger.info(f"{self.__repr__()} : host suspending; pausing discovery.")
-            self._stop(preserve_resume=True)
-
-    @Slot()
-    def on_resume(self) -> None:
-        """Recreate zeroconf after wake if discovery was active before sleep."""
-        with self._lock:
-            if not self._power_suspended:
-                return
-            self._power_suspended = False
-            restart = self._resume_after_suspend
-            self._resume_after_suspend = False
-        if restart:
-            logger.info(f"{self.__repr__()} : host resumed; restarting discovery.")
-            self.start()
-            with self._lock:
-                self._resume_refresh_pending = self._active and not self._services
-
-    def restart_after_resume(self) -> bool:
-        """Refresh an empty post-resume browser once networking has settled."""
-        with self._lock:
-            if (
-                not self._resume_refresh_pending
-                or self._power_suspended
-                or not self._active
-                or self._services
-            ):
-                self._resume_refresh_pending = False
-                return False
-            self._resume_refresh_pending = False
-        logger.info(
-            f"{self.__repr__()} : app reactivated with no service after resume; "
-            "restarting discovery."
-        )
-        self.restart()
-        return True
 
     def close(self) -> None:
         self.stop()
@@ -365,7 +303,6 @@ class IPRDServiceListener(QObject, ServiceListener):
             if previous == service:
                 return
             self._services[service.name] = service
-            self._resume_refresh_pending = False
 
         if previous is None or not is_update:
             logger.info(

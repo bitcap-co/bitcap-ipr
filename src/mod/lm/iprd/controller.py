@@ -20,6 +20,9 @@ logger = logging.getLogger(__name__)
 
 DISCOVERY_SETTLE_MS = 250
 NETWORK_STABLE_SAMPLES = 2
+RECONNECT_BASE_DELAY_MS = 1000
+RECONNECT_MAX_DELAY_MS = 30000
+RETRY_COOLDOWN_MS = 60000
 
 
 class IPRDEndpointMode(Enum):
@@ -123,6 +126,9 @@ class IPRDController(QObject):
     endpoint_changed: Signal = Signal(object)
     report_received: Signal = Signal(object)
     error: Signal = Signal(str)
+    connection_error: Signal = Signal(str)
+    reconnecting: Signal = Signal(int, int)
+    retry_paused: Signal = Signal(int)
 
     def __init__(
         self,
@@ -141,7 +147,6 @@ class IPRDController(QObject):
         self._mode: IPRDEndpointMode | None = None
         self._listening: bool = False
         self._suspended: bool = False
-        self._backends_suspended: bool = False
         self._manual_endpoint: IPRDEndpoint | None = None
         self._endpoint: IPRDEndpoint | None = None
         self._services: dict[str, IPRDService] = {}
@@ -151,12 +156,24 @@ class IPRDController(QObject):
         self._stable_samples: int = 0
         self._recovery_pending: bool = False
 
+        self.auto_reconnect: bool = True
+        self.max_reconnect_attempts: int = 3
+        self._reconnect_attempts: int = 0
+        self._reconnect_delay_ms: int = RECONNECT_BASE_DELAY_MS
+        self._connection_error_notified: bool = False
+
         self._discovery_settle_timer: QTimer = QTimer(self)
         self._discovery_settle_timer.setSingleShot(True)
         self._discovery_settle_timer.setInterval(DISCOVERY_SETTLE_MS)
         _ = self._discovery_settle_timer.timeout.connect(
             self._select_discovered_endpoint
         )
+        self._reconnect_timer: QTimer = QTimer(self)
+        self._reconnect_timer.setSingleShot(True)
+        _ = self._reconnect_timer.timeout.connect(self._attempt_reconnect)
+        self._retry_cooldown_timer: QTimer = QTimer(self)
+        self._retry_cooldown_timer.setSingleShot(True)
+        _ = self._retry_cooldown_timer.timeout.connect(self._restart_retry_cycle)
 
         _ = self.network_monitor.snapshot_updated.connect(self._on_network_snapshot)
         _ = self.discovery.service_found.connect(self._on_service_resolved)
@@ -165,8 +182,6 @@ class IPRDController(QObject):
         _ = self.listener.subscribed.connect(self._on_subscribed)
         _ = self.listener.result.connect(self.report_received.emit)
         _ = self.listener.error.connect(self._on_listener_error)
-        _ = self.listener.reconnecting.connect(self._on_reconnecting)
-        _ = self.listener.retry_paused.connect(self._on_retry_paused)
 
     @property
     def state(self) -> IPRDControllerState:
@@ -187,6 +202,12 @@ class IPRDController(QObject):
     @property
     def network_snapshot(self) -> NetworkSnapshot:
         return self._network_snapshot
+
+    def configure_reconnect(self, enabled: bool, max_attempts: int) -> None:
+        self.auto_reconnect = enabled
+        self.max_reconnect_attempts = max(0, max_attempts)
+        if not enabled:
+            self._cancel_reconnect()
 
     def _set_state(self, state: IPRDControllerState) -> None:
         if state is self._state:
@@ -226,6 +247,7 @@ class IPRDController(QObject):
         self._recovery_pending = False
         self._pending_fingerprint = None
         self._stable_samples = 0
+        self._cancel_reconnect(reset_notification=True)
         if not self.network_monitor.active:
             self.network_monitor.start()
         else:
@@ -235,12 +257,12 @@ class IPRDController(QObject):
     def stop(self) -> None:
         self._listening = False
         self._suspended = False
-        self._backends_suspended = False
         self._recovery_pending = False
         self._pending_fingerprint = None
         self._stable_samples = 0
         self._services.clear()
         self._discovery_settle_timer.stop()
+        self._cancel_reconnect(reset_notification=True)
         self.discovery.stop()
         self.listener.stop()
         self.network_monitor.stop()
@@ -253,13 +275,13 @@ class IPRDController(QObject):
         if not self._listening or self._suspended:
             return
         self._suspended = True
-        self._backends_suspended = True
         self._recovery_pending = True
         self._pending_fingerprint = None
         self._stable_samples = 0
         self._discovery_settle_timer.stop()
-        self.discovery.on_suspend()
-        self.listener.on_suspend()
+        self._cancel_reconnect(reset_notification=True)
+        self.discovery.stop()
+        self.listener.stop()
         self._set_state(IPRDControllerState.SUSPENDED)
 
     @Slot()
@@ -372,6 +394,7 @@ class IPRDController(QObject):
 
     def _pause_backends_for_transition(self) -> None:
         self._discovery_settle_timer.stop()
+        self._cancel_reconnect(reset_notification=True)
         self.discovery.stop()
         self.listener.stop()
 
@@ -383,16 +406,6 @@ class IPRDController(QObject):
         self._pending_fingerprint = None
         self._stable_samples = 0
         self._recovery_pending = False
-
-        if self._backends_suspended:
-            self.discovery.on_resume()
-            self.listener.on_resume()
-            # Existing backends restore themselves on resume. Stop that recovery
-            # after clearing their suspended flags so the controller performs one
-            # network-authorized activation below.
-            self.discovery.stop()
-            self.listener.stop()
-            self._backends_suspended = False
 
         if network_changed and self._mode is IPRDEndpointMode.DISCOVERED:
             self._services.clear()
@@ -454,6 +467,7 @@ class IPRDController(QObject):
         self._connect(endpoint)
 
     def _connect(self, endpoint: IPRDEndpoint) -> None:
+        self._cancel_reconnect(reset_notification=True)
         if not self.listener.set_socket_addr(endpoint.host, endpoint.port):
             self.error.emit(f"Invalid IPRD endpoint: {endpoint.host}:{endpoint.port}")
             self.stop()
@@ -463,24 +477,96 @@ class IPRDController(QObject):
 
     @Slot()
     def _on_subscribed(self) -> None:
-        if self._listening:
-            self._set_state(IPRDControllerState.CONNECTED)
+        if not self._listening:
+            return
+        self._cancel_reconnect(reset_notification=True)
+        self._set_state(IPRDControllerState.CONNECTED)
 
     @Slot(str)
     def _on_listener_error(self, message: str) -> None:
-        del message
+        if not self._listening or self._suspended or not self._network_snapshot.usable:
+            return
+        if not self._connection_error_notified:
+            self._connection_error_notified = True
+            self.connection_error.emit(message)
+        if self.auto_reconnect:
+            self._schedule_reconnect()
 
-    @Slot(int, int)
-    def _on_reconnecting(self, attempt: int, delay_ms: int) -> None:
-        del attempt, delay_ms
-        if self._listening and not self._suspended:
+    def _schedule_reconnect(self) -> None:
+        if (
+            not self._listening
+            or self._suspended
+            or not self.auto_reconnect
+            or not self._network_snapshot.usable
+            or self._endpoint is None
+        ):
+            return
+        if self._reconnect_timer.isActive() or self._retry_cooldown_timer.isActive():
+            return
+        if self._reconnect_attempts >= self.max_reconnect_attempts:
+            logger.warning(
+                "IPRD retry cycle exhausted after %s attempts; restarting in %s ms.",
+                self._reconnect_attempts,
+                RETRY_COOLDOWN_MS,
+            )
+            self.retry_paused.emit(RETRY_COOLDOWN_MS)
+            self._retry_cooldown_timer.start(RETRY_COOLDOWN_MS)
             self._set_state(IPRDControllerState.RETRYING)
+            return
 
-    @Slot(int)
-    def _on_retry_paused(self, delay_ms: int) -> None:
-        del delay_ms
-        if self._listening and not self._suspended:
-            self._set_state(IPRDControllerState.RETRYING)
+        self._reconnect_attempts += 1
+        delay_ms = self._reconnect_delay_ms
+        logger.info(
+            "IPRD reconnect attempt %s/%s in %s ms.",
+            self._reconnect_attempts,
+            self.max_reconnect_attempts,
+            delay_ms,
+        )
+        self.reconnecting.emit(self._reconnect_attempts, delay_ms)
+        self._reconnect_timer.start(delay_ms)
+        self._reconnect_delay_ms = min(delay_ms * 2, RECONNECT_MAX_DELAY_MS)
+        self._set_state(IPRDControllerState.RETRYING)
+
+    @Slot()
+    def _attempt_reconnect(self) -> None:
+        if (
+            not self._listening
+            or self._suspended
+            or not self.auto_reconnect
+            or not self._network_snapshot.usable
+            or self._endpoint is None
+        ):
+            return
+        logger.info(
+            "IPRD attempting reconnect to %s:%s.",
+            self._endpoint.host,
+            self._endpoint.port,
+        )
+        self.listener.stop()
+        self.listener.start()
+
+    @Slot()
+    def _restart_retry_cycle(self) -> None:
+        if (
+            not self._listening
+            or self._suspended
+            or not self.auto_reconnect
+            or not self._network_snapshot.usable
+        ):
+            return
+        self._reset_reconnect_state(reset_notification=True)
+        self._schedule_reconnect()
+
+    def _reset_reconnect_state(self, *, reset_notification: bool) -> None:
+        self._reconnect_attempts = 0
+        self._reconnect_delay_ms = RECONNECT_BASE_DELAY_MS
+        if reset_notification:
+            self._connection_error_notified = False
+
+    def _cancel_reconnect(self, *, reset_notification: bool = False) -> None:
+        self._reconnect_timer.stop()
+        self._retry_cooldown_timer.stop()
+        self._reset_reconnect_state(reset_notification=reset_notification)
 
     def close(self) -> None:
         self.stop()
