@@ -289,6 +289,75 @@ class TestIPRDController(unittest.TestCase):
         self.assertEqual(harness.listener.stop_calls, stops_before_vpn)
         self.assertEqual(harness.controller.state, IPRDControllerState.CONNECTED)
 
+    def test_local_source_address_change_reconnects_same_preferred_endpoint(
+        self,
+    ) -> None:
+        harness = ControllerHarness(snapshot("wlan0", "192.168.1.50"))
+        harness.controller.start_discovery()
+        harness.discovery.service_found.emit(service("iprd", "192.168.1.20"))
+        harness.controller._select_discovered_endpoint()
+        harness.listener.subscribed.emit()
+        starts_before_change = harness.listener.start_calls
+        changed = snapshot("wlan0", "192.168.1.51")
+
+        harness.network.publish(changed)
+
+        self.assertEqual(
+            harness.controller.state, IPRDControllerState.WAITING_FOR_NETWORK
+        )
+        self.assertFalse(harness.listener.active)
+        self.assertIsNotNone(harness.controller.endpoint)
+
+        harness.network.publish(changed)
+
+        endpoint = harness.controller.endpoint
+        self.assertIsNotNone(endpoint)
+        assert endpoint is not None
+        self.assertEqual(endpoint.host, "192.168.1.20")
+        self.assertEqual(endpoint.network_fingerprint, changed.fingerprint)
+        self.assertGreater(harness.listener.start_calls, starts_before_change)
+        self.assertFalse(harness.discovery.active)
+        self.assertEqual(harness.controller.state, IPRDControllerState.CONNECTING)
+
+    def test_same_interface_move_to_different_subnet_rediscovers(self) -> None:
+        harness = ControllerHarness(snapshot("wlan0", "192.168.1.50"))
+        harness.controller.start_discovery()
+        harness.discovery.service_found.emit(service("iprd", "192.168.1.20"))
+        harness.controller._select_discovered_endpoint()
+        harness.listener.subscribed.emit()
+        changed = snapshot("wlan0", "10.0.0.50")
+
+        harness.network.publish(changed)
+        harness.network.publish(changed)
+
+        self.assertIsNone(harness.controller.endpoint)
+        self.assertTrue(harness.discovery.active)
+        self.assertEqual(harness.controller.state, IPRDControllerState.DISCOVERING)
+
+    def test_unrelated_ipv6_address_change_retains_active_ipv4_connection(
+        self,
+    ) -> None:
+        initial = snapshots(
+            ("wlan0", "192.168.1.50", 24),
+            ("wlan0", "fd00::50", 64),
+        )
+        harness = ControllerHarness(initial)
+        harness.controller.start_discovery()
+        harness.discovery.service_found.emit(service("iprd", "192.168.1.20"))
+        harness.controller._select_discovered_endpoint()
+        harness.listener.subscribed.emit()
+        stops_before_change = harness.listener.stop_calls
+        changed = snapshots(
+            ("wlan0", "192.168.1.50", 24),
+            ("wlan0", "fd00::51", 64),
+        )
+
+        harness.network.publish(changed)
+
+        self.assertEqual(harness.listener.stop_calls, stops_before_change)
+        self.assertTrue(harness.listener.active)
+        self.assertEqual(harness.controller.state, IPRDControllerState.CONNECTED)
+
     def test_higher_ranked_candidate_can_replace_active_endpoint(self) -> None:
         initial = snapshot("eth0", "172.16.1.50")
         harness = ControllerHarness(initial)

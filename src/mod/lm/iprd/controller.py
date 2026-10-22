@@ -79,6 +79,50 @@ def _address_score(address: str, snapshot: NetworkSnapshot) -> int:
     return 3
 
 
+def _source_identity(
+    endpoint_host: str, snapshot: NetworkSnapshot
+) -> dict[str, tuple[str, ...]]:
+    """Return LAN addresses that could source a connection to an endpoint."""
+    try:
+        endpoint = ipaddress.ip_address(endpoint_host.split("%", 1)[0])
+    except ValueError:
+        return {}
+
+    compatible = [
+        address
+        for address in snapshot.addresses
+        if address.usable and address.ip.version == endpoint.version
+    ]
+    direct = [
+        address
+        for address in compatible
+        if endpoint
+        in ipaddress.ip_network(f"{address.ip}/{address.prefix_length}", strict=False)
+    ]
+    candidates = direct or compatible
+    identities: dict[str, list[str]] = {}
+    for address in candidates:
+        identities.setdefault(address.interface, []).append(address.fingerprint_key)
+    return {
+        interface: tuple(sorted(addresses))
+        for interface, addresses in identities.items()
+    }
+
+
+def _source_address_changed(
+    endpoint_host: str,
+    previous: NetworkSnapshot,
+    current: NetworkSnapshot,
+) -> bool:
+    previous_identity = _source_identity(endpoint_host, previous)
+    current_identity = _source_identity(endpoint_host, current)
+    return (
+        bool(previous_identity)
+        and previous_identity.keys() == current_identity.keys()
+        and previous_identity != current_identity
+    )
+
+
 def select_best_discovered_endpoint(
     services: tuple[IPRDService, ...],
     snapshot: NetworkSnapshot,
@@ -349,6 +393,13 @@ class IPRDController(QObject):
                 current_score,
             )
             return False
+        if _source_address_changed(endpoint.host, self._network_snapshot, snapshot):
+            logger.info(
+                "IPRD local source address changed; reconnecting endpoint after network stabilization: endpoint=%s:%s.",
+                endpoint.host,
+                endpoint.port,
+            )
+            return False
 
         if endpoint.mode is IPRDEndpointMode.DISCOVERED:
             best = select_best_discovered_endpoint(
@@ -401,17 +452,57 @@ class IPRDController(QObject):
     def _apply_network(
         self, snapshot: NetworkSnapshot, *, network_changed: bool
     ) -> None:
+        reuse_discovered_endpoint = self._can_reuse_discovered_endpoint(snapshot)
         self._network_snapshot = snapshot
         self._network_fingerprint = snapshot.fingerprint
         self._pending_fingerprint = None
         self._stable_samples = 0
         self._recovery_pending = False
 
-        if network_changed and self._mode is IPRDEndpointMode.DISCOVERED:
+        if (
+            network_changed
+            and self._mode is IPRDEndpointMode.DISCOVERED
+            and not reuse_discovered_endpoint
+        ):
             self._services.clear()
             self._set_endpoint(None)
 
         self._activate_mode()
+
+    def _can_reuse_discovered_endpoint(self, snapshot: NetworkSnapshot) -> bool:
+        endpoint = self._endpoint
+        if (
+            self._mode is not IPRDEndpointMode.DISCOVERED
+            or endpoint is None
+            or _address_score(endpoint.host, self._network_snapshot) != 6
+            or _address_score(endpoint.host, snapshot) != 6
+            or not _source_address_changed(
+                endpoint.host, self._network_snapshot, snapshot
+            )
+        ):
+            return False
+        best = select_best_discovered_endpoint(
+            tuple(self._services.values()), snapshot, endpoint
+        )
+        if best is None or (
+            best.host,
+            best.port,
+            best.service_name,
+        ) != (
+            endpoint.host,
+            endpoint.port,
+            endpoint.service_name,
+        ):
+            return False
+        self._set_endpoint(
+            endpoint.model_copy(update={"network_fingerprint": snapshot.fingerprint})
+        )
+        logger.info(
+            "IPRD discovered endpoint remains preferred after local address change; reconnecting %s:%s.",
+            endpoint.host,
+            endpoint.port,
+        )
+        return True
 
     def _activate_mode(self) -> None:
         if not self._listening:
