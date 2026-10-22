@@ -159,11 +159,9 @@ class IPRDController(QObject):
         )
 
         _ = self.network_monitor.snapshot_updated.connect(self._on_network_snapshot)
-        _ = self.network_monitor.error.connect(self.error.emit)
         _ = self.discovery.service_found.connect(self._on_service_resolved)
         _ = self.discovery.service_updated.connect(self._on_service_resolved)
         _ = self.discovery.service_removed.connect(self._on_service_removed)
-        _ = self.discovery.error.connect(self.error.emit)
         _ = self.listener.subscribed.connect(self._on_subscribed)
         _ = self.listener.result.connect(self.report_received.emit)
         _ = self.listener.error.connect(self._on_listener_error)
@@ -413,8 +411,7 @@ class IPRDController(QObject):
 
     @Slot(str)
     def _on_listener_error(self, message: str) -> None:
-        if self._listening and not self._suspended:
-            self.error.emit(message)
+        del message
 
     @Slot(int, int)
     def _on_reconnecting(self, attempt: int, delay_ms: int) -> None:
