@@ -54,7 +54,6 @@ from mod.lm import (
     IPRDController,
     IPRDControllerState,
     IPRDListener,
-    IPRDService,
     IPRDServiceListener,
     IPRDSocket,
     IPReport,
@@ -96,19 +95,7 @@ logger = logging.getLogger(__name__)
 
 # px band along the frameless window border that triggers an edge/corner resize
 RESIZE_MARGIN = 6
-IPRD_DISCOVERY_TIMEOUT_MS = 10_000
 INACTIVE_TIMEOUT_MS = 900_000
-
-
-def _select_iprd_service_address(
-    service: IPRDService,
-    selected_service_name: str | None,
-    selected_address: str | None,
-) -> str:
-    """Keep a selected service address while it remains advertised."""
-    if service.name == selected_service_name and selected_address in service.addresses:
-        return selected_address
-    return service.address
 
 
 class ListenState(Enum):
@@ -212,16 +199,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             self._app_instance.applicationStateChanged.connect(
                 self.on_application_state_changed
             )
-        # Retained while legacy recovery helpers are phased out in favor of the
-        # controller; discovered runtime endpoints no longer touch settings.
-        self._discovered_iprd_service_name: str | None = None
-        self._discovered_iprd_address: str | None = None
-        self.iprd_discovery_timeout: QTimer = QTimer(self)
-        self.iprd_discovery_timeout.setSingleShot(True)
-        self.iprd_discovery_timeout.setInterval(IPRD_DISCOVERY_TIMEOUT_MS)
-        self.iprd_discovery_timeout.timeout.connect(self.on_iprd_discovery_timeout)
-
-        self._resume_discovery_timeout: bool = False
         self._resume_inactive_timer: bool = False
         self.power: PowerMonitor = PowerMonitor(self)
         self.power.aboutToSuspend.connect(self.on_suspend)
@@ -1467,7 +1444,6 @@ Statistics:
     def stop_listen(self, timeout: bool = False):
         logger.info(" stop listeners.")
         self._iprd_listening = False
-        self.iprd_discovery_timeout.stop()
         self.inactive.stop()
         if (
             self.menu_bar.actionEnableIDTable.isChecked()
@@ -1537,115 +1513,6 @@ Statistics:
         self._update_listen_controls()
         self.notify(message)
 
-    def _selected_iprd_service(self) -> IPRDService | None:
-        if self._discovered_iprd_service_name is not None:
-            service = self.iprd_discovery.get_service(
-                self._discovered_iprd_service_name
-            )
-            if service is not None:
-                return service
-        services = self.iprd_discovery.services
-        if not services:
-            return None
-        return services[0]
-
-    def _wait_for_iprd_service(self) -> None:
-        self.iprd_discovery_timeout.start()
-        self.set_listen_state(ListenState.DISCOVERING)
-
-    def _start_iprd_connection(self, addr: str, port: int) -> bool:
-        self.iprd_discovery_timeout.stop()
-        self.iprd.auto_reconnect = self.checkIPRDAutoReconnect.isChecked()
-        self.iprd.max_reconnect_attempts = self.spinIPRDMaxRetries.value()
-        if not self.iprd.set_socket_addr(addr, port):
-            logger.error(
-                "start_listen : failed to start IPRD listener! Invalid socket address."
-            )
-            self.stop_listen()
-            self.notify(
-                "Status :: Failed to start IPRD Listener: Invalid socket address."
-            )
-            return False
-        self.iprd.start()
-        self._last_iprd_error = ""
-        self.set_listen_state(ListenState.CONNECTING)
-        return True
-
-    def _connect_to_iprd_service(self, service: IPRDService) -> None:
-        previous_service_name = self._discovered_iprd_service_name
-        previous_address = self._discovered_iprd_address
-        sticky = (
-            service.name == previous_service_name
-            and previous_address in service.addresses
-        )
-        address = _select_iprd_service_address(
-            service,
-            previous_service_name,
-            previous_address,
-        )
-        selection = "sticky" if sticky else "preferred"
-        logger.info(
-            "IPRD service endpoint selection: "
-            f"service={service.name!r}, addresses={service.addresses!r}, "
-            f"selected={address!r}, selection={selection}."
-        )
-        self._discovered_iprd_service_name = service.name
-        self._discovered_iprd_address = address
-        endpoint_changed = (
-            service.name != previous_service_name
-            or address != previous_address
-            or service.port != self.iprd.port
-        )
-        if not self._iprd_listening or (self.iprd.active and not endpoint_changed):
-            return
-        self.iprd.stop()
-        self._start_iprd_connection(address, service.port)
-
-    def on_iprd_service_found(self, service: IPRDService) -> None:
-        selected_name = self._discovered_iprd_service_name
-        if (
-            selected_name not in (None, service.name)
-            and self.iprd_discovery.get_service(selected_name) is not None
-        ):
-            return
-        self._connect_to_iprd_service(service)
-
-    def on_iprd_service_updated(self, service: IPRDService) -> None:
-        if service.name == self._discovered_iprd_service_name:
-            self._connect_to_iprd_service(service)
-
-    def on_iprd_service_removed(self, name: str) -> None:
-        if name != self._discovered_iprd_service_name:
-            return
-        self._discovered_iprd_service_name = None
-        self._discovered_iprd_address = None
-        replacement = self._selected_iprd_service()
-        if replacement is not None:
-            self._connect_to_iprd_service(replacement)
-            return
-        if self._iprd_listening:
-            self.iprd.stop()
-            self._wait_for_iprd_service()
-
-    def on_iprd_discovery_timeout(self) -> None:
-        if (
-            not self._iprd_listening
-            or self._listen_state is not ListenState.DISCOVERING
-        ):
-            return
-        logger.warning(
-            "IPRD discovery timed out without finding a service: "
-            f"selected_service={self._discovered_iprd_service_name!r}, "
-            f"selected_address={self._discovered_iprd_address!r}, "
-            f"discovered_services={len(self.iprd_discovery.services)}."
-        )
-        # A browser created before post-resume networking settled may remain bound
-        # to stale interfaces. Fully close it so the next Start creates a fresh
-        # Zeroconf instance instead of reusing the failed browser.
-        self.iprd_discovery.stop()
-        self.stop_listen()
-        self.notify("Status :: IPRD discovery timed out. Stopped listening.")
-
     def on_iprd_discovery_error(self, error_str: str) -> None:
         logger.error(f"IPRD discovery error: {error_str}")
         if self.checkEnableIPRDAutoDiscover.isChecked():
@@ -1708,53 +1575,8 @@ Statistics:
 
     def on_iprd_retry_paused(self, delay_ms: int):
         logger.warning(f" IPRD retry cycle exhausted; restarting in {delay_ms} ms.")
-        if self.checkEnableIPRDAutoDiscover.isChecked():
-            service = (
-                self.iprd_discovery.get_service(self._discovered_iprd_service_name)
-                if self._discovered_iprd_service_name is not None
-                else None
-            )
-            alternatives = (
-                tuple(
-                    address
-                    for address in service.addresses
-                    if address != self._discovered_iprd_address
-                )
-                if service is not None
-                else ()
-            )
-            logger.warning(
-                "IPRD discovered endpoint retry cycle paused: "
-                f"failed_endpoint={self._discovered_iprd_address!r}, "
-                f"alternatives={alternatives!r}."
-            )
         self._retry_cooldown_ms = delay_ms
         self.set_listen_state(ListenState.DISCONNECTED)
-
-    def _maybe_reconnect_iprd(self):
-        """Recover IPRD connection or discovery after the app was inactive.
-
-        Triggered when the window regains focus, after resumed networking has had
-        more time to settle than during the initial OS resume notification.
-        """
-        if not self._iprd_listening or self.iprd.active:
-            return
-        if (
-            self.checkEnableIPRDAutoDiscover.isChecked()
-            and self.iprd_discovery.restart_after_resume()
-        ):
-            self._last_iprd_error = ""
-            self._wait_for_iprd_service()
-            return
-        # don't interrupt an attempt already in flight.
-        if self._listen_state in (
-            ListenState.CONNECTING,
-            ListenState.RECONNECTING,
-            ListenState.DISCOVERING,
-        ):
-            return
-        logger.info(" app activated; retrying iprd listen.")
-        self.start_listen()
 
     @asyncSlot(IPReport)
     async def process_result(self, result: IPReport) -> None:
