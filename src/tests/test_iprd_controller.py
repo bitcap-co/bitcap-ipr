@@ -284,9 +284,20 @@ class TestIPRDController(unittest.TestCase):
         harness.controller._select_discovered_endpoint()
         harness.listener.subscribed.emit()
         stops_before_vpn = harness.listener.stop_calls
-        vpn_added = snapshots(
-            ("eth0", "192.168.1.50", 24),
-            ("tun0", "10.8.0.2", 24),
+        vpn_added = build_network_snapshot(
+            (
+                NetworkAddress(
+                    interface="eth0",
+                    address="192.168.1.50",
+                    prefix_length=24,
+                ),
+                NetworkAddress(
+                    interface="tun0",
+                    address="10.8.0.2",
+                    prefix_length=24,
+                    lan=False,
+                ),
+            )
         )
 
         harness.network.publish(vpn_added)
@@ -308,7 +319,7 @@ class TestIPRDController(unittest.TestCase):
         harness.listener.subscribed.emit()
         improved = snapshots(
             ("eth0", "172.16.1.50", 24),
-            ("tun0", "10.8.0.2", 24),
+            ("eth1", "10.8.0.2", 24),
         )
 
         harness.network.publish(improved)

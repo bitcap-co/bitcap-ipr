@@ -18,11 +18,18 @@ from mod.networkmonitor import (
 app = QCoreApplication.instance() or QCoreApplication(sys.argv)
 
 
-def address(interface: str, host: str, prefix_length: int = 24) -> NetworkAddress:
+def address(
+    interface: str,
+    host: str,
+    prefix_length: int = 24,
+    *,
+    lan: bool = True,
+) -> NetworkAddress:
     return NetworkAddress(
         interface=interface,
         address=host,
         prefix_length=prefix_length,
+        lan=lan,
     )
 
 
@@ -64,6 +71,23 @@ class TestNetworkSnapshot(unittest.TestCase):
 
         self.assertTrue(snapshot.available)
         self.assertFalse(snapshot.usable)
+
+    def test_vpn_only_is_available_but_not_usable_for_iprd(self) -> None:
+        snapshot = build_network_snapshot((address("tun0", "10.8.0.2", lan=False),))
+
+        self.assertTrue(snapshot.available)
+        self.assertFalse(snapshot.usable)
+        self.assertEqual(snapshot.fingerprint, "")
+        self.assertEqual(snapshot.addresses, ())
+
+    def test_adding_vpn_does_not_change_lan_snapshot(self) -> None:
+        ethernet = address("eth0", "192.168.1.20")
+        without_vpn = build_network_snapshot((ethernet,))
+        with_vpn = build_network_snapshot(
+            (ethernet, address("tun0", "10.8.0.2", lan=False))
+        )
+
+        self.assertEqual(with_vpn, without_vpn)
 
     def test_usable_address_changes_link_local_fingerprint(self) -> None:
         transitional = build_network_snapshot((address("wlan0", "169.254.10.20", 16),))

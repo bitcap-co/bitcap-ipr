@@ -26,6 +26,7 @@ class NetworkAddress(BaseModel):
     interface: str
     address: str
     prefix_length: int
+    lan: bool = True
 
     @field_validator("address")
     @classmethod
@@ -68,18 +69,26 @@ class NetworkSnapshot(BaseModel):
 
 
 def build_network_snapshot(addresses: Iterable[NetworkAddress]) -> NetworkSnapshot:
-    """Normalize addresses and build an order-independent network fingerprint."""
-    unique = {
-        address.fingerprint_key: address
+    """Build a fingerprint from Wi-Fi/Ethernet addresses only.
+
+    Non-LAN interfaces still make the host generally available, but VPN, PPP,
+    tunnel, and cellular-style transports do not authorize local IPRD recovery.
+    """
+    valid = tuple(
+        address
         for address in addresses
         if not address.ip.is_loopback
         and not address.ip.is_unspecified
         and not address.ip.is_multicast
         and 0 <= address.prefix_length <= address.ip.max_prefixlen
-    }
-    normalized = tuple(unique[key] for key in sorted(unique))
-    if not normalized:
+    )
+    if not valid:
         return NetworkSnapshot()
+
+    unique_lan = {address.fingerprint_key: address for address in valid if address.lan}
+    normalized = tuple(unique_lan[key] for key in sorted(unique_lan))
+    if not normalized:
+        return NetworkSnapshot(available=True)
 
     identity = "\n".join(address.fingerprint_key for address in normalized)
     fingerprint = hashlib.sha256(identity.encode()).hexdigest()
@@ -103,6 +112,10 @@ def capture_network_snapshot() -> NetworkSnapshot:
         ):
             continue
 
+        is_lan = interface.type() in (
+            QNetworkInterface.InterfaceType.Ethernet,
+            QNetworkInterface.InterfaceType.Wifi,
+        )
         for entry in interface.addressEntries():
             host = entry.ip()
             if host.protocol() not in (
@@ -120,6 +133,7 @@ def capture_network_snapshot() -> NetworkSnapshot:
                         interface=interface.name(),
                         address=address,
                         prefix_length=prefix_length,
+                        lan=is_lan,
                     )
                 )
             except ValueError:

@@ -279,7 +279,6 @@ class IPRDController(QObject):
     @Slot(NetworkSnapshot, bool)
     def _on_network_snapshot(self, snapshot: NetworkSnapshot, changed: bool) -> None:
         del changed
-        self._network_snapshot = snapshot
         if not self._listening or self._suspended:
             return
         if not snapshot.usable:
