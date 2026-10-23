@@ -34,12 +34,10 @@ Below is the default configuration file. All of these options can be found in th
       "hivegpu": true, // IPRD backend only
     },
     // "IPR Daemon" settings
-    "IPRD": {
+    "iprd": {
       "enableIPRD": false, // Enable/Disable IPR Daemon backend listener, replaces built-in listener if enabled.
       "autoDiscover": false, // Enable/Disable auto-discovery of IPR Daemon backend from the network.
-      "socketAddress": "" // socket address for host of IPR Daemon, in the form of <HOST>:<PORT>
-      "autoReconnect": false, // Enable/Disable auto-reconnection to IPR Daemon backend.
-      "maxReconnectAttempts": 3, // Maximum number of reconnect attempts to attempt before giving up.
+      "socketAddress": "", // socket address for host of IPR Daemon, in the form of <HOST>:<PORT>
       "selectedSocketPreset": -1, // Selected socket preset to use for connection.
       "socketPresets": [] // Stored socket addresses.
   },
