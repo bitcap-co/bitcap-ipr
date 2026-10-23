@@ -173,6 +173,7 @@ class InstanceOptions(BaseModel):
 
 class InstanceSettings(BaseModel):
     geometry: list[int] = []
+    show_maximized: Annotated[bool, Field(alias="showMaximized")] = False
     options: InstanceOptions
     views: InstanceViews
 

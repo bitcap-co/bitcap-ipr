@@ -985,9 +985,12 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
 
         # instance
-        window_geometry = self.config.instance.geometry
-        if window_geometry:
-            self.setGeometry(*window_geometry)
+        if self.config.instance.show_maximized:
+            self.title_bar.toggle_maximize()
+        else:
+            window_geometry = self.config.instance.geometry
+            if window_geometry:
+                self.setGeometry(*window_geometry)
 
         self.menu_bar.actionAlwaysOpenIPInBrowser.setChecked(
             self.config.instance.options.always_open_ip
@@ -1034,6 +1037,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "enableTableLiveCapture": self.menu_bar.actionEnableLiveCapture.isChecked(),
                 "clearTableOnStop": self.menu_bar.actionClearTableAfterStopListen.isChecked(),
             },
+            "showMaximized": self.isMaximized(),
             "views": {
                 "showIDTable": self.menu_bar.actionEnableIDTable.isChecked(),
                 "showConfigurator": self.menu_bar.actionShowConfigurator.isChecked(),
