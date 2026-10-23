@@ -2069,47 +2069,8 @@ Uses last 5 of SN or MAC address.</string>
                           </layout>
                          </widget>
                         </item>
-                        <item row="4" column="0">
-                         <widget class="QCheckBox" name="checkIPRDAutoReconnect">
-                          <property name="toolTip">
-                           <string>Automatically try to reconnect when the IPR Daemon connection drops</string>
-                          </property>
-                          <property name="text">
-                           <string>Auto-reconnect</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item row="5" column="2">
-                         <widget class="QSpinBox" name="spinIPRDMaxRetries">
-                          <property name="minimumSize">
-                           <size>
-                            <width>180</width>
-                            <height>25</height>
-                           </size>
-                          </property>
-                          <property name="maximumSize">
-                           <size>
-                            <width>250</width>
-                            <height>25</height>
-                           </size>
-                          </property>
-                          <property name="contextMenuPolicy">
-                           <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
-                          </property>
-                          <property name="toolTip">
-                           <string>Number of reconnect attempts before giving up</string>
-                          </property>
-                          <property name="minimum">
-                           <number>1</number>
-                          </property>
-                          <property name="maximum">
-                           <number>10</number>
-                          </property>
-                          <property name="value">
-                           <number>3</number>
-                          </property>
-                         </widget>
-                        </item>
+
+
                         <item row="3" column="2">
                          <widget class="QLineEdit" name="lineIPRDSocketAddress">
                           <property name="sizePolicy">
@@ -2141,16 +2102,7 @@ Uses last 5 of SN or MAC address.</string>
                           </property>
                          </widget>
                         </item>
-                        <item row="5" column="0">
-                         <widget class="QLabel" name="labelIPRDMaxRetries">
-                          <property name="text">
-                           <string>Max Retries:</string>
-                          </property>
-                          <property name="StyleClass" stdset="0">
-                           <string>setText</string>
-                          </property>
-                         </widget>
-                        </item>
+
                         <item row="2" column="0">
                          <widget class="QLabel" name="labelIPRDPreset">
                           <property name="text">

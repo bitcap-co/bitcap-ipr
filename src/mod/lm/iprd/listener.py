@@ -11,7 +11,7 @@ import time
 from typing import override
 
 from pydantic import BaseModel, Field, ValidationError
-from PySide6.QtCore import QObject, QTimer, Signal, Slot
+from PySide6.QtCore import QObject, Signal, Slot
 from PySide6.QtNetwork import QAbstractSocket, QHostAddress, QTcpSocket
 
 from mod.lm.ipreport import IPReport, MinerTypeHint
@@ -47,9 +47,7 @@ class IPRDListener(QObject):
         subscribed: emits when socket succussfully connects and is subscribed to TCP stream.
         stopped: emits when socket succussfully disconnects from stream.
         result (IPReport): emits IPReport on received data from the stream.
-        error (str): emits socket error string if one occurred.
-        reconnecting (int, int): emits attempt and delay in milliseconds when socket is reconnecting.
-        retry_paused (int): emits cooldown for next retry cycle if max retry attempts are exhausted.
+        error (str): emits every unintentional socket failure for policy handling.
     """
 
     # Signals
@@ -57,8 +55,6 @@ class IPRDListener(QObject):
     stopped: Signal = Signal()
     result: Signal = Signal(IPReport)
     error: Signal = Signal(str)
-    reconnecting: Signal = Signal(int, int)  # (attempt, delay_ms)
-    retry_paused: Signal = Signal(int)  # cooldown before the next retry cycle, in ms
 
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
@@ -68,31 +64,7 @@ class IPRDListener(QObject):
         self.active: bool = False
         self.sock: QTcpSocket = QTcpSocket()
 
-        # reconnect config / state
-        self.auto_reconnect: bool = False
-        self.max_reconnect_attempts: int = 3
-        self._reconnect_base_ms: int = 1000
-        self._reconnect_max_ms: int = 30000
-        self._retry_cooldown_ms: int = 60000
         self._intentional_stop: bool = False
-        self._notified: bool = False
-        self._reconnect_attempts: int = 0
-        self._reconnect_delay: int = self._reconnect_base_ms
-        # set True between an OS suspend and the following resume so reconnects
-        # are not attempted while the host is asleep (which would wake it).
-        self._power_suspended: bool = False
-        self._resume_after_suspend: bool = False
-        # monotonic-clock guard: records when/how long a reconnect was scheduled
-        # so we can detect an oversized wall-clock gap (i.e. we just resumed from
-        # sleep) on platforms without a power backend.
-        self._reconnect_scheduled_at: float = 0.0
-        self._reconnect_scheduled_delay: float = 0.0
-        self._reconnect_timer: QTimer = QTimer(self)
-        self._reconnect_timer.setSingleShot(True)
-        self._reconnect_timer.timeout.connect(self._attempt_reconnect)
-        self._retry_cooldown_timer: QTimer = QTimer(self)
-        self._retry_cooldown_timer.setSingleShot(True)
-        self._retry_cooldown_timer.timeout.connect(self._restart_retry_cycle)
 
         self.sock.errorOccurred.connect(self.emit_error)
         self.sock.connected.connect(self._send_subscribe)
@@ -101,11 +73,6 @@ class IPRDListener(QObject):
     @override
     def __repr__(self, /) -> str:
         return f"{self.__class__.__name__}[{self.addr.toString()}:{self.port}]"
-
-    def _reset_reconnect_state(self) -> None:
-        self._notified = False
-        self._reconnect_attempts = 0
-        self._reconnect_delay = self._reconnect_base_ms
 
     def _enable_keepalive(self) -> None:
         fd = self.sock.socketDescriptor()
@@ -132,7 +99,7 @@ class IPRDListener(QObject):
             logger.error(f"{self.__repr__()} : failed to set keepalive: {e}")
 
     def _send_subscribe(self) -> None:
-        if self._intentional_stop or self._power_suspended:
+        if self._intentional_stop:
             self.sock.abort()
             self.active = False
             return
@@ -150,8 +117,6 @@ class IPRDListener(QObject):
             logger.error(f"{self.__repr__()} : failed to write subscribe!")
             return self.error.emit("Failed to write command.")
         self.active = True
-        self._retry_cooldown_timer.stop()
-        self._reset_reconnect_state()
         self.subscribed.emit()
 
     @Slot()
@@ -198,17 +163,12 @@ class IPRDListener(QObject):
             )
             return self.error.emit("Socket address not set.")
         self._intentional_stop = False
-        self._retry_cooldown_timer.stop()
-        self._reset_reconnect_state()
         if not self.active:
             self.sock.connectToHost(self.addr, self.port)
 
     def stop(self) -> None:
         """Closes connection to iprd TCP stream endpoint."""
         self._intentional_stop = True
-        self._resume_after_suspend = False
-        self._reconnect_timer.stop()
-        self._retry_cooldown_timer.stop()
         was_connected = (
             self.sock.state() != QAbstractSocket.SocketState.UnconnectedState
         )
@@ -243,116 +203,10 @@ class IPRDListener(QObject):
 
     def emit_error(self, error: QAbstractSocket.SocketError) -> None:
         self.active = False
-
-        if self._power_suspended or self._intentional_stop:
+        if self._intentional_stop:
             return
-
         logger.error(f"{self.__repr__()} : emit error! {self.sock.errorString()}")
-        # notify the user ONCE per drop; retries stay quiet
-        if not self._notified:
-            self._notified = True
-            self.error.emit(error.name)
-        if self.auto_reconnect and not self._intentional_stop:
-            self._schedule_reconnect()
-
-    def _schedule_reconnect(self) -> None:
-        if self._power_suspended:
-            # host is asleep; don't generate traffic that would wake it.
-            # on_resume() drives the reconnect once the OS comes back.
-            logger.info(
-                f"{self.__repr__()} : host suspended; deferring reconnect to resume."
-            )
-            return
-        if self._reconnect_attempts >= self.max_reconnect_attempts:
-            logger.warning(
-                f"{self.__repr__()} : retry cycle exhausted after "
-                f"{self._reconnect_attempts} attempts; restarting in "
-                f"{self._retry_cooldown_ms} ms."
-            )
-            self._reconnect_timer.stop()
-            self.sock.abort()
-            self.retry_paused.emit(self._retry_cooldown_ms)
-            self._retry_cooldown_timer.start(self._retry_cooldown_ms)
-            return
-        self._reconnect_attempts += 1
-        delay = self._reconnect_delay
-        logger.info(
-            f"{self.__repr__()} : reconnect attempt "
-            f"{self._reconnect_attempts}/{self.max_reconnect_attempts} in {delay} ms."
-        )
-        self.reconnecting.emit(self._reconnect_attempts, delay)
-        self._reconnect_scheduled_at = time.monotonic()
-        self._reconnect_scheduled_delay = delay / 1000.0
-        self._reconnect_timer.start(delay)
-        self._reconnect_delay = min(self._reconnect_delay * 2, self._reconnect_max_ms)
-
-    @Slot()
-    def _restart_retry_cycle(self) -> None:
-        if self._intentional_stop or self._power_suspended:
-            return
-        logger.info(f"{self.__repr__()} : restarting reconnect cycle.")
-        self._reset_reconnect_state()
-        self._schedule_reconnect()
-
-    @Slot()
-    def _attempt_reconnect(self) -> None:
-        if self._intentional_stop or self._power_suspended:
-            return
-        # Fallback for platforms without a power backend (e.g. macOS): if far
-        # more wall-clock elapsed than the delay we scheduled, the host most
-        # likely suspended and just resumed. Reset backoff for a single clean
-        # retry instead of immediately burning a (likely stale) attempt.
-        elapsed = time.monotonic() - self._reconnect_scheduled_at
-        if elapsed > self._reconnect_scheduled_delay + 30.0:
-            logger.info(
-                f"{self.__repr__()} : detected suspend gap "
-                f"({elapsed:.0f}s elapsed); resetting reconnect backoff."
-            )
-            self._reset_reconnect_state()
-        logger.info(f"{self.__repr__()} : attempting reconnect...")
-        self.sock.abort()
-        self.sock.connectToHost(self.addr, self.port)
-
-    @Slot()
-    def on_suspend(self) -> None:
-        """The host is about to sleep: stop reconnecting and drop the socket
-        cleanly so we don't keep the machine awake. on_resume() restores it."""
-        if self._power_suspended:
-            return
-
-        socket_connected_or_connecting = (
-            self.sock.state() != QAbstractSocket.SocketState.UnconnectedState
-        )
-        reconnect_pending = (
-            self._reconnect_timer.isActive() or self._retry_cooldown_timer.isActive()
-        )
-
-        self._resume_after_suspend = not self._intentional_stop and (
-            self.active or socket_connected_or_connecting or reconnect_pending
-        )
-
-        self._power_suspended = True
-        self._reconnect_timer.stop()
-        self._retry_cooldown_timer.stop()
-        if socket_connected_or_connecting:
-            logger.info(f"{self.__repr__()} : host suspending; aborting socket.")
-            self.sock.abort()
-
-        self.active = False
-
-    @Slot()
-    def on_resume(self) -> None:
-        """Restore a connection that was active or pending before suspend."""
-        if not self._power_suspended:
-            return
-        self._power_suspended = False
-        resume = self._resume_after_suspend
-        self._resume_after_suspend = False
-        if not resume or self._intentional_stop or self.active or self.addr.isNull():
-            return
-        logger.info(f"{self.__repr__()} : host resumed; reconnecting.")
-        self._reset_reconnect_state()
-        self._schedule_reconnect()
+        self.error.emit(error.name)
 
     def close(self) -> None:
         self.stop()
