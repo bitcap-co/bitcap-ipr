@@ -67,10 +67,10 @@ class TestListenState(unittest.TestCase):
         controller.on_resume.assert_called_once_with()
         inactive.start.assert_not_called()
 
-    def test_controller_retry_state_preserves_listener_cooldown_status(self) -> None:
+    def test_controller_retry_state_updates_status(self) -> None:
         set_listen_state = Mock()
         subject: Any = SimpleNamespace(
-            _listen_state=ListenState.DISCONNECTED,
+            _listen_state=ListenState.CONNECTING,
             iprd_controller=SimpleNamespace(listening=True),
             inactive=Mock(),
             _iprd_listening=True,
@@ -80,7 +80,7 @@ class TestListenState(unittest.TestCase):
 
         IPR.on_iprd_controller_state_changed(subject, IPRDControllerState.RETRYING)
 
-        set_listen_state.assert_not_called()
+        set_listen_state.assert_called_once_with(ListenState.RECONNECTING)
 
     def test_controller_waiting_state_updates_status(self) -> None:
         set_listen_state = Mock()

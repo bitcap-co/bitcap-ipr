@@ -8,40 +8,38 @@
 import unittest
 from types import SimpleNamespace
 from typing import Any
-from unittest.mock import Mock
 
 import config  # noqa: F401  # initialize Pydantic before importing PySide-backed IPR
 from ipr import IPR, ListenState
 
 
 class TestIPRDRecoveryStatus(unittest.TestCase):
-    def test_retry_pause_preserves_intent_and_enters_disconnected(self) -> None:
+    def test_reconnecting_updates_delay_and_preserves_listening_intent(self) -> None:
         subject: Any = SimpleNamespace(
             _iprd_listening=True,
-            _listen_state=ListenState.RECONNECTING,
-            _retry_cooldown_ms=0,
+            _listen_state=ListenState.CONNECTING,
+            _reconnect_delay_ms=0,
             set_listen_state=lambda state: setattr(subject, "_listen_state", state),
-            stop_listen=Mock(),
         )
 
-        IPR.on_iprd_retry_paused(subject, 60000)
+        IPR.on_iprd_reconnecting(subject, 30000)
 
         self.assertTrue(subject._iprd_listening)
-        self.assertEqual(subject._retry_cooldown_ms, 60000)
-        self.assertEqual(subject._listen_state, ListenState.DISCONNECTED)
-        subject.stop_listen.assert_not_called()
+        self.assertEqual(subject._reconnect_delay_ms, 30000)
+        self.assertEqual(subject._listen_state, ListenState.RECONNECTING)
 
-    def test_disconnected_status_shows_next_retry_cycle(self) -> None:
+    def test_reconnecting_status_shows_capped_delay(self) -> None:
         subject: Any = SimpleNamespace(
-            _listen_state=ListenState.DISCONNECTED,
-            _retry_cooldown_ms=60000,
+            _listen_state=ListenState.RECONNECTING,
+            _reconnect_delay_ms=30000,
+            _last_iprd_error="ConnectionRefusedError",
         )
 
         status = IPR._base_status_text(subject)
 
         self.assertEqual(
             status,
-            "Status :: IPR Daemon disconnected; restarting retry cycle in 60s…",
+            "Status :: Connection lost (ConnectionRefusedError); reconnecting in 30s…",
         )
 
 

@@ -442,11 +442,8 @@ class TestIPRDController(unittest.TestCase):
 
     def test_reconnect_backoff_starts_at_one_second_and_caps_at_thirty(self) -> None:
         harness = ControllerHarness(snapshot("eth0", "192.168.1.50"))
-        retries: list[tuple[int, int]] = []
-        harness.controller.reconnecting.connect(
-            lambda attempt, delay: retries.append((attempt, delay))
-        )
-        harness.controller.configure_reconnect(True, 10)
+        retries: list[int] = []
+        harness.controller.reconnecting.connect(retries.append)
         harness.controller.start_manual("192.168.1.20", 7788)
 
         for _ in range(7):
@@ -456,60 +453,15 @@ class TestIPRDController(unittest.TestCase):
 
         self.assertEqual(
             retries,
-            [
-                (1, 1000),
-                (2, 2000),
-                (3, 4000),
-                (4, 8000),
-                (5, 16000),
-                (6, 30000),
-                (7, 30000),
-            ],
+            [1000, 2000, 4000, 8000, 16000, 30000, 30000],
         )
 
-    def test_exhausted_retry_cycle_enters_cooldown(self) -> None:
-        harness = ControllerHarness(snapshot("eth0", "192.168.1.50"))
-        cooldowns: list[int] = []
-        harness.controller.retry_paused.connect(cooldowns.append)
-        harness.controller.configure_reconnect(True, 1)
-        harness.controller.start_manual("192.168.1.20", 7788)
-
-        harness.listener.error.emit("ConnectionRefusedError")
-        harness.controller._reconnect_timer.stop()
-        harness.controller._attempt_reconnect()
-        harness.listener.error.emit("ConnectionRefusedError")
-
-        self.assertEqual(cooldowns, [60000])
-        self.assertTrue(harness.controller._retry_cooldown_timer.isActive())
-        self.assertEqual(harness.controller.state, IPRDControllerState.RETRYING)
-
-    def test_cooldown_starts_a_new_retry_cycle(self) -> None:
-        harness = ControllerHarness(snapshot("eth0", "192.168.1.50"))
-        retries: list[tuple[int, int]] = []
-        harness.controller.reconnecting.connect(
-            lambda attempt, delay: retries.append((attempt, delay))
-        )
-        harness.controller.configure_reconnect(True, 1)
-        harness.controller.start_manual("192.168.1.20", 7788)
-        harness.listener.error.emit("ConnectionRefusedError")
-        harness.controller._reconnect_timer.stop()
-        harness.controller._attempt_reconnect()
-        harness.listener.error.emit("ConnectionRefusedError")
-        harness.controller._retry_cooldown_timer.stop()
-
-        harness.controller._restart_retry_cycle()
-
-        self.assertEqual(retries, [(1, 1000), (1, 1000)])
-        self.assertTrue(harness.controller._reconnect_timer.isActive())
-
-    def test_successful_subscription_resets_retry_cycle(self) -> None:
+    def test_successful_subscription_resets_retry_backoff(self) -> None:
         harness = ControllerHarness(snapshot("eth0", "192.168.1.50"))
         connection_errors: list[str] = []
-        retries: list[tuple[int, int]] = []
+        retries: list[int] = []
         harness.controller.connection_error.connect(connection_errors.append)
-        harness.controller.reconnecting.connect(
-            lambda attempt, delay: retries.append((attempt, delay))
-        )
+        harness.controller.reconnecting.connect(retries.append)
         harness.controller.start_manual("192.168.1.20", 7788)
         harness.listener.error.emit("ConnectionRefusedError")
 
@@ -520,8 +472,8 @@ class TestIPRDController(unittest.TestCase):
             connection_errors,
             ["ConnectionRefusedError", "RemoteHostClosedError"],
         )
-        self.assertEqual(retries, [(1, 1000), (1, 1000)])
-        self.assertEqual(harness.controller._reconnect_attempts, 1)
+        self.assertEqual(retries, [1000, 1000])
+        self.assertEqual(harness.controller._reconnect_delay_ms, 2000)
 
     def test_stop_and_suspend_cancel_retry_timers(self) -> None:
         for action in ("stop", "suspend"):
@@ -529,7 +481,6 @@ class TestIPRDController(unittest.TestCase):
                 harness = ControllerHarness(snapshot("eth0", "192.168.1.50"))
                 harness.controller.start_manual("192.168.1.20", 7788)
                 harness.listener.error.emit("ConnectionRefusedError")
-                harness.controller._retry_cooldown_timer.start(60000)
 
                 if action == "stop":
                     harness.controller.stop()
@@ -537,30 +488,14 @@ class TestIPRDController(unittest.TestCase):
                     harness.controller.on_suspend()
 
                 self.assertFalse(harness.controller._reconnect_timer.isActive())
-                self.assertFalse(harness.controller._retry_cooldown_timer.isActive())
                 self.assertFalse(harness.listener.active)
-
-    def test_auto_reconnect_disabled_only_emits_connection_error(self) -> None:
-        harness = ControllerHarness(snapshot("eth0", "192.168.1.50"))
-        connection_errors: list[str] = []
-        harness.controller.connection_error.connect(connection_errors.append)
-        harness.controller.configure_reconnect(False, 3)
-        harness.controller.start_manual("192.168.1.20", 7788)
-
-        harness.listener.error.emit("ConnectionRefusedError")
-
-        self.assertEqual(connection_errors, ["ConnectionRefusedError"])
-        self.assertFalse(harness.controller._reconnect_timer.isActive())
-        self.assertFalse(harness.controller._retry_cooldown_timer.isActive())
 
     def test_connection_error_is_emitted_once_while_retries_continue(self) -> None:
         harness = ControllerHarness(snapshot("eth0", "192.168.1.50"))
         connection_errors: list[str] = []
-        retries: list[tuple[int, int]] = []
+        retries: list[int] = []
         harness.controller.connection_error.connect(connection_errors.append)
-        harness.controller.reconnecting.connect(
-            lambda attempt, delay: retries.append((attempt, delay))
-        )
+        harness.controller.reconnecting.connect(retries.append)
         harness.controller.start_manual("192.168.1.20", 7788)
 
         harness.listener.error.emit("ConnectionRefusedError")
@@ -569,7 +504,7 @@ class TestIPRDController(unittest.TestCase):
         harness.listener.error.emit("ConnectionRefusedError")
 
         self.assertEqual(connection_errors, ["ConnectionRefusedError"])
-        self.assertEqual(retries, [(1, 1000), (2, 2000)])
+        self.assertEqual(retries, [1000, 2000])
 
     def test_stop_cancels_intent_and_clears_discovered_endpoint(self) -> None:
         harness = ControllerHarness(snapshot("eth0", "192.168.1.50"))

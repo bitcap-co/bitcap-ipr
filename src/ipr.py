@@ -107,7 +107,6 @@ class ListenState(Enum):
     CONNECTING = auto()  # iprd socket connecting/subscribing
     SUBSCRIBED = auto()  # iprd connected and subscribed to the stream
     RECONNECTING = auto()  # iprd connection lost, retrying
-    DISCONNECTED = auto()  # iprd retries exhausted, listening intent preserved
     WAITING_FOR_NETWORK = auto()  # iprd recovery paused until networking stabilizes
     SUSPENDED = auto()  # iprd recovery paused while the host sleeps
 
@@ -192,7 +191,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.iprd_controller.error.connect(self.on_iprd_controller_error)
         self.iprd_controller.connection_error.connect(self.show_iprd_error)
         self.iprd_controller.reconnecting.connect(self.on_iprd_reconnecting)
-        self.iprd_controller.retry_paused.connect(self.on_iprd_retry_paused)
         # whether the user currently wants the iprd backend listening.
         self._iprd_listening: bool = False
         if self._app_instance is not None:
@@ -209,9 +207,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         # notify() and fall back to the base when they expire.
         self._listen_state: ListenState = ListenState.READY
         self._showing_transient: bool = False
-        self._reconnect_attempt: int = 0
         self._reconnect_delay_ms: int = 0
-        self._retry_cooldown_ms: int = 0
         self._last_iprd_error: str = ""
 
         logger.info(" init mod ipr_asic.")
@@ -396,9 +392,6 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.checkEnableIPRDAutoDiscover.toggled.connect(self.toggle_iprd_settings)
         self.checkEnableIPRDAutoDiscover.toggled.connect(self.restart_listen)
 
-        self.checkIPRDAutoReconnect.toggled.connect(self.update_iprd_reconnect_settings)
-        self.checkIPRDAutoReconnect.toggled.connect(self.restart_listen)
-        self.spinIPRDMaxRetries.valueChanged.connect(self.restart_listen)
         self.socket_selector: IPRPresetSelector = IPRPresetSelector(
             tooltip="Saved IPR Daemon socket addresses. Select one to switch instances.",
             add_tooltip="Save current socket address as a new preset",
@@ -864,14 +857,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             reason = f" ({self._last_iprd_error})" if self._last_iprd_error else ""
             return (
                 f"Status :: Connection lost{reason}; reconnecting "
-                f"{self._reconnect_attempt}/{self.iprd_controller.max_reconnect_attempts} "
                 f"in {self._reconnect_delay_ms // 1000}s…"
-            )
-        if self._listen_state is ListenState.DISCONNECTED:
-            cooldown_seconds = max(1, (self._retry_cooldown_ms + 999) // 1000)
-            return (
-                "Status :: IPR Daemon disconnected; restarting retry cycle "
-                f"in {cooldown_seconds}s…"
             )
         if self._listen_state is ListenState.WAITING_FOR_NETWORK:
             return "Status :: Waiting for network before recovering IPR Daemon…"
@@ -955,10 +941,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.config.listener.iprd.auto_discover
         )
         self.lineIPRDSocketAddress.setText(self.config.listener.iprd.socket_addr)
-        self.checkIPRDAutoReconnect.setChecked(self.config.listener.iprd.auto_reconnect)
-        self.spinIPRDMaxRetries.setValue(
-            self.config.listener.iprd.max_reconnect_attempts
-        )
         self.toggle_iprd_settings()
 
         # api
@@ -1086,8 +1068,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "enableIPRD": self.checkEnableIPRDBackend.isChecked(),
                 "autoDiscover": self.checkEnableIPRDAutoDiscover.isChecked(),
                 "socketAddress": self.lineIPRDSocketAddress.text(),
-                "autoReconnect": self.checkIPRDAutoReconnect.isChecked(),
-                "maxReconnectAttempts": self.spinIPRDMaxRetries.value(),
                 "selectedSocketPreset": self.socket_preset_controller.index,
                 "socketPresets": self.socket_preset_controller.snapshot(),
             },
@@ -1196,18 +1176,9 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.socket_selector.setEnabled(enabled and not auto_discover)
         self.lineIPRDSocketAddress.setEnabled(enabled and not auto_discover)
         self.toolIPRDSocketStatus.setEnabled(enabled)
-        self.checkIPRDAutoReconnect.setEnabled(enabled)
-        self.update_iprd_reconnect_settings()
 
         # Runtime discovery is started only while listening. Toggling this option
         # restarts the listener through the existing UI signal wiring.
-
-    def update_iprd_reconnect_settings(self):
-        # max retries only applies when the backend and auto-reconnect are both on.
-        self.spinIPRDMaxRetries.setEnabled(
-            self.checkEnableIPRDBackend.isChecked()
-            and self.checkIPRDAutoReconnect.isChecked()
-        )
 
     def show_iprd_socket_error(self, error_str: str):
         logger.error(f"IPRD socket error: {error_str}")
@@ -1411,10 +1382,6 @@ Statistics:
             # start listening through the IPRD recovery controller.
             self._iprd_listening = True
             self._last_iprd_error = ""
-            self.iprd_controller.configure_reconnect(
-                self.checkIPRDAutoReconnect.isChecked(),
-                self.spinIPRDMaxRetries.value(),
-            )
             self._update_listen_controls()
             if self.checkEnableIPRDAutoDiscover.isChecked():
                 self.iprd_controller.start_discovery()
@@ -1530,13 +1497,6 @@ Statistics:
         self.notify(f"Status :: IPRD recovery error: {error_str}")
 
     def on_iprd_controller_state_changed(self, state: IPRDControllerState) -> None:
-        # Preserve the cooldown presentation when the controller subsequently
-        # reports its generic retrying state.
-        if (
-            state is IPRDControllerState.RETRYING
-            and self._listen_state is ListenState.DISCONNECTED
-        ):
-            return
         state_map = {
             IPRDControllerState.STOPPED: ListenState.READY,
             IPRDControllerState.WAITING_FOR_NETWORK: ListenState.WAITING_FOR_NETWORK,
@@ -1563,21 +1523,10 @@ Statistics:
         # can be folded into the persistent "reconnecting…" message.
         logger.error(f" received IPRD Listener error: {error_str}")
         self._last_iprd_error = error_str
-        # If auto-reconnect is disabled no reconnecting() follows, so fully stop
-        # the listener and surface the error.
-        if not self.iprd_controller.auto_reconnect:
-            self.stop_listen()
-            self.notify(f"Status :: IPRD Listener error: {error_str}. Stopped.")
 
-    def on_iprd_reconnecting(self, attempt: int, delay_ms: int):
-        self._reconnect_attempt = attempt
+    def on_iprd_reconnecting(self, delay_ms: int):
         self._reconnect_delay_ms = delay_ms
         self.set_listen_state(ListenState.RECONNECTING)
-
-    def on_iprd_retry_paused(self, delay_ms: int):
-        logger.warning(f" IPRD retry cycle exhausted; restarting in {delay_ms} ms.")
-        self._retry_cooldown_ms = delay_ms
-        self.set_listen_state(ListenState.DISCONNECTED)
 
     @asyncSlot(IPReport)
     async def process_result(self, result: IPReport) -> None:
@@ -1783,7 +1732,6 @@ Statistics:
         self.iprd_controller.error.disconnect(self.on_iprd_controller_error)
         self.iprd_controller.connection_error.disconnect(self.show_iprd_error)
         self.iprd_controller.reconnecting.disconnect(self.on_iprd_reconnecting)
-        self.iprd_controller.retry_paused.disconnect(self.on_iprd_retry_paused)
         self.iprd_discovery.error.disconnect(self.on_iprd_discovery_error)
         self.iprd_network.error.disconnect(self.on_iprd_network_error)
         self.iprd.subscribed.disconnect(self.on_iprd_subscribed)
