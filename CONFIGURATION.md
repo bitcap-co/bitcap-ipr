@@ -31,6 +31,7 @@ Below is the default configuration file. All of these options can be found in th
       "elphapex": true,
       "auradine": true,
       "ipollo": true,
+      "ibelink": true,
       "hivegpu": true, // IPRD backend only
     },
     // "IPR Daemon" settings
@@ -57,20 +58,30 @@ Below is the default configuration file. All of these options can be found in th
       "elphapexAltPasswd": "",
       "sealminerAltPasswd": "",
       "auradineAltPasswd": "",
-      "ipolloAltPasswd": "" // unused
+      "ipolloAltPasswd": "",
+      "ibelinkAltPasswd": ""
     },
-    // set Alternative passwords for firmwares
+    // set alternative passwords for firmwares
     "firmware": {
       "useAntminerLogin": false, // Use same alternative password set in Antminer Login.
       "vnishAltPasswd": ""
     }
   },
-  // Pool Configurator store
-  "poolConfigurator": {
-    "autoSetWorkers": true,  // Enable/Disable auto append worker names derivied from serial/mac to user. (.XXXXX)
-    "selectedPoolPreset": -1,
-    // Stored pool presets
-    "poolPresets": []
+  // Configurator settings
+  "configurator":{
+    // pool configuration store
+    "poolConfig": {
+      "autoSetWorkers": true,  // Enable/Disable auto append worker names derivied from serial/mac to user. (.XXXXX)
+      "selectedPoolPreset": -1,
+      // Stored pool presets
+      "poolPresets": []
+    },
+    // firmware configuration store
+    "firmwareConfig": {
+      "firmwarePath": "", // Stored current firmware path
+      "enforceCompatibility": true, // Enable/Disable forced firmware compatibilty checks versus selected miner types/models. Only disable if you know what you're doing!
+      "keepSettings": true // Enable/Disable keeping miner configuration across firmware updates.
+    }
   },
   // "Log" Settings
   "logs": {
