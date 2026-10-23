@@ -908,22 +908,6 @@ class Ui_MainWindow(object):
 
         self.gridLayout_17.addWidget(self.socketSelector, 2, 2, 1, 1)
 
-        self.checkIPRDAutoReconnect = QCheckBox(self.groupIPRD)
-        self.checkIPRDAutoReconnect.setObjectName(u"checkIPRDAutoReconnect")
-
-        self.gridLayout_17.addWidget(self.checkIPRDAutoReconnect, 4, 0, 1, 1)
-
-        self.spinIPRDMaxRetries = QSpinBox(self.groupIPRD)
-        self.spinIPRDMaxRetries.setObjectName(u"spinIPRDMaxRetries")
-        self.spinIPRDMaxRetries.setMinimumSize(QSize(180, 25))
-        self.spinIPRDMaxRetries.setMaximumSize(QSize(250, 25))
-        self.spinIPRDMaxRetries.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
-        self.spinIPRDMaxRetries.setMinimum(1)
-        self.spinIPRDMaxRetries.setMaximum(10)
-        self.spinIPRDMaxRetries.setValue(3)
-
-        self.gridLayout_17.addWidget(self.spinIPRDMaxRetries, 5, 2, 1, 1)
-
         self.lineIPRDSocketAddress = QLineEdit(self.groupIPRD)
         self.lineIPRDSocketAddress.setObjectName(u"lineIPRDSocketAddress")
         sizePolicy7.setHeightForWidth(self.lineIPRDSocketAddress.sizePolicy().hasHeightForWidth())
@@ -933,11 +917,6 @@ class Ui_MainWindow(object):
         self.lineIPRDSocketAddress.setClearButtonEnabled(True)
 
         self.gridLayout_17.addWidget(self.lineIPRDSocketAddress, 3, 2, 1, 1)
-
-        self.labelIPRDMaxRetries = QLabel(self.groupIPRD)
-        self.labelIPRDMaxRetries.setObjectName(u"labelIPRDMaxRetries")
-
-        self.gridLayout_17.addWidget(self.labelIPRDMaxRetries, 5, 0, 1, 1)
 
         self.labelIPRDPreset = QLabel(self.groupIPRD)
         self.labelIPRDPreset.setObjectName(u"labelIPRDPreset")
@@ -1737,18 +1716,9 @@ class Ui_MainWindow(object):
         self.checkListenHiveGPU.setText(QCoreApplication.translate("MainWindow", u"HiveGPU", None))
         self.groupIPRD.setTitle(QCoreApplication.translate("MainWindow", u"IPR Daemon", None))
 #if QT_CONFIG(tooltip)
-        self.checkIPRDAutoReconnect.setToolTip(QCoreApplication.translate("MainWindow", u"Automatically try to reconnect when the IPR Daemon connection drops", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkIPRDAutoReconnect.setText(QCoreApplication.translate("MainWindow", u"Auto-reconnect", None))
-#if QT_CONFIG(tooltip)
-        self.spinIPRDMaxRetries.setToolTip(QCoreApplication.translate("MainWindow", u"Number of reconnect attempts before giving up", None))
-#endif // QT_CONFIG(tooltip)
-#if QT_CONFIG(tooltip)
         self.lineIPRDSocketAddress.setToolTip(QCoreApplication.translate("MainWindow", u"Socket address pointing to IPRD instance in the format of <IP>:<PORT>", None))
 #endif // QT_CONFIG(tooltip)
         self.lineIPRDSocketAddress.setPlaceholderText(QCoreApplication.translate("MainWindow", u"IP:PORT", None))
-        self.labelIPRDMaxRetries.setText(QCoreApplication.translate("MainWindow", u"Max Retries:", None))
-        self.labelIPRDMaxRetries.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
         self.labelIPRDPreset.setText(QCoreApplication.translate("MainWindow", u"Instance:", None))
         self.labelIPRDPreset.setProperty(u"StyleClass", QCoreApplication.translate("MainWindow", u"setText", None))
 #if QT_CONFIG(tooltip)
