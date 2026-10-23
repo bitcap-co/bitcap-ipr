@@ -1215,6 +1215,35 @@ class IPR(QMainWindow, Ui_MainWindow):
             status = self.iprd_socket.status()
             if status is None:
                 return
+            daemon_info = ""
+            if status.daemon is not None:
+                daemon = status.daemon
+                build_time = ""
+                if daemon.build_time != "":
+                    build_time = normalize_datetime(daemon.build_time)
+                commit = daemon.commit_hash
+                if len(daemon.commit_hash) > 7:
+                    commit = daemon.commit_hash[:7]
+                build_details: list[str] = []
+                if daemon.delta != "":
+                    if commit != "":
+                        build_details.append(commit)
+                    build_details.append(f"{daemon.delta}-line delta")
+                else:
+                    if daemon.tag != "":
+                        # local git tag
+                        if len(daemon.tag.split("-")) > 1:
+                            build_details.append(daemon.tag.split("-")[0])
+                        else:
+                            build_details.append(daemon.tag)
+                    if commit != "":
+                        build_details.append(commit)
+                version_info = ""
+                if len(build_details) > 0:
+                    version_info = " (" + ", ".join(build_details) + ")"
+                daemon_info = f"""Daemon: IPR Daemon {daemon.version}{version_info}
+Build Time: {build_time}
+"""
             instance_name = socket_addr
             preset = self.comboIPRDPreset.currentText()
             if not self.checkEnableIPRDAutoDiscover.isChecked() and preset:
@@ -1224,6 +1253,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 self,
                 "Status information",
                 f"""Instance {instance_name}
+{daemon_info}
 State: {status.state}
 Active Listeners: {status.listeners_active}/{status.listeners_configured}
 Statistics:

@@ -78,7 +78,7 @@ def flush_log() -> None:
         _ = f.seek(0)
 
 
-def normalize_datetime(datetime_obj: datetime | None) -> str:
+def normalize_datetime(datetime_obj: datetime | str | None) -> str:
     """
     Normalize datetime to local string format: YYYY-MM-DD HH:MM:SS.
 
@@ -86,4 +86,6 @@ def normalize_datetime(datetime_obj: datetime | None) -> str:
     """
     if datetime_obj is None or datetime_obj == MIN_DATETIME:
         return "N/A"
+    if isinstance(datetime_obj, str):
+        datetime_obj = datetime.fromisoformat(datetime_obj)
     return datetime_obj.astimezone().strftime("%Y-%m-%d %H:%M:%S")
