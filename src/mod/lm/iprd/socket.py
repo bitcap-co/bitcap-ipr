@@ -25,6 +25,14 @@ class IPRDCommand(BaseModel):
     request_id: Annotated[str | None, Field(serialization_alias="requestID")] = None
 
 
+class IPRDaemonInfo(BaseModel):
+    version: str
+    tag: str
+    commit_hash: str = Field(validation_alias="commitHash")
+    delta: str
+    build_time: str = Field(validation_alias="buildTime")
+
+
 class PacketCounters(BaseModel):
     processed: int
     reports: int
@@ -46,6 +54,7 @@ class ListenerStatus(BaseModel):
 
 
 class IPRDStatus(BaseModel):
+    daemon: IPRDaemonInfo | None = None
     state: str
     listeners_configured: int = Field(validation_alias="listenersConfigured")
     listeners_active: int = Field(validation_alias="listenersActive")
@@ -71,6 +80,7 @@ class IPRDResponse(BaseModel):
     type: str
     request_id: str | None = Field(None, validation_alias="requestID")
     timestamp: int
+    daemon: IPRDaemonInfo | None = None
     status: IPRDStatus | None = None
     error: str | None = None
 
@@ -176,6 +186,8 @@ class IPRDSocket(QObject):
         if response.type != IPRD_CMD_STATUS or response.status is None:
             self._emit_command_error("Invalid status response.")
             return None
+        if response.daemon is not None:
+            response.status.daemon = response.daemon
         return response.status
 
     def _emit_command_error(self, message: str) -> None:
