@@ -23,6 +23,7 @@ from mod.ipr_asic.schemas.goldshell import (
     Devs,
     MinerPasswdConfig,
     MinerPool,
+    NetworkInfo,
     PoolsResponse,
     Settings,
     Status,
@@ -125,6 +126,19 @@ class GoldshellHTTPClient(BaseHTTPClient):
             logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
             raise APIInvalidResponse
         else:
+            return resobj
+
+    async def get_network_info(self) -> NetworkInfo:
+        mac = await self.mac_address()
+        resp = await self.send_command("GET", command="ip")
+        try:
+            resobj = NetworkInfo.model_validate(obj=resp)
+        except ValidationError as e:
+            logger.error(f"{self.__repr__()} : {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
+        else:
+            resobj.ip = self.ip
+            resobj.mac = mac
             return resobj
 
     async def summary(self) -> Devs:

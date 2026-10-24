@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, RootModel
 from .models import (
     MinerConfigModel,
     MinerPoolModel,
+    NetworkInfoModel,
     SummaryModel,
     SystemInfoModel,
     VersionInfoModel,
@@ -99,3 +100,28 @@ class MinerPasswdConfig(BaseModel):
     curr_passwd: str = Field(serialization_alias="oldpassword")
     new_passwd: str = Field(serialization_alias="newpassword")
     confirm_passwd: str = Field(serialization_alias="cfmpassword")
+
+
+class NetworkInfo(NetworkInfoModel):
+    ip: str = ""
+    mac: str = ""
+    dhcp: bool = Field(validation_alias="useDHCP")
+    auto: bool = Field(validation_alias="useAuto")
+    mask: str | None = Field(validation_alias="Subnetmask")
+    gateway: str | None = Field(validation_alias="Router")
+    dns1: str | None = Field(validation_alias="DNS1")
+    dns2: str | None = Field(validation_alias="DNS2")
+
+
+class IPSettings(BaseModel):
+    ip: str = Field(validation_alias="IPv4addr")
+    mask: str = Field(validation_alias="Subnetmask")
+    gateway: str = Field(validation_alias="Router")
+    dns1: str = Field(validation_alias="DNS1")
+    dns2: str = Field(validation_alias="DNS2")
+
+
+class NetworkSettings(BaseModel):
+    dhcp: bool = Field(validation_alias="useDHCP")
+    auto: bool = Field(validation_alias="useAuto")
+    set_ip: IPSettings = Field(validation_alias="setIP")
