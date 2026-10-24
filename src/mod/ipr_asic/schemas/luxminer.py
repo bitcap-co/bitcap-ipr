@@ -4,7 +4,7 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from .cgminer import (
     BaseCGMinerResponse,
@@ -15,6 +15,7 @@ from .cgminer import (
     BaseSummary,
 )
 from .models import (
+    NetworkInfoModel,
     SystemInfoModel,
 )
 
@@ -69,6 +70,21 @@ class Config(SystemInfoModel):
     update_on_user: str = Field(alias="UpdateOnUser")
     update_source: str = Field(alias="UpdateSource")
     update_timeout: int = Field(alias="UpdateTimeout")
+
+
+class NetworkInfo(NetworkInfoModel):
+    dhcp: bool = Field(alias="DHCP")
+    dns_servers: list[str] = Field(alias="DNS Servers")
+    gateway: str = Field(alias="Gateway")
+    hostname: str = Field(alias="Hostname")
+    ip_addr: str = Field(alias="IPAddr")
+    mac_addr: str = Field(alias="MACAddr")
+    netmask: str = Field(alias="Netmask")
+    bcast_addr: str = Field(alias="BcastAddr")
+
+    @field_validator("dns_servers", mode="before")
+    def split_dns(cls, v: str) -> list[str]:
+        return v.split(",")
 
 
 class Summary(BaseSummary):

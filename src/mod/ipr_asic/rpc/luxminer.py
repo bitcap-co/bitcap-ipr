@@ -10,7 +10,14 @@ from pydantic import TypeAdapter
 
 from mod.ipr_asic.errors import APIError
 from mod.ipr_asic.rpc.cgminer import CGMinerRPCClient
-from mod.ipr_asic.schemas.luxminer import Config, Dev, Devdetail, MinerPool, Summary
+from mod.ipr_asic.schemas.luxminer import (
+    Config,
+    Dev,
+    Devdetail,
+    MinerPool,
+    NetworkInfo,
+    Summary,
+)
 from mod.ipr_asic.schemas.models import ActionResult, APIObject, BlinkStatus
 
 logger = logging.getLogger(__name__)
@@ -81,6 +88,10 @@ class LuxminerRPCClient(CGMinerRPCClient):
     @override
     async def get_system_info(self) -> Config:
         return await self._get_one("config", "CONFIG", TypeAdapter(Config))
+
+    @override
+    async def get_network_info(self) -> NetworkInfo:
+        return await self._get_one("config", "CONFIG", TypeAdapter(NetworkInfo))
 
     async def get_blink_status(self) -> BlinkStatus:
         resp = await self.get_system_info()
