@@ -11,7 +11,12 @@ from pydantic import ValidationError
 
 from mod.ipr_asic.errors import APIInvalidResponse
 from mod.ipr_asic.protocol.http import BaseHTTPClient
-from mod.ipr_asic.schemas.models import PoolConfig, SummaryModel, VersionInfoModel
+from mod.ipr_asic.schemas.models import (
+    NetworkInfoModel,
+    PoolConfig,
+    SummaryModel,
+    VersionInfoModel,
+)
 from mod.ipr_asic.schemas.srbminer import SRBMinerInfo, SRBPool
 
 logger = logging.getLogger(__name__)
@@ -58,6 +63,10 @@ class SRBMinerHTTPClient(BaseHTTPClient):
             raise APIInvalidResponse
         else:
             return info
+
+    async def get_network_info(self) -> NetworkInfoModel:
+        # generic SRBMiner exposes no consolidated network-info command
+        return NetworkInfoModel()
 
     async def summary(self) -> SummaryModel:
         # not exposed by SRBMiner API
