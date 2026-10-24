@@ -29,13 +29,14 @@
     * Miner control
     >- [x] Locate by blinking LEDs for set duration
     >- [x] Start/Stop, Restart, Reboot methods
+    >- [x] Get miner logs 
     >- [ ] Update firmware
 
     * Miner configuration
     >- [x] Set/Update pool configuration
     >- [x] Set password authentication
     >- [ ] Network configuration
-    >- [ ] Reset configuration
+    >- [x] Reset configuration
     >- [ ] Set Fan & Power modes
     >- [ ] Ability to set power/tune presets if supported (i.e. Vnish firmware)
 
