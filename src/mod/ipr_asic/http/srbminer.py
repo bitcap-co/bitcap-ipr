@@ -65,7 +65,7 @@ class SRBMinerHTTPClient(BaseHTTPClient):
             return info
 
     async def get_network_info(self) -> NetworkInfoModel:
-        # generic SRBMiner exposes no consolidated network-info command
+        # not exposed by SRBMiner API
         return NetworkInfoModel()
 
     async def summary(self) -> SummaryModel:
