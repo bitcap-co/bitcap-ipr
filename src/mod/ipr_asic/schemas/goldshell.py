@@ -102,26 +102,21 @@ class MinerPasswdConfig(BaseModel):
     confirm_passwd: str = Field(serialization_alias="cfmpassword")
 
 
-class NetworkInfo(NetworkInfoModel):
-    ip: str = ""
-    mac: str = ""
-    dhcp: bool = Field(validation_alias="useDHCP")
-    auto: bool = Field(validation_alias="useAuto")
-    mask: str | None = Field(validation_alias="Subnetmask")
-    gateway: str | None = Field(validation_alias="Router")
-    dns1: str | None = Field(validation_alias="DNS1")
-    dns2: str | None = Field(validation_alias="DNS2")
-
-
 class IPSettings(BaseModel):
-    ip: str = Field(validation_alias="IPv4addr")
-    mask: str = Field(validation_alias="Subnetmask")
-    gateway: str = Field(validation_alias="Router")
-    dns1: str = Field(validation_alias="DNS1")
-    dns2: str = Field(validation_alias="DNS2")
+    ip: str | None = Field(None, validation_alias="IPv4addr")
+    mask: str | None = Field(None, validation_alias="Subnetmask")
+    gateway: str | None = Field(None, validation_alias="Router")
+    dns1: str | None = Field(None, validation_alias="DNS1")
+    dns2: str | None = Field(None, validation_alias="DNS2")
 
 
 class NetworkSettings(BaseModel):
     dhcp: bool = Field(validation_alias="useDHCP")
     auto: bool = Field(validation_alias="useAuto")
     set_ip: IPSettings = Field(validation_alias="setIP")
+
+
+class NetworkInfo(NetworkInfoModel):
+    ip: str = ""
+    mac: str = ""
+    net_settings: NetworkSettings
