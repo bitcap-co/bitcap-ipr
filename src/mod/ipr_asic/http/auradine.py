@@ -332,7 +332,11 @@ class AuradineHTTPClient(BaseHTTPClient):
 
     @override
     async def restart(self) -> APIObject:
-        return await super().restart()
+        return await self.send_command(
+            "POST",
+            command="restart",
+            payload={"command": "restart", "parameter": "gcminer"},
+        )
 
     @override
     async def reboot(self) -> APIObject:
