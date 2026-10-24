@@ -25,6 +25,7 @@ from mod.ipr_asic.schemas.cgminer import (
 from mod.ipr_asic.schemas.models import (
     APIObject,
     MinerPoolConfig,
+    NetworkInfoModel,
     PoolConfig,
     SystemInfoModel,
 )
@@ -125,6 +126,10 @@ class CGMinerRPCClient(CGMinerRPCLayer):
     async def get_system_info(self) -> SystemInfoModel:
         # generic CGMiner exposes no consolidated system-info command
         return SystemInfoModel()
+
+    async def get_network_info(self) -> NetworkInfoModel:
+        # generic CGMiner exposes no consolidated network-info command
+        return NetworkInfoModel()
 
     async def get_pool_conf(self) -> PoolConfig:
         pools = await self.pools()
