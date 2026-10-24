@@ -42,6 +42,7 @@ from mod.ipr_asic.schemas.whatsminer import (
     BTMinerDevice,
     BTMinerEncryptedCommand,
     BTMinerLogResponse,
+    BTMinerNetworkInfo,
     BTMinerPool,
     BTMinerSummary,
     BTMinerSystemInfo,
@@ -220,12 +221,12 @@ class WhatsminerRPCClient(CGMinerRPCLayer):
 
     @override
     async def hostname(self) -> str:
-        resp = await self.get_system_info()
+        resp = await self.get_network_info()
         return resp.hostname or ""
 
     @override
     async def mac_address(self) -> str:
-        resp = await self.get_system_info()
+        resp = await self.get_network_info()
         return resp.mac or ""
 
     async def get_version_info(self) -> tuple[str, BTMinerVersion]:
@@ -267,6 +268,10 @@ class WhatsminerRPCClient(CGMinerRPCLayer):
     async def get_system_info(self) -> BTMinerSystemInfo:
         resp = await self.send_command("get_miner_info")
         return self._unmarshal_msg(resp, TypeAdapter(BTMinerSystemInfo))
+
+    async def get_network_info(self) -> BTMinerNetworkInfo:
+        resp = await self.send_command("get_miner_info")
+        return self._unmarshal_msg(resp, TypeAdapter(BTMinerNetworkInfo))
 
     async def get_blink_status(self) -> BlinkStatus:
         resp = await self.get_system_info()

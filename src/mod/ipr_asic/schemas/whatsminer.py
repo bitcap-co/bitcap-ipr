@@ -1,7 +1,7 @@
 import datetime
 from typing import ClassVar, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, RootModel
+from pydantic import BaseModel, ConfigDict, Field, RootModel, field_validator
 
 from .cgminer import BaseDev, BaseDevDetails, BasePool, BaseSummary, BaseVersion
 from .models import (
@@ -53,6 +53,23 @@ class BTMinerSystemInfo(SystemInfoModel):
     minersn: str = ""
     powersn: str = ""
     upfreq_speed: str | None = None
+
+
+class BTMinerNetworkInfo(NetworkInfoModel):
+    ip: str | None = None
+    proto: str | None = None
+    netmask: str | None = None
+    gateway: str | None = None
+    dns: list[str] | None = None
+    hostname: str | None = None
+    mac: str | None = None
+
+    @field_validator("dns", mode="before")
+    @classmethod
+    def split_dns(cls, value: str | None) -> list[str] | None:
+        if value is None:
+            return None
+        return value.split(" ")
 
 
 class BTMinerVersion(BaseVersion):
