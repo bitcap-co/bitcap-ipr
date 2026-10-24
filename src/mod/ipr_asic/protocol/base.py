@@ -133,6 +133,18 @@ class BaseClient(ABC):
         """Updates the pool configuration of a miner."""
         self._unsupported("pool configuration update")
 
+    async def update_network_conf(
+        self,
+        dhcp: bool,
+        hostname: str,
+        ip: str,
+        mask: str,
+        gateway: str,
+        dns: list[str],
+    ) -> APIObject:
+        """Updates the network configuration of a miner."""
+        self._unsupported("network configuration update")
+
     def error(self) -> Exception | None:
         """Return the last exception that occurred."""
         return self._ex
