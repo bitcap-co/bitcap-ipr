@@ -166,6 +166,7 @@ class TestListenState(unittest.TestCase):
             set_listen_state=set_listen_state,
             _update_listen_controls=update_controls,
             notify=notify,
+            is_minimized_to_tray=lambda: False,
         )
         error = ListenerError(
             listener="Listener[Goldshell:1314]",
@@ -194,6 +195,7 @@ class TestListenState(unittest.TestCase):
             set_listen_state=set_listen_state,
             _update_listen_controls=update_controls,
             notify=notify,
+            is_minimized_to_tray=lambda: False,
         )
         error = ListenerError(
             listener="Listener[Goldshell:1314]",
@@ -213,7 +215,9 @@ class TestListenState(unittest.TestCase):
 
     def test_bind_error_only_displays_startup_diagnostic(self) -> None:
         notify = Mock()
-        subject: Any = SimpleNamespace(notify=notify)
+        subject: Any = SimpleNamespace(
+            notify=notify, is_minimized_to_tray=lambda: False
+        )
         error = ListenerError(
             listener="Listener[Goldshell:1314]",
             port=1314,

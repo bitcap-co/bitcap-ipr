@@ -20,6 +20,7 @@ class TestIPRDRecoveryStatus(unittest.TestCase):
             _listen_state=ListenState.CONNECTING,
             _reconnect_delay_ms=0,
             set_listen_state=lambda state: setattr(subject, "_listen_state", state),
+            is_minimized_to_tray=lambda: False,
         )
 
         IPR.on_iprd_reconnecting(subject, 30000)
