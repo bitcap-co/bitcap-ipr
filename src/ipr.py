@@ -1496,6 +1496,13 @@ Statistics:
             f"Status :: Failed to start listening for {error.port_name}: "
             f"{error.message}; {error.port_name} reports will be excluded."
         )
+        if self.is_minimized_to_tray():
+            self.sys_tray.showMessage(
+                "IPR Listener Error",
+                f"Listener {error.port_name} stopped: {error.message}",
+                QSystemTrayIcon.MessageIcon.Warning,
+                5000,
+            )
 
     def show_listener_error(self, error: ListenerError) -> None:
         if self.lm.count:
@@ -1515,20 +1522,48 @@ Statistics:
             )
         self._update_listen_controls()
         self.notify(message)
+        if self.is_minimized_to_tray():
+            self.sys_tray.showMessage(
+                "IPR Listener Error",
+                f"Listener {error.port_name} stopped: {error.message}",
+                QSystemTrayIcon.MessageIcon.Warning,
+                5000,
+            )
 
     def on_iprd_discovery_error(self, error_str: str) -> None:
         logger.error(f"IPRD discovery error: {error_str}")
         if self.checkEnableIPRDAutoDiscover.isChecked():
             self.notify(f"Status :: IPRD discovery error: {error_str}")
+            if self.is_minimized_to_tray():
+                self.sys_tray.showMessage(
+                    "IPR Listener Error",
+                    f"IPRD discovery error: {error_str}",
+                    QSystemTrayIcon.MessageIcon.Warning,
+                    5000,
+                )
 
     def on_iprd_network_error(self, error_str: str) -> None:
         logger.error(f"IPRD network monitor error: {error_str}")
         if self._iprd_listening:
             self.notify(f"Status :: IPRD network monitor error: {error_str}")
+            if self.is_minimized_to_tray():
+                self.sys_tray.showMessage(
+                    "IPR Listener Error",
+                    f"IPRD network monitor error: {error_str}",
+                    QSystemTrayIcon.MessageIcon.Warning,
+                    5000,
+                )
 
     def on_iprd_controller_error(self, error_str: str) -> None:
         logger.error(f"IPRD recovery error: {error_str}")
         self.notify(f"Status :: IPRD recovery error: {error_str}")
+        if self.is_minimized_to_tray():
+            self.sys_tray.showMessage(
+                "IPR Listener Error",
+                f"IPRD recovery error: {error_str}",
+                QSystemTrayIcon.MessageIcon.Warning,
+                5000,
+            )
 
     def on_iprd_controller_state_changed(self, state: IPRDControllerState) -> None:
         state_map = {
@@ -1549,6 +1584,13 @@ Statistics:
     def on_iprd_subscribed(self):
         self._last_iprd_error = ""
         self.set_listen_state(ListenState.SUBSCRIBED)
+        if self.is_minimized_to_tray():
+            self.sys_tray.showMessage(
+                "IPR Listener Connected",
+                f"Subscribed to {self.iprd_controller.listener!r}",
+                QSystemTrayIcon.MessageIcon.Information,
+                3000,
+            )
 
     def show_iprd_error(self, error_str: str):
         # The controller emits connection_error once per retry cycle, immediately
@@ -1561,6 +1603,13 @@ Statistics:
     def on_iprd_reconnecting(self, delay_ms: int):
         self._reconnect_delay_ms = delay_ms
         self.set_listen_state(ListenState.RECONNECTING)
+        if self.is_minimized_to_tray():
+            self.sys_tray.showMessage(
+                "IPR Listener Reconnecting...",
+                f"Reconnecting in {delay_ms}ms.",
+                QSystemTrayIcon.MessageIcon.Information,
+                2000,
+            )
 
     @asyncSlot(IPReport)
     async def process_result(self, result: IPReport) -> None:
