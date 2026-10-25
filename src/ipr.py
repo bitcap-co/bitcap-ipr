@@ -136,7 +136,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self._processing_report_ips: set[str] = set()
         self._report_processing_lock: asyncio.Lock = asyncio.Lock()
         self.sys_tray: QSystemTrayIcon = QSystemTrayIcon(
-            QIcon(":rc/img/BitCapIPR_BLK-02_Sqaure.png"),
+            QIcon(":rc/img/BitCapIPR_BLK-02_Square.png"),
             parent=self,
             toolTip="BitCap IPReporter",
             visible=False,
