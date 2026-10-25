@@ -1239,32 +1239,33 @@ class IPR(QMainWindow, Ui_MainWindow):
             status = self.iprd_socket.status()
             if status is None:
                 return
-            daemon_info = ""
+            # parse human-readable daemon info
+            daemon_info: str = ""
             if status.daemon is not None:
                 daemon = status.daemon
-                build_time = ""
+                build_time: str = ""
                 if daemon.build_time != "":
                     build_time = normalize_datetime(daemon.build_time)
-                commit = daemon.commit_hash
+                commit: str = ""
                 if len(daemon.commit_hash) > 7:
                     commit = daemon.commit_hash[:7]
-                build_details: list[str] = []
+                details: list[str] = []
                 if daemon.delta != "":
                     if commit != "":
-                        build_details.append(commit)
-                    build_details.append(f"{daemon.delta}-line delta")
+                        details.append(commit)
+                    details.append(f"{daemon.delta}-line delta")
                 else:
                     if daemon.tag != "":
-                        # local git tag
-                        if len(daemon.tag.split("-")) > 1:
-                            build_details.append(daemon.tag.split("-")[0])
+                        # split local git tag
+                        if len(parts := daemon.tag.split("-")) > 1:
+                            details.append(parts[0])
                         else:
-                            build_details.append(daemon.tag)
+                            details.append(daemon.tag)
                     if commit != "":
-                        build_details.append(commit)
-                version_info = ""
-                if len(build_details) > 0:
-                    version_info = " (" + ", ".join(build_details) + ")"
+                        details.append(commit)
+                version_info: str = ""
+                if len(details) > 0:
+                    version_info = " (" + ", ".join(details) + ")"
                 daemon_info = f"""Daemon: IPR Daemon {daemon.version}{version_info}
 Build Time: {build_time}
 """
