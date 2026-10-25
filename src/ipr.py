@@ -142,8 +142,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             visible=False,
         )
         self.sys_tray_context_menu: QMenu = QMenu(self)
-        self.sys_tray_context_menu.addAction("Show/Hide", self.toggle_visibility)
-        self.sys_tray_context_menu.addAction("Open Log", self.open_log)
+        _ = self.sys_tray_context_menu.addAction("Show/Hide", self.toggle_visibility)
+        _ = self.sys_tray_context_menu.addAction("Open Log", self.open_log)
         self.actionSysStartListen: QAction = self.sys_tray_context_menu.addAction(
             "Start Listen", self.start_listen
         )
@@ -151,56 +151,56 @@ class IPR(QMainWindow, Ui_MainWindow):
             "Stop Listen", self.stop_listen
         )
         self.actionSysStopListen.setEnabled(False)
-        self.sys_tray_context_menu.addSeparator()
-        self.sys_tray_context_menu.addAction(
+        _ = self.sys_tray_context_menu.addSeparator()
+        _ = self.sys_tray_context_menu.addAction(
             "Settings", lambda: self.update_stacked_widget(view_index=2)
         )
-        self.sys_tray_context_menu.addAction("Quit", self.quit)
+        _ = self.sys_tray_context_menu.addAction("Quit", self.quit)
         self.sys_tray.setContextMenu(self.sys_tray_context_menu)
-        self.sys_tray.activated.connect(self.activate_system_tray)
+        _ = self.sys_tray.activated.connect(self.activate_system_tray)
 
         logger.info(" init inactive timer for 900000ms.")
         self.inactive: QTimer = QTimer(self)
         self.inactive.setInterval(INACTIVE_TIMEOUT_MS)
-        self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
+        _ = self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
 
         logger.info(" init mod lm.")
         self.lm: ListenerManager = ListenerManager(self)
-        self.lm.error_received.connect(self.show_listener_error)
-        self.lm.bind_failed.connect(self.show_listener_bind_error)
-        self.lm.report_received.connect(self.process_result)
+        _ = self.lm.error_received.connect(self.show_listener_error)
+        _ = self.lm.bind_failed.connect(self.show_listener_bind_error)
+        _ = self.lm.report_received.connect(self.process_result)
         self.iprd_socket: IPRDSocket = IPRDSocket(self)
-        self.iprd_socket.error.connect(self.show_iprd_socket_error)
+        _ = self.iprd_socket.error.connect(self.show_iprd_socket_error)
         # init iprd transport, discovery, and recovery policy
         self.iprd: IPRDListener = IPRDListener(self)
-        self.iprd.subscribed.connect(self.on_iprd_subscribed)
+        _ = self.iprd.subscribed.connect(self.on_iprd_subscribed)
         self.iprd_discovery: IPRDServiceListener = IPRDServiceListener(self)
-        self.iprd_discovery.error.connect(self.on_iprd_discovery_error)
+        _ = self.iprd_discovery.error.connect(self.on_iprd_discovery_error)
         self.iprd_network: NetworkMonitor = NetworkMonitor(self)
-        self.iprd_network.error.connect(self.on_iprd_network_error)
+        _ = self.iprd_network.error.connect(self.on_iprd_network_error)
         self.iprd_controller: IPRDController = IPRDController(
             self,
             listener=self.iprd,
             discovery=self.iprd_discovery,
             network_monitor=self.iprd_network,
         )
-        self.iprd_controller.report_received.connect(self.process_result)
-        self.iprd_controller.state_changed.connect(
+        _ = self.iprd_controller.report_received.connect(self.process_result)
+        _ = self.iprd_controller.state_changed.connect(
             self.on_iprd_controller_state_changed
         )
-        self.iprd_controller.error.connect(self.on_iprd_controller_error)
-        self.iprd_controller.connection_error.connect(self.show_iprd_error)
-        self.iprd_controller.reconnecting.connect(self.on_iprd_reconnecting)
+        _ = self.iprd_controller.error.connect(self.on_iprd_controller_error)
+        _ = self.iprd_controller.connection_error.connect(self.show_iprd_error)
+        _ = self.iprd_controller.reconnecting.connect(self.on_iprd_reconnecting)
         # whether the user currently wants the iprd backend listening.
         self._iprd_listening: bool = False
         if self._app_instance is not None:
-            self._app_instance.applicationStateChanged.connect(
+            _ = self._app_instance.applicationStateChanged.connect(
                 self.on_application_state_changed
             )
         self._resume_inactive_timer: bool = False
         self.power: PowerMonitor = PowerMonitor(self)
-        self.power.aboutToSuspend.connect(self.on_suspend)
-        self.power.resumed.connect(self.on_resume)
+        _ = self.power.aboutToSuspend.connect(self.on_suspend)
+        _ = self.power.resumed.connect(self.on_resume)
 
         # status bar state: a single persistent "base" message reflects what the
         # app is currently doing; transient notifications are layered on top via
@@ -217,9 +217,11 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         # initialize IPR_Titlebar widget
         self.title_bar: IPRTitlebar = IPRTitlebar(self, "BitCap IPReporter")
-        self.title_bar.minimize_button.clicked.connect(self.window().showMinimized)
-        self.title_bar.maximize_button.clicked.connect(self.title_bar.toggle_maximize)
-        self.title_bar.close_button.clicked.connect(self.close_to_tray_or_exit)
+        _ = self.title_bar.minimize_button.clicked.connect(self.window().showMinimized)
+        _ = self.title_bar.maximize_button.clicked.connect(
+            self.title_bar.toggle_maximize
+        )
+        _ = self.title_bar.close_button.clicked.connect(self.close_to_tray_or_exit)
         title_bar_widget = self.titleBarWidget.layout()
         if title_bar_widget:
             title_bar_widget.addWidget(self.title_bar)
@@ -235,14 +237,14 @@ class IPR(QMainWindow, Ui_MainWindow):
             IPR_METADATA["appversion"],
             lambda: self.config.general.include_prereleases,
         )
-        self.update_controller.notification_requested.connect(self.notify)
-        self.update_controller.status_clear_requested.connect(
+        _ = self.update_controller.notification_requested.connect(self.notify)
+        _ = self.update_controller.status_clear_requested.connect(
             self.iprStatusBar.clearMessage
         )
-        self.update_controller.check_enabled_changed.connect(
+        _ = self.update_controller.check_enabled_changed.connect(
             self.menu_bar.actionCheckForUpdates.setEnabled
         )
-        self.update_controller.quit_requested.connect(self.quit)
+        _ = self.update_controller.quit_requested.connect(self.quit)
 
         self.table_controller: IPRTableController = IPRTableController(
             parent=self,
@@ -255,8 +257,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             ),
             dashboard_url=self.dashboard_url,
         )
-        self.table_controller.notification_requested.connect(self.notify)
-        self.table_controller.dashboard_requested.connect(self.open_dashboard)
+        _ = self.table_controller.notification_requested.connect(self.notify)
+        _ = self.table_controller.dashboard_requested.connect(self.open_dashboard)
         self.action_controller: MinerActionController = MinerActionController(
             parent=self,
             dependencies=MinerActionDependencies(
@@ -267,55 +269,65 @@ class IPR(QMainWindow, Ui_MainWindow):
                 locate_duration_ms=self.locate_duration_ms,
             ),
         )
-        self.action_controller.notification_requested.connect(self.notify)
-        self.table_controller.miner_action_requested.connect(
+        _ = self.action_controller.notification_requested.connect(self.notify)
+        _ = self.table_controller.miner_action_requested.connect(
             self.action_controller.open_miner_control
         )
-        self.table_controller.bulk_miner_action_requested.connect(
+        _ = self.table_controller.bulk_miner_action_requested.connect(
             self.action_controller.dispatch_bulk_control
         )
 
         # IPR_Menubar signals
-        self.menu_bar.actionAbout.triggered.connect(self.about)
-        self.menu_bar.actionOpenLog.triggered.connect(self.open_log)
-        self.menu_bar.actionReportIssue.triggered.connect(self.open_issues)
-        self.menu_bar.actionSourceCode.triggered.connect(self.open_source)
-        self.menu_bar.actionCheckForUpdates.triggered.connect(
+        _ = self.menu_bar.actionAbout.triggered.connect(self.about)
+        _ = self.menu_bar.actionOpenLog.triggered.connect(self.open_log)
+        _ = self.menu_bar.actionReportIssue.triggered.connect(self.open_issues)
+        _ = self.menu_bar.actionSourceCode.triggered.connect(self.open_source)
+        _ = self.menu_bar.actionCheckForUpdates.triggered.connect(
             self.update_controller.check_for_updates
         )
-        self.menu_bar.actionKillAllConfirmations.triggered.connect(self.killall)
-        self.menu_bar.actionQuit.triggered.connect(self.quit)
-        self.menu_bar.menuOptions.triggered.connect(self.update_settings)
-        self.menu_bar.actionEnableIDTable.triggered.connect(self.update_stacked_widget)
-        self.menu_bar.actionEnableIDTable.toggled.connect(self.toggle_table_settings)
-        self.menu_bar.actionOpenSelectedIPs.triggered.connect(
+        _ = self.menu_bar.actionKillAllConfirmations.triggered.connect(self.killall)
+        _ = self.menu_bar.actionQuit.triggered.connect(self.quit)
+        _ = self.menu_bar.menuOptions.triggered.connect(self.update_settings)
+        _ = self.menu_bar.actionEnableIDTable.triggered.connect(
+            self.update_stacked_widget
+        )
+        _ = self.menu_bar.actionEnableIDTable.toggled.connect(
+            self.toggle_table_settings
+        )
+        _ = self.menu_bar.actionOpenSelectedIPs.triggered.connect(
             self.table_controller.open_selected_ips
         )
-        self.menu_bar.actionCopySelectedElements.triggered.connect(
+        _ = self.menu_bar.actionCopySelectedElements.triggered.connect(
             self.table_controller.copy_selected
         )
-        self.menu_bar.actionResetSort.triggered.connect(
+        _ = self.menu_bar.actionResetSort.triggered.connect(
             self.table_controller.reset_sort
         )
-        self.menu_bar.actionResetView.triggered.connect(
+        _ = self.menu_bar.actionResetView.triggered.connect(
             self.table_controller.reset_view
         )
-        self.menu_bar.actionClearTable.triggered.connect(self.table_controller.clear)
-        self.menu_bar.actionImport.triggered.connect(self.table_controller.import_table)
-        self.menu_bar.actionExport.triggered.connect(self.table_controller.export_table)
-        self.menu_bar.actionShowConfigurator.toggled.connect(
+        _ = self.menu_bar.actionClearTable.triggered.connect(
+            self.table_controller.clear
+        )
+        _ = self.menu_bar.actionImport.triggered.connect(
+            self.table_controller.import_table
+        )
+        _ = self.menu_bar.actionExport.triggered.connect(
+            self.table_controller.export_table
+        )
+        _ = self.menu_bar.actionShowConfigurator.toggled.connect(
             self.table_controller.request_configurator_visibility
         )
-        self.menu_bar.actionConfiguratorGetPoolConfig.triggered.connect(
+        _ = self.menu_bar.actionConfiguratorGetPoolConfig.triggered.connect(
             self.table_controller.request_pool_retrieval
         )
-        self.menu_bar.actionConfiguratorSetPoolFromPreset.triggered.connect(
+        _ = self.menu_bar.actionConfiguratorSetPoolFromPreset.triggered.connect(
             self.table_controller.request_pool_update
         )
-        self.menu_bar.actionSettings.triggered.connect(
+        _ = self.menu_bar.actionSettings.triggered.connect(
             lambda: self.update_stacked_widget(view_index=2)
         )
-        self.menu_bar.actionDisableInactiveTimer.changed.connect(
+        _ = self.menu_bar.actionDisableInactiveTimer.changed.connect(
             self.update_inactive_timer
         )
 
@@ -365,7 +377,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         for child in self.groupListeners.children():
             if isinstance(child, QWidget):
                 child.setEnabled(True)
-        self.groupListeners.toggled.connect(self.toggle_all_listeners)
+        _ = self.groupListeners.toggled.connect(self.toggle_all_listeners)
 
         self.listenerConfig: QButtonGroup = QButtonGroup(self, exclusive=False)
         self.listenerConfig.addButton(self.checkListenAntminer, 1)
@@ -382,15 +394,15 @@ class IPR(QMainWindow, Ui_MainWindow):
         # HiveGPU is IPR Daemon only; id has no ListenerManager port mapping
         # so it acts purely as a listen filter option.
         self.listenerConfig.addButton(self.checkListenHiveGPU, 12)
-        self.listenerConfig.buttonClicked.connect(self.restart_listen)
+        _ = self.listenerConfig.buttonClicked.connect(self.restart_listen)
         # listener signals
-        self.pushIPRListenStart.clicked.connect(self.start_listen)
-        self.pushIPRListenStop.clicked.connect(self.stop_listen)
+        _ = self.pushIPRListenStart.clicked.connect(self.start_listen)
+        _ = self.pushIPRListenStop.clicked.connect(self.stop_listen)
 
-        self.checkEnableIPRDBackend.toggled.connect(self.toggle_iprd_settings)
-        self.checkEnableIPRDBackend.toggled.connect(self.restart_listen)
-        self.checkEnableIPRDAutoDiscover.toggled.connect(self.toggle_iprd_settings)
-        self.checkEnableIPRDAutoDiscover.toggled.connect(self.restart_listen)
+        _ = self.checkEnableIPRDBackend.toggled.connect(self.toggle_iprd_settings)
+        _ = self.checkEnableIPRDBackend.toggled.connect(self.restart_listen)
+        _ = self.checkEnableIPRDAutoDiscover.toggled.connect(self.toggle_iprd_settings)
+        _ = self.checkEnableIPRDAutoDiscover.toggled.connect(self.restart_listen)
 
         self.socket_selector: IPRPresetSelector = IPRPresetSelector(
             tooltip="Saved IPR Daemon socket addresses. Select one to switch instances.",
@@ -411,13 +423,13 @@ class IPR(QMainWindow, Ui_MainWindow):
             ),
             restart_listener=self.restart_listen,
         )
-        self.lineIPRDSocketAddress.editingFinished.connect(
+        _ = self.lineIPRDSocketAddress.editingFinished.connect(
             self.socket_preset_controller.save
         )
-        self.lineIPRDSocketAddress.editingFinished.connect(self.restart_listen)
+        _ = self.lineIPRDSocketAddress.editingFinished.connect(self.restart_listen)
 
         self.toolIPRDSocketStatus.setIcon(QIcon(":theme/icons/rc/info.png"))
-        self.toolIPRDSocketStatus.pressed.connect(self.show_iprd_socket_status)
+        _ = self.toolIPRDSocketStatus.pressed.connect(self.show_iprd_socket_status)
 
         # configurator
         self.configurator.hide()
@@ -450,9 +462,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                 ),
             ),
         )
-        self.pool_preset_controller.notification_requested.connect(self.notify)
-        self.actionIPRSavePreset.clicked.connect(self.pool_preset_controller.save)
-        self.actionIPRClearPreset.clicked.connect(
+        _ = self.pool_preset_controller.notification_requested.connect(self.notify)
+        _ = self.actionIPRSavePreset.clicked.connect(self.pool_preset_controller.save)
+        _ = self.actionIPRClearPreset.clicked.connect(
             self.pool_preset_controller.clear_fields
         )
         # password configurator
@@ -465,7 +477,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.actionToggleConfigConfirmPasswd: QAction = (
             self.create_passwd_toggle_action(self.linePasswdConfirm)
         )
-        self.checkUseNonDefaultPasswd.toggled.connect(
+        _ = self.checkUseNonDefaultPasswd.toggled.connect(
             lambda: self.linePasswdCurrent.setEnabled(
                 self.checkUseNonDefaultPasswd.isChecked()
             )
@@ -529,32 +541,32 @@ class IPR(QMainWindow, Ui_MainWindow):
                 ),
             )
         )
-        self.configurator_controller.notification_requested.connect(self.notify)
-        self.table_controller.pool_retrieval_requested.connect(
+        _ = self.configurator_controller.notification_requested.connect(self.notify)
+        _ = self.table_controller.pool_retrieval_requested.connect(
             self.configurator_controller.get_miner_pool
         )
-        self.table_controller.pool_update_requested.connect(
+        _ = self.table_controller.pool_update_requested.connect(
             self.configurator_controller.update_miner_pools
         )
-        self.table_controller.configurator_visibility_requested.connect(
+        _ = self.table_controller.configurator_visibility_requested.connect(
             self.configurator_controller.set_enabled
         )
-        self.btnConfiguratorCancel.clicked.connect(
+        _ = self.btnConfiguratorCancel.clicked.connect(
             self.configurator_controller.set_enabled
         )
-        self.btnConfiguratorApply.clicked.connect(
+        _ = self.btnConfiguratorApply.clicked.connect(
             self.configurator_controller.apply_configuration
         )
-        self.actionIPRStoreAsAlternative.clicked.connect(
+        _ = self.actionIPRStoreAsAlternative.clicked.connect(
             self.configurator_controller.update_alternative_passwords
         )
-        self.actionSelectLocalFirmware.clicked.connect(
+        _ = self.actionSelectLocalFirmware.clicked.connect(
             self.configurator_controller.update_firmware_path
         )
-        self.actionResetFirmware.clicked.connect(
+        _ = self.actionResetFirmware.clicked.connect(
             self.configurator_controller.reset_miner_firmware
         )
-        self.actionRollbackFirmware.clicked.connect(
+        _ = self.actionRollbackFirmware.clicked.connect(
             self.configurator_controller.rollback_miner_firmware
         )
 
@@ -563,33 +575,45 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         # action center
         self.btnBulkRefresh.setIcon(QIcon(":theme/icons/rc/refresh.png"))
-        self.btnBulkRefresh.clicked.connect(self.table_controller.request_bulk_refresh)
+        _ = self.btnBulkRefresh.clicked.connect(
+            self.table_controller.request_bulk_refresh
+        )
         self.btnBulkLocate.setIcon(QIcon(":theme/icons/rc/flash.png"))
-        self.btnBulkLocate.clicked.connect(self.table_controller.request_bulk_locate)
+        _ = self.btnBulkLocate.clicked.connect(
+            self.table_controller.request_bulk_locate
+        )
         self.btnBulkControl.setIcon(QIcon(":theme/icons/rc/wrench.png"))
-        self.btnBulkControl.clicked.connect(self.action_controller.open_bulk_control)
+        _ = self.btnBulkControl.clicked.connect(
+            self.action_controller.open_bulk_control
+        )
         self.btnBulkConfig.setIcon(QIcon(":theme/icons/rc/edit.png"))
-        self.btnBulkConfig.clicked.connect(
+        _ = self.btnBulkConfig.clicked.connect(
             lambda: self.configurator_controller.set_enabled(True)
         )
 
         # configuration control signals
-        self.pushIPRCancelConfig.clicked.connect(self.update_stacked_widget)
-        self.pushIPRSaveConfig.clicked.connect(self.update_settings)
-        self.pushIPRResetConfig.clicked.connect(self.reset_settings)
+        _ = self.pushIPRCancelConfig.clicked.connect(self.update_stacked_widget)
+        _ = self.pushIPRSaveConfig.clicked.connect(self.update_settings)
+        _ = self.pushIPRResetConfig.clicked.connect(self.reset_settings)
 
         # status bar
-        self.iprStatusBar.messageChanged.connect(self._on_status_message_changed)
+        _ = self.iprStatusBar.messageChanged.connect(self._on_status_message_changed)
 
         # system tray signals
-        self.checkEnableSysTray.toggled.connect(self.toggle_system_tray_settings)
-        self.checkEnableSysTray.stateChanged.connect(self.update_system_tray_visibility)
+        _ = self.checkEnableSysTray.toggled.connect(self.toggle_system_tray_settings)
+        _ = self.checkEnableSysTray.stateChanged.connect(
+            self.update_system_tray_visibility
+        )
 
         # configuration signals
-        self.checkUseCustomTimeout.toggled.connect(self.update_inactive_timer_settings)
-        self.spinInactiveTimeout.valueChanged.connect(self.update_inactive_timer)
-        self.spinLocateDuration.valueChanged.connect(self.update_miner_locate_duration)
-        self.comboLogLevel.currentIndexChanged.connect(self.set_logger_level)
+        _ = self.checkUseCustomTimeout.toggled.connect(
+            self.update_inactive_timer_settings
+        )
+        _ = self.spinInactiveTimeout.valueChanged.connect(self.update_inactive_timer)
+        _ = self.spinLocateDuration.valueChanged.connect(
+            self.update_miner_locate_duration
+        )
+        _ = self.comboLogLevel.currentIndexChanged.connect(self.set_logger_level)
 
         # set configuration
         self.read_settings()
@@ -893,7 +917,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         if not message:
             self._show_base_status()
 
-    def update_stacked_widget(self, view_index: int | None = None, *_):
+    def update_stacked_widget(self, view_index: int | None = None, *_: Any):
         if not view_index:
             if self.menu_bar.actionShowConfigurator.isChecked():
                 self.configurator.setVisible(True)
@@ -1312,7 +1336,7 @@ Statistics:
             QLineEdit.ActionPosition.TrailingPosition,
         )
         passwd_action.setToolTip("Show/Hide password")
-        passwd_action.triggered.connect(
+        _ = passwd_action.triggered.connect(
             lambda: self.toggle_show_passwd(line, passwd_action)
         )
         return passwd_action
@@ -1336,7 +1360,7 @@ Statistics:
             self.aboutDialog.show()
 
     def open_log(self):
-        QDesktopServices.openUrl(
+        _ = QDesktopServices.openUrl(
             QUrl(
                 f"file:///{get_log_file().resolve().as_posix()}",
                 QUrl.ParsingMode.TolerantMode,
@@ -1344,10 +1368,10 @@ Statistics:
         )
 
     def open_issues(self):
-        webbrowser.open(f"{IPR_METADATA['source']}/issues", new=2)
+        _ = webbrowser.open(f"{IPR_METADATA['source']}/issues", new=2)
 
     def open_source(self):
-        webbrowser.open(f"{IPR_METADATA['source']}", new=2)
+        _ = webbrowser.open(f"{IPR_METADATA['source']}", new=2)
 
     def dashboard_url(
         self, host: str, miner_type: MinerType | str | None = None
@@ -1361,7 +1385,7 @@ Statistics:
         return f"http://{host}:{port}"
 
     def open_dashboard(self, host: str, miner_type: MinerType | str | None = None):
-        webbrowser.open(self.dashboard_url(host, miner_type), new=2)
+        _ = webbrowser.open(self.dashboard_url(host, miner_type), new=2)
 
     # listener
     def _update_listen_controls(self):
@@ -1715,13 +1739,13 @@ Statistics:
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
             logger.info("show_confirmation : populate ID table.")
             if self.menu_bar.actionEnableLiveCapture.isChecked():
-                self.table_controller.populate_data(result)
+                _ = self.table_controller.populate_data(result)
             else:
-                self.table_controller.populate_data(result, dedupe_key="mac")
+                _ = self.table_controller.populate_data(result, dedupe_key="mac")
             self.activateWindow()
         else:
             confirm = IPRConfirmation(self.menu_bar.actionConfirmsStayOnTop.isChecked())
-            confirm.actionOpenDashboard.triggered.connect(
+            _ = confirm.actionOpenDashboard.triggered.connect(
                 lambda: self.open_dashboard(ip, type)
             )
 
@@ -1797,7 +1821,7 @@ Statistics:
     def killall(self):
         logger.info(" kill all confirmations.")
         for c in self.confirms:
-            c.close()
+            _ = c.close()
             c.deleteLater()
         self.confirms = []
         self.notify("Status :: Killed all confirmations.", 3000)
@@ -1808,23 +1832,23 @@ Statistics:
         self.sys_tray.hide()
         self.update_controller.stop()
         self.action_controller.stop()
-        self.iprd_controller.report_received.disconnect(self.process_result)
-        self.iprd_controller.state_changed.disconnect(
+        _ = self.iprd_controller.report_received.disconnect(self.process_result)
+        _ = self.iprd_controller.state_changed.disconnect(
             self.on_iprd_controller_state_changed
         )
-        self.iprd_controller.error.disconnect(self.on_iprd_controller_error)
-        self.iprd_controller.connection_error.disconnect(self.show_iprd_error)
-        self.iprd_controller.reconnecting.disconnect(self.on_iprd_reconnecting)
-        self.iprd_discovery.error.disconnect(self.on_iprd_discovery_error)
-        self.iprd_network.error.disconnect(self.on_iprd_network_error)
-        self.iprd.subscribed.disconnect(self.on_iprd_subscribed)
-        self.iprd_controller.close()
-        self.power.aboutToSuspend.disconnect(self.on_suspend)
-        self.power.resumed.disconnect(self.on_resume)
+        _ = self.iprd_controller.error.disconnect(self.on_iprd_controller_error)
+        _ = self.iprd_controller.connection_error.disconnect(self.show_iprd_error)
+        _ = self.iprd_controller.reconnecting.disconnect(self.on_iprd_reconnecting)
+        _ = self.iprd_discovery.error.disconnect(self.on_iprd_discovery_error)
+        _ = self.iprd_network.error.disconnect(self.on_iprd_network_error)
+        _ = self.iprd.subscribed.disconnect(self.on_iprd_subscribed)
+        _ = self.iprd_controller.close()
+        _ = self.power.aboutToSuspend.disconnect(self.on_suspend)
+        _ = self.power.resumed.disconnect(self.on_resume)
         self.lm.stop()
-        self.lm.report_received.disconnect(self.process_result)
-        self.lm.error_received.disconnect(self.show_listener_error)
-        self.lm.bind_failed.disconnect(self.show_listener_bind_error)
+        _ = self.lm.report_received.disconnect(self.process_result)
+        _ = self.lm.error_received.disconnect(self.show_listener_error)
+        _ = self.lm.bind_failed.disconnect(self.show_listener_bind_error)
         self.killall()
         logger.info(" write settings to disk.")
         self.write_settings()
@@ -1834,5 +1858,5 @@ Statistics:
             for handler in logger.root.handlers:
                 if isinstance(handler, RotatingFileHandler):
                     handler.doRollover()
-        self.close()
+        _ = self.close()
         self.deleteLater()
