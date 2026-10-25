@@ -1498,7 +1498,7 @@ Statistics:
         )
         if self.is_minimized_to_tray():
             self.sys_tray.showMessage(
-                "IPR Listener Error",
+                "IPR Listener: Error",
                 f"Listener {error.port_name} stopped: {error.message}",
                 QSystemTrayIcon.MessageIcon.Warning,
                 5000,
@@ -1524,7 +1524,7 @@ Statistics:
         self.notify(message)
         if self.is_minimized_to_tray():
             self.sys_tray.showMessage(
-                "IPR Listener Error",
+                "IPR Listener: Error",
                 f"Listener {error.port_name} stopped: {error.message}",
                 QSystemTrayIcon.MessageIcon.Warning,
                 5000,
@@ -1536,7 +1536,7 @@ Statistics:
             self.notify(f"Status :: IPRD discovery error: {error_str}")
             if self.is_minimized_to_tray():
                 self.sys_tray.showMessage(
-                    "IPR Listener Error",
+                    "IPR Listener: Error",
                     f"IPRD discovery error: {error_str}",
                     QSystemTrayIcon.MessageIcon.Warning,
                     5000,
@@ -1548,7 +1548,7 @@ Statistics:
             self.notify(f"Status :: IPRD network monitor error: {error_str}")
             if self.is_minimized_to_tray():
                 self.sys_tray.showMessage(
-                    "IPR Listener Error",
+                    "IPR Listener: Error",
                     f"IPRD network monitor error: {error_str}",
                     QSystemTrayIcon.MessageIcon.Warning,
                     5000,
@@ -1559,7 +1559,7 @@ Statistics:
         self.notify(f"Status :: IPRD recovery error: {error_str}")
         if self.is_minimized_to_tray():
             self.sys_tray.showMessage(
-                "IPR Listener Error",
+                "IPR Listener: Error",
                 f"IPRD recovery error: {error_str}",
                 QSystemTrayIcon.MessageIcon.Warning,
                 5000,
@@ -1586,7 +1586,7 @@ Statistics:
         self.set_listen_state(ListenState.SUBSCRIBED)
         if self.is_minimized_to_tray():
             self.sys_tray.showMessage(
-                "IPR Listener Connected",
+                "IPR Listener: Connected",
                 f"Subscribed to {self.iprd_controller.listener!r}",
                 QSystemTrayIcon.MessageIcon.Information,
                 3000,
@@ -1605,7 +1605,7 @@ Statistics:
         self.set_listen_state(ListenState.RECONNECTING)
         if self.is_minimized_to_tray():
             self.sys_tray.showMessage(
-                "IPR Listener Reconnecting...",
+                "IPR Listener: Reconnecting...",
                 f"Reconnecting in {delay_ms}ms.",
                 QSystemTrayIcon.MessageIcon.Information,
                 2000,
