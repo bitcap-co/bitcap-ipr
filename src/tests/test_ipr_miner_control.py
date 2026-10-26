@@ -132,7 +132,7 @@ class TestMinerActionController(unittest.IsolatedAsyncioTestCase):
         )
 
         result = await MinerActionController._save_miner_log(
-            subject, "10.0.0.5", MinerType.WHATSMINER, None
+            subject, "10.0.0.5", MinerType.HIVEGPU, None
         )
 
         self.assertIsInstance(result.error, UnsupportedOperationError)
