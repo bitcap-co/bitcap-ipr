@@ -360,6 +360,10 @@ class WhatsminerRPCClient(CGMinerRPCLayer):
             return response, content
 
     @override
+    async def get_miner_log(self) -> ContentResponse:
+        return await self.download_logs()
+
+    @override
     async def download_logs(self, log_list: list[str] | None = None) -> ContentResponse:
         for pwd in self.passwds:
             if not pwd:
@@ -621,6 +625,10 @@ class WhatsminerTCPClient(BaseTCPClient):
                 },
             ]
             return await self.send_command("set.system.led", param_data)
+
+    @override
+    async def get_miner_log(self) -> ContentResponse:
+        return await self.download_logs()
 
     @override
     async def download_logs(self, log_list: list[str] | None = None) -> ContentResponse:

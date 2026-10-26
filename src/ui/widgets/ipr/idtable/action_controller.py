@@ -293,7 +293,6 @@ class MinerActionController(QObject):
             MinerType.IPOLLO,
             MinerType.HIVEGPU,
             MinerType.HAMMER,
-            MinerType.WHATSMINER,
             MinerType.LUX_OS,
         ):
             error = UnsupportedOperationError(
