@@ -14,6 +14,8 @@ from PySide6.QtCore import QObject, Signal
 from PySide6.QtNetwork import QAbstractSocket, QHostAddress, QTcpSocket
 from typing_extensions import override
 
+from utils import normalize_datetime
+
 logger = logging.getLogger(__name__)
 
 IPRD_CMD_SUBSCRIBE = "iprd_subscribe"
@@ -31,6 +33,35 @@ class IPRDaemonInfo(BaseModel):
     commit_hash: str = Field(validation_alias="commitHash")
     delta: str
     build_time: str = Field(validation_alias="buildTime")
+
+    def pretty_print(self) -> str:
+        daemon_info: str = ""
+        build_time: str = self.build_time
+        if self.build_time != "":
+            build_time = normalize_datetime(self.build_time)
+        root_tag: str = self.tag
+        if self.tag != "":
+            root_tag = self.tag.split("-")[0]
+        short_commit: str = self.commit_hash
+        if len(self.commit_hash) > 7:
+            short_commit = self.commit_hash[:7]
+        details: list[str] = []
+        if self.delta != "":
+            if short_commit != "":
+                details.append(short_commit)
+            details.append(f"{self.delta} delta")
+        else:
+            if root_tag != "":
+                details.append(root_tag)
+            if short_commit != "":
+                details.append(short_commit)
+        daemon_details: str = ""
+        if len(details) > 0:
+            daemon_details = " (" + ", ".join(details) + ")"
+        daemon_info = f"""IPR Daemon {self.version}{daemon_details}
+Build Time: {build_time}
+"""
+        return daemon_info
 
 
 class PacketCounters(BaseModel):
@@ -74,6 +105,29 @@ class IPRDStatus(BaseModel):
     last_error_at: datetime.datetime | None = Field(
         None, validation_alias="lastErrorAt"
     )
+
+    def pretty_print(self) -> str:
+        daemon_info: str = ""
+        if self.daemon is not None:
+            daemon_info = f"Daemon: {self.daemon.pretty_print()}"
+        return f"""{daemon_info}
+State: {self.state}
+Active Listeners: {self.listeners_active}/{self.listeners_configured}
+Statistics:
+    Errors:
+        {self.activation_failures} activation
+        {self.capture_errors} capture
+        {self.capture_write_errors} capture-write
+        {self.reconnects} reconnects
+    Packets:
+        {self.packets.processed} processed
+        {self.packets.reports} reports
+        {self.packets.invalid} invalid
+        {self.packets.duplicates} duplicates
+        {self.packets.unknown_filtered} filtered
+    Last Packet At: {normalize_datetime(self.last_packet_at)}
+    Last Report At: {normalize_datetime(self.last_report_at)}
+"""
 
 
 class IPRDResponse(BaseModel):

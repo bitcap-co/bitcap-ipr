@@ -88,7 +88,6 @@ from utils import (
     CURR_PLATFORM,
     IPR_METADATA,
     get_log_file,
-    normalize_datetime,
 )
 
 logger = logging.getLogger(__name__)
@@ -1239,36 +1238,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             status = self.iprd_socket.status()
             if status is None:
                 return
-            # parse human-readable daemon info
-            daemon_info: str = ""
-            if status.daemon is not None:
-                daemon = status.daemon
-                build_time: str = ""
-                if daemon.build_time != "":
-                    build_time = normalize_datetime(daemon.build_time)
-                commit: str = ""
-                if len(daemon.commit_hash) > 7:
-                    commit = daemon.commit_hash[:7]
-                details: list[str] = []
-                if daemon.delta != "":
-                    if commit != "":
-                        details.append(commit)
-                    details.append(f"{daemon.delta}-line delta")
-                else:
-                    if daemon.tag != "":
-                        # split local git tag
-                        if len(parts := daemon.tag.split("-")) > 1:
-                            details.append(parts[0])
-                        else:
-                            details.append(daemon.tag)
-                    if commit != "":
-                        details.append(commit)
-                version_info: str = ""
-                if len(details) > 0:
-                    version_info = " (" + ", ".join(details) + ")"
-                daemon_info = f"""Daemon: IPR Daemon {daemon.version}{version_info}
-Build Time: {build_time}
-"""
             instance_name = socket_addr
             preset = self.comboIPRDPreset.currentText()
             if not self.checkEnableIPRDAutoDiscover.isChecked() and preset:
@@ -1278,23 +1247,7 @@ Build Time: {build_time}
                 self,
                 "Status information",
                 f"""Instance {instance_name}
-{daemon_info}
-State: {status.state}
-Active Listeners: {status.listeners_active}/{status.listeners_configured}
-Statistics:
-    Errors:
-        {status.activation_failures} activation
-        {status.capture_errors} capture
-        {status.capture_write_errors} capture-write
-        {status.reconnects} reconnects
-    Packets:
-        {status.packets.processed} processed
-        {status.packets.reports} reports
-        {status.packets.invalid} invalid
-        {status.packets.duplicates} duplicates
-        {status.packets.unknown_filtered} filtered
-    Last Packet At: {normalize_datetime(status.last_packet_at)}
-    Last Report At: {normalize_datetime(status.last_report_at)}
+{status.pretty_print()}
 """,
             )
             _ = dialog.exec()
