@@ -43,7 +43,7 @@ class SealminerParser:
             data.subtype = clean_model_name(
                 models.system_info.miner_type, vendor="SealMiner"
             )
-            data.mac = models.system_info.macaddr
+            data.mac = models.system_info.macaddr.lower()
             data.fw_version = models.system_info.firmware_version
             data.platform = models.system_info.ctrl_version
 

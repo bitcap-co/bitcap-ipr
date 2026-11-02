@@ -43,7 +43,7 @@ class VnishParser:
             data.subtype = clean_model_name(models.system_info.miner, vendor="Antminer")
             net_info = models.system_info.system.network_status
             data.hostname = net_info.hostname
-            data.mac = net_info.mac
+            data.mac = net_info.mac.lower()
             data.serial = models.system_info.serial
             data.fw_version = models.system_info.fw_version
             data.algorithm = MinerAlgorithm.from_value(models.system_info.algorithm)

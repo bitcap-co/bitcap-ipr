@@ -38,7 +38,7 @@ class ElphapexParser:
                 models.system_info.minertype, vendor="Elphapex"
             )
             data.hostname = models.system_info.hostname
-            data.mac = models.system_info.macaddr
+            data.mac = models.system_info.macaddr.lower()
             data.fw_version = models.system_info.system_filesystem_version
 
         for pool in models.pools or []:

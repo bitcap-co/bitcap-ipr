@@ -313,7 +313,7 @@ class TestMinerActionController(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(source_row, 8)
         self.assertIs(populated_data, result.miner_data)
         self.assertEqual(populated_data.ip, "10.0.0.12")
-        self.assertEqual(populated_data.mac, "aa:bb:cc:dd:ee:ff")
+        self.assertEqual(populated_data.mac.lower(), "aa:bb:cc:dd:ee:ff")
         self.assertIsInstance(populated_data.recv_at, int)
         subject.notification_requested.emit.assert_called_once_with(
             "Status :: Successfully refreshed 10.0.0.12 miner data.", 3000

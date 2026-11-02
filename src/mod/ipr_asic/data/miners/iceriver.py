@@ -67,7 +67,7 @@ class IceriverParser:
             data.subtype = clean_model_name(summary.model, vendor="IceRiver")
 
         data.hostname = summary.host
-        data.mac = summary.mac
+        data.mac = summary.mac.lower()
         data.fw_version = summary.softver1
 
         data.algorithm = None

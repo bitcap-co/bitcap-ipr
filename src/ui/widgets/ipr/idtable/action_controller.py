@@ -553,8 +553,6 @@ class MinerActionController(QObject):
         miner_data = result.miner_data
         miner_data.recv_at = int(time.time())
         miner_data.ip = ip_addr
-        if miner_data.mac:
-            miner_data.mac = miner_data.mac.lower()
         self._table_controller.populate_data(miner_data, source_row)
 
     def stop(self) -> None:

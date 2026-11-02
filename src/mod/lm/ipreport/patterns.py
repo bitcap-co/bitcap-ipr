@@ -58,6 +58,33 @@ class MinerTypeHint(IntEnum):
         return cls(port)
 
 
+def parse_ipv4(addr: str) -> str:
+    if addr == "":
+        return ""
+    address = addr.strip()
+    try:
+        address = str(ipaddress.IPv4Address(address))
+    except ipaddress.AddressValueError:
+        address = ""
+    return address
+
+
+def parse_mac(addr: str) -> str:
+    if addr == "":
+        return ""
+    address = addr.strip().lower()
+    match len(address):
+        case 17:
+            address = address.replace("-", ":")
+        case 12:
+            address = ":".join(address[i : i + 2] for i in range(0, 12, 2))
+        case _:
+            return ""
+    if not re.match(_MAC_PATTERN, address):
+        return ""
+    return address
+
+
 _MSG_PATTERNS = {
     MinerTypeHint.COMMON: re.compile(f"^(?P<IP>{_IP_PATTERN}),(?P<MAC>{_MAC_PATTERN})"),
     MinerTypeHint.ICERIVER: re.compile(f"^addr:(?P<IP>{_IP_PATTERN})"),
@@ -90,7 +117,7 @@ def parse_match(match: re.Match[str]) -> tuple[str, str]:
         if name == "IP":
             ip = value
         elif name == "MAC":
-            mac = value
+            mac = value.lower()
     return ip, mac
 
 
@@ -103,7 +130,7 @@ class IPReportModel(BaseModel):
     @property
     def ip_report(self) -> tuple[str, str, str]:
         """Returns the IP, MAC, and serial as a tuple."""
-        return self.ip, self.mac, self.serial
+        return self.ip, self.mac.lower(), self.serial
 
 
 class GoldshellIPReport(IPReportModel):
@@ -213,14 +240,11 @@ def parse_ibelink_payload(data: bytes) -> tuple[str, str]:
     if len(fields) < _IBELINK_ADDRESS_FIELDS:
         raise ValueError("missing ibelink address fields")
 
-    ip, _, _, raw_mac = (field.decode(encoding="ascii") for field in fields)
-    try:
-        ip = str(ipaddress.IPv4Address(ip))
-    except ipaddress.AddressValueError as e:
-        raise ValueError(f"invalid ip: {ip}") from e
-
-    if re.fullmatch(r"[0-9A-Fa-f]{12}", raw_mac) is None:
+    raw_ip, _, _, raw_mac = (field.decode(encoding="ascii") for field in fields)
+    ip = parse_ipv4(raw_ip)
+    if ip == "":
+        raise ValueError(f"invalid ip: {raw_ip}")
+    mac = parse_mac(raw_mac)
+    if mac == "":
         raise ValueError(f"invalid mac: {raw_mac}")
-
-    mac = ":".join(raw_mac[i : i + 2] for i in range(0, 12, 2))
     return ip, mac

@@ -30,7 +30,7 @@ class AuradineParser:
         if models.system_info is not None:
             data.subtype = clean_model_name(models.system_info.model, vendor="Auradine")
             data.hostname = models.system_info.hostname
-            data.mac = models.system_info.mac
+            data.mac = models.system_info.mac.lower()
             data.serial = models.system_info.chassis_serial
             data.fw_version = models.system_info.version
 

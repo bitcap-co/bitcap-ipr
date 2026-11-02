@@ -26,7 +26,7 @@ class IPolloParser:
                 lan_iface = models.system_info.wan.ifname
                 for iface in models.network_info.ifaces.root:
                     if iface.name == lan_iface:
-                        data.mac = iface.macaddr
+                        data.mac = iface.macaddr.lower()
                         break
 
         if models.summary is not None:

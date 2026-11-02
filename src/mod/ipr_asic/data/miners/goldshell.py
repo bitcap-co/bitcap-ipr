@@ -64,7 +64,7 @@ class GoldshellParser:
             data.fw_version = models.system_info.firmware
         if models.miner_config is not None:
             # Goldshell reports its MAC address in the config name field.
-            data.mac = models.miner_config.name
+            data.mac = models.miner_config.name.lower()
         # for dual algorithm miners, use the selected algorithm
         if models.algorithm is not None and data.algorithm is None:
             data.algorithm = MinerAlgorithm.from_value(

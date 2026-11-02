@@ -73,7 +73,6 @@ class IPReportDatagram:
         self.report.sort_ip = self._sort_ip()
         if self.report.mac == "":
             self.report.mac = self.report.miner_hint
-        self.report.mac = self.report.mac.lower()
         return self.report
 
     def _sort_ip(self) -> int:

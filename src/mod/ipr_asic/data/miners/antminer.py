@@ -48,7 +48,7 @@ class AntminerParser:
                 models.system_info.minertype, vendor="Antminer"
             )
             data.hostname = models.system_info.hostname
-            data.mac = models.system_info.macaddr
+            data.mac = models.system_info.macaddr.lower()
             data.serial = models.system_info.serinum
             data.fw_version = models.system_info.system_filesystem_version
 

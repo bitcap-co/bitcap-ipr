@@ -22,7 +22,7 @@ class IBeLinkParser:
             fw_ver, api_ver = models.system_info.miner_version.split("/")
             data.fw_version = fw_ver
             data.api_version = api_ver
-            data.mac = models.system_info.mac
+            data.mac = models.system_info.mac.lower()
             data.subtype = models.system_info.model
             match data.subtype:
                 case "BM-S3":

@@ -40,7 +40,7 @@ class LuxminerParser:
             data.uptime = models.summary.elapsed
         if models.system_info is not None:
             data.hostname = models.system_info.hostname
-            data.mac = models.system_info.mac_addr
+            data.mac = models.system_info.mac_addr.lower()
             data.serial = models.system_info.serial_number
             data.platform = MinerPlatform.from_value(
                 models.system_info.control_board_type

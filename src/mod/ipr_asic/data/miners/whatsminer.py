@@ -74,7 +74,9 @@ class WhatsminerParser:
                 data.uptime = None
         if models.system_info is not None:
             data.hostname = models.system_info.hostname
-            data.mac = models.system_info.mac
+            data.mac = (
+                models.system_info.mac.lower() if models.system_info.mac else None
+            )
             data.serial = models.system_info.minersn
         if data.subtype is None and models.dev_details:
             data.subtype = clean_model_name(
@@ -111,7 +113,7 @@ class WhatsminerV3Parser:
             network = models.device_info.network
             if network is not None:
                 data.hostname = network.hostname
-                data.mac = network.mac
+                data.mac = network.mac.lower()
             system = models.device_info.system
             if system is not None:
                 data.serial = system.miner_sn
