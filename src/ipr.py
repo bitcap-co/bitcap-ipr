@@ -1623,12 +1623,12 @@ class IPR(QMainWindow, Ui_MainWindow):
                 ip=result.ip,
                 mac=result.mac,
                 type=miner_type,
-            ).as_dict()
+            )
         else:
             # get miner data from src ip
             alt_pwd = self.get_client_auth(miner_type=miner_type.value)
             res = await self.asic.get_miner_data(miner_type, result.ip, alt_pwd=alt_pwd)
-            miner_data = res.data
+            miner_data = res.miner_data
             # an unsupported backend is non-fatal; still surface partial data
             if isinstance(res.error, UnknownClientError):
                 logger.warning(f"process_result : {res.error!s}")
@@ -1636,33 +1636,27 @@ class IPR(QMainWindow, Ui_MainWindow):
                 error = res.error
 
         # in the event of an unsupported miner, return miner type hint from IP Report
-        if miner_data["type"] == "N/A":
-            miner_data["type"] = result.miner_hint
+        if miner_data.type is None:
+            miner_data.type = result.miner_hint
 
         # check versus current listen configuration if listen filter is enabled
-        if self.checkEnableListenFilter.isChecked() and miner_data["type"] not in [
+        if self.checkEnableListenFilter.isChecked() and miner_data.type not in [
             btn.text().lower()
             for btn in self.listenerConfig.buttons()
             if btn.isChecked()
         ]:
             logger.warning(
-                f"process_result: received miner type {miner_data['type']} outside of enabled filter. Ignoring..."
+                f"process_result: received miner type {miner_data.type} outside of enabled filter. Ignoring..."
             )
             return self.notify(
-                f"Status :: Got miner type: {str(miner_data['type']).capitalize()} outside of listener configuration.",
+                f"Status :: Got miner type: {str(miner_data.type).capitalize()} outside of listener configuration.",
                 8000,
             )
-
-        miner_data["recv_at"] = int(result.updated_at)
-        miner_data["ip"] = result.ip
-        miner_data["mac"] = (
-            miner_data["mac"].lower() if miner_data["mac"] != "N/A" else result.mac
-        )
-        # update serial if IPReport has one
-        if result.serial:
-            miner_data["serial"] = result.serial
-        # append IPReport data
-        miner_data["ip_report"] = result.model_dump()
+        miner_data.recv_at = int(result.updated_at)
+        miner_data.ip = result.ip
+        miner_data.mac = miner_data.mac or result.mac
+        miner_data.serial = result.serial if result.serial else miner_data.serial
+        miner_data.ip_report = result
         # let user know that we got an error and may not have complete data
         if error:
             self.notify(
@@ -1673,26 +1667,25 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         logger.debug(f"process_result: got miner data: {miner_data}.")
         self.notify(
-            f"Status :: Got {miner_data['type']}: IP:{miner_data['ip']}, MAC:{miner_data['mac']}",
+            f"Status :: Got {miner_data.type}: IP:{miner_data.ip}, MAC:{miner_data.mac}",
             5000,
         )
         self.show_confirmation(miner_data)
 
     # ip confirmation
-    def show_confirmation(self, result: dict[str, Any]):
+    def show_confirmation(self, result: MinerData):
         logger.info(" show IP confirmation.")
-        ip: str = result["ip"]
-        mac: str = result["mac"]
-        type: str = result["type"]
-        recv_at: int = result["recv_at"]
-        fw_type: str = result["firmware"]
-        type_str = type.capitalize()
-        if type != "unknown":
-            type_str = f"{type.capitalize()} ({fw_type})"
+        ip = result.ip or "N/A"
+        mac = result.mac or "N/A"
+        miner_type = result.type or MinerType.UNKNOWN
+        type_str = str(miner_type).capitalize()
+        if miner_type != MinerType.UNKNOWN:
+            firmware = result.firmware or "N/A"
+            type_str = f"{type_str} ({firmware})"
 
-        recv_timestamp = QDateTime.fromSecsSinceEpoch(recv_at).toString()
+        recv_timestamp = QDateTime.fromSecsSinceEpoch(result.recv_at or 0).toString()
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
-            self.open_dashboard(ip, type)
+            self.open_dashboard(ip, miner_type)
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
             logger.info("show_confirmation : populate ID table.")
             if self.menu_bar.actionEnableLiveCapture.isChecked():
@@ -1703,7 +1696,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         else:
             confirm = IPRConfirmation(self.menu_bar.actionConfirmsStayOnTop.isChecked())
             _ = confirm.actionOpenDashboard.triggered.connect(
-                lambda: self.open_dashboard(ip, type)
+                lambda: self.open_dashboard(ip, miner_type)
             )
 
             logger.info("show_confirmation : show IPRConfirmation.")

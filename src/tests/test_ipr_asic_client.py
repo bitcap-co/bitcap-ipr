@@ -198,9 +198,9 @@ class TestGetMinerData(unittest.IsolatedAsyncioTestCase):
         asic._make_client = fake_make
         result = await asic.get_miner_data(MinerType.HIVEGPU, "10.0.0.1")
         self.assertTrue(result.ok)
-        self.assertEqual(result.data["type"], str(MinerType.HIVEGPU))
-        self.assertEqual(result.data["hostname"], "SRBMiner-Multi-Rig")
-        self.assertEqual(result.data["subtype"], "4x RTX 3070")
+        self.assertEqual(result.miner_data.type, MinerType.HIVEGPU)
+        self.assertEqual(result.miner_data.hostname, "SRBMiner-Multi-Rig")
+        self.assertEqual(result.miner_data.subtype, "4x RTX 3070")
 
     async def test_partial_data_is_returned_when_one_endpoint_fails(self):
         payload = read_payload("tests/payloads/srbminer.json")
@@ -226,9 +226,9 @@ class TestGetMinerData(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(result.ok)
         self.assertIsInstance(result.error, APIError)
-        self.assertEqual(result.data["type"], str(MinerType.HIVEGPU))
-        self.assertEqual(result.data["hostname"], "SRBMiner-Multi-Rig")
-        self.assertEqual(result.data["stratum_url"], "N/A")
+        self.assertEqual(result.miner_data.type, MinerType.HIVEGPU)
+        self.assertEqual(result.miner_data.hostname, "SRBMiner-Multi-Rig")
+        self.assertIsNone(result.miner_data.stratum_url)
 
     async def test_http_api_error_returns_error_result(self):
         transport = httpx.MockTransport(
@@ -252,8 +252,7 @@ class TestGetMinerData(unittest.IsolatedAsyncioTestCase):
         result = await asic.get_miner_data(MinerType.UNKNOWN, "10.0.0.1")
         self.assertFalse(result.ok)
         self.assertIsInstance(result.error, UnknownClientError)
-        # still returns a filled MinerData dict
-        self.assertEqual(result.data["type"], "N/A")
+        self.assertIsNone(result.miner_data.type)
 
 
 class TestPoolConf(unittest.IsolatedAsyncioTestCase):

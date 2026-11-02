@@ -13,8 +13,8 @@ from typing import Any
 from unittest.mock import AsyncMock, Mock, call, patch
 
 import config  # noqa: F401  # initialize Pydantic before importing PySide-backed IPR
-from mod.ipr_asic import MinerResult
-from mod.ipr_asic.data import MinerFirmware, MinerType
+from mod.ipr_asic import MinerDataResult, MinerResult
+from mod.ipr_asic.data import MinerData, MinerFirmware, MinerType
 from mod.ipr_asic.errors import APIError, UnsupportedOperationError
 from mod.ipr_asic.firmware import (
     BitmainLegacyFirmwareImage,
@@ -275,7 +275,7 @@ class TestMinerActionController(unittest.IsolatedAsyncioTestCase):
         return result
 
     async def test_refresh_updates_source_row_and_reports_success(self):
-        result = MinerResult(data={"mac": "AA:BB:CC:DD:EE:FF"})
+        result = MinerDataResult(miner_data=MinerData(mac="AA:BB:CC:DD:EE:FF"))
         table_controller = SimpleNamespace(
             miner_target=Mock(
                 return_value=(
@@ -311,9 +311,10 @@ class TestMinerActionController(unittest.IsolatedAsyncioTestCase):
         table_controller.populate_data.assert_called_once()
         populated_data, source_row = table_controller.populate_data.call_args.args
         self.assertEqual(source_row, 8)
-        self.assertEqual(populated_data["ip"], "10.0.0.12")
-        self.assertEqual(populated_data["mac"], "aa:bb:cc:dd:ee:ff")
-        self.assertIsInstance(populated_data["recv_at"], int)
+        self.assertIs(populated_data, result.miner_data)
+        self.assertEqual(populated_data.ip, "10.0.0.12")
+        self.assertEqual(populated_data.mac, "aa:bb:cc:dd:ee:ff")
+        self.assertIsInstance(populated_data.recv_at, int)
         subject.notification_requested.emit.assert_called_once_with(
             "Status :: Successfully refreshed 10.0.0.12 miner data.", 3000
         )
@@ -371,7 +372,7 @@ class TestMinerActionController(unittest.IsolatedAsyncioTestCase):
         await asyncio.Event().wait()
 
     async def test_bulk_refresh_redetects_type_and_auth_before_fetch(self):
-        result = MinerResult(data={"type": "antminer", "mac": "N/A"})
+        result = MinerDataResult(miner_data=MinerData(type=MinerType.ANTMINER))
         asic = SimpleNamespace(
             identify_http=AsyncMock(return_value=MinerType.ANTMINER),
             get_miner_data=AsyncMock(return_value=result),

@@ -16,7 +16,7 @@ from pydantic import BaseModel, ConfigDict
 from PySide6.QtCore import QObject, Signal
 from PySide6.QtWidgets import QToolButton, QWidget
 
-from mod.ipr_asic import ASICClient, MinerResult
+from mod.ipr_asic import ASICClient, MinerDataResult, MinerResult
 from mod.ipr_asic.data import MinerFirmware, MinerType
 from mod.ipr_asic.errors import (
     APIInvalidResponse,
@@ -548,12 +548,13 @@ class MinerActionController(QObject):
     def _update_refreshed_row(
         self, source_row: int, ip_addr: str, result: MinerResult
     ) -> None:
-        miner_data = result.data
-        miner_data["recv_at"] = int(time.time())
-        miner_data["ip"] = ip_addr
-        miner_data["mac"] = (
-            miner_data["mac"].lower() if miner_data["mac"] != "N/A" else "N/A"
-        )
+        if not isinstance(result, MinerDataResult):
+            raise TypeError("Expected MinerDataResult when refreshing miner data")
+        miner_data = result.miner_data
+        miner_data.recv_at = int(time.time())
+        miner_data.ip = ip_addr
+        if miner_data.mac:
+            miner_data.mac = miner_data.mac.lower()
         self._table_controller.populate_data(miner_data, source_row)
 
     def stop(self) -> None:

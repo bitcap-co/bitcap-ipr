@@ -184,7 +184,7 @@ class TestIPRTableProxy(unittest.TestCase):
         header.set_active_columns.assert_called_once_with(set())
         reset_sort.assert_called_once_with()
 
-    def test_populate_data_normalizes_and_upserts_by_source_row(self) -> None:
+    def test_populate_data_upserts_miner_model_by_source_row(self) -> None:
         table = Mock()
         subject: Any = SimpleNamespace(
             model=self.model,
@@ -192,31 +192,27 @@ class TestIPRTableProxy(unittest.TestCase):
         )
         self.model.clear()
 
-        first_row = IPRTableController.populate_data(
-            subject,
-            {
-                "recv_at": "1234",
-                "ip": "10.0.0.1",
-                "mac": "aa:bb:cc:dd:ee:01",
-                "serial": "N/A",
-                "type": "antminer",
-            },
-            dedupe_key="mac",
+        first = MinerData(
+            recv_at=1234,
+            ip="10.0.0.1",
+            mac="aa:bb:cc:dd:ee:01",
+            type=MinerType.ANTMINER,
         )
+        updated = MinerData(
+            recv_at=5678,
+            ip="10.0.0.10",
+            mac="aa:bb:cc:dd:ee:01",
+            serial="SERIAL-UPDATED",
+            type=MinerType.ANTMINER,
+        )
+        first_row = IPRTableController.populate_data(subject, first, dedupe_key="mac")
         updated_row = IPRTableController.populate_data(
-            subject,
-            {
-                "recv_at": "5678",
-                "ip": "10.0.0.10",
-                "mac": "aa:bb:cc:dd:ee:01",
-                "serial": "SERIAL-UPDATED",
-                "type": "antminer",
-            },
-            dedupe_key="mac",
+            subject, updated, dedupe_key="mac"
         )
 
         self.assertEqual((first_row, updated_row), (0, 0))
         self.assertEqual(self.model.rowCount(), 1)
+        self.assertIs(self.model.miner_at(0), updated)
         self.assertEqual(self.model.miner_at(0).recv_at, 5678)
         self.assertEqual(self.model.miner_at(0).ip, "10.0.0.10")
         table.scrollToBottom.assert_called_once_with()

@@ -80,8 +80,8 @@ class TestQasyncBridge(unittest.TestCase):
 
         self.assertIsNotNone(receiver.result)
         self.assertTrue(receiver.result.ok)
-        self.assertEqual(receiver.result.data["hostname"], "rig-1")
-        self.assertEqual(receiver.result.data["type"], str(MinerType.HIVEGPU))
+        self.assertEqual(receiver.result.miner_data.hostname, "rig-1")
+        self.assertEqual(receiver.result.miner_data.type, MinerType.HIVEGPU)
 
 
 if __name__ == "__main__":

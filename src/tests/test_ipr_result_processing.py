@@ -10,7 +10,7 @@ from typing import Any
 from unittest.mock import AsyncMock, Mock
 
 from ipr import IPR
-from mod.ipr_asic import MinerType
+from mod.ipr_asic import MinerData, MinerDataResult, MinerType
 from mod.lm import IPReport
 
 
@@ -60,6 +60,11 @@ class TestIPRResultProcessing(unittest.IsolatedAsyncioTestCase):
         await asyncio.wait_for(first, timeout=1)
 
         subject.show_confirmation.assert_called_once()
+        miner_data = subject.show_confirmation.call_args.args[0]
+        self.assertEqual(miner_data.type, MinerType.UNKNOWN)
+        self.assertEqual(miner_data.ip, report.ip)
+        self.assertEqual(miner_data.mac, report.mac)
+        self.assertIs(miner_data.ip_report, report)
         self.assertEqual(subject._processing_report_ips, set())
 
     async def test_different_ips_are_processed_sequentially(self):
@@ -98,6 +103,38 @@ class TestIPRResultProcessing(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(second_entered.is_set())
         self.assertEqual(identify_mock.await_count, 2)
         self.assertEqual(subject._processing_report_ips, set())
+
+    async def test_process_result_enriches_and_passes_through_miner_model(self):
+        miner_data = MinerData(
+            type=MinerType.ANTMINER,
+            mac="aa:bb:cc:dd:ee:ff",
+            hostname="miner-1",
+        )
+        subject = self._subject(AsyncMock(return_value=MinerType.ANTMINER))
+        subject.asic.get_miner_data = AsyncMock(
+            return_value=MinerDataResult(miner_data=miner_data)
+        )
+        subject.get_client_auth = Mock(return_value="secret")
+        report = IPReport(
+            updated_at=1234,
+            ip="172.16.35.128",
+            mac="report-mac",
+            serial="report-serial",
+        )
+
+        await IPR._process_result(subject, report)
+
+        subject.asic.get_miner_data.assert_awaited_once_with(
+            MinerType.ANTMINER,
+            report.ip,
+            alt_pwd="secret",
+        )
+        subject.show_confirmation.assert_called_once_with(miner_data)
+        self.assertEqual(miner_data.recv_at, 1234)
+        self.assertEqual(miner_data.ip, report.ip)
+        self.assertEqual(miner_data.mac, "aa:bb:cc:dd:ee:ff")
+        self.assertEqual(miner_data.serial, report.serial)
+        self.assertIs(miner_data.ip_report, report)
 
     async def test_processing_ip_is_released_after_error(self):
         identify_mock = AsyncMock(side_effect=RuntimeError("lookup failed"))

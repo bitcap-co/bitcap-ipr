@@ -106,6 +106,10 @@ class MinerResult(BaseModel):
         return self.error is None
 
 
+class MinerDataResult(MinerResult):
+    miner_data: MinerData = Field(default_factory=MinerData)
+
+
 class PoolConf(BaseModel):
     urls: list[str] = Field(default_factory=list)
     users: list[str] = Field(default_factory=list)
@@ -277,15 +281,15 @@ class ASICClient(QObject):
 
     async def get_miner_data(
         self, miner_type: MinerType, ip: str, alt_pwd: str | None = None
-    ) -> MinerResult:
+    ) -> MinerDataResult:
         """Fetch and parse standardized miner data for a single miner."""
         try:
             client = await self._make_client(miner_type, ip, alt_pwd)
         except UnknownClientError as e:
-            return MinerResult(data=MinerData().as_dict(), error=e)
+            return MinerDataResult(error=e)
         try:
             data = await self._parse_miner_data(client)
-            return MinerResult(data=data, error=client.error())
+            return MinerDataResult(miner_data=data, error=client.error())
         finally:
             client.close()
 
@@ -299,7 +303,7 @@ class ASICClient(QObject):
             client.set_error(e)
             return None
 
-    async def _parse_miner_data(self, client: MinerClient) -> dict[str, Any]:
+    async def _parse_miner_data(self, client: MinerClient) -> MinerData:
         if isinstance(client, (AntminerHTTPClient, AntminerOldHTTPClient)):
             models = AntminerModels(
                 system_info=await self._fetch_model(client, "get_system_info"),
@@ -307,7 +311,7 @@ class ASICClient(QObject):
                 pools=await self._fetch_model(client, "pools"),
                 log=await self._fetch_model(client, "get_miner_log"),
             )
-            return AntminerParser().parse(models).as_dict()
+            return AntminerParser().parse(models)
 
         if isinstance(client, ElphapexHTTPClient):
             models = ElphapexModels(
@@ -315,7 +319,7 @@ class ASICClient(QObject):
                 summary=await self._fetch_model(client, "summary"),
                 pools=await self._fetch_model(client, "pools"),
             )
-            return ElphapexParser().parse(models).as_dict()
+            return ElphapexParser().parse(models)
 
         if isinstance(client, GoldshellHTTPClient):
             models = GoldshellModels(
@@ -325,14 +329,14 @@ class ASICClient(QObject):
                 algorithm=await self._fetch_model(client, "get_algo"),
                 pools=await self._fetch_model(client, "pools"),
             )
-            return GoldshellParser().parse(models).as_dict()
+            return GoldshellParser().parse(models)
 
         if isinstance(client, IceriverHTTPClient):
             models = IceriverModels(
                 summary=await self._fetch_model(client, "summary"),
                 pools=await self._fetch_model(client, "pools"),
             )
-            return IceriverParser().parse(models).as_dict()
+            return IceriverParser().parse(models)
 
         if isinstance(client, SealminerHTTPClient):
             models = SealminerModels(
@@ -340,7 +344,7 @@ class ASICClient(QObject):
                 summary=await self._fetch_model(client, "summary"),
                 pools=await self._fetch_model(client, "pools"),
             )
-            return SealminerParser().parse(models).as_dict()
+            return SealminerParser().parse(models)
 
         if isinstance(client, VolcminerHTTPClient):
             models = VolcminerModels(
@@ -348,7 +352,7 @@ class ASICClient(QObject):
                 summary=await self._fetch_model(client, "summary"),
                 pools=await self._fetch_model(client, "pools"),
             )
-            return VolcminerParser().parse(models).as_dict()
+            return VolcminerParser().parse(models)
 
         if isinstance(client, WhatsminerRPCClient):
             models = WhatsminerModels(
@@ -358,7 +362,7 @@ class ASICClient(QObject):
                 pools=await self._fetch_model(client, "pools"),
                 dev_details=await self._fetch_model(client, "devdetails"),
             )
-            return WhatsminerParser().parse(models).as_dict()
+            return WhatsminerParser().parse(models)
 
         if isinstance(client, WhatsminerTCPClient):
             models = WhatsminerV3Models(
@@ -366,7 +370,7 @@ class ASICClient(QObject):
                 summary=await self._fetch_model(client, "summary"),
                 pools=await self._fetch_model(client, "pools"),
             )
-            return WhatsminerV3Parser().parse(models).as_dict()
+            return WhatsminerV3Parser().parse(models)
 
         if isinstance(client, LuxminerRPCClient):
             models = LuxminerModels(
@@ -375,7 +379,7 @@ class ASICClient(QObject):
                 version_info=await self._fetch_model(client, "version"),
                 pools=await self._fetch_model(client, "pools"),
             )
-            return LuxminerParser().parse(models).as_dict()
+            return LuxminerParser().parse(models)
 
         if isinstance(client, VnishHTTPClient):
             models = VnishModels(
@@ -383,7 +387,7 @@ class ASICClient(QObject):
                 summary=await self._fetch_model(client, "summary"),
                 pools=await self._fetch_model(client, "pools"),
             )
-            return VnishParser().parse(models).as_dict()
+            return VnishParser().parse(models)
 
         if isinstance(client, AuradineHTTPClient):
             models = AuradineModels(
@@ -391,14 +395,14 @@ class ASICClient(QObject):
                 summary=await self._fetch_model(client, "summary"),
                 pools=await self._fetch_model(client, "pools"),
             )
-            return AuradineParser().parse(models).as_dict()
+            return AuradineParser().parse(models)
 
         if isinstance(client, SRBMinerHTTPClient):
             models = SRBMinerModels(
                 system_info=await self._fetch_model(client, "get_system_info"),
                 pools=await self._fetch_model(client, "pools"),
             )
-            return SRBMinerParser().parse(models).as_dict()
+            return SRBMinerParser().parse(models)
 
         if isinstance(client, IPolloHTTPClient):
             models = IPolloModels(
@@ -407,15 +411,15 @@ class ASICClient(QObject):
                 pools=await self._fetch_model(client, "pools"),
                 network_info=await self._fetch_model(client, "get_network_info"),
             )
-            return IPolloParser().parse(models).as_dict()
+            return IPolloParser().parse(models)
 
         if isinstance(client, IBeLinkHTTPClient):
             models = IBeLinkModels(
                 system_info=await self._fetch_model(client, "get_system_info"),
             )
-            return IBeLinkParser().parse(models).as_dict()
+            return IBeLinkParser().parse(models)
 
-        return MinerData().as_dict()
+        return MinerData()
 
     async def get_miner_version_info(
         self, miner_type: MinerType, ip: str, alt_pwd: str | None = None

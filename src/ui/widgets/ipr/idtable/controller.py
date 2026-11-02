@@ -8,7 +8,7 @@ import time
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Any, ClassVar
+from typing import ClassVar
 
 from pydantic import BaseModel, ConfigDict
 from PySide6.QtCore import (
@@ -37,7 +37,7 @@ from PySide6.QtWidgets import (
 from mod.ipr_asic.data import MinerData, MinerFirmware, MinerType
 
 from .contextmenu import IPRTableContextMenu
-from .csv import MinerCSVError, miner_from_mapping, parse_miner_csv, serialize_csv
+from .csv import MinerCSVError, parse_miner_csv, serialize_csv
 from .delegate import IPRActionDelegate
 from .filterpopup import ColumnFilterPopup
 from .header import FilterHeaderView
@@ -207,13 +207,12 @@ class IPRTableController(QObject):
 
     def populate_data(
         self,
-        data: dict[str, Any],
+        miner: MinerData,
         row: int | None = None,
         dedupe_key: str | None = None,
     ) -> int:
         """Insert or update miner data and return its source-model row."""
         logger.info("populate_data : write table data.")
-        miner = miner_from_mapping(data)
         if row is not None:
             self.model.update_row(row, miner)
             return row

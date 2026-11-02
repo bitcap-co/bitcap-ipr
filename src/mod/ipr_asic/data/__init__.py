@@ -7,9 +7,11 @@ import re
 import unicodedata
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Self, override
+from typing import Self, override
 
 from pydantic import BaseModel, Field
+
+from mod.lm.ipreport import IPReport
 
 
 class MinerType(str, Enum):
@@ -142,15 +144,16 @@ def model_identity(value: str) -> str:
 
 
 class MinerData(BaseModel):
+    ip_report: IPReport | None = Field(default=None, exclude=True, repr=False)
     ip: str | None = None
     created_at: datetime = Field(
         exclude=True, default_factory=datetime.now(timezone.utc).astimezone, repr=False
     )
     recv_at: int | None = None
-    type: MinerType | None = None
+    type: MinerType | str | None = None
     subtype: str | None = None
-    firmware: MinerFirmware | None = None
-    algorithm: MinerAlgorithm | None = None
+    firmware: MinerFirmware | str | None = None
+    algorithm: MinerAlgorithm | str | None = None
     platform: MinerPlatform | str | None = None
     serial: str | None = None
     mac: str | None = None
@@ -161,14 +164,3 @@ class MinerData(BaseModel):
     stratum_url: str | None = None
     username: str | None = None
     worker_name: str | None = None
-
-    def as_dict(self) -> dict[str, Any]:
-        miner_data = self.model_dump()
-        for key in miner_data:
-            # fill missing keys
-            if miner_data[key] is None or miner_data[key] == "":
-                miner_data[key] = "N/A"
-            # serialize enums
-            if isinstance(miner_data[key], Enum):
-                miner_data[key] = miner_data[key].__str__()
-        return miner_data
