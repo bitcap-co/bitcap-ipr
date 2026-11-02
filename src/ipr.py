@@ -1058,10 +1058,10 @@ class IPR(QMainWindow, Ui_MainWindow):
                 "disableInactiveTimer": self.menu_bar.actionDisableInactiveTimer.isChecked(),
                 "autoStartOnLaunch": self.menu_bar.actionAutoStartOnLaunch.isChecked(),
                 "confirmsStayOnTop": self.menu_bar.actionConfirmsStayOnTop.isChecked(),
-            },
-            "idTable": {
-                "enableTableLiveCapture": self.menu_bar.actionEnableLiveCapture.isChecked(),
-                "clearTableOnStop": self.menu_bar.actionClearTableAfterStopListen.isChecked(),
+                "idTable": {
+                    "enableTableLiveCapture": self.menu_bar.actionEnableLiveCapture.isChecked(),
+                    "clearTableOnStop": self.menu_bar.actionClearTableAfterStopListen.isChecked(),
+                },
             },
             "showMaximized": self.isMaximized(),
             "views": {
