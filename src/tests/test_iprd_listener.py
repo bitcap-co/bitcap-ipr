@@ -14,7 +14,7 @@ from unittest.mock import Mock
 from PySide6.QtCore import QByteArray
 from PySide6.QtNetwork import QAbstractSocket, QHostAddress
 
-from mod.lm.iprd.listener import IPRDListener
+from mod.iprd.listener import IPRDListener
 
 
 def report_line(ip: str) -> QByteArray:

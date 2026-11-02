@@ -50,16 +50,14 @@ from mod.ipr_asic import ASICClient
 from mod.ipr_asic import settings as api_settings
 from mod.ipr_asic.data import MinerData, MinerType
 from mod.ipr_asic.errors import UnknownClientError
-from mod.lm import (
+from mod.iprd import (
     IPRDController,
     IPRDControllerState,
     IPRDListener,
     IPRDServiceListener,
     IPRDSocket,
-    IPReport,
-    ListenerError,
-    ListenerManager,
 )
+from mod.lm import IPReport, ListenerError, ListenerManager
 from mod.networkmonitor import NetworkMonitor
 from mod.powermonitor import PowerMonitor
 from mod.updater import UpdateController

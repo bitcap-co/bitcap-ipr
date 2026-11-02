@@ -84,7 +84,7 @@ def normalize_datetime(datetime_obj: datetime | str | None) -> str:
 
     Returns "N/A" for the min datetime (1/1/1 00:00:00)
     """
-    if datetime_obj is None or datetime_obj == MIN_DATETIME:
+    if datetime_obj is None or datetime_obj == MIN_DATETIME or datetime_obj == "":
         return "N/A"
     if isinstance(datetime_obj, str):
         datetime_obj = datetime.fromisoformat(datetime_obj)

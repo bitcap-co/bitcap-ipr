@@ -3,16 +3,14 @@
 # This file is part of bitcap-ipr
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
-
 import datetime
 import logging
 import time
-from typing import Annotated, ClassVar
+from typing import ClassVar, override
 
 from pydantic import BaseModel, Field, ValidationError
 from PySide6.QtCore import QObject, Signal
 from PySide6.QtNetwork import QAbstractSocket, QHostAddress, QTcpSocket
-from typing_extensions import override
 
 from utils import normalize_datetime
 
@@ -22,12 +20,9 @@ IPRD_CMD_SUBSCRIBE = "iprd_subscribe"
 IPRD_CMD_STATUS = "iprd_status"
 
 
-class IPRDCommand(BaseModel):
-    command: str
-    request_id: Annotated[str | None, Field(serialization_alias="requestID")] = None
-
-
 class IPRDaemonInfo(BaseModel):
+    """Represents daemon build metadata."""
+
     version: str
     tag: str
     commit_hash: str = Field(validation_alias="commitHash")
@@ -36,9 +31,7 @@ class IPRDaemonInfo(BaseModel):
 
     def pretty_print(self) -> str:
         daemon_info: str = ""
-        build_time: str = self.build_time
-        if self.build_time != "":
-            build_time = normalize_datetime(self.build_time)
+        build_time: str = normalize_datetime(self.build_time)
         root_tag: str = self.tag
         if self.tag != "":
             root_tag = self.tag.split("-")[0]
@@ -78,13 +71,15 @@ class ListenerStatus(BaseModel):
     activation_failures: int = Field(validation_alias="activationFailures")
     capture_errors: int = Field(validation_alias="captureErrors")
     reconnects: int = Field(validation_alias="reconnects")
-    last_error: str | None = Field(None, validation_alias="lastError")
+    last_error: str | None = Field(default=None, validation_alias="lastError")
     last_error_at: datetime.datetime | None = Field(
-        None, validation_alias="lastErrorAt"
+        default=None, validation_alias="lastErrorAt"
     )
 
 
 class IPRDStatus(BaseModel):
+    """Represents the status response of the daemon."""
+
     daemon: IPRDaemonInfo | None = None
     state: str
     listeners_configured: int = Field(validation_alias="listenersConfigured")
@@ -96,14 +91,14 @@ class IPRDStatus(BaseModel):
     packets: PacketCounters
     listeners: list[ListenerStatus]
     last_packet_at: datetime.datetime | None = Field(
-        None, validation_alias="lastPacketAt"
+        default=None, validation_alias="lastPacketAt"
     )
     last_report_at: datetime.datetime | None = Field(
-        None, validation_alias="lastReportAt"
+        default=None, validation_alias="lastReportAt"
     )
-    last_error: str | None = Field(None, validation_alias="lastError")
+    last_error: str | None = Field(default=None, validation_alias="lastError")
     last_error_at: datetime.datetime | None = Field(
-        None, validation_alias="lastErrorAt"
+        default=None, validation_alias="lastErrorAt"
     )
 
     def pretty_print(self) -> str:
@@ -130,9 +125,18 @@ Statistics:
 """
 
 
+class IPRDCommand(BaseModel):
+    """Represents an IPRD command to be sent over the socket."""
+
+    command: str
+    request_id: str | None = Field(default=None, serialization_alias="requestID")
+
+
 class IPRDResponse(BaseModel):
+    """Represents an IPRD response received over the socket."""
+
     type: str
-    request_id: str | None = Field(None, validation_alias="requestID")
+    request_id: str | None = Field(default=None, validation_alias="requestID")
     timestamp: int
     daemon: IPRDaemonInfo | None = None
     status: IPRDStatus | None = None
@@ -148,7 +152,7 @@ class IPRDSocket(QObject):
         parent (QObject | None): Optional parent object.
 
     Signals:
-        error (str): emits error string on command/socket error.
+        error (str): emits error string on command or socket error.
     """
 
     # signals
@@ -168,6 +172,25 @@ class IPRDSocket(QObject):
     @override
     def __repr__(self, /) -> str:
         return f"{self.__class__.__name__}[{self.ip.toString()}:{self.port}]"
+
+    def set_socket_addr(self, ip: str = "127.0.0.1", port: int = 7788) -> bool:
+        """Sets host IP and port for the IPRD TCP socket connection.
+        Returns False on invalid address/port."""
+
+        host_addr = QHostAddress(ip)
+        if host_addr.isNull():
+            logger.error(
+                f"{self!r} : failed to set socket address! IP address ({ip}) is invalid."
+            )
+            return False
+        if port < 1 or port > 65535:
+            logger.error(
+                f"{self!r} : failed to set socket address! Port ({port}) is invalid."
+            )
+            return False
+        self.ip = host_addr
+        self.port = port
+        return True
 
     def _remaining_timeout(self, started_at: float) -> int:
         elapsed_ms = int((time.monotonic() - started_at) * 1000)
@@ -207,30 +230,12 @@ class IPRDSocket(QObject):
         finally:
             self.close()
 
-    def set_socket_addr(self, ip: str = "127.0.0.1", port: int = 7788) -> bool:
-        """Sets host IP and port for iprd TCP socket connection.
-        Returns False on invalid address/port."""
-        host_addr = QHostAddress(ip)
-        if host_addr.isNull():
-            logger.error(
-                f"{self.__repr__()} : failed to set socket address! IP address ({ip}) is invalid."
-            )
-            return False
-        if port < 1 or port > 65535:
-            logger.error(
-                f"{self.__repr__()} : failed to set socket address! Port ({port}) is invalid."
-            )
-            return False
-        self.ip = host_addr
-        self.port = port
-        return True
-
     def send_command(self, command: IPRDCommand) -> IPRDResponse | None:
-        """Sends IPRDCommand to iprd TCP socket."""
+        """Sends a command over the IPRD TCP socket."""
         return self._send_command(command)
 
     def status(self) -> IPRDStatus | None:
-        """Sends 'iprd_status' command to iprd TCP socket and returns response."""
+        """Sends 'iprd_status' command to the IPRD TCP socket and returns the response."""
         response = self.send_command(IPRDCommand(command=IPRD_CMD_STATUS))
         if response is None:
             return None
@@ -238,20 +243,18 @@ class IPRDSocket(QObject):
             self._emit_command_error(response.error)
             return None
         if response.type != IPRD_CMD_STATUS or response.status is None:
-            self._emit_command_error("Invalid status response.")
+            self._emit_command_error("Invalid status response")
             return None
         if response.daemon is not None:
             response.status.daemon = response.daemon
         return response.status
 
     def _emit_command_error(self, message: str) -> None:
-        logger.error(f"{self.__repr__()} : {message}")
+        logger.error(f"{self!r} : {message}")
         self.error.emit(message)
 
     def emit_error(self, error: QAbstractSocket.SocketError) -> None:
-        if error == QAbstractSocket.SocketError.RemoteHostClosedError:
-            return
-        logger.error(f"{self.__repr__()} : emit error! {self.sock.errorString()}")
+        logger.error(f"{self!r} : emit error! {self.sock.errorString()}")
         self.error.emit(error.name)
 
     def close(self) -> None:

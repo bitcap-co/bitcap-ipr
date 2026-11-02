@@ -12,7 +12,8 @@ from unittest.mock import Mock
 
 import config  # noqa: F401  # initialize Pydantic before importing PySide-backed IPR
 from ipr import IPR, ListenState
-from mod.lm import IPRDControllerState, ListenerError
+from mod.iprd import IPRDControllerState
+from mod.lm import ListenerError
 
 
 class TestListenState(unittest.TestCase):

@@ -10,15 +10,15 @@ from typing import cast, final
 
 from PySide6.QtCore import QCoreApplication
 
-from mod.lm.iprd.controller import (
+from mod.iprd.controller import (
     IPRDController,
     IPRDControllerState,
     IPRDEndpoint,
     IPRDEndpointMode,
     select_best_discovered_endpoint,
 )
-from mod.lm.iprd.listener import IPRDListener
-from mod.lm.iprd.service import IPRDService, IPRDServiceListener
+from mod.iprd.listener import IPRDListener
+from mod.iprd.service import IPRDService, IPRDServiceListener
 from mod.networkmonitor import (
     NetworkAddress,
     NetworkMonitor,

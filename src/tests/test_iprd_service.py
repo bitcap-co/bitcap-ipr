@@ -12,7 +12,7 @@ from unittest.mock import patch
 from PySide6.QtCore import QCoreApplication
 from zeroconf import ServiceInfo
 
-from mod.lm.iprd.service import (
+from mod.iprd.service import (
     IPRD_SERVICE_TYPE,
     IPRDService,
     IPRDServiceListener,
@@ -142,8 +142,8 @@ class TestIPRDService(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "invalid port"):
             IPRDServiceListener._service_from_info(FakeServiceInfo(port=0))
 
-    @patch("mod.lm.iprd.service.ServiceBrowser", FakeServiceBrowser)
-    @patch("mod.lm.iprd.service.Zeroconf", FakeZeroconf)
+    @patch("mod.iprd.service.ServiceBrowser", FakeServiceBrowser)
+    @patch("mod.iprd.service.Zeroconf", FakeZeroconf)
     def test_lifecycle_is_idempotent(self) -> None:
         listener = IPRDServiceListener()
         started: list[bool] = []
@@ -172,8 +172,8 @@ class TestIPRDService(unittest.TestCase):
         self.assertEqual(zeroconf.closed, 1)
         self.assertEqual(browser.cancelled, 1)
 
-    @patch("mod.lm.iprd.service.ServiceBrowser", FakeServiceBrowser)
-    @patch("mod.lm.iprd.service.Zeroconf", FakeZeroconf)
+    @patch("mod.iprd.service.ServiceBrowser", FakeServiceBrowser)
+    @patch("mod.iprd.service.Zeroconf", FakeZeroconf)
     def test_add_update_and_remove_signals(self) -> None:
         listener = IPRDServiceListener(resolve_timeout_ms=1500)
         found: list[IPRDService] = []
@@ -213,8 +213,8 @@ class TestIPRDService(unittest.TestCase):
         self.assertEqual(listener.services, ())
         listener.close()
 
-    @patch("mod.lm.iprd.service.ServiceBrowser", FakeServiceBrowser)
-    @patch("mod.lm.iprd.service.Zeroconf", DeferredFakeZeroconf)
+    @patch("mod.iprd.service.ServiceBrowser", FakeServiceBrowser)
+    @patch("mod.iprd.service.Zeroconf", DeferredFakeZeroconf)
     def test_newer_update_wins_over_inflight_resolution(self) -> None:
         listener = IPRDServiceListener()
         found: list[IPRDService] = []
@@ -241,8 +241,8 @@ class TestIPRDService(unittest.TestCase):
         self.assertEqual(listener.services[0].address, "192.168.1.99")
         listener.close()
 
-    @patch("mod.lm.iprd.service.ServiceBrowser", FakeServiceBrowser)
-    @patch("mod.lm.iprd.service.Zeroconf", DeferredFakeZeroconf)
+    @patch("mod.iprd.service.ServiceBrowser", FakeServiceBrowser)
+    @patch("mod.iprd.service.Zeroconf", DeferredFakeZeroconf)
     def test_remove_invalidates_inflight_resolution(self) -> None:
         listener = IPRDServiceListener()
         found: list[IPRDService] = []
@@ -268,8 +268,8 @@ class TestIPRDService(unittest.TestCase):
         self.assertEqual(listener.services, ())
         listener.close()
 
-    @patch("mod.lm.iprd.service.ServiceBrowser", FakeServiceBrowser)
-    @patch("mod.lm.iprd.service.Zeroconf", BlockingFakeZeroconf)
+    @patch("mod.iprd.service.ServiceBrowser", FakeServiceBrowser)
+    @patch("mod.iprd.service.Zeroconf", BlockingFakeZeroconf)
     def test_stop_does_not_wait_for_or_report_inflight_resolution(self) -> None:
         listener = IPRDServiceListener()
         errors: list[str] = []
@@ -291,8 +291,8 @@ class TestIPRDService(unittest.TestCase):
         app.processEvents()
         self.assertEqual(errors, [])
 
-    @patch("mod.lm.iprd.service.ServiceBrowser", FakeServiceBrowser)
-    @patch("mod.lm.iprd.service.Zeroconf", FakeZeroconf)
+    @patch("mod.iprd.service.ServiceBrowser", FakeServiceBrowser)
+    @patch("mod.iprd.service.Zeroconf", FakeZeroconf)
     def test_resolution_failure_emits_error(self) -> None:
         listener = IPRDServiceListener()
         errors: list[str] = []

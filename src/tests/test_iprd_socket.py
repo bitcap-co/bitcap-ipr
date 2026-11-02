@@ -14,7 +14,7 @@ from typing import cast
 from PySide6.QtCore import QCoreApplication
 from typing_extensions import Self, override
 
-from mod.lm.iprd.socket import IPRD_CMD_STATUS, IPRDCommand, IPRDSocket
+from mod.iprd.socket import IPRD_CMD_STATUS, IPRDCommand, IPRDSocket
 
 app = QCoreApplication.instance() or QCoreApplication(sys.argv)
 

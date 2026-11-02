@@ -8,10 +8,6 @@ the `lm` module contains the IP Report listening API for bitcap-ipr. Through the
 
 `listenermanager.py` - A custom QObject class that manages one or more configured listeners and broadcasts the received IPReport data via signals. Used as the default/"out-of-box" on-device IP report listening backend for the IP Reporter.
 
-`iprd` - submodule for IPR Daemon integration. Used as an alternative backend for receiving IP report data live on the wire across the LAN network. See the [IPR Daemon repo](https://github.com/bitcap-co/ipr-daemon) for more information.
-> [!NOTE]
-> the `iprd` submodule and it's included listener (`IPRDListener`) are not managed by `ListenerManager`, but rather as its own standalone backend.
-
 ## Overview
 
 ### The ListenerManager class

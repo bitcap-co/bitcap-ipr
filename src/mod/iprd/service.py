@@ -13,6 +13,8 @@ from pydantic import BaseModel, ConfigDict
 from PySide6.QtCore import QObject, Signal, Slot
 from zeroconf import ServiceBrowser, ServiceInfo, ServiceListener, Zeroconf
 
+from .socket import IPRD_CMD_SUBSCRIBE
+
 logger = logging.getLogger(__name__)
 
 IPRD_SERVICE_TYPE = "_iprd._tcp.local."
@@ -20,7 +22,6 @@ DEFAULT_RESOLVE_TIMEOUT_MS = 3000
 
 
 def _create_zeroconf() -> Zeroconf:
-    """Create the synchronous client outside any running asyncio event loop."""
     with ThreadPoolExecutor(
         max_workers=1,
         thread_name_prefix="iprd-zeroconf-init",
@@ -29,7 +30,7 @@ def _create_zeroconf() -> Zeroconf:
 
 
 class IPRDService(BaseModel):
-    """Resolved endpoint advertised by an IPR Daemon instance."""
+    """Resolved endpoint advertised by an IPRD instance."""
 
     model_config: ClassVar[ConfigDict] = ConfigDict(frozen=True)
 
@@ -42,7 +43,7 @@ class IPRDService(BaseModel):
 
     @property
     def address(self) -> str:
-        """Return the preferred connection address, favoring IPv4."""
+        """Returns the preferred connection address, favoring IPv4."""
         for address in self.addresses:
             try:
                 if ipaddress.ip_address(address.split("%", 1)[0]).version == 4:
@@ -57,7 +58,7 @@ class IPRDService(BaseModel):
 
     @property
     def subscribe_command(self) -> str:
-        return self.properties.get("subscribe") or "iprd_subscribe"
+        return self.properties.get("subscribe") or IPRD_CMD_SUBSCRIBE
 
 
 class IPRDServiceListener(QObject, ServiceListener):
@@ -68,12 +69,12 @@ class IPRDServiceListener(QObject, ServiceListener):
     resolved services through queued signal delivery.
 
     Signals:
-        service_found (IPRDService): emitted when a daemon is resolved.
-        service_updated (IPRDService): emitted when a resolved daemon changes.
-        service_removed (str): emitted with the full DNS-SD service name.
-        started: emitted after browsing starts.
-        stopped: emitted after browsing stops and resources are closed.
-        error (str): emitted when startup or service resolution fails.
+        service_found (IPRDService): emits when a daemon service is resolved.
+        service_updated (IPRDService): emits when a resolved daemon service changes.
+        service_removed (str): emits when a daemon service is removed with full DNS-SD service name.
+        started: emits after browsing starts.
+        stopped: emits after browsing stops and resources are closed.
+        error (str): emits when startup or service resolution fails.
     """
 
     service_found: Signal = Signal(IPRDService)
@@ -105,9 +106,9 @@ class IPRDServiceListener(QObject, ServiceListener):
         self._lock: threading.RLock = threading.RLock()
         self._active: bool = False
 
-        self._resolved.connect(self._publish_resolved)
-        self._removed.connect(self._publish_removed)
-        self._resolution_failed.connect(self._publish_resolution_error)
+        _ = self._resolved.connect(self._publish_resolved)
+        _ = self._removed.connect(self._publish_removed)
+        _ = self._resolution_failed.connect(self._publish_resolution_error)
 
     @override
     def __repr__(self, /) -> str:
@@ -120,17 +121,18 @@ class IPRDServiceListener(QObject, ServiceListener):
 
     @property
     def services(self) -> tuple[IPRDService, ...]:
-        """Return a thread-safe snapshot of currently discovered services."""
+        """Returns a thread-safe snapshot of currently discovered services."""
         with self._lock:
             return tuple(self._services.values())
 
     def get_service(self, name: str) -> IPRDService | None:
+        """Returns the service with the given name, if it is known."""
         with self._lock:
             return self._services.get(name)
 
     @Slot()
     def start(self) -> None:
-        """Start browsing. Calling this while active has no effect."""
+        """Starts browsing for IPRD services. Calling this while active has no effect."""
         zeroconf: Zeroconf | None = None
         try:
             with self._lock:
@@ -143,9 +145,7 @@ class IPRDServiceListener(QObject, ServiceListener):
                 self._zeroconf = zeroconf
                 self._active = True
                 self._browser = ServiceBrowser(
-                    zeroconf,
-                    IPRD_SERVICE_TYPE,
-                    listener=self,
+                    zeroconf, IPRD_SERVICE_TYPE, listener=self
                 )
         except Exception as exc:
             with self._lock:
@@ -161,20 +161,18 @@ class IPRDServiceListener(QObject, ServiceListener):
             self._emit_error(f"Failed to start IPRD service discovery: {exc}")
             return
 
-        logger.info(
-            f"{self.__repr__()} : started service discovery (session={self._session})."
-        )
+        logger.info(f"{self!r} : started service discovery (session={self._session}).")
         self.started.emit()
 
     @Slot()
     def stop(self) -> None:
-        """Stop browsing and release all zeroconf sockets and threads."""
+        """Stops browsing and release all zeroconf sockets and threads."""
         self._stop()
 
     @Slot()
     def restart(self) -> None:
-        """Recreate the browser so it binds to the current interfaces."""
-        logger.info(f"{self.__repr__()} : restarting service discovery.")
+        """Recreates the browser so it binds to the current interfaces."""
+        logger.info(f"{self!r} : restarting service discovery.")
         self._stop()
         self.start()
 
@@ -207,9 +205,7 @@ class IPRDServiceListener(QObject, ServiceListener):
             self._emit_error(
                 "Failed to stop IPRD service discovery: " + "; ".join(errors)
             )
-        logger.info(
-            f"{self.__repr__()} : stopped service discovery (session={self._session})."
-        )
+        logger.info(f"{self!r} : stopped service discovery (session={self._session}).")
         self.stopped.emit()
 
     def close(self) -> None:
@@ -235,11 +231,7 @@ class IPRDServiceListener(QObject, ServiceListener):
         self._removed.emit(name, session, revision)
 
     def _queue_resolution(
-        self,
-        zc: Zeroconf,
-        type_: str,
-        name: str,
-        is_update: bool,
+        self, zc: Zeroconf, type_: str, name: str, is_update: bool
     ) -> None:
         with self._lock:
             if not self._active or zc is not self._zeroconf:
@@ -260,7 +252,7 @@ class IPRDServiceListener(QObject, ServiceListener):
         type_: str,
         name: str,
         is_update: bool,
-        session: int,
+        session: str,
         revision: int,
     ) -> None:
         try:
@@ -286,11 +278,7 @@ class IPRDServiceListener(QObject, ServiceListener):
 
     @Slot(object, int, int, bool)
     def _publish_resolved(
-        self,
-        service: IPRDService,
-        session: int,
-        revision: int,
-        is_update: bool,
+        self, service: IPRDService, session: int, revision: int, is_update: bool
     ) -> None:
         with self._lock:
             if (
@@ -306,14 +294,13 @@ class IPRDServiceListener(QObject, ServiceListener):
 
         if previous is None or not is_update:
             logger.info(
-                f"{self.__repr__()} : discovered {service.address}:{service.port} "
+                f"{self!r} : discovered {service.address}:{service.port}"
                 f"(addresses={service.addresses!r}, session={session})."
             )
             self.service_found.emit(service)
             return
-
         logger.info(
-            f"{self.__repr__()} : updated {service.address}:{service.port} "
+            f"{self!r} : updated {service.address}:{service.port}"
             f"(addresses={service.addresses!r}, session={session})."
         )
         self.service_updated.emit(service)
@@ -330,7 +317,7 @@ class IPRDServiceListener(QObject, ServiceListener):
             service = self._services.pop(name, None)
         if service is None:
             return
-        logger.info(f"{self.__repr__()} : removed {name}.")
+        logger.info(f"{self!r} : removed {name}")
         self.service_removed.emit(name)
 
     @Slot(str, str, int, int)
@@ -352,7 +339,7 @@ class IPRDServiceListener(QObject, ServiceListener):
         if not addresses:
             raise ValueError("service did not advertise a reachable address")
         if info.port is None or not 1 <= info.port <= 65535:
-            raise ValueError(f"service advertised invalid port: {info.port}")
+            raise ValueError(f"service advertised invalid port {info.port}")
 
         properties: dict[str, str | None]
         decoded = getattr(info, "decoded_properties", None)
@@ -376,5 +363,5 @@ class IPRDServiceListener(QObject, ServiceListener):
         )
 
     def _emit_error(self, message: str) -> None:
-        logger.error(f"{self.__repr__()} : {message}")
+        logger.error(f"{self!r} : {message}")
         self.error.emit(message)

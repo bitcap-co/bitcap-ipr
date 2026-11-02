@@ -13,7 +13,7 @@ from pydantic import ValidationError
 from PySide6.QtCore import QByteArray
 from PySide6.QtNetwork import QHostAddress, QNetworkDatagram
 
-from mod.lm.iprd.listener import IPRDListener, IPRDPacketData
+from mod.iprd.listener import IPRDListener, IPRDReportMessage
 from mod.lm.ipreport import IPReport, IPReportDatagram, MinerTypeHint
 from mod.lm.ipreport.patterns import (
     GoldshellIPReport,
@@ -79,7 +79,7 @@ class TestIPReportSchema(unittest.TestCase):
     def test_iprd_result_uses_same_schema(self) -> None:
         emitted = ResultCollector()
         listener = cast(IPRDListener, cast(object, SimpleNamespace(result=emitted)))
-        packet = IPRDPacketData.model_validate(
+        packet = IPRDReportMessage.model_validate(
             {
                 "timestamp": 1727298000123,
                 "packetID": "packet-1",
