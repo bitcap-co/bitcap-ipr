@@ -110,6 +110,8 @@ class IPRDServiceListener(QObject, ServiceListener):
         _ = self._removed.connect(self._publish_removed)
         _ = self._resolution_failed.connect(self._publish_resolution_error)
 
+        logger.info(f"{self!r} : initialized; active={self._active}")
+
     @override
     def __repr__(self, /) -> str:
         return f"{self.__class__.__name__}[{IPRD_SERVICE_TYPE}]"

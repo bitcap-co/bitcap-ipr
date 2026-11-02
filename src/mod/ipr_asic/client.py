@@ -129,6 +129,8 @@ class ASICClient(QObject):
         super().__init__(parent)
         self._parent: QObject | None = parent
 
+        logger.info(f"{self!r} : initialized")
+
     @override
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}"

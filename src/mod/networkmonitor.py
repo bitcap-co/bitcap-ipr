@@ -174,6 +174,8 @@ class NetworkMonitor(QObject):
         self._poll_timer.setInterval(poll_interval_ms)
         _ = self._poll_timer.timeout.connect(self.refresh)
 
+        logger.info(f" initialized; poll_interval_ms={poll_interval_ms}")
+
     @property
     def active(self) -> bool:
         return self._active

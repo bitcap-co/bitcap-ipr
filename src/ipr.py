@@ -156,16 +156,19 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.sys_tray.setContextMenu(self.sys_tray_context_menu)
         _ = self.sys_tray.activated.connect(self.activate_system_tray)
 
-        logger.info(" init inactive timer for 900000ms.")
-        self.inactive: QTimer = QTimer(self)
-        self.inactive.setInterval(INACTIVE_TIMEOUT_MS)
-        _ = self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
+        logger.info(" init mod powermonitor.")
+        self._resume_inactive_timer: bool = False
+        self.power: PowerMonitor = PowerMonitor(self)
+        _ = self.power.aboutToSuspend.connect(self.on_suspend)
+        _ = self.power.resumed.connect(self.on_resume)
 
         logger.info(" init mod lm.")
         self.lm: ListenerManager = ListenerManager(self)
         _ = self.lm.error_received.connect(self.show_listener_error)
         _ = self.lm.bind_failed.connect(self.show_listener_bind_error)
         _ = self.lm.report_received.connect(self.process_result)
+
+        logger.info(" init mod iprd.")
         self.iprd_socket: IPRDSocket = IPRDSocket(self)
         _ = self.iprd_socket.error.connect(self.show_iprd_socket_error)
         # init iprd transport, discovery, and recovery policy
@@ -194,10 +197,6 @@ class IPR(QMainWindow, Ui_MainWindow):
             _ = self._app_instance.applicationStateChanged.connect(
                 self.on_application_state_changed
             )
-        self._resume_inactive_timer: bool = False
-        self.power: PowerMonitor = PowerMonitor(self)
-        _ = self.power.aboutToSuspend.connect(self.on_suspend)
-        _ = self.power.resumed.connect(self.on_resume)
 
         # status bar state: a single persistent "base" message reflects what the
         # app is currently doing; transient notifications are layered on top via
@@ -209,6 +208,12 @@ class IPR(QMainWindow, Ui_MainWindow):
 
         logger.info(" init mod ipr_asic.")
         self.asic: ASICClient = ASICClient(self)
+
+        logger.info(" init inactive timer for 900000ms.")
+        self.inactive: QTimer = QTimer(self)
+        self.inactive.setInterval(INACTIVE_TIMEOUT_MS)
+        _ = self.inactive.timeout.connect(lambda: self.stop_listen(timeout=True))
+
         logger.info(" init miner locate duration for 10000ms.")
         self.locate_duration_ms: int = api_settings.get("locate_duration_ms")
 

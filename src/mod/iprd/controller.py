@@ -6,7 +6,7 @@
 import ipaddress
 import logging
 from enum import Enum, auto
-from typing import ClassVar
+from typing import ClassVar, override
 
 from pydantic import BaseModel, ConfigDict, Field
 from PySide6.QtCore import QObject, QTimer, Signal, Slot
@@ -218,6 +218,12 @@ class IPRDController(QObject):
         _ = self.listener.subscribed.connect(self._on_subscribed)
         _ = self.listener.result.connect(self.report_received.emit)
         _ = self.listener.error.connect(self._on_listener_error)
+
+        logger.info(f"{self!r} : initialized; state={self._state}")
+
+    @override
+    def __repr__(self, /) -> str:
+        return f"{self.__class__.__name__}"
 
     @property
     def state(self) -> IPRDControllerState:
