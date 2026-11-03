@@ -22,24 +22,27 @@ app = QCoreApplication.instance() or QCoreApplication(sys.argv)
 
 
 def read_payload(filename: str) -> str:
-    with open(Path(filename).resolve(), "r") as f:
-        payload = f.read()
-    return payload
+    return (Path(__file__).parent / "payloads" / filename).read_text()
 
 
-def compress_paylaod(filename: str) -> str:
-    with open(Path(filename).resolve(), "rb") as f:
-        data = f.read()
+def read_binary_payload(filename: str) -> bytes:
+    return (Path(__file__).parent / "payloads" / filename).read_bytes()
+
+
+def compress_payload(filename: str) -> str:
+    data = read_binary_payload(filename)
     return binascii.hexlify(zlib.compress(data)).decode("utf-8")
 
 
-def send_udp_dgram(port: int, msg: str, compressed: bool = False):
+def send_udp_dgram(port: int, msg: str | bytes, compressed: bool = False):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
     ip_addr = "127.0.0.1"
     if compressed:
         sock.sendto(bytes.fromhex(msg), (ip_addr, port))
     else:
-        sock.sendto(bytes(msg, "utf-8"), (ip_addr, port))
+        if isinstance(msg, str):
+            msg = bytes(msg, "utf-8")
+        sock.sendto(msg, (ip_addr, port))
     sock.close()
 
 
@@ -51,19 +54,19 @@ class ListenerExpectedResult(BaseModel):
 
 class ListenerTestCase(BaseModel):
     port: int
-    payload: str
+    payload: str | bytes
     expected_result: ListenerExpectedResult
 
 
 class ListenerSpy:
     def __init__(self, port: int):
-        self.port = port
+        self.port: int = port
         self.result: IPReport
         self.error: str = ""
         self.result_spy: QSignalSpy
         self.error_spy: QSignalSpy
         self.listener: Listener
-        self.bound = False
+        self.bound: bool = False
         self._create_listener()
 
     def _create_listener(self):
@@ -100,7 +103,7 @@ class TestListeners(unittest.TestCase):
     def listenFor(
         self,
         port: int,
-        payload: str,
+        payload: str | bytes,
         expected_result: dict[str, Any],
         compressed: bool = False,
     ):
@@ -169,7 +172,7 @@ class TestListeners(unittest.TestCase):
         """Test sealminer payload (port 18650)"""
         test = ListenerTestCase(
             port=18650,
-            payload=f"{compress_paylaod('tests/payloads/sealminer_a2.json')}",
+            payload=compress_payload("sealminer_a2.json"),
             expected_result=ListenerExpectedResult(
                 ip="192.168.1.168",
                 mac="ab:cd:ef:ab:cd:ef",
@@ -187,7 +190,7 @@ class TestListeners(unittest.TestCase):
         """Test goldshell payload (port 1314)"""
         test = ListenerTestCase(
             port=1314,
-            payload=f"{read_payload('tests/payloads/goldshell.json')}",
+            payload=read_payload("goldshell.json"),
             expected_result=ListenerExpectedResult(
                 ip="192.168.9.216",
                 mac="ab:cd:ef:ab:cd:ef",
@@ -221,7 +224,7 @@ class TestListeners(unittest.TestCase):
         """Test Auradine payload (port 12345)"""
         test = ListenerTestCase(
             port=12345,
-            payload=f"{read_payload('tests/payloads/auradine.json')}",
+            payload=read_payload("auradine.json"),
             expected_result=ListenerExpectedResult(
                 ip="192.168.34.34",
                 mac="aa:bb:cc:dd:ee:ff",
@@ -243,6 +246,23 @@ class TestListeners(unittest.TestCase):
                 ip="192.168.6.22",
                 mac="aa:bb:cc:dd:ee:ff",
                 miner_hint="ipollo",
+            ),
+        )
+        self.listenFor(
+            port=test.port,
+            payload=test.payload,
+            expected_result=test.expected_result.model_dump(),
+        )
+
+    def test_ibelink_listen(self):
+        """Test iBeLink payload (port 6667)"""
+        test = ListenerTestCase(
+            port=6667,
+            payload=read_binary_payload("ibelink.bin"),
+            expected_result=ListenerExpectedResult(
+                ip="198.18.0.1",
+                mac="02:AA:BB:CC:DD:EE".lower(),
+                miner_hint="ibelink",
             ),
         )
         self.listenFor(
