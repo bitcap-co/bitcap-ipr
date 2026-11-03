@@ -5,6 +5,7 @@
 
 import ipaddress
 import re
+from collections.abc import Callable
 from enum import IntEnum
 from typing import Any, ClassVar, override
 
@@ -227,7 +228,7 @@ def get_ip_model(hint: MinerTypeHint) -> tuple[type[IPReportModel], bool]:
     return IPReportModel, False
 
 
-def parse_ibelink_payload(data: bytes) -> tuple[str, str]:
+def parse_ibelink_payload(data: bytes) -> tuple[str, str, str]:
     if len(data) < _IBELINK_HEADER_SIZE:
         raise ValueError(f"payload too short: {len(data)}")
 
@@ -247,4 +248,20 @@ def parse_ibelink_payload(data: bytes) -> tuple[str, str]:
     mac = parse_mac(raw_mac)
     if mac == "":
         raise ValueError(f"invalid mac: {raw_mac}")
-    return ip, mac
+    return ip, mac, ""
+
+
+payload_parser = Callable[[bytes], tuple[str, str, str]]
+_PAYLOAD_PARSERS = {
+    MinerTypeHint.IBELINK: parse_ibelink_payload,
+}
+
+
+def get_payload_parser(
+    hint: MinerTypeHint,
+) -> tuple[payload_parser, bool]:
+    """Get the IP report parser for the given miner type hint.
+    Returns a tuple of the parser and a boolean indicating if the parser was found."""
+    if hint in _PAYLOAD_PARSERS:
+        return _PAYLOAD_PARSERS[hint], True
+    return lambda _: ("", "", ""), False

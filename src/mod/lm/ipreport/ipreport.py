@@ -20,7 +20,7 @@ from mod.lm.ipreport.patterns import (
     MinerTypeHint,
     get_ip_model,
     get_msg_pattern,
-    parse_ibelink_payload,
+    get_payload_parser,
     parse_match,
 )
 
@@ -129,21 +129,18 @@ class IPReportDatagram:
             return
         logger.debug(f"{self.__repr__()}: {self.data.data().hex()}")
 
-        # known raw payloads
-        match self.report.hint:
-            case MinerTypeHint.IBELINK:
-                try:
-                    self.report.ip, self.report.mac = parse_ibelink_payload(
-                        self.data.data()
-                    )
-                    self.valid = True
-                except (UnicodeDecodeError, ValueError) as ex:
-                    logger.error(
-                        f"{self.__repr__()}: failed to validate IP report - {ex}"
-                    )
-                return
-            case _:
-                pass
+        # raw payloads
+        parser, ok = get_payload_parser(self.report.hint)
+        if ok:
+            try:
+                self.report.ip, self.report.mac, self.report.serial = parser(
+                    bytes(self.data.data())
+                )
+                self.valid = True
+            except (UnicodeDecodeError, ValueError) as ex:
+                self.valid = False
+                logger.error(f"{self.__repr__()}: failed to validate IP report - {ex}")
+            return
 
         self._compressed = self._decompress_payload()
         if not self._compressed and not self.data.isValidUtf8():
@@ -179,8 +176,7 @@ class IPReportDatagram:
                 self.valid = True
             except (TypeError, ValueError, ValidationError) as ex:
                 self.valid = False
-                return logger.error(
-                    f"{self.__repr__()}: failed to validate IP report - {ex}"
-                )
+                logger.error(f"{self.__repr__()}: failed to validate IP report - {ex}")
+            return
         if not self.valid:
             logger.error(f"{self.__repr__()}: failed to validate IP report")

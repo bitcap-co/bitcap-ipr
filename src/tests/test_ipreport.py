@@ -121,11 +121,11 @@ class TestIPReportParsingRegressions(unittest.TestCase):
 
         self.assertEqual(
             parse_ibelink_payload(captured_payload),
-            ("198.18.0.1", "02:AA:BB:CC:DD:EE".lower()),
+            ("198.18.0.1", "02:AA:BB:CC:DD:EE".lower(), ""),
         )
         self.assertEqual(
             parse_ibelink_payload(fixed_width_payload + b"\xff"),
-            ("172.17.0.2", "02:AA:BB:CC:DD:EE".lower()),
+            ("172.17.0.2", "02:AA:BB:CC:DD:EE".lower(), ""),
         )
 
     def test_ibelink_datagram_uses_binary_parser(self) -> None:
