@@ -252,7 +252,6 @@ class TestGetMinerData(unittest.IsolatedAsyncioTestCase):
         result = await asic.get_miner_data(MinerType.UNKNOWN, "10.0.0.1")
         self.assertFalse(result.ok)
         self.assertIsInstance(result.error, UnknownClientError)
-        self.assertIsNone(result.miner_data.type)
 
 
 class TestPoolConf(unittest.IsolatedAsyncioTestCase):

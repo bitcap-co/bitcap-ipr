@@ -150,7 +150,7 @@ class MinerData(BaseModel):
         exclude=True, default_factory=datetime.now(timezone.utc).astimezone, repr=False
     )
     recv_at: int | None = None
-    type: MinerType | str | None = None
+    type: MinerType = MinerType.UNKNOWN
     subtype: str | None = None
     firmware: MinerFirmware | str | None = None
     algorithm: MinerAlgorithm | str | None = None
