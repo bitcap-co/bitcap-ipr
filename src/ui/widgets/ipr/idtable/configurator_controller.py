@@ -40,7 +40,7 @@ from .model import COL_IP
 
 logger = logging.getLogger(__name__)
 
-AuthProvider = Callable[[str], str | None]
+AuthProvider = Callable[[MinerType], str | None]
 PresetWriter = Callable[[], object]
 
 
@@ -247,7 +247,7 @@ class MinerConfiguratorController(QObject):
 
     async def _get_miner_pool(self, source_row: int) -> None:
         ip_addr, miner_type, _ = self._table_controller.miner_target(source_row)
-        alt_pwd = self._auth_provider(miner_type.value)
+        alt_pwd = self._auth_provider(miner_type)
         result = await self._asic.get_miner_pool_conf(
             miner_type, ip_addr, alt_pwd=alt_pwd
         )

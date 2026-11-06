@@ -32,7 +32,7 @@ from .logdownload import MinerLogDownloadDialog
 
 logger = logging.getLogger(__name__)
 
-AuthProvider = Callable[[str], str | None]
+AuthProvider = Callable[[MinerType], str | None]
 ActionCoroutine = Callable[
     [int, str, MinerType, MinerFirmware, str | None],
     Awaitable[MinerResult] | None,
@@ -151,7 +151,7 @@ class MinerActionController(QObject):
             return
         ip_addr, miner_type, _ = self._table_controller.miner_target(source_row)
         logger.info(f"control_miner : '{key}' requested for {ip_addr}.")
-        alt_pwd = self._auth_provider(miner_type.value)
+        alt_pwd = self._auth_provider(miner_type)
         operation = getattr(self._asic, f"{key}_miner")
         result: MinerResult = await operation(miner_type, ip_addr, alt_pwd=alt_pwd)
         if result.error:
@@ -196,7 +196,7 @@ class MinerActionController(QObject):
         operations: list[Awaitable[MinerResult]] = []
         for row in rows:
             ip_addr, miner_type, firmware = self._table_controller.miner_target(row)
-            alt_pwd = self._auth_provider(miner_type.value)
+            alt_pwd = self._auth_provider(miner_type)
             operation = coroutine_factory(row, ip_addr, miner_type, firmware, alt_pwd)
             if operation is None:
                 continue
@@ -316,7 +316,7 @@ class MinerActionController(QObject):
 
     async def save_miner_logs(self, source_row: int) -> None:
         ip_addr, miner_type, _ = self._table_controller.miner_target(source_row)
-        alt_pwd = self._auth_provider(miner_type.value)
+        alt_pwd = self._auth_provider(miner_type)
         result = await self._save_miner_log(ip_addr, miner_type, alt_pwd)
         if result.error is not None:
             logger.error(f"get_miner_log: failed for {ip_addr}: {result.error!s}")
@@ -348,7 +348,7 @@ class MinerActionController(QObject):
 
     async def select_miner_logs(self, source_row: int) -> None:
         ip_addr, miner_type, _ = self._table_controller.miner_target(source_row)
-        alt_pwd = self._auth_provider(miner_type.value)
+        alt_pwd = self._auth_provider(miner_type)
         result = await self._asic.get_log_list(miner_type, ip_addr, alt_pwd=alt_pwd)
         if isinstance(result.error, UnsupportedOperationError):
             await self.download_miner_logs(source_row)
@@ -393,7 +393,7 @@ class MinerActionController(QObject):
         self, source_row: int, selected_logs: list[str] | None = None
     ) -> None:
         ip_addr, miner_type, _ = self._table_controller.miner_target(source_row)
-        alt_pwd = self._auth_provider(miner_type.value)
+        alt_pwd = self._auth_provider(miner_type)
         if miner_type not in (
             MinerType.ANTMINER,
             MinerType.ELPHAPEX,
@@ -502,7 +502,7 @@ class MinerActionController(QObject):
         updated_type = await self._asic.identify_http(ip_addr)
         if updated_type is not None and updated_type != miner_type:
             miner_type = updated_type
-        alt_pwd = self._auth_provider(miner_type.value)
+        alt_pwd = self._auth_provider(miner_type)
         result = await self._asic.get_miner_data(miner_type, ip_addr, alt_pwd=alt_pwd)
         if isinstance(result.error, UnknownClientError):
             logger.error(f"refresh_miner : {result.error!s}")
@@ -533,7 +533,7 @@ class MinerActionController(QObject):
             updated_type = await self._asic.identify_http(ip_addr)
             if updated_type is not None and updated_type != miner_type:
                 miner_type = updated_type
-                alt_pwd = self._auth_provider(miner_type.value)
+                alt_pwd = self._auth_provider(miner_type)
             return await self._asic.get_miner_data(
                 miner_type,
                 ip_addr,

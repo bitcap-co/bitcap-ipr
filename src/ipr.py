@@ -1628,7 +1628,7 @@ class IPR(QMainWindow, Ui_MainWindow):
             )
         else:
             # get miner data from src ip
-            alt_pwd = self.get_client_auth(miner_type=miner_type.value)
+            alt_pwd = self.get_client_auth(miner_type=miner_type)
             res = await self.asic.get_miner_data(miner_type, result.ip, alt_pwd=alt_pwd)
             miner_data = res.miner_data
             # an unsupported backend is non-fatal; still surface partial data
@@ -1638,7 +1638,7 @@ class IPR(QMainWindow, Ui_MainWindow):
                 error = res.error
 
         # check versus current listen configuration if listen filter is enabled
-        if self.checkEnableListenFilter.isChecked() and miner_data.type not in [
+        if self.checkEnableListenFilter.isChecked() and str(miner_data.type) not in [
             btn.text().lower()
             for btn in self.listenerConfig.buttons()
             if btn.isChecked()
@@ -1713,30 +1713,30 @@ class IPR(QMainWindow, Ui_MainWindow):
             confirm.activateWindow()
             confirm.raise_()
 
-    def get_client_auth(self, miner_type: str) -> str | None:
+    def get_client_auth(self, miner_type: MinerType) -> str | None:
         client_auth: str | None = None
         match miner_type:
-            case "antminer":
+            case MinerType.ANTMINER:
                 client_auth = self.lineAntminerPasswd.text()
-            case "whatsminer":
+            case MinerType.WHATSMINER:
                 client_auth = self.lineWhatsminerPasswd.text()
-            case "goldshell":
+            case MinerType.GOLDSHELL:
                 client_auth = self.lineGoldshellPasswd.text()
-            case "volcminer":
+            case MinerType.VOLCMINER:
                 client_auth = self.lineVolcminerPasswd.text()
-            case "sealminer":
+            case MinerType.SEALMINER:
                 client_auth = self.lineSealminerPasswd.text()
-            case "iceriver":
+            case MinerType.ICERIVER:
                 client_auth = self.lineIceriverPasswd.text()
-            case "elphapex":
+            case MinerType.ELPHAPEX:
                 client_auth = self.lineElphapexPasswd.text()
-            case "auradine":
+            case MinerType.AURADINE:
                 client_auth = self.lineAuradinePasswd.text()
-            case "ipollo":
+            case MinerType.IPOLLO:
                 client_auth = self.lineIPolloPasswd.text()
-            case "ibelink":
+            case MinerType.IBELINK:
                 client_auth = self.lineIbelinkPasswd.text()
-            case "vnish":
+            case MinerType.VNISH:
                 if not self.checkUseAntminerLogin.isChecked():
                     client_auth = self.lineVnishPasswd.text()
                 else:
