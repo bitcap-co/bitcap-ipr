@@ -1622,7 +1622,9 @@ class IPR(QMainWindow, Ui_MainWindow):
                 recv_at=int(result.updated_at),
                 ip=result.ip,
                 mac=result.mac,
-                type=miner_type,
+                # in the event of an unsupported miner or API is not ready,
+                # use the report's miner hint to provide a fallback type
+                type=MinerType.from_value(result.miner_hint),
             )
         else:
             # get miner data from src ip
@@ -1634,10 +1636,6 @@ class IPR(QMainWindow, Ui_MainWindow):
                 logger.warning(f"process_result : {res.error!s}")
             else:
                 error = res.error
-
-        # in the event of an unsupported miner, return miner type hint from IP Report
-        if miner_data.type is None:
-            miner_data.type = result.miner_hint
 
         # check versus current listen configuration if listen filter is enabled
         if self.checkEnableListenFilter.isChecked() and miner_data.type not in [
@@ -1677,15 +1675,14 @@ class IPR(QMainWindow, Ui_MainWindow):
         logger.info(" show IP confirmation.")
         ip = result.ip or "N/A"
         mac = result.mac or "N/A"
-        miner_type = result.type or MinerType.UNKNOWN
-        type_str = str(miner_type).capitalize()
-        if miner_type != MinerType.UNKNOWN:
+        type_str = str(result.type).capitalize()
+        if result.type != MinerType.UNKNOWN:
             firmware = result.firmware or "N/A"
             type_str = f"{type_str} ({firmware})"
 
         recv_timestamp = QDateTime.fromSecsSinceEpoch(result.recv_at or 0).toString()
         if self.menu_bar.actionAlwaysOpenIPInBrowser.isChecked():
-            self.open_dashboard(ip, miner_type)
+            self.open_dashboard(ip, result.type)
         if self.menu_bar.actionEnableIDTable.isChecked() and self.isVisible():
             logger.info("show_confirmation : populate ID table.")
             if self.menu_bar.actionEnableLiveCapture.isChecked():
@@ -1696,7 +1693,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         else:
             confirm = IPRConfirmation(self.menu_bar.actionConfirmsStayOnTop.isChecked())
             _ = confirm.actionOpenDashboard.triggered.connect(
-                lambda: self.open_dashboard(ip, miner_type)
+                lambda: self.open_dashboard(ip, result.type)
             )
 
             logger.info("show_confirmation : show IPRConfirmation.")
