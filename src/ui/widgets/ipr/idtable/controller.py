@@ -20,9 +20,10 @@ from PySide6.QtCore import (
     QPoint,
     Qt,
     QTextStream,
+    QUrl,
     Signal,
 )
-from PySide6.QtGui import QCursor, QIcon
+from PySide6.QtGui import QCursor, QDesktopServices, QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -35,6 +36,7 @@ from PySide6.QtWidgets import (
 )
 
 from mod.ipr_asic.data import MinerData, MinerFirmware, MinerType
+from utils import get_miner_log_dir
 
 from .contextmenu import IPRTableContextMenu
 from .csv import MinerCSVError, parse_miner_csv, serialize_csv
@@ -167,6 +169,9 @@ class IPRTableController(QObject):
         )
         self._context_menu.contextActionCopySelected.triggered.connect(
             self.copy_selected
+        )
+        self._context_menu.contextActionOpenMinerLogsLocation.triggered.connect(
+            self.show_miner_logs
         )
         self._context_menu.contextActionClearTable.triggered.connect(self.clear)
         self._context_menu.contextActionRefreshMiners.triggered.connect(
@@ -483,6 +488,9 @@ class IPRTableController(QObject):
         self.notification_requested.emit(
             "Status :: Copied elements to clipboard.", 3000
         )
+
+    def show_miner_logs(self) -> None:
+        _ = QDesktopServices.openUrl(QUrl(get_miner_log_dir().as_uri()))
 
     def _toggle_selection(self, indexes: list[QModelIndex]) -> None:
         if not indexes:

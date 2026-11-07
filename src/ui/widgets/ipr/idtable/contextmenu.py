@@ -36,6 +36,12 @@ class IPRTableContextMenu(QMenu):
         self.contextActionLocateMiners.setToolTip(
             "Blink the fault light on the selected miners, or all miners when none are selected."
         )
+        self.contextActionOpenMinerLogsLocation: QAction = self.addAction(
+            "Open Miner Logs"
+        )
+        self.contextActionOpenMinerLogsLocation.setToolTip(
+            "Opens the location of downloaded miner logs in the file browser."
+        )
         self.menuConf: QMenu = self.addMenu("Configurator")
         self.menuConf.setToolTipsVisible(True)
         self.contextActionConfiguratorShowHide: QAction = self.menuConf.addAction(
