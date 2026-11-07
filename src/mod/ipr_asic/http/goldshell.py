@@ -5,7 +5,7 @@
 
 import json
 import logging
-from typing import final, override
+from typing import Literal, final, override
 
 import httpx
 from Crypto.Cipher import AES
@@ -31,6 +31,7 @@ from mod.ipr_asic.schemas.models import (
     ActionResult,
     APIObject,
     BlinkStatus,
+    ContentResponse,
     MinerPoolConfig,
     PoolConfig,
 )
@@ -180,6 +181,33 @@ class GoldshellHTTPClient(BaseHTTPClient):
                 MinerPoolConfig(url=pool.url, user=pool.user, pwd=pool.passwd)
             )
         return PoolConfig(pool_conf)
+
+    @override
+    async def get_miner_log(
+        self,
+        log_type: Literal[
+            "minerhistory",
+            "kmsg",
+            "syslog",
+            "psinfo",
+            "meminfo",
+            "vsinfo",
+            "minerinfo",
+            "minersyslog",
+            "monitorlog",
+            "fanctrl",
+            "icinfo",
+        ] = "minersyslog",
+    ) -> ContentResponse:
+        # endpoint:dgb/{log_type}
+        # returns raw log content
+        # icinfo is a json response
+        resp = await self.send_command("GET", path="dbg", command=log_type)
+        try:
+            return ContentResponse.model_validate(obj=resp)
+        except ValidationError as e:
+            logger.error(f"{self!r}: {APIInvalidResponse(reason=str(e))!s}")
+            raise APIInvalidResponse
 
     async def get_blink_status(self) -> BlinkStatus:
         resp = await self.get_miner_conf()

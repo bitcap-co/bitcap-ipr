@@ -289,7 +289,6 @@ class MinerActionController(QObject):
         alt_pwd: str | None,
     ) -> MinerResult:
         if miner_type in (
-            MinerType.GOLDSHELL,
             MinerType.IPOLLO,
             MinerType.HIVEGPU,
             MinerType.HAMMER,
