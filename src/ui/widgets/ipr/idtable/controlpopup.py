@@ -30,6 +30,8 @@ ACTIONS: list[tuple[str, str, str | None]] = [
     ("reboot", "Reboot Miner", ":theme/icons/rc/reboot.png"),
     ("get_miner_log", "Get Miner Log", ":theme/icons/rc/file.png"),
     ("download_logs", "Download Logs...", ":theme/icons/rc/archive.png"),
+    ("reset_firmware", "Factory Reset", ":theme/icons/rc/reset.png"),
+    ("rollback_firmware", "Rollback Firmware", ":theme/icons/rc/rollback.png"),
 ]
 
 _ICON_SIZE = QSize(15, 15)

@@ -43,5 +43,7 @@ Licensed under the GNU General Public License v3.0; see LICENSE
         <file>rc/info.png</file>
         <file>rc/file.png</file>
         <file>rc/archive.png</file>
+        <file>rc/reset.png</file>
+        <file>rc/rollback.png</file>
     </qresource>
 </RCC>

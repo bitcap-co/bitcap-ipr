@@ -14,7 +14,7 @@ from typing import Any, ClassVar
 
 from pydantic import BaseModel, ConfigDict
 from PySide6.QtCore import QObject, Signal
-from PySide6.QtWidgets import QToolButton, QWidget
+from PySide6.QtWidgets import QDialog, QToolButton, QWidget
 
 from mod.ipr_asic import ASICClient, MinerDataResult, MinerResult
 from mod.ipr_asic.data import MinerFirmware, MinerType
@@ -26,9 +26,11 @@ from mod.ipr_asic.errors import (
 from mod.ipr_asic.schemas.models import ContentResponse
 from utils import get_miner_log_dir
 
+from ..message import IPRMessage
 from .controller import IPRTableController
 from .controlpopup import MinerControlPopup
 from .logdownload import MinerLogDownloadDialog
+from .model import COL_IP
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +40,7 @@ ActionCoroutine = Callable[
     Awaitable[MinerResult] | None,
 ]
 ActionSuccess = Callable[[int, str, MinerResult], None]
+ConfirmedAction = Callable[[list[int]], Coroutine[object, object, None]]
 
 _CONTROL_ACTIONS = {"start", "stop", "restart", "reboot"}
 
@@ -55,7 +58,7 @@ class MinerActionDependencies(BaseModel):
 
 
 class MinerActionController(QObject):
-    """Coordinates generic miner control, refresh, and locate operations."""
+    """Coordinates miner control, firmware, refresh, and locate operations."""
 
     notification_requested: Signal = Signal(str, int)
 
@@ -111,6 +114,8 @@ class MinerActionController(QObject):
             self.schedule(self.save_miner_logs(source_row))
         elif key == "download_logs":
             self.schedule(self.select_miner_logs(source_row))
+        elif key in ("reset_firmware", "rollback_firmware"):
+            self.confirm_action(key, [source_row])
         else:
             logger.warning(f"dispatch_miner_control : unknown action '{key}'.")
 
@@ -123,6 +128,8 @@ class MinerActionController(QObject):
             self.schedule(self.bulk_control_miners(key, rows))
         elif key == "get_miner_log":
             self.schedule(self.bulk_save_miner_logs(rows))
+        elif key in ("reset_firmware", "rollback_firmware"):
+            self.confirm_action(key, rows)
         else:
             logger.warning(f"dispatch_bulk_control : unknown action '{key}'.")
 
@@ -182,6 +189,114 @@ class MinerActionController(QObject):
             return operation(miner_type, ip_addr, alt_pwd=alt_pwd)
 
         await self.run_bulk_action(key.capitalize(), rows, make_coro)
+
+    def reset_miner_firmware(self, *_args: object) -> None:
+        rows = self._table_controller.selected_source_rows_for_action(
+            "reset_miner_firmware", column=COL_IP
+        )
+        if not rows:
+            self.notification_requested.emit(
+                "Status :: Failed action: no selected IPs.", 5000
+            )
+            return
+        self.confirm_action("reset_firmware", rows)
+
+    def rollback_miner_firmware(self, *_args: object) -> None:
+        rows = self._table_controller.selected_source_rows_for_action(
+            "rollback_miner_firmware", column=COL_IP
+        )
+        if not rows:
+            self.notification_requested.emit(
+                "Status :: Failed action: no selected IPs.", 5000
+            )
+            return
+        self.confirm_action("rollback_firmware", rows)
+
+    async def _reset_miner_firmware(self, rows: list[int]) -> None:
+        def make_coro(
+            _row: int,
+            ip_addr: str,
+            miner_type: MinerType,
+            _firmware: MinerFirmware,
+            alt_pwd: str | None,
+        ) -> Awaitable[MinerResult] | None:
+            if miner_type in (
+                MinerType.HAMMER,
+                MinerType.HIVEGPU,
+                MinerType.IBELINK,
+            ):
+                logger.error(
+                    f"reset_firmware : {miner_type.value} is currently not supported."
+                )
+                unsupported_message = f"Status :: Skipping {ip_addr}: {miner_type.value.capitalize()} reset firmware is not supported."
+                self.notification_requested.emit(unsupported_message, 5000)
+                return None
+            return self._asic.reset_miner_firmware(miner_type, ip_addr, alt_pwd=alt_pwd)
+
+        await self.run_bulk_action("Reset Firmware", rows, make_coro)
+
+    async def _rollback_miner_firmware(self, rows: list[int]) -> None:
+        def make_coro(
+            _row: int,
+            ip_addr: str,
+            miner_type: MinerType,
+            _firmware: MinerFirmware,
+            alt_pwd: str | None,
+        ) -> Awaitable[MinerResult] | None:
+            if miner_type not in (MinerType.VNISH, MinerType.LUX_OS):
+                logger.error(
+                    f"rollback_firmware : {miner_type.value} is currently not supported."
+                )
+                unsupported_message = f"Status :: Skipping {ip_addr}: {miner_type.value.capitalize()} rollback firmware is not supported."
+                self.notification_requested.emit(unsupported_message, 5000)
+                return None
+            return self._asic.rollback_miner_firmware(
+                miner_type, ip_addr, alt_pwd=alt_pwd
+            )
+
+        await self.run_bulk_action("Rollback Firmware", rows, make_coro)
+
+    def confirm_action(self, key: str, rows: list[int]) -> None:
+        if key == "reset_firmware":
+            self._confirm_action(
+                rows,
+                title="Confirm Miner Firmware Reset",
+                message=f"Reset firmware for selected {len(rows)} miner(s)?",
+                action_text="Reset Firmware",
+                operation=self._reset_miner_firmware,
+            )
+        elif key == "rollback_firmware":
+            self._confirm_action(
+                rows,
+                title="Confirm Miner Firmware Rollback",
+                message=(
+                    "Rollback firmware back to stock firmware for selected "
+                    f"{len(rows)} miner(s)?"
+                ),
+                action_text="Rollback",
+                operation=self._rollback_miner_firmware,
+            )
+        else:
+            logger.warning(f"confirm_action : unknown action '{key}'.")
+
+    def _confirm_action(
+        self,
+        rows: list[int],
+        *,
+        title: str,
+        message: str,
+        action_text: str,
+        operation: ConfirmedAction,
+    ) -> None:
+        confirm = IPRMessage(
+            self._window,
+            title,
+            message,
+            action_text=action_text,
+        )
+        if confirm.exec() != QDialog.DialogCode.Accepted:
+            return
+        self.schedule(operation(rows))
 
     async def run_bulk_action(
         self,

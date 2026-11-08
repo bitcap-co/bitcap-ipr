@@ -566,10 +566,10 @@ class IPR(QMainWindow, Ui_MainWindow):
             self.configurator_controller.update_firmware_path
         )
         _ = self.actionResetFirmware.clicked.connect(
-            self.configurator_controller.reset_miner_firmware
+            self.action_controller.reset_miner_firmware
         )
         _ = self.actionRollbackFirmware.clicked.connect(
-            self.configurator_controller.rollback_miner_firmware
+            self.action_controller.rollback_miner_firmware
         )
 
         # set logo

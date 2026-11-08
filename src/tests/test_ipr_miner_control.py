@@ -126,6 +126,90 @@ class TestMinerActionController(unittest.IsolatedAsyncioTestCase):
             [("reboot", MinerType.ANTMINER, "10.0.0.3", "secret")],
         )
 
+    def test_firmware_actions_dispatch_single_and_bulk_rows(self):
+        subject: Any = SimpleNamespace(
+            confirm_action=Mock(),
+        )
+
+        MinerActionController.dispatch_miner_control(subject, 4, "reset_firmware")
+        MinerActionController.dispatch_miner_control(subject, 7, "rollback_firmware")
+        MinerActionController.dispatch_bulk_control(subject, "reset_firmware", [2, 5])
+        MinerActionController.dispatch_bulk_control(
+            subject, "rollback_firmware", [3, 6]
+        )
+
+        subject.confirm_action.assert_has_calls(
+            [
+                call("reset_firmware", [4]),
+                call("rollback_firmware", [7]),
+                call("reset_firmware", [2, 5]),
+                call("rollback_firmware", [3, 6]),
+            ]
+        )
+
+    async def test_reset_firmware_filters_unsupported_miners(self):
+        asic = SimpleNamespace(reset_miner_firmware=Mock())
+        run_bulk_action = AsyncMock()
+        subject: Any = SimpleNamespace(
+            _asic=asic,
+            run_bulk_action=run_bulk_action,
+            notification_requested=Mock(),
+        )
+
+        await MinerActionController._reset_miner_firmware(subject, [4])
+
+        awaited = run_bulk_action.await_args
+        if awaited is None:
+            self.fail("reset firmware bulk action was not awaited")
+        action, rows, make_coro = awaited.args
+        self.assertEqual(action, "Reset Firmware")
+        self.assertEqual(rows, [4])
+        operation = make_coro(
+            4,
+            "10.0.0.14",
+            MinerType.HAMMER,
+            MinerFirmware.STOCK,
+            None,
+        )
+        self.assertIsNone(operation)
+        asic.reset_miner_firmware.assert_not_called()
+        subject.notification_requested.emit.assert_called_once_with(
+            "Status :: Skipping 10.0.0.14: Hammer reset firmware is not supported.",
+            5000,
+        )
+
+    async def test_rollback_firmware_forwards_supported_miner(self):
+        result = MinerResult(data={"success": True})
+        asic = SimpleNamespace(rollback_miner_firmware=AsyncMock(return_value=result))
+        run_bulk_action = AsyncMock()
+        subject: Any = SimpleNamespace(
+            _asic=asic,
+            run_bulk_action=run_bulk_action,
+            notification_requested=Mock(),
+        )
+
+        await MinerActionController._rollback_miner_firmware(subject, [8])
+
+        awaited = run_bulk_action.await_args
+        if awaited is None:
+            self.fail("rollback firmware bulk action was not awaited")
+        action, rows, make_coro = awaited.args
+        self.assertEqual(action, "Rollback Firmware")
+        self.assertEqual(rows, [8])
+        rollback_result = await make_coro(
+            8,
+            "10.0.0.15",
+            MinerType.VNISH,
+            MinerFirmware.VNISH,
+            "secret",
+        )
+        self.assertIs(rollback_result, result)
+        asic.rollback_miner_firmware.assert_awaited_once_with(
+            MinerType.VNISH,
+            "10.0.0.15",
+            alt_pwd="secret",
+        )
+
     async def test_unsupported_miner_log_is_returned_as_failure(self):
         subject: Any = SimpleNamespace(
             _asic=SimpleNamespace(get_miner_log=AsyncMock()),
