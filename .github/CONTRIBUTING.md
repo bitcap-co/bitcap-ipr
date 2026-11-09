@@ -1,12 +1,15 @@
 ## Contributing
 
 ### Getting Started
+
 To get up and running with BitCapIPR, it requires the following enviroment:
 
 #### Minimum Requirements:
- - Python >= 3.10, <3.15
+
+- Python >= 3.10, <3.15
 
 ### Project Environment Setup
+
 Below are instructions for Linux, but can be easily converted for whatever OS/enviroment you are running on.
 
 ```bash
@@ -22,25 +25,26 @@ poetry install
 # to install with dev dependencies (for local building/testing)
 poetry install --with dev
 
-# to run BitCapIPR locally, create symlink from within src to ../resources
-cd src
-ln -s ../resources resources
-
 # launch BitCapIPR
 python3 main.py
+# or via Makefile
+make run
 ```
 
 with any luck, the application should successfully launch!
 
 ### Building Binaries
+
 Binaries are made with Nuitka.
 Make sure you have the one of the supported compilers for your OS [here](https://nuitka.net/user-documentation/user-manual.html#requirements)
 
 If you are using Linux, make sure you have the following system depenedencies:
- - `binutils`
- - `patchelf`
- - `ccache` (Optional; used to speed up re-compilication)
-Which can be installed with your package manager.
+
+- `binutils`
+- `patchelf`
+- `ccache` (Optional; used to speed up re-compilication)
+  Which can be installed with your package manager.
+
 ```bash
 # Install the locked runtime and development dependencies.
 poetry install --with dev
@@ -85,11 +89,13 @@ A tagged build fails if the tag does not match the project version. For example,
 be started manually from the GitHub Actions workflow.
 
 ### Debugging
+
 The application has a logging system which is very useful for debugging. Within the enviroment, it is located at `./Logs/ipr.log`. You can also open the log within your default text editor within the app at "Help" -> "Open Log" in the menu.
 
 To get debug level messages, you can change the log level within the app. Navigate to "Settings" -> "Settings" in the menubar, then change the log level within the "Logs" tab.
 
 Or more simply you can change the `config.json` to:
+
 ```json
 "logs": {
   "logLevel": "DEBUG",
@@ -98,12 +104,15 @@ Or more simply you can change the `config.json` to:
   "onMaxLogSize": 0
 },
 ```
+
 then launching the application.
 
 ### Running tests
+
 For now, there is only one test that verifies that the lm module is working properly. Ensuring that datagram parsing and validation is working for all supported IP Report formats.
 
 To verify, can simply run:
+
 ```bash
 make test
 
@@ -112,6 +121,7 @@ cd src && ../.venv/bin/python -m unittest discover tests/
 ```
 
 #### Simulating IP Report messages
+
 For specific scenarios, one might want to test specific IP report messages. Within `scripts` there are some handy scripts to help with this.
 
 For most cases, `send_dgram.py` should surrfice. You can send custom datagrams locally or over broadcast (255.255.255.255).
@@ -123,4 +133,5 @@ python3 scripts/send_dgram.py -p 14235 "<MESSAGE>"
 # send dgram message to port 14235 over broadcast
 python3 scripts/send_dgram.py -bp 14235 "<MESSAGE>"
 ```
-See ```python3 scripts/send_dgram.py -h``` for more details.
+
+See `python3 scripts/send_dgram.py -h` for more details.
