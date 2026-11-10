@@ -1311,30 +1311,27 @@ Uses last 5 of SN or MAC address.</string>
             <property name="minimumSize">
              <size>
               <width>525</width>
-              <height>35</height>
+              <height>40</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>35</height>
+              <height>40</height>
              </size>
-            </property>
-            <property name="toolTip">
-             <string>Execute bulk actions for specific/visible miners.</string>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_7">
              <property name="leftMargin">
               <number>6</number>
              </property>
              <property name="topMargin">
-              <number>6</number>
+              <number>3</number>
              </property>
              <property name="rightMargin">
               <number>6</number>
              </property>
              <property name="bottomMargin">
-              <number>6</number>
+              <number>3</number>
              </property>
              <item>
               <widget class="QLabel" name="label_30">
@@ -1348,6 +1345,9 @@ Uses last 5 of SN or MAC address.</string>
                 <font>
                  <pointsize>10</pointsize>
                 </font>
+               </property>
+               <property name="toolTip">
+                <string>Execute bulk actions on selected/all miners</string>
                </property>
                <property name="text">
                 <string>Action Center:</string>
@@ -1444,13 +1444,90 @@ Uses last 5 of SN or MAC address.</string>
                <property name="orientation">
                 <enum>Qt::Orientation::Horizontal</enum>
                </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Policy::MinimumExpanding</enum>
+               </property>
                <property name="sizeHint" stdset="0">
                 <size>
-                 <width>40</width>
+                 <width>0</width>
                  <height>20</height>
                 </size>
                </property>
               </spacer>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_37">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Preset:</string>
+               </property>
+               <property name="StyleClass" stdset="0">
+                <string>setText</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="tableSelector" native="true">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>250</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_10">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="btnShowHideColumns">
+               <property name="minimumSize">
+                <size>
+                 <width>25</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>85</width>
+                 <height>24</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Columns</string>
+               </property>
+               <property name="toolButtonStyle">
+                <enum>Qt::ToolButtonStyle::ToolButtonTextBesideIcon</enum>
+               </property>
+               <property name="arrowType">
+                <enum>Qt::ArrowType::DownArrow</enum>
+               </property>
+              </widget>
              </item>
             </layout>
            </widget>
@@ -1544,8 +1621,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>478</width>
-                   <height>849</height>
+                   <width>469</width>
+                   <height>784</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -2069,8 +2146,6 @@ Uses last 5 of SN or MAC address.</string>
                           </layout>
                          </widget>
                         </item>
-
-
                         <item row="3" column="2">
                          <widget class="QLineEdit" name="lineIPRDSocketAddress">
                           <property name="sizePolicy">
@@ -2102,7 +2177,6 @@ Uses last 5 of SN or MAC address.</string>
                           </property>
                          </widget>
                         </item>
-
                         <item row="2" column="0">
                          <widget class="QLabel" name="labelIPRDPreset">
                           <property name="text">
@@ -2186,7 +2260,7 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>811</width>
+                   <width>255</width>
                    <height>1056</height>
                   </rect>
                  </property>
@@ -2980,8 +3054,8 @@ Uses last 5 of SN or MAC address.</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>782</width>
-                   <height>338</height>
+                   <width>368</width>
+                   <height>246</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_11">
