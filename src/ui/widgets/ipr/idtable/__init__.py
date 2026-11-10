@@ -31,6 +31,7 @@ from .model import (
     column_for_field,
     configurable_columns,
 )
+from .preset_controller import IDTablePresetController, IDTablePresetWidgets
 from .proxy import IPRFilterProxyModel
 
 __all__ = [
@@ -45,6 +46,8 @@ __all__ = [
     "ColumnFilterPopup",
     "FilterHeaderView",
     "FirmwareConfiguratorWidgets",
+    "IDTablePresetController",
+    "IDTablePresetWidgets",
     "IPRActionDelegate",
     "IPRFilterProxyModel",
     "IPRTableContextMenu",
@@ -59,4 +62,6 @@ __all__ = [
     "MinerControlPopup",
     "PasswordConfiguratorWidgets",
     "PoolConfiguratorWidgets",
+    "column_for_field",
+    "configurable_columns",
 ]
