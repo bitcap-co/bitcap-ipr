@@ -223,7 +223,7 @@ class IPRConfig:
         self.fw_config: FirmwareConfiguratorSettings = self.configurator.fw_config
         self.logs: LogSettings = LogSettings()
         self.options: InstanceOptions = InstanceOptions()
-        self.table: IDTableInstanceSettings = IDTableInstanceSettings()
+        self.table: IDTableInstanceSettings = self.options.table
         self.views: InstanceViews = InstanceViews()
         self.instance: InstanceSettings = InstanceSettings(
             options=self.options, views=self.views
@@ -279,8 +279,8 @@ class IPRConfig:
         self._set_default()
         self._write_config()
 
-    def dump_stored_presets(self, preset_type: PresetType) -> list[dict[str, str]]:
-        saved: list[dict[str, str]] = []
+    def dump_stored_presets(self, preset_type: PresetType) -> list[dict[str, Any]]:
+        saved: list[dict[str, Any]] = []
         match preset_type:
             case PresetType.POOL:
                 presets = TypeAdapter(list[PoolPreset])
