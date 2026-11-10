@@ -100,12 +100,26 @@ ACTION_COLUMN_COUNT = 1
 COLUMN_COUNT = len(HEADERS)
 
 
-def _field_column(field: str) -> int:
+def configurable_columns() -> list[tuple[int, Column]]:
+    """Return persistable data columns and their view indexes."""
+    return [
+        (index + ACTION_COLUMN_COUNT, column) for index, column in enumerate(COLUMNS)
+    ]
+
+
+def column_for_field(field: str) -> int | None:
+    """Return the current view index for a persisted field identifier."""
     return next(
-        index + ACTION_COLUMN_COUNT
-        for index, column in enumerate(COLUMNS)
-        if column.field == field
+        (index for index, column in configurable_columns() if column.field == field),
+        None,
     )
+
+
+def _field_column(field: str) -> int:
+    index = column_for_field(field)
+    if index is None:
+        raise ValueError(f"Unknown ID-table column field: {field}")
+    return index
 
 
 COL_IP = _field_column("ip")

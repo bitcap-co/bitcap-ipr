@@ -28,6 +28,8 @@ from .model import (
     COL_USER,
     FILTERABLE_COLUMNS,
     IPRTableModel,
+    column_for_field,
+    configurable_columns,
 )
 from .proxy import IPRFilterProxyModel
 

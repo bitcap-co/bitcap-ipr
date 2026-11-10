@@ -29,6 +29,8 @@ from .idtable import (
     MinerControlPopup,
     PasswordConfiguratorWidgets,
     PoolConfiguratorWidgets,
+    column_for_field,
+    configurable_columns,
 )
 from .menubar import IPRMenubar
 from .message import IPRMessage

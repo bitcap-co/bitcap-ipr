@@ -38,6 +38,8 @@ from .ipr import (
     PoolPresetWidgets,
     SocketPresetController,
     SocketPresetWidgets,
+    column_for_field,
+    configurable_columns,
 )
 from .svglabel import SvgLabel
 
