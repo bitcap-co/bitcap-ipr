@@ -50,6 +50,7 @@ class Column(BaseModel):
     tooltip: str | None = None
     # low-cardinality columns get an Excel-style header filter dropdown
     filterable: bool = False
+    hidden_by_default: bool = False
     # normalization used to group and match header-filter values
     filter_key: Callable[[str], str] = normalize_value
 
@@ -105,6 +106,11 @@ def configurable_columns() -> list[tuple[int, Column]]:
     return [
         (index + ACTION_COLUMN_COUNT, column) for index, column in enumerate(COLUMNS)
     ]
+
+
+def default_hidden_columns() -> set[str]:
+    """Return columns hidden until a preset saves an explicit visibility state."""
+    return {column.field for column in COLUMNS if column.hidden_by_default}
 
 
 def column_for_field(field: str) -> int | None:

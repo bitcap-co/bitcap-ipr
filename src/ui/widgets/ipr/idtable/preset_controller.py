@@ -14,7 +14,12 @@ from PySide6.QtWidgets import QMenu, QTableView, QToolButton
 from config import IDTablePreset, IPRConfig, PresetType
 
 from ..preset_selector import IPRPresetSelector
-from .model import COL_ACTION, column_for_field, configurable_columns
+from .model import (
+    COL_ACTION,
+    column_for_field,
+    configurable_columns,
+    default_hidden_columns,
+)
 
 
 class IDTablePresetWidgets(BaseModel):
@@ -29,6 +34,8 @@ class IDTablePresetWidgets(BaseModel):
 
 class IDTablePresetController(QObject):
     """Synchronizes ID-table column visibility presets and their controls."""
+
+    DEFAULT_PRESET_NAME: ClassVar[str] = "Default"
 
     def __init__(
         self,
@@ -82,13 +89,32 @@ class IDTablePresetController(QObject):
 
     def _apply(self, index: int) -> None:
         presets = self._config.instance.views.table_presets
-        hidden: set[str] = (
-            set(presets[index].hidden_columns) if 0 <= index < len(presets) else set()
-        )
+        hidden = default_hidden_columns()
+        if 0 <= index < len(presets) and not self._is_default_preset(index):
+            preset = presets[index]
+            hidden = set(preset.hidden_columns)
+            if "hidden_columns" not in preset.model_fields_set:
+                hidden.update(default_hidden_columns())
         for column_index, column in configurable_columns():
             self._widgets.table.setColumnHidden(column_index, column.field in hidden)
         self._widgets.table.setColumnHidden(COL_ACTION, False)
         self._sync_actions()
+        self._sync_preset_controls(index)
+
+    def _is_default_preset(self, index: int) -> bool:
+        presets = self._config.instance.views.table_presets
+        return (
+            index == 0
+            and index < len(presets)
+            and presets[index].preset_name == self.DEFAULT_PRESET_NAME
+        )
+
+    def _sync_preset_controls(self, index: int) -> None:
+        is_default = self._is_default_preset(index)
+        self._widgets.selector.remove_button.setEnabled(index >= 0 and not is_default)
+        line_edit = self._widgets.selector.combo.lineEdit()
+        if line_edit is not None:
+            line_edit.setReadOnly(is_default)
 
     def _sync_actions(self) -> None:
         for field, action in self._column_actions.items():
@@ -114,7 +140,7 @@ class IDTablePresetController(QObject):
             return
         index = self.index
         presets = self._config.instance.views.table_presets
-        if index < 0 or index >= len(presets):
+        if index < 0 or index >= len(presets) or self._is_default_preset(index):
             return
         if presets[index].preset_name == name:
             return
@@ -147,9 +173,9 @@ class IDTablePresetController(QObject):
     def remove(self) -> None:
         index = self.index
         presets = self._config.instance.views.table_presets
-        if index < 0 or index >= len(presets):
+        if index < 0 or index >= len(presets) or self._is_default_preset(index):
             return
-        presets.pop(index)
+        _ = presets.pop(index)
 
         combo = self._widgets.selector.combo
         blocker = QSignalBlocker(combo)
@@ -169,15 +195,19 @@ class IDTablePresetController(QObject):
         self._widgets.table.setColumnHidden(column, not visible)
 
         index = self.index
+        if self._is_default_preset(index):
+            self.create()
+            return
+
         presets = self._config.instance.views.table_presets
         if 0 <= index < len(presets):
-            hidden = presets[index].hidden_columns
-            if visible:
-                presets[index].hidden_columns = [
-                    stored for stored in hidden if stored != field
-                ]
-            elif field not in hidden:
-                hidden.append(field)
+            preset = presets[index]
+            unknown = [
+                stored
+                for stored in preset.hidden_columns
+                if column_for_field(stored) is None
+            ]
+            preset.hidden_columns = [*unknown, *self._hidden_columns()]
             self._config.write()
         self._sync_actions()
 
