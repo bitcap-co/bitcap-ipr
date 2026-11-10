@@ -7,7 +7,7 @@ from functools import partial
 from typing import ClassVar
 
 from pydantic import BaseModel, ConfigDict
-from PySide6.QtCore import QObject, QSignalBlocker
+from PySide6.QtCore import QObject, QSignalBlocker, QTimer
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QMenu, QTableView, QToolButton
 
@@ -18,6 +18,7 @@ from .model import (
     COL_ACTION,
     column_for_field,
     configurable_columns,
+    default_column_widths,
     default_hidden_columns,
 )
 
@@ -48,6 +49,11 @@ class IDTablePresetController(QObject):
         self._widgets: IDTablePresetWidgets = widgets
         self._syncing: bool = False
         self._column_actions: dict[str, QAction] = {}
+        self._column_widths_cache: dict[str, int] = default_column_widths()
+        self._width_write_timer: QTimer = QTimer(self)
+        self._width_write_timer.setInterval(250)
+        self._width_write_timer.setSingleShot(True)
+        _ = self._width_write_timer.timeout.connect(self._config.write)
 
         self._configure_columns_menu()
         selector = widgets.selector
@@ -55,6 +61,9 @@ class IDTablePresetController(QObject):
         _ = selector.combo.editTextChanged.connect(self.rename)
         _ = selector.create_requested.connect(self.create)
         _ = selector.remove_requested.connect(self.remove)
+        _ = widgets.table.horizontalHeader().sectionResized.connect(
+            self._on_column_resized
+        )
         self.reload()
 
     @property
@@ -95,9 +104,25 @@ class IDTablePresetController(QObject):
             hidden = set(preset.hidden_columns)
             if "hidden_columns" not in preset.model_fields_set:
                 hidden.update(default_hidden_columns())
+        widths = default_column_widths()
+        if 0 <= index < len(presets) and not self._is_default_preset(index):
+            widths.update(
+                {
+                    field: width
+                    for field, width in presets[index].column_widths.items()
+                    if column_for_field(field) is not None
+                }
+            )
+
+        header = self._widgets.table.horizontalHeader()
+        blocker = QSignalBlocker(header)
         for column_index, column in configurable_columns():
+            width = max(header.minimumSectionSize(), widths[column.field])
             self._widgets.table.setColumnHidden(column_index, column.field in hidden)
+            self._widgets.table.setColumnWidth(column_index, width)
+            self._column_widths_cache[column.field] = width
         self._widgets.table.setColumnHidden(COL_ACTION, False)
+        del blocker
         self._sync_actions()
         self._sync_preset_controls(index)
 
@@ -157,6 +182,7 @@ class IDTablePresetController(QObject):
             preset = IDTablePreset(
                 preset_name="New Preset",
                 hiddenColumns=self._hidden_columns(),
+                columnWidths=self._column_widths(),
             )
         presets = self._config.instance.views.table_presets
         index = len(presets)
@@ -192,7 +218,10 @@ class IDTablePresetController(QObject):
         column = column_for_field(field)
         if column is None or column == COL_ACTION:
             return
+        header = self._widgets.table.horizontalHeader()
+        blocker = QSignalBlocker(header)
         self._widgets.table.setColumnHidden(column, not visible)
+        del blocker
 
         index = self.index
         if self._is_default_preset(index):
@@ -211,12 +240,56 @@ class IDTablePresetController(QObject):
             self._config.write()
         self._sync_actions()
 
+    def _on_column_resized(
+        self, logical_index: int, _old_size: int, new_size: int
+    ) -> None:
+        if logical_index == COL_ACTION or new_size <= 0:
+            return
+        field = next(
+            (
+                column.field
+                for index, column in configurable_columns()
+                if index == logical_index
+            ),
+            None,
+        )
+        if field is None:
+            return
+        self._column_widths_cache[field] = new_size
+
+        index = self.index
+        if self._is_default_preset(index):
+            self.create()
+            return
+
+        presets = self._config.instance.views.table_presets
+        if 0 <= index < len(presets):
+            preset = presets[index]
+            unknown = {
+                field: width
+                for field, width in preset.column_widths.items()
+                if column_for_field(field) is None
+            }
+            preset.column_widths = {**unknown, **self._column_widths()}
+            self._width_write_timer.start()
+
     def _hidden_columns(self) -> list[str]:
         return [
             column.field
             for index, column in configurable_columns()
             if self._widgets.table.isColumnHidden(index)
         ]
+
+    def _column_widths(self) -> dict[str, int]:
+        widths: dict[str, int] = {}
+        for index, column in configurable_columns():
+            if self._widgets.table.isColumnHidden(index):
+                widths[column.field] = self._column_widths_cache[column.field]
+            else:
+                width = self._widgets.table.columnWidth(index)
+                self._column_widths_cache[column.field] = width
+                widths[column.field] = width
+        return widths
 
     def snapshot(self) -> list[dict[str, object]]:
         return self._config.dump_stored_presets(PresetType.TABLE_VIEW)

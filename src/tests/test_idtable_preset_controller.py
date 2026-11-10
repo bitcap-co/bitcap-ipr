@@ -10,6 +10,8 @@ from unittest.mock import Mock
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
+from PySide6.QtCore import QSignalBlocker
+from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QTableView, QToolButton, QWidget
 
 from config import IDTablePreset, IPRConfig
@@ -80,10 +82,12 @@ class TestIDTablePresetController(unittest.TestCase):
             action for action in menu.actions() if action.text() == "UPTIME"
         )
         self.assertFalse(uptime_action.isChecked())
-        self.assertEqual(
-            self.config.instance.views.table_presets[0].hidden_columns,
-            [],
-        )
+        url = column_for_field("stratum_url")
+        assert url is not None
+        self.assertEqual(self.table.columnWidth(url), 400)
+        default = self.config.instance.views.table_presets[0]
+        self.assertEqual(default.hidden_columns, [])
+        self.assertEqual(default.column_widths, {})
         self.assertFalse(self.selector.remove_button.isEnabled())
         line_edit = self.selector.combo.lineEdit()
         assert line_edit is not None
@@ -92,7 +96,11 @@ class TestIDTablePresetController(unittest.TestCase):
 
     def test_default_preset_ignores_stored_visibility_changes(self) -> None:
         self.config.instance.views.table_presets = [
-            IDTablePreset(preset_name="Default", hiddenColumns=["serial"])
+            IDTablePreset(
+                preset_name="Default",
+                hiddenColumns=["serial"],
+                columnWidths={"serial": 275},
+            )
         ]
 
         self.controller()
@@ -102,6 +110,45 @@ class TestIDTablePresetController(unittest.TestCase):
         assert serial is not None and uptime is not None
         self.assertFalse(self.table.isColumnHidden(serial))
         self.assertTrue(self.table.isColumnHidden(uptime))
+        self.assertEqual(self.table.columnWidth(serial), 180)
+
+    def test_resizing_default_preset_creates_custom_preset(self) -> None:
+        controller = self.controller()
+        serial = column_for_field("serial")
+        assert serial is not None
+
+        self.table.setColumnWidth(serial, 275)
+
+        default, created = self.config.instance.views.table_presets
+        self.assertEqual(default.column_widths, {})
+        self.assertEqual(created.column_widths["serial"], 275)
+        self.assertEqual(controller.index, 1)
+        self.assertEqual(created.preset_name, "New Preset")
+        self.write.assert_called_once_with()
+
+    def test_custom_widths_restore_and_resize_writes_are_debounced(self) -> None:
+        self.config.instance.views.table_presets = [
+            IDTablePreset(preset_name="Default"),
+            IDTablePreset(
+                preset_name="Wide Serial",
+                hiddenColumns=[],
+                columnWidths={"serial": 260},
+            ),
+        ]
+        self.config.instance.views.selected_table_preset = 1
+        controller = self.controller()
+        serial = column_for_field("serial")
+        assert serial is not None
+        self.assertEqual(self.table.columnWidth(serial), 260)
+
+        self.table.setColumnWidth(serial, 290)
+
+        preset = self.config.instance.views.table_presets[1]
+        self.assertEqual(preset.column_widths["serial"], 290)
+        self.write.assert_not_called()
+        QTest.qWait(300)
+        self.write.assert_called_once_with()
+        self.assertEqual(controller.index, 1)
 
     def test_default_preset_cannot_be_renamed_or_removed(self) -> None:
         controller = self.controller()
@@ -178,6 +225,7 @@ class TestIDTablePresetController(unittest.TestCase):
         default, created = self.config.instance.views.table_presets
         self.assertEqual(default.hidden_columns, [])
         self.assertEqual(created.hidden_columns, ["serial", "uptime", "api_version"])
+        self.assertEqual(created.column_widths["serial"], 180)
         self.assertEqual(controller.index, 1)
         self.write.assert_called_once_with()
 
@@ -191,7 +239,9 @@ class TestIDTablePresetController(unittest.TestCase):
         controller = self.controller()
         serial = column_for_field("serial")
         assert serial is not None
+        blocker = QSignalBlocker(self.table.horizontalHeader())
         self.table.setColumnHidden(serial, True)
+        del blocker
 
         controller.create()
 
@@ -227,7 +277,13 @@ class TestIDTablePresetController(unittest.TestCase):
 
         self.assertEqual(
             controller.snapshot(),
-            [{"preset_name": "Compact", "hiddenColumns": ["serial"]}],
+            [
+                {
+                    "preset_name": "Compact",
+                    "hiddenColumns": ["serial"],
+                    "columnWidths": {},
+                }
+            ],
         )
 
 

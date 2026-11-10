@@ -42,6 +42,7 @@ class SocketPreset(Preset):
 
 class IDTablePreset(Preset):
     hidden_columns: list[str] = Field(default_factory=list, alias="hiddenColumns")
+    column_widths: dict[str, int] = Field(default_factory=dict, alias="columnWidths")
 
 
 class GeneralSettings(BaseModel):
