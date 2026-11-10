@@ -127,6 +127,11 @@ QToolButton[popupMode="0"] {
   padding-right: 2px;
 }
 
+QToolButton#btnShowHideColumns::menu-indicator {
+  image: none;
+  width: 0px;
+}
+
 QCheckBox {
   background-color: none;
   color: #FFFFFF;
