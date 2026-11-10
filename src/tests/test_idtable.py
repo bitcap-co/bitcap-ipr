@@ -28,7 +28,11 @@ from ui.widgets import (
     IPRTableController,
     IPRTableModel,
 )
-from ui.widgets.ipr.idtable.model import COL_SUBTYPE
+from ui.widgets.ipr.idtable.model import (
+    COL_SUBTYPE,
+    IPR_SORT_ROLE,
+    column_for_field,
+)
 
 
 def _miner(ip: str, mac: str, serial: str) -> MinerData:
@@ -82,6 +86,16 @@ class TestIPRTableModel(unittest.TestCase):
             model.headerData(COL_SERIAL, Qt.Orientation.Horizontal),
             "SERIAL",
         )
+
+    def test_uptime_displays_as_duration_and_exposes_seconds_for_sorting(self) -> None:
+        model = IPRTableModel()
+        model.append(MinerData(ip="10.0.0.1", uptime=90_061))
+        uptime_column = column_for_field("uptime")
+        assert uptime_column is not None
+        index = model.index(0, uptime_column)
+
+        self.assertEqual(model.data(index), "1d 1h 1m 1s")
+        self.assertEqual(model.data(index, IPR_SORT_ROLE), 90_061)
 
     def test_append_update_and_upsert(self) -> None:
         model = IPRTableModel()
@@ -151,6 +165,27 @@ class TestIPRTableProxy(unittest.TestCase):
         ]
 
         self.assertEqual(source_rows, [2, 1, 0])
+
+    def test_uptime_sorts_by_raw_seconds(self) -> None:
+        self.model.clear()
+        short = _miner("10.0.0.1", "aa:bb:cc:dd:ee:01", "SERIAL-1")
+        short.uptime = 7_200
+        long = _miner("10.0.0.2", "aa:bb:cc:dd:ee:02", "SERIAL-2")
+        long.uptime = 36_000
+        self.model.append(short)
+        self.model.append(long)
+        uptime_column = column_for_field("uptime")
+        assert uptime_column is not None
+
+        self.proxy.sort(uptime_column, Qt.SortOrder.AscendingOrder)
+
+        self.assertEqual(
+            [
+                self.proxy.mapToSource(self.proxy.index(row, uptime_column)).row()
+                for row in range(self.proxy.rowCount())
+            ],
+            [0, 1],
+        )
 
     def test_text_and_column_filters_can_be_reset(self) -> None:
         self.proxy.set_filter_text("SERIAL-2")
@@ -242,8 +277,8 @@ class TestIPRTableProxy(unittest.TestCase):
         lines = output.splitlines() if output is not None else []
         self.assertEqual(
             lines[0],
-            "RECV_AT,IP,MAC,TYPE,SUBTYPE,SERIAL,ALGORITHM,HOSTNAME,"
-            "STRATUM_URL,USERNAME,WORKER_NAME,FIRMWARE,FW_VERSION,PLATFORM",
+            "RECV_AT,IP,MAC,TYPE,SUBTYPE,SERIAL,ALGORITHM,HOSTNAME,UPTIME,"
+            "STRATUM_URL,USERNAME,WORKER_NAME,API_VERSION,FIRMWARE,FW_VERSION,PLATFORM",
         )
         self.assertEqual(
             [line.split(",")[1] for line in lines[1:]],

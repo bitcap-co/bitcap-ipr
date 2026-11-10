@@ -62,6 +62,14 @@ def _ip_sort_key(m: MinerData) -> int:
     return ipv4[0] if isinstance(ipv4, tuple) else ipv4
 
 
+def format_duration(total_seconds: int) -> str:
+    """Format a duration in seconds as days, hours, minutes, and seconds."""
+    days, remainder = divmod(max(0, total_seconds), 86_400)
+    hours, remainder = divmod(remainder, 3_600)
+    minutes, seconds = divmod(remainder, 60)
+    return f"{days}d {hours}h {minutes}m {seconds}s"
+
+
 # index in this list == column index - 1 (the action column occupies 0)
 COLUMNS: list[Column] = [
     Column(header="RECV AT", field="recv_at", sort_key=lambda m: m.recv_at or 0),
@@ -87,9 +95,21 @@ COLUMNS: list[Column] = [
     ),
     Column(header="ALGORITHM", field="algorithm", filterable=True),
     Column(header="HOSTNAME", field="hostname", filterable=True),
+    Column(
+        header="UPTIME",
+        field="uptime",
+        sort_key=lambda m: m.uptime if m.uptime is not None else -1,
+        hidden_by_default=True,
+    ),
     Column(header="STRATUM URL", field="stratum_url", filterable=True),
     Column(header="USERNAME", field="username", filterable=True),
     Column(header="WORKER NAME", field="worker_name"),
+    Column(
+        header="API VERSION",
+        field="api_version",
+        filterable=True,
+        hidden_by_default=True,
+    ),
     Column(header="FIRMWARE", field="firmware", filterable=True),
     Column(header="FW VERSION", field="fw_version", filterable=True),
     Column(header="PLATFORM", field="platform", filterable=True),
@@ -246,6 +266,8 @@ class IPRTableModel(QAbstractTableModel):
         if col.field == "recv_at":
             # recv_at is an epoch int; render like the old QDateTime string
             return QDateTime.fromSecsSinceEpoch(int(value)).toString()
+        if col.field == "uptime":
+            return format_duration(int(value))
         return str(value)
 
     def miner_at(self, row: int) -> MinerData:

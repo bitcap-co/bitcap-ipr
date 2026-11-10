@@ -68,6 +68,71 @@ class TestIDTablePresetController(unittest.TestCase):
         self.assertEqual(column_for_field("ip"), 2)
         self.assertIsNone(column_for_field("removed_column"))
 
+    def test_default_preset_hides_uptime(self) -> None:
+        self.controller()
+
+        uptime = column_for_field("uptime")
+        assert uptime is not None
+        self.assertTrue(self.table.isColumnHidden(uptime))
+        menu = self.columns_button.menu()
+        assert menu is not None
+        uptime_action = next(
+            action for action in menu.actions() if action.text() == "UPTIME"
+        )
+        self.assertFalse(uptime_action.isChecked())
+        self.assertEqual(
+            self.config.instance.views.table_presets[0].hidden_columns,
+            [],
+        )
+        self.assertFalse(self.selector.remove_button.isEnabled())
+        line_edit = self.selector.combo.lineEdit()
+        assert line_edit is not None
+        self.assertTrue(line_edit.isReadOnly())
+        self.write.assert_not_called()
+
+    def test_default_preset_ignores_stored_visibility_changes(self) -> None:
+        self.config.instance.views.table_presets = [
+            IDTablePreset(preset_name="Default", hiddenColumns=["serial"])
+        ]
+
+        self.controller()
+
+        serial = column_for_field("serial")
+        uptime = column_for_field("uptime")
+        assert serial is not None and uptime is not None
+        self.assertFalse(self.table.isColumnHidden(serial))
+        self.assertTrue(self.table.isColumnHidden(uptime))
+
+    def test_default_preset_cannot_be_renamed_or_removed(self) -> None:
+        controller = self.controller()
+
+        controller.rename("Changed")
+        controller.remove()
+
+        self.assertEqual(len(self.config.instance.views.table_presets), 1)
+        self.assertEqual(
+            self.config.instance.views.table_presets[0].preset_name,
+            "Default",
+        )
+        self.write.assert_not_called()
+
+    def test_explicitly_enabling_default_hidden_column_creates_preset(self) -> None:
+        controller = self.controller()
+        uptime = column_for_field("uptime")
+        assert uptime is not None
+
+        controller.set_column_visible("uptime", True)
+        controller.reload()
+
+        default, created = self.config.instance.views.table_presets
+        self.assertNotIn("hidden_columns", default.model_fields_set)
+        self.assertEqual(default.hidden_columns, [])
+        self.assertIn("hidden_columns", created.model_fields_set)
+        self.assertEqual(created.hidden_columns, ["api_version"])
+        self.assertEqual(controller.index, 1)
+        self.assertEqual(created.preset_name, "New Preset")
+        self.assertFalse(self.table.isColumnHidden(uptime))
+
     def test_reload_applies_selected_preset_and_ignores_unknown_fields(self) -> None:
         self.config.instance.views.table_presets = [
             IDTablePreset(
@@ -110,16 +175,17 @@ class TestIDTablePresetController(unittest.TestCase):
         serial = column_for_field("serial")
         assert serial is not None
         self.assertTrue(self.table.isColumnHidden(serial))
-        self.assertEqual(
-            self.config.instance.views.table_presets[0].hidden_columns,
-            ["serial"],
-        )
+        default, created = self.config.instance.views.table_presets
+        self.assertEqual(default.hidden_columns, [])
+        self.assertEqual(created.hidden_columns, ["serial", "uptime", "api_version"])
+        self.assertEqual(controller.index, 1)
         self.write.assert_called_once_with()
 
         controller.set_column_visible("serial", True)
 
         self.assertFalse(self.table.isColumnHidden(serial))
-        self.assertEqual(self.config.instance.views.table_presets[0].hidden_columns, [])
+        self.assertEqual(default.hidden_columns, [])
+        self.assertEqual(created.hidden_columns, ["uptime", "api_version"])
 
     def test_create_captures_current_visibility(self) -> None:
         controller = self.controller()
@@ -132,7 +198,7 @@ class TestIDTablePresetController(unittest.TestCase):
         self.assertEqual(controller.index, 1)
         self.assertEqual(
             self.config.instance.views.table_presets[1].hidden_columns,
-            ["serial"],
+            ["serial", "uptime", "api_version"],
         )
         self.assertEqual(self.selector.preset_name, "New Preset")
         self.write.assert_called_once_with()
