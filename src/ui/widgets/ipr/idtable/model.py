@@ -50,6 +50,8 @@ class Column(BaseModel):
     tooltip: str | None = None
     # low-cardinality columns get an Excel-style header filter dropdown
     filterable: bool = False
+    hidden_by_default: bool = False
+    default_width: int = 150
     # normalization used to group and match header-filter values
     filter_key: Callable[[str], str] = normalize_value
 
@@ -61,9 +63,22 @@ def _ip_sort_key(m: MinerData) -> int:
     return ipv4[0] if isinstance(ipv4, tuple) else ipv4
 
 
+def format_duration(total_seconds: int) -> str:
+    """Format a duration in seconds as days, hours, minutes, and seconds."""
+    days, remainder = divmod(max(0, total_seconds), 86_400)
+    hours, remainder = divmod(remainder, 3_600)
+    minutes, seconds = divmod(remainder, 60)
+    return f"{days}d {hours}h {minutes}m {seconds}s"
+
+
 # index in this list == column index - 1 (the action column occupies 0)
 COLUMNS: list[Column] = [
-    Column(header="RECV AT", field="recv_at", sort_key=lambda m: m.recv_at or 0),
+    Column(
+        header="RECV AT",
+        field="recv_at",
+        sort_key=lambda m: m.recv_at or 0,
+        default_width=180,
+    ),
     Column(
         header="IP",
         field="ip",
@@ -83,14 +98,42 @@ COLUMNS: list[Column] = [
         field="serial",
         editable=True,
         tooltip="Double-click to edit",
+        default_width=180,
     ),
     Column(header="ALGORITHM", field="algorithm", filterable=True),
     Column(header="HOSTNAME", field="hostname", filterable=True),
-    Column(header="STRATUM URL", field="stratum_url", filterable=True),
-    Column(header="USERNAME", field="username", filterable=True),
+    Column(
+        header="UPTIME",
+        field="uptime",
+        sort_key=lambda m: m.uptime if m.uptime is not None else -1,
+        hidden_by_default=True,
+    ),
+    Column(
+        header="STRATUM URL",
+        field="stratum_url",
+        filterable=True,
+        default_width=400,
+    ),
+    Column(
+        header="USERNAME",
+        field="username",
+        filterable=True,
+        default_width=300,
+    ),
     Column(header="WORKER NAME", field="worker_name"),
+    Column(
+        header="API VERSION",
+        field="api_version",
+        filterable=True,
+        hidden_by_default=True,
+    ),
     Column(header="FIRMWARE", field="firmware", filterable=True),
-    Column(header="FW VERSION", field="fw_version", filterable=True),
+    Column(
+        header="FW VERSION",
+        field="fw_version",
+        filterable=True,
+        default_width=180,
+    ),
     Column(header="PLATFORM", field="platform", filterable=True),
 ]
 
@@ -100,12 +143,36 @@ ACTION_COLUMN_COUNT = 1
 COLUMN_COUNT = len(HEADERS)
 
 
-def _field_column(field: str) -> int:
+def configurable_columns() -> list[tuple[int, Column]]:
+    """Return persistable data columns and their view indexes."""
+    return [
+        (index + ACTION_COLUMN_COUNT, column) for index, column in enumerate(COLUMNS)
+    ]
+
+
+def default_hidden_columns() -> set[str]:
+    """Return columns hidden until a preset saves an explicit visibility state."""
+    return {column.field for column in COLUMNS if column.hidden_by_default}
+
+
+def default_column_widths() -> dict[str, int]:
+    """Return the canonical width of each configurable column."""
+    return {column.field: column.default_width for column in COLUMNS}
+
+
+def column_for_field(field: str) -> int | None:
+    """Return the current view index for a persisted field identifier."""
     return next(
-        index + ACTION_COLUMN_COUNT
-        for index, column in enumerate(COLUMNS)
-        if column.field == field
+        (index for index, column in configurable_columns() if column.field == field),
+        None,
     )
+
+
+def _field_column(field: str) -> int:
+    index = column_for_field(field)
+    if index is None:
+        raise ValueError(f"Unknown ID-table column field: {field}")
+    return index
 
 
 COL_IP = _field_column("ip")
@@ -226,6 +293,8 @@ class IPRTableModel(QAbstractTableModel):
         if col.field == "recv_at":
             # recv_at is an epoch int; render like the old QDateTime string
             return QDateTime.fromSecsSinceEpoch(int(value)).toString()
+        if col.field == "uptime":
+            return format_duration(int(value))
         return str(value)
 
     def miner_at(self, row: int) -> MinerData:

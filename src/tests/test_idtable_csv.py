@@ -11,6 +11,7 @@ from mod.ipr_asic.data import MinerType
 from ui.widgets.ipr.idtable.csv import (
     MinerCSVError,
     normalize_recv_at,
+    normalize_uptime,
     parse_miner_csv,
     serialize_csv,
 )
@@ -33,6 +34,20 @@ class TestMinerCSV(unittest.TestCase):
         )
         self.assertIsNone(normalize_recv_at("N/A"))
         self.assertIsNone(normalize_recv_at("not a date"))
+
+    def test_normalize_uptime_converts_display_duration(self) -> None:
+        self.assertEqual(normalize_uptime("1d 1h 1m 1s"), 90_061)
+        self.assertIsNone(normalize_uptime("N/A"))
+
+    def test_parse_normalizes_displayed_uptime(self) -> None:
+        miners = parse_miner_csv("IP,UPTIME\n10.0.0.1,1d 1h 1m 1s\n10.0.0.2,N/A\n")
+
+        self.assertEqual(miners[0].uptime, 90_061)
+        self.assertIsNone(miners[1].uptime)
+
+    def test_parse_rejects_raw_integer_uptime(self) -> None:
+        with self.assertRaises(MinerCSVError):
+            parse_miner_csv("IP,UPTIME\n10.0.0.1,90061\n")
 
     def test_parse_accepts_partial_reordered_and_quoted_columns(self) -> None:
         text = (

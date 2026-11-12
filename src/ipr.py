@@ -64,6 +64,8 @@ from mod.updater import UpdateController
 from ui import Ui_MainWindow
 from ui.widgets import (
     FirmwareConfiguratorWidgets,
+    IDTablePresetController,
+    IDTablePresetWidgets,
     IPRMenubar,
     IPRMessage,
     IPRPresetSelector,
@@ -248,6 +250,17 @@ class IPR(QMainWindow, Ui_MainWindow):
         )
         _ = self.update_controller.quit_requested.connect(self.quit)
 
+        self.table_selector: IPRPresetSelector = IPRPresetSelector(
+            tooltip="Saved ID Table view presets.",
+            add_tooltip="Save current view as a new preset",
+            remove_tooltip="Remove selected preset",
+            combo_max_width=210,
+        )
+
+        table_selector_layout = self.tableSelector.layout()
+        if table_selector_layout:
+            table_selector_layout.addWidget(self.table_selector)
+
         self.table_controller: IPRTableController = IPRTableController(
             parent=self,
             widgets=IPRTableWidgets(
@@ -258,6 +271,15 @@ class IPR(QMainWindow, Ui_MainWindow):
                 reset_view=self.btnResetView,
             ),
             dashboard_url=self.dashboard_url,
+        )
+        self.table_preset_controller: IDTablePresetController = IDTablePresetController(
+            parent=self,
+            config=self.config,
+            widgets=IDTablePresetWidgets(
+                table=self.tableIPRID,
+                selector=self.table_selector,
+                columns_button=self.btnShowHideColumns,
+            ),
         )
         _ = self.table_controller.notification_requested.connect(self.notify)
         _ = self.table_controller.dashboard_requested.connect(self.open_dashboard)
@@ -1042,6 +1064,7 @@ class IPR(QMainWindow, Ui_MainWindow):
         self.menu_bar.actionShowConfigurator.setChecked(
             self.config.instance.views.show_configurator
         )
+        self.table_preset_controller.reload()
 
     def update_settings(self):
         logger.info(" update settings.")
@@ -1067,6 +1090,8 @@ class IPR(QMainWindow, Ui_MainWindow):
             "views": {
                 "showIDTable": self.menu_bar.actionEnableIDTable.isChecked(),
                 "showConfigurator": self.menu_bar.actionShowConfigurator.isChecked(),
+                "selectedTablePreset": self.table_preset_controller.index,
+                "tablePresets": self.table_preset_controller.snapshot(),
             },
         }
         settings["general"] = {

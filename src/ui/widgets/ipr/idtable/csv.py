@@ -4,6 +4,7 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 import csv
+import re
 from collections.abc import Iterable, Mapping, Sequence
 from datetime import datetime
 from io import StringIO
@@ -14,6 +15,10 @@ from pydantic import ValidationError
 from mod.ipr_asic.data import MinerData
 
 _QT_TEXT_DATE_FORMAT = "%a %b %d %H:%M:%S %Y"
+_UPTIME_DURATION_PATTERN = re.compile(
+    r"(?P<days>\d+)d\s+(?P<hours>\d+)h\s+(?P<minutes>\d+)m\s+(?P<seconds>\d+)s",
+    re.IGNORECASE,
+)
 
 
 class MinerCSVError(ValueError):
@@ -47,6 +52,29 @@ def normalize_recv_at(value: Any) -> int | None:
     return int(parsed.timestamp())
 
 
+def normalize_uptime(value: Any) -> int | None:
+    """Convert a displayed uptime duration to integer seconds."""
+    if value is None or value == "":
+        return None
+    if isinstance(value, int):
+        return value
+
+    text = str(value).strip()
+    if not text or text == "N/A":
+        return None
+
+    match = _UPTIME_DURATION_PATTERN.fullmatch(text)
+    if match is None:
+        raise ValueError(f"Invalid uptime: {text}")
+    parts = {name: int(value) for name, value in match.groupdict().items()}
+    return (
+        parts["days"] * 86_400
+        + parts["hours"] * 3_600
+        + parts["minutes"] * 60
+        + parts["seconds"]
+    )
+
+
 def miner_from_mapping(data: Mapping[str, Any]) -> MinerData:
     """Build typed miner data from API or CSV-style string values."""
     cleaned: dict[str, Any] = {}
@@ -56,6 +84,8 @@ def miner_from_mapping(data: Mapping[str, Any]) -> MinerData:
         value = data[key]
         cleaned[key] = None if value in ("N/A", "") else value
     cleaned["recv_at"] = normalize_recv_at(data.get("recv_at"))
+    if "uptime" in data:
+        cleaned["uptime"] = normalize_uptime(data["uptime"])
     return MinerData(**cleaned)
 
 
@@ -84,7 +114,9 @@ def parse_miner_csv(text: str) -> list[MinerData]:
                 continue
             miners.append(miner_from_mapping(normalized))
         return miners
-    except (csv.Error, TypeError, ValidationError) as error:
+    except MinerCSVError:
+        raise
+    except (csv.Error, TypeError, ValueError, ValidationError) as error:
         raise MinerCSVError(f"Invalid miner CSV: {error}") from error
 
 

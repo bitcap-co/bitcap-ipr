@@ -16,6 +16,12 @@ from .contextmenu import IPRTableContextMenu
 from .controller import IPRTableController, IPRTableWidgets
 from .controlpopup import MinerControlPopup
 from .delegate import IPRActionDelegate
+from .export_dialog import (
+    ExportColumnScope,
+    ExportRowScope,
+    IDTableExportDialog,
+    TableExportOptions,
+)
 from .filterpopup import ColumnFilterPopup
 from .header import FilterHeaderView
 from .model import (
@@ -28,7 +34,10 @@ from .model import (
     COL_USER,
     FILTERABLE_COLUMNS,
     IPRTableModel,
+    column_for_field,
+    configurable_columns,
 )
+from .preset_controller import IDTablePresetController, IDTablePresetWidgets
 from .proxy import IPRFilterProxyModel
 
 __all__ = [
@@ -41,8 +50,13 @@ __all__ = [
     "COL_USER",
     "FILTERABLE_COLUMNS",
     "ColumnFilterPopup",
+    "ExportColumnScope",
+    "ExportRowScope",
     "FilterHeaderView",
     "FirmwareConfiguratorWidgets",
+    "IDTableExportDialog",
+    "IDTablePresetController",
+    "IDTablePresetWidgets",
     "IPRActionDelegate",
     "IPRFilterProxyModel",
     "IPRTableContextMenu",
@@ -57,4 +71,7 @@ __all__ = [
     "MinerControlPopup",
     "PasswordConfiguratorWidgets",
     "PoolConfiguratorWidgets",
+    "TableExportOptions",
+    "column_for_field",
+    "configurable_columns",
 ]

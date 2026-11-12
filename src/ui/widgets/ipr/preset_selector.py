@@ -70,7 +70,7 @@ class IPRPresetSelector(QWidget):
         layout.addWidget(self.add_button)
 
         self.remove_button: QToolButton = self._make_tool_button(
-            "−", remove_tooltip, bold
+            "―", remove_tooltip, bold
         )
         layout.addWidget(self.remove_button)
 

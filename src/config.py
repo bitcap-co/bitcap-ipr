@@ -17,6 +17,7 @@ from utils import get_config_file
 class PresetType(int, Enum):
     POOL = 0
     SOCKET = 1
+    TABLE_VIEW = 2
 
 
 class Preset(BaseModel):
@@ -37,6 +38,11 @@ class PoolPreset(Preset):
 
 class SocketPreset(Preset):
     socket_addr: str = ""
+
+
+class IDTablePreset(Preset):
+    hidden_columns: list[str] = Field(default_factory=list, alias="hiddenColumns")
+    column_widths: dict[str, int] = Field(default_factory=dict, alias="columnWidths")
 
 
 class GeneralSettings(BaseModel):
@@ -159,6 +165,10 @@ class IDTableInstanceSettings(BaseModel):
 class InstanceViews(BaseModel):
     show_table: Annotated[bool, Field(alias="showIDTable")] = False
     show_configurator: Annotated[bool, Field(alias="showConfigurator")] = False
+    selected_table_preset: Annotated[int, Field(alias="selectedTablePreset")] = 0
+    table_presets: Annotated[list[IDTablePreset], Field(alias="tablePresets")] = [
+        IDTablePreset(preset_name="Default")
+    ]
 
 
 class InstanceOptions(BaseModel):
@@ -214,7 +224,7 @@ class IPRConfig:
         self.fw_config: FirmwareConfiguratorSettings = self.configurator.fw_config
         self.logs: LogSettings = LogSettings()
         self.options: InstanceOptions = InstanceOptions()
-        self.table: IDTableInstanceSettings = IDTableInstanceSettings()
+        self.table: IDTableInstanceSettings = self.options.table
         self.views: InstanceViews = InstanceViews()
         self.instance: InstanceSettings = InstanceSettings(
             options=self.options, views=self.views
@@ -270,8 +280,8 @@ class IPRConfig:
         self._set_default()
         self._write_config()
 
-    def dump_stored_presets(self, preset_type: PresetType) -> list[dict[str, str]]:
-        saved: list[dict[str, str]] = []
+    def dump_stored_presets(self, preset_type: PresetType) -> list[dict[str, Any]]:
+        saved: list[dict[str, Any]] = []
         match preset_type:
             case PresetType.POOL:
                 presets = TypeAdapter(list[PoolPreset])
@@ -282,5 +292,10 @@ class IPRConfig:
                 presets = TypeAdapter(list[SocketPreset])
                 saved = presets.dump_python(
                     self.listener.iprd.socket_presets, by_alias=True
+                )
+            case PresetType.TABLE_VIEW:
+                presets = TypeAdapter(list[IDTablePreset])
+                saved = presets.dump_python(
+                    self.instance.views.table_presets, by_alias=True
                 )
         return saved

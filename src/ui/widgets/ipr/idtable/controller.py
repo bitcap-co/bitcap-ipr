@@ -27,6 +27,7 @@ from PySide6.QtGui import QCursor, QDesktopServices, QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
+    QDialog,
     QFileDialog,
     QHeaderView,
     QLineEdit,
@@ -41,6 +42,12 @@ from utils import get_miner_log_dir
 from .contextmenu import IPRTableContextMenu
 from .csv import MinerCSVError, parse_miner_csv, serialize_csv
 from .delegate import IPRActionDelegate
+from .export_dialog import (
+    ExportColumnScope,
+    ExportRowScope,
+    IDTableExportDialog,
+    TableExportOptions,
+)
 from .filterpopup import ColumnFilterPopup
 from .header import FilterHeaderView
 from .model import (
@@ -254,14 +261,43 @@ class IPRTableController(QObject):
         return str(miner.ip or ""), miner_type, firmware
 
     def has_rows(self) -> bool:
-        return self.proxy.rowCount() > 0
+        return self.model.rowCount() > 0
 
-    def export_csv(self) -> str | None:
-        """Serialize visible proxy rows in their current display order."""
-        rows = self.proxy.rowCount()
-        if not rows:
+    def export_source_rows(self, scope: ExportRowScope) -> list[int]:
+        """Resolve an export row scope to source-model rows."""
+        if scope == ExportRowScope.ALL:
+            return list(range(self.model.rowCount()))
+        if scope == ExportRowScope.SELECTED:
+            proxy_rows = sorted(
+                {
+                    index.row()
+                    for index in self._table.selectionModel().selectedIndexes()
+                }
+            )
+        else:
+            proxy_rows = list(range(self.proxy.rowCount()))
+        return [
+            self.proxy.mapToSource(self.proxy.index(row, COL_ACTION)).row()
+            for row in proxy_rows
+        ]
+
+    def export_columns(self, scope: ExportColumnScope) -> list[int]:
+        """Resolve an export column scope to data-column indexes."""
+        columns = list(range(COL_RECV_AT, self.model.columnCount()))
+        if scope == ExportColumnScope.VISIBLE:
+            columns = [
+                column for column in columns if not self._table.isColumnHidden(column)
+            ]
+        return columns
+
+    def export_csv(self, options: TableExportOptions | None = None) -> str | None:
+        """Serialize rows and columns selected by explicit export options."""
+        if options is None:
+            options = TableExportOptions()
+        rows = self.export_source_rows(options.row_scope)
+        columns = self.export_columns(options.column_scope)
+        if not rows or not columns:
             return None
-        columns = range(1, self.proxy.columnCount())
         headers = [
             str(
                 self.model.headerData(
@@ -273,8 +309,8 @@ class IPRTableController(QObject):
             for column in columns
         ]
         data_rows = (
-            [str(self.proxy.index(row, column).data()) for column in columns]
-            for row in range(rows)
+            [str(self.model.data(self.model.index(row, column))) for column in columns]
+            for row in rows
         )
         return serialize_csv(headers, data_rows)
 
@@ -310,11 +346,38 @@ class IPRTableController(QObject):
             _ = self.append_miner(miner)
 
     def export_table(self, *_args: object) -> None:
+        """Prompt for an export scope and write the resulting CSV."""
+        if not self.has_rows():
+            return
+        dialog = IDTableExportDialog(
+            self._window,
+            total_rows=self.model.rowCount(),
+            current_rows=self.proxy.rowCount(),
+            selected_rows=len(
+                {
+                    index.row()
+                    for index in self._table.selectionModel().selectedIndexes()
+                }
+            ),
+            total_columns=len(self.export_columns(ExportColumnScope.ALL)),
+            visible_columns=len(self.export_columns(ExportColumnScope.VISIBLE)),
+        )
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        self.export_with_options(dialog.options)
+
+    def export_all_table(self) -> None:
+        """Write all rows and columns without opening a dialog."""
+        self.export_with_options(TableExportOptions())
+
+    def export_with_options(self, options: TableExportOptions) -> None:
         logger.info("export_table : export table.")
-        output = self.export_csv()
+        output = self.export_csv(options)
         if output is None:
             return
+        self._write_export(output)
 
+    def _write_export(self, output: str) -> None:
         directory = Path(Path.home(), "Documents", "ipr").resolve()
         directory.mkdir(parents=True, exist_ok=True)
         timestamp = datetime.now().astimezone().strftime("%Y-%m-%d")
