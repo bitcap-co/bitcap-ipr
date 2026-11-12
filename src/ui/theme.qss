@@ -166,6 +166,86 @@ QCheckBox::indicator:checked {
   border: 1px solid #434343;
 }
 
+/* QRadioButton -----------------------------------------------------------
+
+https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qradiobutton
+
+--------------------------------------------------------------------------- */
+QRadioButton {
+    background-color: none;
+    color: #FFFFFF;
+    spacing: 4px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+QRadioButton:focus {
+  border: none;
+}
+
+QRadioButton QWidget {
+  background-color: none;
+  color: #FFFFFF;
+  spacing: 0px;
+  padding: 0px;
+}
+
+QRadioButton:disabled {
+  background-color: none;
+  color: #828282;
+  border: none;
+  outline: none;
+}
+
+QRadioButton::indicator {
+  margin-left: 2px;
+  height: 14px;
+  width: 14px;
+  border-radius: 9px;
+}
+
+QRadioButton::indicator:unchecked {
+  background-color: #151d28;
+  border: 2px solid #434343;
+}
+
+QRadioButton::indicator:checked {
+  background-color: #92beff;
+  border: 2px solid #434343;
+}
+
+
+/*QRadioButton::indicator:unchecked {
+  image: url(":/qss_icons/dark/rc/radio_unchecked.png");
+}*/
+
+/*QRadioButton::indicator:unchecked:hover, QRadioButton::indicator:unchecked:focus, QRadioButton::indicator:unchecked:pressed {
+  border: none;
+  outline: none;
+  image: url(":/qss_icons/dark/rc/radio_unchecked_focus.png");
+}*/
+
+/*QRadioButton::indicator:unchecked:disabled {
+  image: url(":/qss_icons/dark/rc/radio_unchecked_disabled.png");
+}*/
+
+/*QRadioButton::indicator:checked {
+  border: none;
+  outline: none;
+  image: url(":/qss_icons/dark/rc/radio_checked.png");
+}*/
+
+/*QRadioButton::indicator:checked:hover, QRadioButton::indicator:checked:focus, QRadioButton::indicator:checked:pressed {
+  border: none;
+  outline: none;
+  image: url(":/qss_icons/dark/rc/radio_checked_focus.png");
+}*/
+
+/*QRadioButton::indicator:checked:disabled {
+  outline: none;
+  image: url(":/qss_icons/dark/rc/radio_checked_disabled.png");
+}*/
+
 QComboBox {
   border: 1px solid #434343;
   background-color: #151d28;

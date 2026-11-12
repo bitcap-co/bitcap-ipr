@@ -11,6 +11,7 @@ from typing import Any, override
 from unittest.mock import Mock, patch
 
 from PySide6.QtCore import QItemSelectionModel, Qt
+from PySide6.QtWidgets import QDialog
 
 import config  # noqa: F401  # initialize Pydantic before importing PySide-backed IPR
 from mod.ipr_asic.data import (
@@ -24,10 +25,14 @@ from ui.widgets import (
     COL_ACTION,
     COL_IP,
     COL_SERIAL,
+    ExportColumnScope,
+    ExportRowScope,
     IPRFilterProxyModel,
     IPRTableController,
     IPRTableModel,
+    TableExportOptions,
 )
+from ui.widgets.ipr.idtable.csv import parse_miner_csv
 from ui.widgets.ipr.idtable.model import (
     COL_SUBTYPE,
     IPR_SORT_ROLE,
@@ -130,6 +135,32 @@ class TestIPRTableProxy(unittest.TestCase):
         self.model.append(_miner("10.0.0.3", "aa:bb:cc:dd:ee:03", "SERIAL-3"))
         self.proxy = IPRFilterProxyModel()
         self.proxy.setSourceModel(self.model)
+
+    def export_subject(
+        self,
+        selection: QItemSelectionModel | None = None,
+        hidden_columns: set[int] | None = None,
+    ) -> Any:
+        if selection is None:
+            selection = QItemSelectionModel(self.proxy)
+        if hidden_columns is None:
+            hidden_columns = set()
+        table = SimpleNamespace(
+            selectionModel=lambda: selection,
+            isColumnHidden=lambda column: column in hidden_columns,
+        )
+        subject: Any = SimpleNamespace(
+            model=self.model,
+            proxy=self.proxy,
+            _table=table,
+        )
+        subject.export_source_rows = lambda scope: (
+            IPRTableController.export_source_rows(subject, scope)
+        )
+        subject.export_columns = lambda scope: IPRTableController.export_columns(
+            subject, scope
+        )
+        return subject
 
     def test_subtype_filter_groups_model_format_variants(self) -> None:
         self.model.clear()
@@ -267,9 +298,11 @@ class TestIPRTableProxy(unittest.TestCase):
             ("10.0.0.1", MinerType.VNISH, MinerFirmware.VNISH),
         )
 
-    def test_export_csv_uses_visible_proxy_order(self) -> None:
+    def test_export_csv_defaults_to_all_rows_and_columns(self) -> None:
+        self.model.miner_at(0).uptime = 90_061
         self.proxy.sort(COL_IP, Qt.SortOrder.DescendingOrder)
-        subject: Any = SimpleNamespace(model=self.model, proxy=self.proxy)
+        self.proxy.set_filter_text("10.0.0.2")
+        subject = self.export_subject(hidden_columns={COL_SERIAL})
 
         output = IPRTableController.export_csv(subject)
 
@@ -282,11 +315,66 @@ class TestIPRTableProxy(unittest.TestCase):
         )
         self.assertEqual(
             [line.split(",")[1] for line in lines[1:]],
-            [
-                "10.0.0.3",
-                "10.0.0.2",
-                "10.0.0.1",
-            ],
+            ["10.0.0.1", "10.0.0.2", "10.0.0.3"],
+        )
+        uptime_column = lines[0].split(",").index("UPTIME")
+        self.assertEqual(lines[1].split(",")[uptime_column], "1d 1h 1m 1s")
+        if output is None:
+            self.fail("Expected exported CSV")
+        imported = parse_miner_csv(output)
+        self.assertEqual(imported[0].uptime, 90_061)
+
+    def test_export_csv_current_view_uses_proxy_order_and_visible_columns(self) -> None:
+        self.proxy.sort(COL_IP, Qt.SortOrder.DescendingOrder)
+        subject = self.export_subject(hidden_columns={COL_SERIAL})
+        options = TableExportOptions(
+            row_scope=ExportRowScope.CURRENT_VIEW,
+            column_scope=ExportColumnScope.VISIBLE,
+        )
+
+        output = IPRTableController.export_csv(subject, options)
+
+        self.assertIsNotNone(output)
+        lines = output.splitlines() if output is not None else []
+        self.assertNotIn("SERIAL", lines[0].split(","))
+        self.assertEqual(
+            [line.split(",")[1] for line in lines[1:]],
+            ["10.0.0.3", "10.0.0.2", "10.0.0.1"],
+        )
+
+    def test_export_csv_current_view_respects_active_filter(self) -> None:
+        self.proxy.set_filter_text("10.0.0.2")
+        subject = self.export_subject()
+        options = TableExportOptions(row_scope=ExportRowScope.CURRENT_VIEW)
+
+        output = IPRTableController.export_csv(subject, options)
+
+        self.assertIsNotNone(output)
+        lines = output.splitlines() if output is not None else []
+        self.assertEqual(
+            [line.split(",")[1] for line in lines[1:]],
+            ["10.0.0.2"],
+        )
+
+    def test_export_csv_selected_rows_are_deduplicated_in_view_order(self) -> None:
+        self.proxy.sort(COL_IP, Qt.SortOrder.DescendingOrder)
+        selection = QItemSelectionModel(self.proxy)
+        for index in (
+            self.proxy.index(0, COL_IP),
+            self.proxy.index(0, COL_SERIAL),
+            self.proxy.index(2, COL_IP),
+        ):
+            selection.select(index, QItemSelectionModel.SelectionFlag.Select)
+        subject = self.export_subject(selection)
+        options = TableExportOptions(row_scope=ExportRowScope.SELECTED)
+
+        output = IPRTableController.export_csv(subject, options)
+
+        self.assertIsNotNone(output)
+        lines = output.splitlines() if output is not None else []
+        self.assertEqual(
+            [line.split(",")[1] for line in lines[1:]],
+            ["10.0.0.3", "10.0.0.1"],
         )
 
     def test_import_table_parses_before_replacing_model(self) -> None:
@@ -335,7 +423,25 @@ class TestIPRTableProxy(unittest.TestCase):
             "Status :: Failed to import table.", 5000
         )
 
-    def test_export_table_writes_serialized_output(self) -> None:
+    @patch("ui.widgets.ipr.idtable.controller.IDTableExportDialog")
+    def test_export_table_uses_accepted_dialog_options(self, dialog_type: Mock) -> None:
+        options = TableExportOptions(
+            row_scope=ExportRowScope.CURRENT_VIEW,
+            column_scope=ExportColumnScope.VISIBLE,
+        )
+        dialog = dialog_type.return_value
+        dialog.exec.return_value = QDialog.DialogCode.Accepted
+        dialog.options = options
+        subject = self.export_subject()
+        subject._window = Mock()
+        subject.has_rows = Mock(return_value=True)
+        subject.export_with_options = Mock()
+
+        IPRTableController.export_table(subject)
+
+        subject.export_with_options.assert_called_once_with(options)
+
+    def test_write_export_writes_serialized_output(self) -> None:
         notification = Mock()
         subject: Any = SimpleNamespace(
             export_csv=Mock(return_value="IP,HOSTNAME\n10.0.0.1,rack-west\n"),
@@ -346,7 +452,9 @@ class TestIPRTableProxy(unittest.TestCase):
             with patch(
                 "ui.widgets.ipr.idtable.controller.Path.home", return_value=home
             ):
-                IPRTableController.export_table(subject)
+                IPRTableController._write_export(
+                    subject, "IP,HOSTNAME\n10.0.0.1,rack-west\n"
+                )
             output_dir = home / "Documents" / "ipr"
             output_files = list(output_dir.glob("id_table-*.csv"))
             self.assertEqual(len(output_files), 1)

@@ -295,7 +295,7 @@ class Main:
             and self.main_window.table_controller.has_rows()
         ):
             logger.info("exception_hook: export current table.")
-            self.main_window.table_controller.export_table()
+            self.main_window.table_controller.export_all_table()
 
         # Keep the window and its actions alive until all error handling that
         # reads them has completed. Closing it first can delete its C++ objects.
