@@ -60,6 +60,7 @@ Build Time: {build_time}
 class PacketCounters(BaseModel):
     processed: int
     reports: int
+    suppressed: int
     invalid: int
     duplicates: int
     unknown_filtered: int = Field(validation_alias="unknownFiltered")
@@ -89,6 +90,7 @@ class IPRDStatus(BaseModel):
     capture_errors: int = Field(validation_alias="captureErrors")
     capture_write_errors: int = Field(validation_alias="captureWriteErrors")
     packets: PacketCounters
+    suppressed_device_count: int = Field(validation_alias="suppressedDeviceCount")
     listeners: list[ListenerStatus]
     last_packet_at: datetime.datetime | None = Field(
         default=None, validation_alias="lastPacketAt"
@@ -105,6 +107,9 @@ class IPRDStatus(BaseModel):
         daemon_info: str = ""
         if self.daemon is not None:
             daemon_info = f"Daemon: {self.daemon.pretty_print()}"
+        suppressed_cnt: str = ""
+        if self.suppressed_device_count > 0:
+            suppressed_cnt = f"Suppressed Devices: {self.suppressed_device_count}"
         return f"""{daemon_info}
 State: {self.state}
 Active Listeners: {self.listeners_active}/{self.listeners_configured}
@@ -120,6 +125,7 @@ Statistics:
         {self.packets.invalid} invalid
         {self.packets.duplicates} duplicates
         {self.packets.unknown_filtered} filtered
+    {suppressed_cnt}
     Last Packet At: {normalize_datetime(self.last_packet_at)}
     Last Report At: {normalize_datetime(self.last_report_at)}
 """
