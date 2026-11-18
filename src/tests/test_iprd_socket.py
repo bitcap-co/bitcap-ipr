@@ -93,10 +93,12 @@ class TestIPRDSocket(unittest.TestCase):
                 "packets": {
                     "processed": 10,
                     "reports": 6,
+                    "suppressed": 0,
                     "invalid": 1,
                     "duplicates": 2,
                     "unknownFiltered": 1,
                 },
+                "suppressedDeviceCount": 0,
                 "listeners": [
                     {
                         "interface": "eth0",
