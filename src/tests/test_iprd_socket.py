@@ -99,6 +99,7 @@ class TestIPRDSocket(unittest.TestCase):
                     "unknownFiltered": 1,
                 },
                 "suppressedDeviceCount": 0,
+                "uptime": 7000,
                 "listeners": [
                     {
                         "interface": "eth0",

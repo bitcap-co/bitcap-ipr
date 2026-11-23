@@ -83,6 +83,7 @@ class IPRDStatus(BaseModel):
 
     daemon: IPRDaemonInfo | None = None
     state: str
+    uptime: int
     listeners_configured: int = Field(validation_alias="listenersConfigured")
     listeners_active: int = Field(validation_alias="listenersActive")
     activation_failures: int = Field(validation_alias="activationFailures")
@@ -103,6 +104,25 @@ class IPRDStatus(BaseModel):
         default=None, validation_alias="lastErrorAt"
     )
 
+    def uptime_str(self) -> str:
+        elapsed = self.uptime
+        if elapsed <= 0:
+            return "not started"
+        days, remainder = divmod(elapsed, 86400)
+        hours, remainder = divmod(remainder, 3600)
+        minutes, seconds = divmod(remainder, 60)
+
+        duration: str = ""
+        if days > 0:
+            duration = f"{days}d "
+        if hours > 0:
+            duration += f"{hours}h "
+        if minutes > 0:
+            duration += f"{minutes}m "
+        if seconds > 0:
+            duration += f"{seconds}s"
+        return duration
+
     def pretty_print(self) -> str:
         daemon_info: str = ""
         if self.daemon is not None:
@@ -111,6 +131,7 @@ class IPRDStatus(BaseModel):
         if self.suppressed_device_count > 0:
             suppressed_cnt = f"Suppressed Devices: {self.suppressed_device_count}"
         return f"""{daemon_info}
+Uptime: {self.uptime_str()}
 State: {self.state}
 Active Listeners: {self.listeners_active}/{self.listeners_configured}
 Statistics:
