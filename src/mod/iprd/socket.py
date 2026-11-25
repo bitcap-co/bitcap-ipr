@@ -144,6 +144,7 @@ Statistics:
         {self.packets.processed} processed
         {self.packets.reports} reports
         {self.packets.invalid} invalid
+        {self.packets.suppressed} suppressed
         {self.packets.duplicates} duplicates
         {self.packets.unknown_filtered} filtered
     {suppressed_cnt}
