@@ -4,7 +4,7 @@
 # Licensed under the GNU General Public License v3.0; see LICENSE
 
 from PySide6.QtCore import QSize, Qt, Signal
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QComboBox,
     QHBoxLayout,
@@ -63,27 +63,26 @@ class IPRPresetSelector(QWidget):
             self.combo.setToolTip(tooltip)
         layout.addWidget(self.combo)
 
-        bold = QFont()
-        bold.setBold(True)
-
-        self.add_button: QToolButton = self._make_tool_button("＋", add_tooltip, bold)
+        self.add_button: QToolButton = self._make_tool_button(
+            QIcon(":theme/icons/rc/add2.png"), add_tooltip
+        )
         layout.addWidget(self.add_button)
 
         self.remove_button: QToolButton = self._make_tool_button(
-            "―", remove_tooltip, bold
+            QIcon(":theme/icons/rc/remove.png"), remove_tooltip
         )
         layout.addWidget(self.remove_button)
 
         self.add_button.clicked.connect(self.create_requested)
         self.remove_button.clicked.connect(self.remove_requested)
 
-    def _make_tool_button(self, text: str, tooltip: str, font: QFont) -> QToolButton:
+    def _make_tool_button(self, icon: QIcon, tooltip: str) -> QToolButton:
         button = QToolButton(self)
         button.setMinimumSize(QSize(25, 22))
         button.setMaximumSize(QSize(25, 22))
-        button.setFont(font)
+        button.setIconSize(QSize(16, 16))
+        button.setIcon(icon)
         button.setToolTip(tooltip)
-        button.setText(text)
         return button
 
     @property

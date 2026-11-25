@@ -32,6 +32,8 @@ Licensed under the GNU General Public License v3.0; see LICENSE
         <file>rc/dashboard.png</file>
         <file>rc/time.png</file>
         <file>rc/refresh.png</file>
+        <file>rc/add2.png</file>
+        <file>rc/remove.png</file>
         <file>rc/clear.png</file>
         <file>rc/funnel.png</file>
         <file>rc/edit.png</file>
