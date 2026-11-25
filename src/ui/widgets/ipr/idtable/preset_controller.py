@@ -123,6 +123,7 @@ class IDTablePresetController(QObject):
             self._column_widths_cache[column.field] = width
         self._widgets.table.setColumnHidden(COL_ACTION, False)
         del blocker
+        self._widgets.table.updateGeometries()
         self._sync_actions()
         self._sync_preset_controls(index)
 
@@ -222,6 +223,7 @@ class IDTablePresetController(QObject):
         blocker = QSignalBlocker(header)
         self._widgets.table.setColumnHidden(column, not visible)
         del blocker
+        self._widgets.table.updateGeometries()
 
         index = self.index
         if self._is_default_preset(index):
