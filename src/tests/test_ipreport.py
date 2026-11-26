@@ -9,7 +9,6 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import cast
 
-from pydantic import ValidationError
 from PySide6.QtCore import QByteArray
 from PySide6.QtNetwork import QHostAddress, QNetworkDatagram
 
@@ -17,8 +16,8 @@ from mod.iprd.listener import IPRDListener, IPRDReportMessage
 from mod.lm.ipreport import IPReport, IPReportDatagram, MinerTypeHint
 from mod.lm.ipreport.patterns import (
     GoldshellIPReport,
-    SealMinerIPReport,
-    parse_ibelink_payload,
+    IBeLinkIPReport,
+    SealminerIPReport,
 )
 
 IP_REPORT_FIELDS = {
@@ -118,13 +117,12 @@ class TestIPReportParsingRegressions(unittest.TestCase):
                 b"02AABBCCDDEE",
             )
         )
-
         self.assertEqual(
-            parse_ibelink_payload(captured_payload),
+            IBeLinkIPReport.parse_data(captured_payload).ip_report,
             ("198.18.0.1", "02:AA:BB:CC:DD:EE".lower(), ""),
         )
         self.assertEqual(
-            parse_ibelink_payload(fixed_width_payload + b"\xff"),
+            IBeLinkIPReport.parse_data(fixed_width_payload + b"\xff").ip_report,
             ("172.17.0.2", "02:AA:BB:CC:DD:EE".lower(), ""),
         )
 
@@ -150,7 +148,7 @@ class TestIPReportParsingRegressions(unittest.TestCase):
         parsed.data = QByteArray(payload)
         parsed.report = IPReport()
 
-        self.assertFalse(parsed._decompress_payload())
+        self.assertFalse(parsed._decompress_datagram())
         self.assertEqual(parsed.data, payload)
 
     def test_invalid_utf8_datagrams_are_rejected_without_raising(self) -> None:
@@ -178,7 +176,7 @@ class TestIPReportParsingRegressions(unittest.TestCase):
         payload[4]["Active"] = True
         payload[4]["IPV4"] = "192.168.1.204"
 
-        report = SealMinerIPReport.model_validate(payload)
+        report = SealminerIPReport.parse_json(payload)
 
         self.assertEqual(report.ip, "192.168.1.204")
 
@@ -187,8 +185,8 @@ class TestIPReportParsingRegressions(unittest.TestCase):
         payload = cast(dict[str, object], json.loads(payload_path.read_text()))
         payload["ip"] = "999.999.999.999"
 
-        with self.assertRaises(ValidationError):
-            _ = GoldshellIPReport.model_validate(payload)
+        with self.assertRaises(ValueError):
+            _ = GoldshellIPReport.parse_json(payload)
 
 
 if __name__ == "__main__":

@@ -20,8 +20,7 @@ from mod.lm.ipreport.patterns import (
     MinerTypeHint,
     get_ip_model,
     get_msg_pattern,
-    get_payload_parser,
-    parse_match,
+    parse_pattern_match,
 )
 
 logger = logging.getLogger(__name__)
@@ -63,7 +62,7 @@ class IPReportDatagram:
 
     @override
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}[{self.src_addr.toString()}] - {self.report.miner_hint}"
+        return f"{self.__class__.__name__}[{self.report.hint}] - {self.src_addr.toString()}"
 
     @property
     def ip_report(self) -> IPReport:
@@ -88,7 +87,7 @@ class IPReportDatagram:
             pass
         self.report.miner_hint = str(self.report.hint)
 
-    def _decompress_payload(self) -> bool:
+    def _decompress_datagram(self) -> bool:
         zlib_offset: int = -1
         magic = QByteArray(ZLIB_MAGIC)
         for offset in ZLIB_OFFSETS:
@@ -101,8 +100,10 @@ class IPReportDatagram:
         try:
             out = zlib.decompress(candidate.data())
         except zlib.error as ex:
-            logger.warning(f"{self.__repr__()}: failed to decompress payload - ignore")
-            logger.debug(f"{self.__repr__()}: {ex} - {self.data.data().hex()}")
+            logger.warning(f"{self!r}: failed to decompress datagram - ignore")
+            logger.debug(
+                f"{self!r}:decompress_datagram {ex} - {self.data.data().hex()}"
+            )
             return False
         if self.report.hint == MinerTypeHint.SEALMINER:
             # wrap the decompressed data in JSON array to be able to fully parse
@@ -120,36 +121,38 @@ class IPReportDatagram:
         try:
             return from_json(self.payload)
         except ValueError as ex:
-            logger.error(f"{self.__repr__()}: failed to unmarshal JSON payload - {ex}")
-            logger.debug(f"{self.__repr__()}: {self.payload}")
+            logger.error(f"{self!r}: failed to unmarshal JSON payload - {ex}")
+            logger.debug(f"{self!r}:unmarshal_payload {ex} - {self.payload}")
             return None
 
     def _parse_datagram(self) -> None:
         if self.data.isEmpty():
             return
-        logger.debug(f"{self.__repr__()}: {self.data.data().hex()}")
+        logger.debug(f"{self!r}: {self.data.data().hex()}")
 
-        # raw payloads
-        parser, ok = get_payload_parser(self.report.hint)
-        if ok:
-            try:
-                self.report.ip, self.report.mac, self.report.serial = parser(
+        # parse raw payloads
+        try:
+            model, ok = get_ip_model(self.report.hint)
+            if ok:
+                self.report.ip, self.report.mac, self.report.serial = model.parse_data(
                     bytes(self.data.data())
-                )
+                ).ip_report
                 self.valid = True
-            except (UnicodeDecodeError, ValueError) as ex:
-                self.valid = False
-                logger.error(f"{self.__repr__()}: failed to validate IP report - {ex}")
+                return
+        except (UnicodeDecodeError, ValueError) as ex:
+            self.valid = False
+            logger.error(f"{self!r}: failed to parse datagram - {ex}")
+            logger.debug(f"{self!r}:parse_data {ex} - {self.data.data().hex()}")
             return
+        except NotImplementedError:
+            pass
 
-        self._compressed = self._decompress_payload()
+        self._compressed = self._decompress_datagram()
         if not self._compressed and not self.data.isValidUtf8():
             self.valid = False
-            return logger.error(
-                f"{self.__repr__()}: failed to parse datagram - invalid UTF-8"
-            )
+            return logger.error(f"{self!r}: failed to parse datagram - invalid UTF-8")
         self.payload = self.data.toStdString().rstrip("\x00")
-        logger.debug(f"{self.__repr__()}: {self.payload}")
+        logger.debug(f"{self!r}: {self.payload}")
 
         # string patterns
         pattern, ok = get_msg_pattern(self.report.hint)
@@ -157,26 +160,29 @@ class IPReportDatagram:
             if not (match := re.match(pattern, self.payload)):
                 self.valid = False
                 return logger.error(
-                    f"{self.__repr__()}: failed to validate IP report - invalid pattern"
+                    f"{self!r}: failed to validate IP report - invalid pattern"
                 )
-            self.report.ip, self.report.mac = parse_match(match)
-            self.valid = True
+            try:
+                self.report.ip, self.report.mac = parse_pattern_match(match)
+                self.valid = True
+            except ValueError as ex:
+                self.valid = False
+                logger.error(f"{self!r}: failed to parse IP report - {ex}")
             return
         # obj patterns
         if not (obj := self._unmarshal_payload()):
             self.valid = False
-            return logger.error(
-                f"{self.__repr__()}: failed to validate IP report - invalid payload"
-            )
+            return logger.error(f"{self!r}: failed to parse datagram - invalid JSON")
         model, ok = get_ip_model(self.report.hint)
         if ok:
             try:
-                model = model.model_validate(obj)
-                self.report.ip, self.report.mac, self.report.serial = model.ip_report
+                self.report.ip, self.report.mac, self.report.serial = model.parse_json(
+                    obj
+                ).ip_report
                 self.valid = True
             except (TypeError, ValueError, ValidationError) as ex:
                 self.valid = False
-                logger.error(f"{self.__repr__()}: failed to validate IP report - {ex}")
+                logger.error(f"{self!r}: failed to parse IP report - {ex}")
             return
         if not self.valid:
-            logger.error(f"{self.__repr__()}: failed to validate IP report")
+            logger.error(f"{self!r}: failed to validate IP report")

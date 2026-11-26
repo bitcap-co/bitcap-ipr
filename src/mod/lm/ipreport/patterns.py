@@ -5,11 +5,10 @@
 
 import ipaddress
 import re
-from collections.abc import Callable
 from enum import IntEnum
-from typing import Any, ClassVar, override
+from typing import Any, override
 
-from pydantic import BaseModel, ConfigDict, Field, RootModel
+from pydantic import BaseModel, Field, RootModel
 
 ZLIB_MAGIC = b"\x78"
 _ZLIB_SEALMINER_OFFSET: int = 8
@@ -20,9 +19,32 @@ _IP_PATTERN = (
 )
 _MAC_PATTERN = r"([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})"
 
-_IBELINK_MAGIC = b"AZZ\xf0\x01"
-_IBELINK_HEADER_SIZE = 8
-_IBELINK_ADDRESS_FIELDS = 4
+
+def parse_ipv4(addr: str) -> str:
+    if addr == "":
+        raise ValueError("IP address is empty")
+    addr = addr.strip()
+    try:
+        addr = str(ipaddress.IPv4Address(addr))
+    except ipaddress.AddressValueError:
+        raise ValueError("invalid IP address")
+    return addr
+
+
+def parse_mac(addr: str) -> str:
+    if addr == "":
+        raise ValueError("MAC address is empty")
+    addr = addr.strip().lower()
+    match len(addr):
+        case 17:
+            addr = addr.replace("-", ":")
+        case 12:
+            addr = ":".join(addr[i : i + 2] for i in range(0, 12, 2))
+        case _:
+            raise ValueError("invalid MAC address length")
+    if not re.match(_MAC_PATTERN, addr):
+        raise ValueError("invalid MAC address")
+    return addr
 
 
 class MinerTypeHint(IntEnum):
@@ -59,44 +81,19 @@ class MinerTypeHint(IntEnum):
         return cls(port)
 
 
-def parse_ipv4(addr: str) -> str:
-    if addr == "":
-        return ""
-    address = addr.strip()
-    try:
-        address = str(ipaddress.IPv4Address(address))
-    except ipaddress.AddressValueError:
-        address = ""
-    return address
-
-
-def parse_mac(addr: str) -> str:
-    if addr == "":
-        return ""
-    address = addr.strip().lower()
-    match len(address):
-        case 17:
-            address = address.replace("-", ":")
-        case 12:
-            address = ":".join(address[i : i + 2] for i in range(0, 12, 2))
-        case _:
-            return ""
-    if not re.match(_MAC_PATTERN, address):
-        return ""
-    return address
-
-
 _MSG_PATTERNS = {
-    MinerTypeHint.COMMON: re.compile(f"^(?P<IP>{_IP_PATTERN}),(?P<MAC>{_MAC_PATTERN})"),
-    MinerTypeHint.ICERIVER: re.compile(f"^addr:(?P<IP>{_IP_PATTERN})"),
-    MinerTypeHint.WHATSMINER: re.compile(
-        f"^IP:(?P<IP>{_IP_PATTERN})MAC:(?P<MAC>{_MAC_PATTERN})"
+    MinerTypeHint.COMMON: re.compile(
+        f"^(?P<IP>{_IP_PATTERN}),(?P<MAC>{_MAC_PATTERN})$"
     ),
-    MinerTypeHint.ELPHAPEX: re.compile("^DG_IPREPORT_ONLY"),
+    MinerTypeHint.ICERIVER: re.compile(f"^addr:(?P<IP>{_IP_PATTERN})$"),
+    MinerTypeHint.WHATSMINER: re.compile(
+        f"^IP:(?P<IP>{_IP_PATTERN})MAC:(?P<MAC>{_MAC_PATTERN})$"
+    ),
+    MinerTypeHint.ELPHAPEX: re.compile("^DG_IPREPORT_ONLY$"),
     MinerTypeHint.IPOLLO: re.compile(
         f"^IP Addr:\\[(?P<IP>{_IP_PATTERN})\\].*?MAC Addr:\\[(?P<MAC>{_MAC_PATTERN})\\]"
     ),
-    MinerTypeHint.HIVEGPU: re.compile(f"^HiveOS (?P<IP>{_IP_PATTERN})"),
+    MinerTypeHint.HIVEGPU: re.compile(f"^HiveOS (?P<IP>{_IP_PATTERN})$"),
 }
 
 
@@ -109,29 +106,36 @@ def get_msg_pattern(hint: MinerTypeHint) -> tuple[re.Pattern[str], bool]:
     return re.compile(""), False
 
 
-def parse_match(match: re.Match[str]) -> tuple[str, str]:
+def parse_pattern_match(match: re.Match[str]) -> tuple[str, str]:
     """Parse a match object from a message pattern.
     Returns the extracted IP and MAC as a tuple.
     """
-    ip = mac = ""
-    for name, value in match.groupdict().items():
-        if name == "IP":
-            ip = value
-        elif name == "MAC":
-            mac = value.lower()
+    ip = parse_ipv4(match.group("IP")) if "IP" in match.groupdict() else ""
+    mac = parse_mac(match.group("MAC")) if "MAC" in match.groupdict() else ""
     return ip, mac
 
 
 class IPReportModel(BaseModel):
-    model_config: ClassVar[ConfigDict] = ConfigDict(validate_assignment=True)
-    ip: str = Field(default="", pattern=rf"^{_IP_PATTERN}$")
-    mac: str = Field(default="", pattern=rf"^{_MAC_PATTERN}$")
+    ip: str = ""
+    mac: str = ""
     serial: str = ""
 
     @property
     def ip_report(self) -> tuple[str, str, str]:
-        """Returns the IP, MAC, and serial as a tuple."""
-        return self.ip, self.mac.lower(), self.serial
+        return self.ip, self.mac, self.serial
+
+    @classmethod
+    def parse_json(cls, data: Any) -> "IPReportModel":
+        if not data:
+            raise ValueError("data is empty")
+        obj = cls.model_validate(data)
+        obj.ip = parse_ipv4(obj.ip)
+        obj.mac = parse_mac(obj.mac)
+        return obj
+
+    @classmethod
+    def parse_data(cls, data: bytes) -> "IPReportModel":
+        raise NotImplementedError(f"parse_data is not implemented for {cls.__name__}")
 
 
 class GoldshellIPReport(IPReportModel):
@@ -147,13 +151,13 @@ class GoldshellIPReport(IPReportModel):
     ledstatus: bool
 
 
-class BoardInfo(BaseModel):
+class SealminerBoardInfo(BaseModel):
     sn: str = Field("", validation_alias="SN")
     bin_ver: int = Field(0, validation_alias="BinVer")
     bin_num: int = Field(0, validation_alias="BinNum")
 
 
-class Info(BaseModel):
+class SealminerInfo(BaseModel):
     mac: str = Field(validation_alias="MAC")
     type: str = Field(validation_alias="Type")
     firmware: str = Field(validation_alias="Firmware")
@@ -163,10 +167,10 @@ class Info(BaseModel):
     main_board_sn: str = Field(validation_alias="MainBoardSN")
     rated_input_power: int = Field(validation_alias="RatedInputPower")
     input_power_limit: int = Field(validation_alias="InputPowerLimit")
-    board_sn_array: list[BoardInfo] = Field(validation_alias="BoardSnArray")
+    board_sn_array: list[SealminerBoardInfo] = Field(validation_alias="BoardSnArray")
 
 
-class Interface(BaseModel):
+class SealminerInterface(BaseModel):
     interface: str = Field(validation_alias="Interface")
     active: bool = Field(validation_alias="Active")
     dhcp: bool = Field(validation_alias="DHCP")
@@ -178,29 +182,33 @@ class Interface(BaseModel):
     auto_reboot: bool = Field(validation_alias="AutoReboot")
 
 
-class InterfaceList(RootModel[list[Interface]]):
-    root: list[Interface]
+class SealminerInterfaceList(RootModel[list[SealminerInterface]]):
+    root: list[SealminerInterface]
 
 
-class SealMinerIPReport(IPReportModel):
-    def __init__(self) -> None:
-        super().__init__()
+class SealminerIPReport(IPReportModel):
+    info: SealminerInfo
+    interfaces: SealminerInterfaceList
 
     @override
     @classmethod
-    def model_validate(cls, obj: Any, *args, **kwargs) -> "SealMinerIPReport":
-        if not isinstance(obj, list):
-            raise TypeError
-        if not len(obj) or len(obj) != 7:
-            raise ValueError
-        info = Info.model_validate(obj[1])
-        interfaces = InterfaceList.model_validate(obj[2 : 2 + info.net_interface_cnt])
-        self = cls()
+    def parse_json(cls, data: Any) -> "SealminerIPReport":
+        if not data:
+            raise ValueError("data is empty")
+        if not isinstance(data, list):
+            raise TypeError("data is not an array")
+        if not len(data) or len(data) != 7:
+            raise ValueError(f"invalid data length: {len(data)}")
+        info = SealminerInfo.model_validate(data[1])
+        interfaces = SealminerInterfaceList.model_validate(
+            data[2 : 2 + info.net_interface_cnt]
+        )
+        model = cls(info=info, interfaces=interfaces)
         active_interfaces = [i for i in interfaces.root if i.active]
         if active_interfaces:
-            self.ip = active_interfaces[0].ipv4
-        self.mac = info.mac
-        return self
+            model.ip = parse_ipv4(active_interfaces[0].ipv4)
+        model.mac = parse_mac(info.mac)
+        return model
 
 
 class AuradineIPReport(IPReportModel):
@@ -212,10 +220,40 @@ class AuradineIPReport(IPReportModel):
     internal_type: str | None = Field(None, validation_alias="InternalType")
 
 
+_IBELINK_MAGIC = b"AZZ\xf0\x01"
+_IBELINK_HEADER_SIZE = 8
+_IBELINK_ADDRESS_FIELDS = 4
+
+
+class IBeLinkIPReport(IPReportModel):
+    @override
+    @classmethod
+    def parse_data(cls, data: bytes) -> "IBeLinkIPReport":
+        if not data:
+            raise ValueError("data is empty")
+        if len(data) < _IBELINK_HEADER_SIZE:
+            raise ValueError(f"data is too short: {len(data)}")
+        if not data.startswith(_IBELINK_MAGIC):
+            raise ValueError("invalid magic")
+
+        fields = [
+            field for field in data[_IBELINK_HEADER_SIZE:].split(b"\x00") if field
+        ][:_IBELINK_ADDRESS_FIELDS]
+        if len(fields) < _IBELINK_ADDRESS_FIELDS:
+            raise ValueError("invalid data length")
+
+        raw_ip, _, _, raw_mac = (field.decode(encoding="ascii") for field in fields)
+        model = cls()
+        model.ip = parse_ipv4(raw_ip)
+        model.mac = parse_mac(raw_mac)
+        return model
+
+
 _OBJ_MODELS = {
     MinerTypeHint.AURADINE: AuradineIPReport,
     MinerTypeHint.GOLDSHELL: GoldshellIPReport,
-    MinerTypeHint.SEALMINER: SealMinerIPReport,
+    MinerTypeHint.SEALMINER: SealminerIPReport,
+    MinerTypeHint.IBELINK: IBeLinkIPReport,
 }
 
 
@@ -226,42 +264,3 @@ def get_ip_model(hint: MinerTypeHint) -> tuple[type[IPReportModel], bool]:
     if hint in _OBJ_MODELS:
         return _OBJ_MODELS[hint], True
     return IPReportModel, False
-
-
-def parse_ibelink_payload(data: bytes) -> tuple[str, str, str]:
-    if len(data) < _IBELINK_HEADER_SIZE:
-        raise ValueError(f"payload too short: {len(data)}")
-
-    if not data.startswith(_IBELINK_MAGIC):
-        raise ValueError("invalid ibelink magic")
-
-    fields = [field for field in data[_IBELINK_HEADER_SIZE:].split(b"\x00") if field][
-        :_IBELINK_ADDRESS_FIELDS
-    ]
-    if len(fields) < _IBELINK_ADDRESS_FIELDS:
-        raise ValueError("missing ibelink address fields")
-
-    raw_ip, _, _, raw_mac = (field.decode(encoding="ascii") for field in fields)
-    ip = parse_ipv4(raw_ip)
-    if ip == "":
-        raise ValueError(f"invalid ip: {raw_ip}")
-    mac = parse_mac(raw_mac)
-    if mac == "":
-        raise ValueError(f"invalid mac: {raw_mac}")
-    return ip, mac, ""
-
-
-payload_parser = Callable[[bytes], tuple[str, str, str]]
-_PAYLOAD_PARSERS = {
-    MinerTypeHint.IBELINK: parse_ibelink_payload,
-}
-
-
-def get_payload_parser(
-    hint: MinerTypeHint,
-) -> tuple[payload_parser, bool]:
-    """Get the IP report parser for the given miner type hint.
-    Returns a tuple of the parser and a boolean indicating if the parser was found."""
-    if hint in _PAYLOAD_PARSERS:
-        return _PAYLOAD_PARSERS[hint], True
-    return lambda _: ("", "", ""), False
