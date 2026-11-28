@@ -6,11 +6,15 @@
 """Tests for miner action orchestration and the retained pool bridge."""
 
 import asyncio
+import os
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 from unittest.mock import AsyncMock, Mock, call, patch
+
+from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QApplication, QDialog
 
 import config  # noqa: F401  # initialize Pydantic before importing PySide-backed IPR
 from mod.ipr_asic import MinerDataResult, MinerResult
@@ -23,6 +27,34 @@ from mod.ipr_asic.firmware import (
 )
 from mod.ipr_asic.schemas.antminer import MinerTypeInfo, VersionInfo
 from ui.widgets import MinerActionController, MinerConfiguratorController
+from ui.widgets.ipr.idtable.controlpopup import MinerControlPopup
+
+
+class TestMinerControlPopup(unittest.TestCase):
+    def test_popup_dismissed_before_modal_action(self):
+        with patch.dict(os.environ, QT_QPA_PLATFORM="offscreen"):
+            app = QApplication.instance() or QApplication([])
+        if not isinstance(app, QApplication):
+            self.skipTest("a QCoreApplication already owns the Qt process")
+
+        for key, result in (
+            ("reset_firmware", QDialog.DialogCode.Accepted),
+            ("rollback_firmware", QDialog.DialogCode.Rejected),
+        ):
+            with self.subTest(key=key):
+                popup = MinerControlPopup()
+                dialog = QDialog()
+                observed = []
+
+                def confirm(selected):
+                    visible = popup.isVisible()
+                    QTimer.singleShot(0, lambda: dialog.done(result))
+                    observed.append((selected, visible, dialog.exec()))
+
+                popup.action_selected.connect(confirm)
+                popup.show()
+                popup._on_action(key)
+                self.assertEqual(observed, [(key, False, result)])
 
 
 class _ControlFacade:

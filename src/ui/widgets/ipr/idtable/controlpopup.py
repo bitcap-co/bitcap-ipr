@@ -68,8 +68,9 @@ class MinerControlPopup(QFrame):
             layout.addWidget(button)
 
     def _on_action(self, key: str) -> None:
-        self.action_selected.emit(key)
+        # A slot may open a modal dialog and process the popup's deferred deletion.
         _ = self.close()
+        self.action_selected.emit(key)
 
     def show_at(self, global_pos: QPoint) -> None:
         self.adjustSize()
